@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Recap Audio Maker</title>
+<style>
+  :root {
+    --bg-1: #181825;
+    --bg-2: #242438;
+    --app-bg: #1e1e2e;
+    --card-bg: #28283d;
+    --border: #3b3b54;
+    --border-soft: #2f2f47;
+    --text: #cdd6f4;
+    --text-dim: #9399b2;
+    --text-mute: #6c7086;
+    --accent: #cba6f7;
+    --accent-solid: #a78bfa;
+    --accent-hover: #9370e5;
+    --success: #a6e3a1;
+    --warn: #f9e2af;
+    --danger: #f38ba8;
+    --shadow: 0 20px 50px rgba(0,0,0,0.5);
+  }
+  [data-theme="light"] {
+    --bg-1: #f4ecd8;
+    --bg-2: #e6d7b8;
+    --app-bg: #faf4e6;
+    --card-bg: #f0e2c8;
+    --border: #d3c0a3;
+    --border-soft: #e2d2b9;
+    --text: #2d241e;
+    --text-dim: #6e5c4d;
+    --text-mute: #998573;
+    --accent: #7c3aed;
+    --accent-solid: #7c3aed;
+    --accent-hover: #5b21b6;
+    --success: #16a085;
+    --warn: #d97706;
+    --danger: #b91c1c;
+    --shadow: 0 8px 28px rgba(139,100,40,0.18);
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',system-ui,sans-serif; }
+  body {
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    color: var(--text);
+    min-height: 100vh;
+    padding: 24px 16px;
+    transition: background 0.3s;
+    display: flex;
+    justify-content: center;
+  }
+
+  .app {
+    background: var(--app-bg);
+    max-width: 960px;
+    width: 100%;
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    color: var(--text);
+    padding: 20px 28px 28px;
+    border: 1px solid var(--border-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+
+  header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--border-soft);
+  }
+  header .title { flex: 1; }
+  header h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+    background: linear-gradient(90deg, var(--accent), #f472b6);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  header .sub { color: var(--text-dim); font-size: 0.82rem; margin-top: 2px; }
+
+  .header-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { color: var(--text); border-color: var(--accent); }
+  .icon-btn.active { background: var(--accent-solid); color: #fff; border-color: var(--accent-solid); }
+
+  .source-tabs {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 4px 0;
+  }
+  .source-tab {
+    padding: 8px 14px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+    display: flex; align-items: center; gap: 6px;
+    font-family: inherit;
+  }
+  .source-tab:hover { color: var(--text); border-color: var(--accent); }
+  .source-tab.active { background: var(--accent-solid); color: #fff; border-color: var(--accent-solid); }
+
+  .input-area {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid var(--border-soft);
+    min-height: 180px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .input-area textarea {
+    width: 100%;
+    min-height: 160px;
+    resize: vertical;
+    padding: 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    background: var(--app-bg);
+    color: var(--text);
+    font-size: 0.95rem;
+    line-height: 1.55;
+    font-family: inherit;
+    outline: none;
+  }
+  .input-area textarea:focus { border-color: var(--accent); }
+  .input-area .picker {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    padding: 6px 0;
+  }
+  .input-area select {
+    flex: 1;
+    padding: 8px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--app-bg);
+    color: var(--text);
+    font-size: 0.88rem;
+    outline: none;
+    font-family: inherit;
+  }
+  .source-info {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    padding: 4px 0;
+  }
+
+  .options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 10px;
+  }
+  .opt-block {
+    background: var(--card-bg);
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--border-soft);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .opt-block label {
+    font-size: 0.68rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+  }
+  .opt-block select {
+    padding: 6px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--app-bg);
+    color: var(--text);
+    font-size: 0.85rem;
+    outline: none;
+    font-family: inherit;
+    cursor: pointer;
+  }
+  .opt-block select:focus { border-color: var(--accent); }
+
+  .action-row {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .btn-primary {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent-solid);
+    color: #fff;
+    font-size: 0.92rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: background 0.15s;
+    font-family: inherit;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+  .btn-secondary {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.85rem;
+    cursor: pointer;
+    font-family: inherit;
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+
+  .busy { opacity: 0.6; pointer-events: none; }
+  .busy::after { content: '…'; margin-left: 4px; }
+
+  .script-section {
+    display: none;
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid var(--border-soft);
+  }
+  .script-section.show { display: block; }
+  .script-section h3 {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-weight: 600;
+  }
+  .script-section textarea {
+    width: 100%;
+    min-height: 200px;
+    padding: 12px;
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    background: var(--app-bg);
+    color: var(--text);
+    font-size: 0.92rem;
+    line-height: 1.6;
+    font-family: inherit;
+    outline: none;
+    resize: vertical;
+  }
+  .script-section textarea:focus { border-color: var(--accent); }
+
+  .audio-section {
+    display: none;
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid var(--border-soft);
+    align-items: center;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .audio-section.show { display: flex; }
+  .audio-section audio { flex: 1; min-width: 240px; height: 40px; outline: none; }
+
+  .history-section {
+    background: var(--card-bg);
+    border-radius: 10px;
+    padding: 14px;
+    border: 1px solid var(--border-soft);
+  }
+  .history-section h3 {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    font-weight: 600;
+  }
+  .history-list { display: flex; flex-direction: column; gap: 6px; }
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: var(--app-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: border-color 0.15s;
+  }
+  .history-item:hover { border-color: var(--accent); }
+  .history-item .h-title { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .history-item .h-meta { color: var(--text-dim); font-size: 0.72rem; margin-left: 12px; flex-shrink: 0; }
+  .history-item .h-del { background: transparent; border: none; color: var(--text-dim); cursor: pointer; margin-left: 8px; font-size: 0.9rem; }
+  .history-item .h-del:hover { color: var(--danger); }
+  .history-empty { color: var(--text-mute); font-style: italic; font-size: 0.85rem; text-align: center; padding: 8px; }
+
+  /* Modal (API key) */
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: flex-start; justify-content: center; padding: 60px 20px; z-index: 900; overflow-y: auto; }
+  .modal-backdrop.show { display: flex; }
+  .modal { background: var(--app-bg); color: var(--text); border-radius: 16px; padding: 22px 26px; max-width: 520px; width: 100%; box-shadow: var(--shadow); border: 1px solid var(--border); }
+  .modal h2 { font-size: 1.15rem; margin-bottom: 10px; }
+  .modal p { font-size: 0.86rem; color: var(--text-dim); margin-bottom: 12px; line-height: 1.5; }
+  .modal p a { color: var(--accent); }
+  .modal label { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-top: 8px; margin-bottom: 4px; font-weight: 600; }
+  .modal input, .modal select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text); font-size: 0.9rem; outline: none; margin-bottom: 4px; font-family: 'Consolas','Monaco',monospace; }
+  .modal input:focus, .modal select:focus { border-color: var(--accent); }
+  .modal .hint { font-size: 0.74rem; color: var(--text-mute); font-style: italic; margin-top: 10px; }
+  .modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+  .modal .modal-actions button { padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text); cursor: pointer; font-size: 0.85rem; }
+  .modal .modal-actions .primary { background: var(--accent-solid); color: #fff; border-color: var(--accent-solid); font-weight: 600; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--app-bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 16px;
+    box-shadow: var(--shadow); font-size: 0.88rem;
+    opacity: 0; pointer-events: none; transition: all 0.25s; z-index: 1000;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  input[type="file"] { display: none; }
+
+  @media (max-width: 640px) {
+    .app { padding: 16px 18px 20px; }
+    header h1 { font-size: 1.2rem; }
+    .source-tabs { flex-direction: column; }
+    .source-tab { justify-content: center; }
+  }
+</style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#a78bfa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>🎧 Recap Audio Maker</h1>
+        <div class="sub">မှတ်စု, အလုပ်စာရင်း သို့မဟုတ် စာသားများကို အသံဖိုင် (podcast recap) အဖြစ် ပြောင်းလဲပါ</div>
+      </div>
+      <div class="header-actions">
+        <a class="icon-btn" href="index.html" title="Dashboard">🏠</a>
+        <button class="icon-btn" id="apiKeyBtn" title="Set Gemini API key">🔑</button>
+        <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+      </div>
+    </header>
+
+    <!-- Source selector -->
+    <div class="source-tabs">
+      <button class="source-tab active" data-src="paste">📝 စာသား ကူးထည့်ရန်</button>
+      <button class="source-tab" data-src="note">📓 မှတ်စုမှ</button>
+      <button class="source-tab" data-src="today">📋 ယနေ့ Tasks</button>
+      <button class="source-tab" data-src="week">📅 ရက်သတ္တပတ် Recap</button>
+    </div>
+
+    <!-- Input area -->
+    <div class="input-area">
+      <div class="picker" id="pickerRow" style="display:none">
+        <select id="notePicker"></select>
+        <button class="btn-secondary" id="loadNoteBtn">Load</button>
+      </div>
+      <div class="source-info" id="sourceInfo"></div>
+      <textarea id="inputText" placeholder="ဤနေရာတွင် စာသား ကူးထည့်ပါ..."></textarea>
+    </div>
+
+    <!-- Options -->
+    <div class="options-grid">
+      <div class="opt-block">
+        <label>🎭 Style</label>
+        <select id="styleSelect">
+          <option value="solo">🎙 Solo Narrator</option>
+          <option value="dual" selected>👥 Dual Voices (Podcast)</option>
+          <option value="news">📻 News Anchor</option>
+          <option value="storyteller">📖 Story Teller</option>
+        </select>
+      </div>
+      <div class="opt-block">
+        <label>🌐 Language</label>
+        <select id="langSelect">
+          <option value="Myanmar (Burmese)" selected>မြန်မာ Myanmar</option>
+          <option value="English">English</option>
+          <option value="Mixed (Myanmar + English)">မြန်မာ + English</option>
+          <option value="Malay">Malay</option>
+          <option value="Chinese (Simplified)">中文</option>
+          <option value="Japanese">日本語</option>
+        </select>
+      </div>
+      <div class="opt-block">
+        <label>⏱ Length</label>
+        <select id="lengthSelect">
+          <option value="30s">~30 seconds (short)</option>
+          <option value="1min" selected>~1 minute (medium)</option>
+          <option value="2min">~2 minutes (long)</option>
+          <option value="5min">~5 minutes (detailed)</option>
+        </select>
+      </div>
+      <div class="opt-block">
+        <label>🎵 Voice (Solo)</label>
+        <select id="voiceSelect">
+          <option value="Kore" selected>Kore (warm, calm)</option>
+          <option value="Puck">Puck (upbeat)</option>
+          <option value="Zephyr">Zephyr (bright)</option>
+          <option value="Charon">Charon (informative)</option>
+          <option value="Fenrir">Fenrir (excitable)</option>
+          <option value="Aoede">Aoede (breezy)</option>
+          <option value="Leda">Leda (youthful)</option>
+          <option value="Orus">Orus (firm)</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-row">
+      <button class="btn-primary" id="generateBtn">✨ Script ဖန်တီးမည်</button>
+      <button class="btn-secondary" id="clearBtn">🗑 ရှင်းမည်</button>
+      <span id="wordStats" style="color:var(--text-dim);font-size:0.8rem;margin-left:auto"></span>
+    </div>
+
+    <!-- Script preview + edit -->
+    <div class="script-section" id="scriptSection">
+      <h3>
+        <span>📄 Script Preview (edit လုပ်နိုင်ပါသည်)</span>
+        <button class="btn-secondary" id="copyScriptBtn" style="padding:3px 10px;font-size:0.72rem">📋 Copy</button>
+      </h3>
+      <textarea id="scriptText" placeholder="Script က ဤနေရာတွင် ပေါ်လာမည်..."></textarea>
+      <div class="action-row" style="margin-top:10px">
+        <button class="btn-primary" id="synthBtn" style="background:var(--success)">🔊 အသံ ဖန်တီးမည်</button>
+        <button class="btn-secondary" id="regenScriptBtn">🔄 Script ပြန်ဖန်တီးမည်</button>
+      </div>
+    </div>
+
+    <!-- Audio output -->
+    <div class="audio-section" id="audioSection">
+      <span style="color:var(--text-dim);font-size:0.85rem">🎵 Recap Audio:</span>
+      <audio id="recapAudio" controls></audio>
+      <button class="btn-secondary" id="downloadBtn">⬇ Download WAV</button>
+    </div>
+
+    <!-- History -->
+    <div class="history-section">
+      <h3>📚 ယခင် Recaps</h3>
+      <div class="history-list" id="historyList"></div>
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div class="modal-backdrop" id="apiKeyModal">
+    <div class="modal">
+      <h2>🔑 Gemini API Key</h2>
+      <p>Recap Audio Maker သည် Gemini API ကို အသုံးပြုပါသည်။ Script ဖန်တီးရန်နှင့် Text-to-Speech အတွက် လိုအပ်ပါသည်။ Free key: <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a></p>
+      <label>API Key</label>
+      <input type="password" id="apiKeyInput" placeholder="AIza..." autocomplete="off">
+      <label>Text Model</label>
+      <select id="modelSelect">
+        <option value="gemini-2.5-flash">gemini-2.5-flash (recommended)</option>
+        <option value="gemini-2.5-pro">gemini-2.5-pro (higher quality)</option>
+        <option value="gemini-2.0-flash">gemini-2.0-flash (stable)</option>
+      </select>
+      <p class="hint">Key ကို ဤ browser ၏ localStorage တွင်သာ သိမ်းဆည်းသည်။ Enterprise Suite နှင့် တူညီသော key ကို ဝေမျှသည်။</p>
+      <div class="modal-actions">
+        <button id="apiKeyClearBtn">Clear key</button>
+        <button class="primary" id="apiKeySaveBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script defer src="_settings.js"></script>
+<script>
+  // ===== Shared with Enterprise Suite (same storage keys) =====
+  const API_KEY_STORE = 'ainotes.enterprise.gemini.key';
+  const MODEL_STORE   = 'ainotes.enterprise.gemini.model';
+  const THEME_KEY     = 'ainotes.theme';
+  const RECAP_STORE   = 'recap.history.v1';
+  const GEMINI_TTS_MODEL = 'gemini-2.5-flash-preview-tts';
+
+  const $ = id => document.getElementById(id);
+  const getApiKey   = () => localStorage.getItem(API_KEY_STORE) || '';
+  const getTextModel = () => localStorage.getItem(MODEL_STORE) || 'gemini-2.5-flash';
+
+  let activeSource = 'paste';
+  let currentSourceMeta = null;   // for saving history
+  let currentAudioBlob = null;
+  let activeAudio = null;
+  let recapHistory = loadHistory();
+
+  // ---- Theme ----
+  function applyTheme(t) {
+    document.documentElement.dataset.theme = t;
+    $('themeBtn').textContent = t === 'light' ? '☀' : '🌙';
+    localStorage.setItem(THEME_KEY, t);
+  }
+  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+  $('themeBtn').onclick = () => applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+
+  // ---- Safe DOM helper ----
+  function el(tag, props = {}, ...children) {
+    const e = document.createElement(tag);
+    Object.entries(props).forEach(([k, v]) => {
+      if (k === 'class') e.className = v;
+      else if (k === 'style') e.style.cssText = v;
+      else if (k === 'text') e.textContent = v;
+      else if (k.startsWith('on')) e[k] = v;
+      else e.setAttribute(k, v);
+    });
+    children.flat().forEach(c => c != null && e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c));
+    return e;
+  }
+
+  // ---- Toast ----
+  let toastTimer = null;
+  function toast(msg) {
+    $('toast').textContent = msg;
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), 3000);
+  }
+
+  // ---- Word stats ----
+  function updateStats() {
+    const t = $('inputText').value;
+    // Myanmar-aware character count fallback
+    const words = t.trim() ? t.trim().split(/\s+/).length : 0;
+    const chars = t.length;
+    $('wordStats').textContent = `${words} words · ${chars} chars`;
+  }
+  $('inputText').addEventListener('input', updateStats);
+  updateStats();
+
+  // ---- Source tabs ----
+  document.querySelectorAll('.source-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.source-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      activeSource = tab.dataset.src;
+      onSourceChange();
+    });
+  });
+
+  function onSourceChange() {
+    const info = $('sourceInfo');
+    const pickerRow = $('pickerRow');
+    const input = $('inputText');
+    pickerRow.style.display = 'none';
+    input.readOnly = false;
+    input.style.opacity = '1';
+    currentSourceMeta = null;
+
+    if (activeSource === 'paste') {
+      info.textContent = '';
+      input.placeholder = 'ဤနေရာတွင် စာသား ကူးထည့်ပါ (မှတ်စု၊ meeting notes၊ article၊ etc.)';
+    } else if (activeSource === 'note') {
+      const notes = loadNotes();
+      if (!notes.length) {
+        info.textContent = '⚠ AI Note Taker မှတ်စုများ မတွေ့ရပါ';
+        input.value = ''; input.placeholder = 'မှတ်စု မရှိပါ';
+      } else {
+        pickerRow.style.display = 'flex';
+        const sel = $('notePicker'); sel.innerHTML = '';
+        notes.forEach(n => {
+          const opt = document.createElement('option');
+          opt.value = n.id;
+          opt.textContent = `${n.title || '(untitled)'} · ${(n.transcript || '').length} chars`;
+          sel.appendChild(opt);
+        });
+        info.textContent = `${notes.length} မှတ်စု တွေ့ရှိသည်။ ရွေးပြီး "Load" နှိပ်ပါ`;
+      }
+    } else if (activeSource === 'today') {
+      const tasks = loadTodayTasks();
+      const text = buildTasksText(tasks, 'ယနေ့');
+      input.value = text;
+      input.readOnly = true; input.style.opacity = '0.85';
+      const doneCnt = tasks.done.length, doingCnt = tasks.doing.length, blockedCnt = tasks.blocked.length;
+      info.textContent = `📊 ${doneCnt} ပြီးစီး · ${doingCnt} လုပ်ဆောင်နေ · ${blockedCnt} ပိတ်ဆို့`;
+      currentSourceMeta = { type: 'today', at: Date.now() };
+    } else if (activeSource === 'week') {
+      const tasks = loadWeekTasks();
+      const text = buildTasksText(tasks, 'ဒီအပတ်');
+      input.value = text;
+      input.readOnly = true; input.style.opacity = '0.85';
+      const doneCnt = tasks.done.length;
+      info.textContent = `📊 ${doneCnt} ပြီးစီး ဤအပတ်အတွင်း (last 7 days)`;
+      currentSourceMeta = { type: 'week', at: Date.now() };
+    }
+    updateStats();
+  }
+
+  $('loadNoteBtn').addEventListener('click', () => {
+    const id = $('notePicker').value;
+    const notes = loadNotes();
+    const n = notes.find(x => x.id === id);
+    if (!n) return;
+    $('inputText').value = (n.title ? `${n.title}\n\n` : '') + (n.transcript || '');
+    currentSourceMeta = { type: 'note', noteId: id, noteTitle: n.title || '' };
+    updateStats();
+    toast(`📓 "${n.title || '(untitled)'}" မှတ်စု ရွေးပြီးပါပြီ`);
+  });
+
+  // ---- Data source loaders ----
+  function loadNotes() {
+    const all = [];
+    // v1 = classic AI Note Taker
+    try {
+      const v1 = JSON.parse(localStorage.getItem('ainotes.v1') || '[]');
+      if (Array.isArray(v1)) all.push(...v1);
+    } catch {}
+    // v11.enterprise = enterprise suite
+    try {
+      const v11 = JSON.parse(localStorage.getItem('ainotes.v11.enterprise') || '[]');
+      if (Array.isArray(v11)) all.push(...v11);
+    } catch {}
+    return all
+      .filter(n => (n.transcript || '').trim() || (n.summary || '').trim())
+      .sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+  }
+
+  function loadTodayTasks() {
+    const start = new Date(); start.setHours(0,0,0,0);
+    return groupTasks(loadAllTasks(), start.getTime());
+  }
+  function loadWeekTasks() {
+    const start = new Date(); start.setDate(start.getDate() - 7); start.setHours(0,0,0,0);
+    return groupTasks(loadAllTasks(), start.getTime());
+  }
+  function loadAllTasks() {
+    try {
+      const t = JSON.parse(localStorage.getItem('tasks.v3') || '[]');
+      return Array.isArray(t) ? t : [];
+    } catch { return []; }
+  }
+  function groupTasks(tasks, sinceMs) {
+    const done = tasks.filter(t => t.status === 'done' && t.doneAt && t.doneAt >= sinceMs);
+    const doing = tasks.filter(t => t.status === 'doing');
+    const blocked = tasks.filter(t => t.status === 'blocked');
+    return { done, doing, blocked };
+  }
+  function buildTasksText(t, label) {
+    const parts = [`${label} recap:`, ''];
+    if (t.done.length) {
+      parts.push('✅ ပြီးစီးသည်များ:');
+      t.done.forEach(x => parts.push(`- ${x.text}`));
+      parts.push('');
+    }
+    if (t.doing.length) {
+      parts.push('▶ လုပ်ဆောင်နေ:');
+      t.doing.forEach(x => parts.push(`- ${x.text}`));
+      parts.push('');
+    }
+    if (t.blocked.length) {
+      parts.push('⛔ ပိတ်ဆို့ခံရ:');
+      t.blocked.forEach(x => parts.push(`- ${x.text}${x.blockedReason ? ` (${x.blockedReason})` : ''}`));
+    }
+    return parts.join('\n').trim() || 'ဒီရက်ပိုင်း လုပ်ဆောင်ချက် မရှိသေးပါ။';
+  }
+
+  // ---- Gemini text call ----
+  async function callGemini(prompt) {
+    const key = getApiKey();
+    if (!key) throw new Error('Gemini API key မထည့်ရသေးပါ (🔑 button ကို နှိပ်ပါ)');
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(getTextModel())}:generateContent?key=${encodeURIComponent(key)}`;
+    const res = await fetch(url, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
+    });
+    if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 160)}`);
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  }
+
+  // ---- Generate Script ----
+  function scriptPrompt(text, style, lang, length) {
+    const lengthMap = {
+      '30s': 'ဝါကျ ၄-၆ ကြောင်း (recording ၃၀ စက္ကန့်ခန့်)',
+      '1min': 'ဝါကျ ၁၀-၁၅ ကြောင်း (recording ၁ မိနစ်ခန့်)',
+      '2min': 'ဝါကျ ၂၀-၃၀ ကြောင်း (recording ၂ မိနစ်ခန့်)',
+      '5min': 'အပိုဒ် ၅-၈ ခု (recording ၄-၅ မိနစ်ခန့်)',
+    };
+    const lengthDesc = lengthMap[length] || lengthMap['1min'];
+
+    const langDesc = lang;
+
+    if (style === 'dual') {
+      return `You are creating a podcast recap script in ${langDesc}.
+Write a natural conversation between two hosts:
+- Alex: the enthusiastic host who introduces topics and asks questions
+- Sam: the knowledgeable expert who explains and elaborates
+
+Length: ${lengthDesc}. Make it engaging, natural, conversational.
+Format STRICTLY as one line per turn:
+Alex: ...
+Sam: ...
+Alex: ...
+
+Content to recap:
+${text}`;
+    }
+    if (style === 'news') {
+      return `You are a news anchor. Read the following as a professional news recap in ${langDesc}.
+Length: ${lengthDesc}. Use clear, authoritative tone. Structure: headline → key facts → context → outlook.
+Return only the spoken script, no formatting markers.
+
+Content:
+${text}`;
+    }
+    if (style === 'storyteller') {
+      return `You are a warm storyteller. Turn the following into a compelling narrative recap in ${langDesc}.
+Length: ${lengthDesc}. Use vivid language, connect ideas naturally, keep listener engaged.
+Return only the spoken script, no formatting markers.
+
+Content:
+${text}`;
+    }
+    // solo
+    return `Create a solo narration recap in ${langDesc}.
+Length: ${lengthDesc}. Clear, friendly tone. First person or third person — pick what suits the content.
+Return only the spoken script, no formatting markers or stage directions.
+
+Content:
+${text}`;
+  }
+
+  $('generateBtn').addEventListener('click', async () => {
+    const text = $('inputText').value.trim();
+    if (!text) { toast('စာသား ကူးထည့်ပါ ဦး'); return; }
+    if (!getApiKey()) { toast('🔑 API key ဦးစွာ ထည့်ပါ'); openApiModal(); return; }
+
+    const btn = $('generateBtn'); btn.classList.add('busy'); btn.disabled = true;
+    toast('✨ Script ဖန်တီးနေပါသည်...');
+    try {
+      const script = await callGemini(scriptPrompt(
+        text, $('styleSelect').value, $('langSelect').value, $('lengthSelect').value
+      ));
+      $('scriptText').value = script.trim();
+      $('scriptSection').classList.add('show');
+      $('audioSection').classList.remove('show'); // hide old audio
+      toast('✨ Script ရပါပြီ — edit လုပ်ပြီး "🔊 အသံ ဖန်တီးမည်" ကို နှိပ်ပါ');
+    } catch (e) {
+      toast('⚠ ' + e.message);
+    } finally { btn.classList.remove('busy'); btn.disabled = false; }
+  });
+
+  $('regenScriptBtn').addEventListener('click', () => $('generateBtn').click());
+
+  $('clearBtn').addEventListener('click', () => {
+    $('inputText').value = ''; $('scriptText').value = '';
+    $('scriptSection').classList.remove('show'); $('audioSection').classList.remove('show');
+    currentSourceMeta = null; currentAudioBlob = null; updateStats();
+  });
+
+  $('copyScriptBtn').addEventListener('click', async () => {
+    try { await navigator.clipboard.writeText($('scriptText').value); toast('📋 Script ကူးယူပြီးပါပြီ'); }
+    catch { toast('Copy မရပါ'); }
+  });
+
+  // ---- Synthesize Audio ----
+  function pcmToWav(base64Pcm, sampleRate = 24000) {
+    const binaryStr = atob(base64Pcm);
+    const pcmData = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) pcmData[i] = binaryStr.charCodeAt(i);
+    const numChannels = 1; const bitsPerSample = 16;
+    const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+    const blockAlign = numChannels * (bitsPerSample / 8);
+    const buffer = new ArrayBuffer(44 + pcmData.length);
+    const view = new DataView(buffer);
+    const writeString = (offset, s) => { for (let i = 0; i < s.length; i++) view.setUint8(offset + i, s.charCodeAt(i)); };
+    writeString(0, 'RIFF'); view.setUint32(4, 36 + pcmData.length, true); writeString(8, 'WAVE');
+    writeString(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+    view.setUint16(22, numChannels, true); view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true); view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true); writeString(36, 'data'); view.setUint32(40, pcmData.length, true);
+    new Uint8Array(buffer, 44).set(pcmData);
+    return new Blob([buffer], { type: 'audio/wav' });
+  }
+
+  async function synthesizeAudio(scriptText, style) {
+    const key = getApiKey();
+    if (!key) throw new Error('API key မထည့်ရသေးပါ');
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_TTS_MODEL}:generateContent?key=${encodeURIComponent(key)}`;
+
+    // Truncate very long scripts (TTS models have limits)
+    const text = scriptText.slice(0, 8000);
+
+    let speechConfig;
+    if (style === 'dual') {
+      speechConfig = {
+        multiSpeakerVoiceConfig: {
+          speakerVoiceConfigs: [
+            { speaker: 'Alex', voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Zephyr' } } },
+            { speaker: 'Sam',  voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Kore' } } }
+          ]
+        }
+      };
+    } else {
+      speechConfig = { voiceConfig: { prebuiltVoiceConfig: { voiceName: $('voiceSelect').value } } };
+    }
+
+    const res = await fetch(endpoint, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text }] }],
+        generationConfig: { responseModalities: ['AUDIO'], speechConfig }
+      })
+    });
+    if (!res.ok) throw new Error(`Gemini TTS ${res.status}: ${(await res.text()).slice(0, 160)}`);
+    const data = await res.json();
+    const pcmBase64 = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+    if (!pcmBase64) throw new Error('TTS returned no audio');
+    return pcmToWav(pcmBase64);
+  }
+
+  $('synthBtn').addEventListener('click', async () => {
+    const script = $('scriptText').value.trim();
+    if (!script) { toast('Script မရှိပါ'); return; }
+    if (!getApiKey()) { openApiModal(); return; }
+
+    const btn = $('synthBtn'); btn.classList.add('busy'); btn.disabled = true;
+    toast('🔊 အသံ ဖန်တီးနေပါသည်... (၁၀-၃၀ စက္ကန့် ကြာနိုင်သည်)');
+    try {
+      const blob = await synthesizeAudio(script, $('styleSelect').value);
+      currentAudioBlob = blob;
+      const url = URL.createObjectURL(blob);
+      const audio = $('recapAudio');
+      if (activeAudio) URL.revokeObjectURL(activeAudio);
+      activeAudio = url;
+      audio.src = url;
+      $('audioSection').classList.add('show');
+      audio.play().catch(() => {});
+      toast('🎧 အသံ ဖန်တီးပြီးပါပြီ — အောက်တွင် နားထောင်နိုင်ပါသည်');
+      saveToHistory(script);
+    } catch (e) {
+      toast('⚠ ' + e.message);
+    } finally { btn.classList.remove('busy'); btn.disabled = false; }
+  });
+
+  $('downloadBtn').addEventListener('click', () => {
+    if (!currentAudioBlob) { toast('Download ရန် audio မရှိပါ'); return; }
+    const url = URL.createObjectURL(currentAudioBlob);
+    const a = document.createElement('a');
+    a.href = url;
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    a.download = `recap-${stamp}.wav`;
+    a.click();
+    URL.revokeObjectURL(url);
+    toast('⬇ Download စတင်ပါပြီ');
+  });
+
+  // ---- History ----
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(RECAP_STORE) || '[]'); }
+    catch { return []; }
+  }
+  function saveHistory() {
+    localStorage.setItem(RECAP_STORE, JSON.stringify(recapHistory.slice(0, 50)));
+  }
+  function saveToHistory(script) {
+    const item = {
+      id: Date.now() + '.' + Math.random().toString(36).slice(2, 6),
+      script,
+      style: $('styleSelect').value,
+      lang: $('langSelect').value,
+      length: $('lengthSelect').value,
+      voice: $('voiceSelect').value,
+      title: script.slice(0, 60).replace(/\n.*$/s, '') + (script.length > 60 ? '…' : ''),
+      at: Date.now(),
+    };
+    recapHistory.unshift(item);
+    saveHistory();
+    renderHistory();
+  }
+  function renderHistory() {
+    const list = $('historyList');
+    list.textContent = '';
+    if (!recapHistory.length) {
+      list.appendChild(el('div', { class: 'history-empty', text: 'ယခင် recap များ မရှိသေးပါ' }));
+      return;
+    }
+    recapHistory.forEach(item => {
+      const row = el('div', { class: 'history-item', onclick: () => loadHistoryItem(item.id) });
+      row.appendChild(el('span', { class: 'h-title', text: item.title }));
+      row.appendChild(el('span', { class: 'h-meta', text: `${item.style} · ${new Date(item.at).toLocaleDateString()}` }));
+      const del = el('button', { class: 'h-del', text: '🗑', title: 'Delete', onclick: (e) => { e.stopPropagation(); deleteHistoryItem(item.id); } });
+      row.appendChild(del);
+      list.appendChild(row);
+    });
+  }
+  function loadHistoryItem(id) {
+    const item = recapHistory.find(x => x.id === id);
+    if (!item) return;
+    $('scriptText').value = item.script;
+    $('styleSelect').value = item.style;
+    $('langSelect').value = item.lang;
+    $('lengthSelect').value = item.length;
+    $('voiceSelect').value = item.voice;
+    $('scriptSection').classList.add('show');
+    $('audioSection').classList.remove('show');
+    toast('📚 Script ကို history မှ ဖွင့်ပြီးပါပြီ — 🔊 နှိပ်၍ အသံ ပြန်ဖန်တီးပါ');
+    $('scriptSection').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+  function deleteHistoryItem(id) {
+    if (!confirm('ဤ recap ကို ဖျက်မှာသေချာလား?')) return;
+    recapHistory = recapHistory.filter(x => x.id !== id);
+    saveHistory(); renderHistory(); toast('🗑 ဖျက်ပြီးပါပြီ');
+  }
+  renderHistory();
+
+  // ---- API Key Modal ----
+  function openApiModal() {
+    $('apiKeyInput').value = getApiKey();
+    $('modelSelect').value = getTextModel();
+    $('apiKeyModal').classList.add('show');
+    setTimeout(() => $('apiKeyInput').focus(), 40);
+  }
+  function closeApiModal() { $('apiKeyModal').classList.remove('show'); }
+  $('apiKeyBtn').onclick = openApiModal;
+  $('apiKeyModal').addEventListener('click', e => { if (e.target === $('apiKeyModal')) closeApiModal(); });
+  $('apiKeySaveBtn').onclick = () => {
+    const k = $('apiKeyInput').value.trim();
+    if (k) localStorage.setItem(API_KEY_STORE, k);
+    localStorage.setItem(MODEL_STORE, $('modelSelect').value);
+    updateApiKeyBtn();
+    closeApiModal();
+    toast(k ? '🔑 Saved' : 'Model updated');
+  };
+  $('apiKeyClearBtn').onclick = () => {
+    localStorage.removeItem(API_KEY_STORE); $('apiKeyInput').value = ''; updateApiKeyBtn();
+    toast('Cleared');
+  };
+  function updateApiKeyBtn() {
+    const has = !!getApiKey();
+    $('apiKeyBtn').classList.toggle('active', has);
+    $('apiKeyBtn').title = has ? `Gemini set (${getTextModel()})` : 'Set Gemini API key';
+  }
+  updateApiKeyBtn();
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && $('apiKeyModal').classList.contains('show')) closeApiModal();
+  });
+
+  // Init source
+  onSourceChange();
+
+  // Nudge if no key
+  if (!getApiKey()) {
+    setTimeout(() => toast('🔑 Gemini API key ဦးစွာ ထည့်ပါ — 🔑 button နှိပ်ပါ'), 600);
+  }
+</script>
+</body>
+</html>

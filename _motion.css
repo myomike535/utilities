@@ -1,0 +1,892 @@
+/* ============================================================
+   _motion.css — shared motion primitives for all Utilities.Tool
+   pages. Include once via <link> and any page inherits:
+     • Animated aurora backdrop
+     • Button micro-interactions (lift, scale, spring)
+     • Focus-visible ring polish
+     • Card/panel entrance animation (opt-in via .m-enter)
+     • Reduced-motion respect
+   ============================================================ */
+
+/* -------- Aurora backdrop -------- */
+body {
+  position: relative;
+  overflow-x: hidden;
+}
+body::before, body::after {
+  content: '';
+  position: fixed;
+  width: 60vmax; height: 60vmax;
+  border-radius: 50%;
+  filter: blur(100px);
+  opacity: 0.28;
+  pointer-events: none;
+  z-index: 0;
+}
+body::before {
+  top: -20vmax; left: -20vmax;
+  background: radial-gradient(circle, var(--accent, #6366f1), transparent 70%);
+  animation: m-aurora-a 22s ease-in-out infinite;
+}
+body::after {
+  bottom: -20vmax; right: -20vmax;
+  background: radial-gradient(circle, var(--accent-2, #a78bfa), transparent 70%);
+  animation: m-aurora-b 26s ease-in-out infinite;
+}
+[data-theme="light"] body::before,
+[data-theme="light"] body::after { opacity: 0.4; }
+@keyframes m-aurora-a {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(15vw, 10vh) scale(1.15); }
+}
+@keyframes m-aurora-b {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50%      { transform: translate(-12vw, -8vh) scale(1.1); }
+}
+
+/* Lift all main content above the aurora */
+body > *:not(script):not(style):not(link) {
+  position: relative;
+  z-index: 1;
+}
+
+/* -------- Global button micro-interactions -------- */
+button, .btn, [role="button"] {
+  transition:
+    transform 0.18s cubic-bezier(.4,0,.2,1),
+    box-shadow 0.18s ease,
+    background-color 0.18s ease,
+    color 0.18s ease,
+    border-color 0.18s ease;
+}
+button:hover:not(:disabled),
+.btn:hover:not(:disabled),
+[role="button"]:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+button:active:not(:disabled),
+.btn:active:not(:disabled) {
+  transform: translateY(0) scale(0.97);
+}
+
+/* -------- Icon-style buttons rotate/scale on hover -------- */
+.icon-btn {
+  transition:
+    transform 0.25s cubic-bezier(.4,0,.2,1),
+    color 0.2s ease,
+    border-color 0.2s ease,
+    background-color 0.2s ease;
+}
+.icon-btn:hover {
+  transform: rotate(20deg) scale(1.08);
+}
+.icon-btn:active {
+  transform: rotate(-20deg) scale(0.95);
+}
+
+/* -------- Focus-visible: polished ring -------- */
+:focus-visible {
+  outline: 2px solid var(--accent, #6366f1);
+  outline-offset: 2px;
+  border-radius: 6px;
+  transition: outline-offset 0.15s ease;
+}
+
+/* -------- Links: subtle underline slide on hover -------- */
+a:not(.tool-card):not(.icon-btn):not(.card):not(.btn) {
+  transition: color 0.18s ease;
+}
+
+/* -------- Opt-in entrance animations -------- */
+.m-enter        { animation: m-enter 0.55s cubic-bezier(.4,0,.2,1) both; }
+.m-enter-slow   { animation: m-enter 0.85s cubic-bezier(.4,0,.2,1) both; }
+.m-fade         { animation: m-fade  0.5s ease-out both; }
+.m-slide-up     { animation: m-slide-up 0.6s cubic-bezier(.4,0,.2,1) both; }
+.m-scale-in     { animation: m-scale-in 0.5s cubic-bezier(.34,1.56,.64,1) both; }
+.m-delay-1 { animation-delay: 0.08s; }
+.m-delay-2 { animation-delay: 0.16s; }
+.m-delay-3 { animation-delay: 0.24s; }
+.m-delay-4 { animation-delay: 0.32s; }
+.m-delay-5 { animation-delay: 0.40s; }
+.m-delay-6 { animation-delay: 0.48s; }
+
+@keyframes m-enter {
+  from { opacity: 0; transform: translateY(16px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes m-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes m-slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes m-scale-in {
+  from { opacity: 0; transform: scale(0.9); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Gradient text shimmer — use with .m-shimmer */
+.m-shimmer {
+  background: linear-gradient(90deg, var(--accent, #6366f1), var(--accent-2, #a78bfa), var(--accent, #6366f1));
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: m-shimmer 6s linear infinite;
+}
+@keyframes m-shimmer {
+  from { background-position: 0% 50%; }
+  to   { background-position: 200% 50%; }
+}
+
+/* Pulsing accent bar — use with .m-pulse */
+.m-pulse {
+  animation: m-pulse 3.2s ease-in-out infinite;
+}
+@keyframes m-pulse {
+  0%, 100% { opacity: 0.6; }
+  50%      { opacity: 1; }
+}
+
+/* Scroll-reveal: hidden until .m-revealed is added by JS */
+.m-reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.6s cubic-bezier(.4,0,.2,1), transform 0.6s cubic-bezier(.4,0,.2,1);
+}
+.m-reveal.m-revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Tilt-enabled elements get 3D perspective and transitions */
+[data-motion="tilt"] {
+  transform-style: preserve-3d;
+  transition: transform 0.28s cubic-bezier(.4,0,.2,1), box-shadow 0.28s ease;
+  will-change: transform;
+}
+[data-motion="tilt"]:hover {
+  transform: translateY(-4px);
+}
+
+/* ============================================================
+   AUTO-TARGETED MOTION — visible even when app panels are opaque
+   ============================================================ */
+
+/* Top-of-panel shimmer line — draws a moving gradient at the top edge */
+.app, .wrap > .app, main.container, .container.app,
+[class*="app-shell"], [class*="panel-main"] {
+  position: relative;
+}
+.app::before, main.container::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg,
+    transparent 0%,
+    var(--accent, #6366f1) 30%,
+    var(--accent-2, #a78bfa) 50%,
+    var(--accent, #6366f1) 70%,
+    transparent 100%);
+  background-size: 200% 100%;
+  animation: m-shimmerBar 4s linear infinite;
+  border-radius: inherit;
+  z-index: 5;
+  pointer-events: none;
+  opacity: 0.9;
+}
+@keyframes m-shimmerBar {
+  from { background-position: 200% 50%; }
+  to   { background-position: -200% 50%; }
+}
+
+/* Entrance for the main app shell — auto-fades in on load */
+.app, .wrap, main.container, .container.app,
+[class*="app-shell"], [class*="panel-main"] {
+  animation: m-appEntry 0.6s cubic-bezier(.4,0,.2,1) both;
+}
+@keyframes m-appEntry {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Global card/panel hover lift — applies to common patterns */
+.card, .tool-card, .panel, [class*="-card"]:not(.tool-card) {
+  transition:
+    transform 0.25s cubic-bezier(.4,0,.2,1),
+    box-shadow 0.25s ease,
+    border-color 0.25s ease;
+}
+.card:hover, .panel:hover {
+  transform: translateY(-2px);
+}
+
+/* Interactive glow on all buttons — subtle but visible */
+button, .btn, [role="button"] {
+  position: relative;
+}
+button:not(:disabled):hover,
+.btn:not(:disabled):hover,
+[role="button"]:not(:disabled):hover {
+  box-shadow: 0 0 0 1px var(--accent, #6366f1),
+              0 4px 20px -4px var(--accent, #6366f1);
+}
+
+/* Primary buttons get a stronger glow */
+button.primary, .btn.primary, .btn-primary,
+button[type="submit"] {
+  transition: all 0.2s cubic-bezier(.4,0,.2,1);
+}
+button.primary:not(:disabled):hover,
+.btn.primary:not(:disabled):hover,
+.btn-primary:not(:disabled):hover,
+button[type="submit"]:not(:disabled):hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px -5px var(--accent, #6366f1),
+              0 0 30px -10px var(--accent-2, #a78bfa);
+}
+
+/* Input focus with animated glow */
+input:not([type="checkbox"]):not([type="radio"]),
+textarea, select {
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.25s cubic-bezier(.4,0,.2,1),
+    background-color 0.2s ease;
+}
+input:not([type="checkbox"]):not([type="radio"]):focus,
+textarea:focus, select:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #6366f1) 25%, transparent),
+              0 0 20px -8px var(--accent, #6366f1);
+}
+
+/* Links pop with color transition */
+a { transition: color 0.2s ease, opacity 0.2s ease; }
+
+/* Subtle bounce for + / add-type buttons (common: "add task", "new") */
+button[title*="dd"], button[title*="ew"],
+button.add, button.new, .btn-add, .btn-new {
+  transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+}
+
+/* Increase aurora visibility — bump opacity so it peeks around panels */
+body::before { opacity: 0.4 !important; filter: blur(90px) !important; }
+body::after  { opacity: 0.4 !important; filter: blur(90px) !important; }
+[data-theme="light"] body::before,
+[data-theme="light"] body::after { opacity: 0.55 !important; }
+
+/* ============================================================
+   PREMIUM MOTION UPGRADES
+   ============================================================ */
+
+/* Smooth scroll everywhere */
+html { scroll-behavior: smooth; }
+
+/* Ripple effect on button clicks — applied by _motion.js */
+button, .btn, [role="button"] {
+  overflow: hidden;
+}
+.m-ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.45);
+  transform: translate(-50%, -50%) scale(0);
+  animation: m-ripple 0.55s cubic-bezier(.4,0,.2,1) forwards;
+  pointer-events: none;
+  z-index: 100;
+}
+[data-theme="light"] .m-ripple {
+  background: rgba(99, 102, 241, 0.28);
+}
+@keyframes m-ripple {
+  to { transform: translate(-50%, -50%) scale(4); opacity: 0; }
+}
+
+/* Global cursor spotlight — soft ambient glow that follows the mouse.
+   Created by _motion.js as a fixed element (#m-cursor-glow). */
+#m-cursor-glow {
+  position: fixed;
+  top: 0; left: 0;
+  width: 500px; height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--accent, #6366f1) 22%, transparent),
+    transparent 60%);
+  pointer-events: none;
+  transform: translate(-50%, -50%);
+  z-index: 9999;
+  opacity: 0;
+  mix-blend-mode: screen;
+  transition: opacity 0.35s ease;
+  will-change: transform;
+}
+#m-cursor-glow.on { opacity: 1; }
+[data-theme="light"] #m-cursor-glow { mix-blend-mode: multiply; }
+
+/* Magnetic effect target — buttons snap to cursor slightly on hover */
+button.primary, .btn.primary, .btn-primary, button[type="submit"] {
+  will-change: transform;
+}
+
+/* Progress bar shimmer */
+progress, .progress, [role="progressbar"] {
+  position: relative;
+  overflow: hidden;
+}
+progress::after, .progress::after, [role="progressbar"]::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(90deg,
+    transparent, rgba(255,255,255,0.2), transparent);
+  transform: translateX(-100%);
+  animation: m-progressShimmer 1.6s infinite;
+}
+@keyframes m-progressShimmer {
+  to { transform: translateX(100%); }
+}
+
+/* Toast / notification entrance */
+.toast, .notification, [role="alert"], [role="status"] {
+  animation: m-toast 0.4s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes m-toast {
+  from { opacity: 0; transform: translateY(-16px) scale(0.95); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Modal / dialog entrance */
+dialog[open], .modal.open, .modal[aria-hidden="false"] {
+  animation: m-modal 0.28s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes m-modal {
+  from { opacity: 0; transform: scale(0.94) translateY(-8px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+/* ============================================================
+   ROUND 2 UPGRADES — scroll bar, halo, pulse-dot, spinner, etc.
+   ============================================================ */
+
+/* 1. Scroll progress bar — fixed at top of viewport, JS updates --sp */
+#m-scroll-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 3px;
+  width: var(--sp, 0%);
+  background: linear-gradient(90deg, var(--accent, #6366f1), var(--accent-2, #a78bfa));
+  z-index: 10000;
+  transition: width 0.08s linear;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--accent, #6366f1) 60%, transparent);
+  pointer-events: none;
+}
+
+/* 2. Rotating gradient halo — wrap around featured elements with .m-halo */
+.m-halo {
+  position: relative;
+  isolation: isolate;
+}
+.m-halo::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  padding: 2px;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg,
+    var(--accent, #6366f1),
+    var(--accent-2, #a78bfa),
+    var(--accent, #6366f1),
+    var(--accent-2, #a78bfa),
+    var(--accent, #6366f1));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  animation: m-halo-spin 4s linear infinite;
+  z-index: -1;
+  opacity: 0.9;
+}
+@keyframes m-halo-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 3. Live pulse dot — apply to a span for "live / online / recording" */
+.m-pulse-dot {
+  display: inline-block;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--success, #22c55e);
+  position: relative;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+.m-pulse-dot::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 50%;
+  background: inherit;
+  animation: m-pulse-ring 1.6s ease-out infinite;
+}
+@keyframes m-pulse-ring {
+  0%   { transform: scale(1);   opacity: 0.6; }
+  100% { transform: scale(3);   opacity: 0; }
+}
+
+/* 4. Confetti particles (created dynamically by JS) */
+.m-confetti-piece {
+  position: fixed;
+  width: 8px; height: 12px;
+  z-index: 10001;
+  pointer-events: none;
+  will-change: transform, opacity;
+}
+
+/* 5. CSS spinner — pure CSS loading indicator */
+.m-spinner {
+  display: inline-block;
+  width: 22px; height: 22px;
+  border: 3px solid color-mix(in srgb, var(--accent, #6366f1) 25%, transparent);
+  border-top-color: var(--accent, #6366f1);
+  border-radius: 50%;
+  animation: m-spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+.m-spinner.sm { width: 14px; height: 14px; border-width: 2px; }
+.m-spinner.lg { width: 40px; height: 40px; border-width: 4px; }
+@keyframes m-spin {
+  to { transform: rotate(360deg); }
+}
+
+/* 6. Text hover shimmer — apply .m-glow-text for a hover-reactive gradient */
+.m-glow-text {
+  background: linear-gradient(90deg, currentColor, currentColor);
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  transition: background 0.3s ease;
+}
+.m-glow-text:hover {
+  background: linear-gradient(90deg, var(--accent, #6366f1), var(--accent-2, #a78bfa), var(--accent, #6366f1));
+  background-size: 200% 100%;
+  -webkit-background-clip: text; background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: m-shimmer 3s linear infinite;
+}
+
+/* 7. Bounce-in for new items appearing in a list */
+.m-bounce-in {
+  animation: m-bounce-in 0.5s cubic-bezier(.34,1.56,.64,1) both;
+}
+@keyframes m-bounce-in {
+  0%   { opacity: 0; transform: scale(0.6); }
+  60%  { opacity: 1; transform: scale(1.08); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* 8. Wiggle attention-grab — for validation errors, etc. */
+.m-wiggle {
+  animation: m-wiggle 0.4s ease-in-out both;
+}
+@keyframes m-wiggle {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-6px); }
+  50%      { transform: translateX(6px); }
+  75%      { transform: translateX(-3px); }
+}
+
+/* 9. Floating action — buttons that gently rise and fall */
+.m-float {
+  animation: m-float 3.5s ease-in-out infinite;
+}
+@keyframes m-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+/* 10. Card hover magnetic-tilt with parallax layers */
+.m-card-3d {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+.m-card-3d > * {
+  transition: transform 0.3s cubic-bezier(.4,0,.2,1);
+}
+.m-card-3d:hover > *:first-child { transform: translateZ(30px); }
+
+/* ============================================================
+   ROUND 3 UPGRADES — grain, dot-grid, wave, reveal-blur, auto-fade
+   ============================================================ */
+
+/* 1. Film-grain noise overlay — subtle animated texture on top of everything.
+   Uses SVG turbulence for real grain (no image needed). */
+#m-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 9998;
+  pointer-events: none;
+  opacity: 0.06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='300' height='300'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  animation: m-grain-shift 8s steps(8) infinite;
+}
+[data-theme="light"] #m-grain { opacity: 0.04; mix-blend-mode: multiply; }
+@keyframes m-grain-shift {
+  0%   { transform: translate(0,0); }
+  12%  { transform: translate(-5%,-5%); }
+  25%  { transform: translate(-10%,5%); }
+  37%  { transform: translate(5%,-10%); }
+  50%  { transform: translate(-5%,10%); }
+  62%  { transform: translate(10%,-5%); }
+  75%  { transform: translate(-10%,-10%); }
+  87%  { transform: translate(5%,5%); }
+  100% { transform: translate(0,0); }
+}
+
+/* 2. Interactive dot grid backdrop — .m-dots class on any container adds
+   a background of small dots that highlight near the cursor. */
+.m-dots {
+  position: relative;
+  background-image:
+    radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--text, #e4e4e7) 15%, transparent) 1px, transparent 0);
+  background-size: 24px 24px;
+}
+.m-dots::before {
+  content: '';
+  position: absolute; inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    260px circle at var(--mx, -100%) var(--my, -100%),
+    color-mix(in srgb, var(--accent, #6366f1) 20%, transparent),
+    transparent 50%);
+  transition: background 0.2s ease;
+}
+
+/* 3. Wave text — letters bounce sequentially on hover.
+   JS wraps each character in <span data-i="N">. */
+.m-wave-text .m-char {
+  display: inline-block;
+  transition: transform 0.2s cubic-bezier(.34,1.56,.64,1);
+}
+.m-wave-text:hover .m-char {
+  animation: m-wave 0.6s ease-out both;
+  animation-delay: calc(var(--i, 0) * 0.04s);
+}
+@keyframes m-wave {
+  0%, 100% { transform: translateY(0); }
+  30%      { transform: translateY(-8px) rotate(-4deg); }
+  60%      { transform: translateY(2px) rotate(2deg); }
+}
+
+/* 4. Reveal blur — content starts blurred, sharpens on hover.
+   Great for spoiler content or "premium" reveals. */
+.m-blur-reveal {
+  filter: blur(6px);
+  transition: filter 0.35s ease, transform 0.35s ease;
+  cursor: pointer;
+}
+.m-blur-reveal:hover {
+  filter: blur(0);
+  transform: scale(1.01);
+}
+
+/* 5. Auto-fade for sections/cards scrolling into view.
+   JS observes elements matching common selectors and adds .m-in-view. */
+section, article, .card:not(.tool-card), .panel, [class*="section-"] {
+  opacity: 1;   /* baseline */
+}
+section.m-fade-target, article.m-fade-target,
+.card.m-fade-target, .panel.m-fade-target,
+[class*="section-"].m-fade-target {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.65s cubic-bezier(.4,0,.2,1), transform 0.65s cubic-bezier(.4,0,.2,1);
+}
+section.m-in-view, article.m-in-view,
+.card.m-in-view, .panel.m-in-view,
+[class*="section-"].m-in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 6. Skeleton shimmer — universal loading placeholder */
+.m-skeleton {
+  display: inline-block;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--text, #e4e4e7) 8%, transparent) 0%,
+    color-mix(in srgb, var(--text, #e4e4e7) 15%, transparent) 50%,
+    color-mix(in srgb, var(--text, #e4e4e7) 8%, transparent) 100%);
+  background-size: 200% 100%;
+  animation: m-skeleton 1.4s ease-in-out infinite;
+  border-radius: 4px;
+  min-width: 60px; min-height: 14px;
+  vertical-align: middle;
+}
+@keyframes m-skeleton {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 7. Aurora blob orb — a small accent orb that floats around .m-orb-host */
+.m-orb-host {
+  position: relative;
+  overflow: hidden;
+}
+.m-orb-host::after {
+  content: '';
+  position: absolute;
+  top: 30%; left: 20%;
+  width: 40%; height: 40%;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--accent, #6366f1) 45%, transparent),
+    transparent 60%);
+  filter: blur(30px);
+  pointer-events: none;
+  animation: m-orb-drift 12s ease-in-out infinite;
+  z-index: 0;
+}
+@keyframes m-orb-drift {
+  0%, 100% { transform: translate(0,0) scale(1); }
+  33%      { transform: translate(40%, 25%) scale(1.15); }
+  66%      { transform: translate(-20%, 40%) scale(0.9); }
+}
+
+/* 8. Elastic press — for buttons that should feel "clicky" */
+.m-elastic {
+  transition: transform 0.15s cubic-bezier(.4,0,.2,1);
+}
+.m-elastic:active {
+  transform: scale(0.92);
+}
+
+/* ============================================================
+   ROUND 4 UPGRADES — depth focus, parallax page tilt, word reveal,
+   gradient trail, motion controls panel
+   ============================================================ */
+
+/* 1. Depth focus mode — when hovering any card in a container,
+   siblings blur slightly to draw attention. Add .m-focus-group to parent. */
+.m-focus-group:hover > * {
+  filter: blur(2px);
+  opacity: 0.65;
+  transition: filter 0.35s ease, opacity 0.35s ease;
+}
+.m-focus-group:hover > *:hover,
+.m-focus-group > * {
+  transition: filter 0.35s ease, opacity 0.35s ease;
+}
+.m-focus-group > *:hover {
+  filter: blur(0);
+  opacity: 1;
+  transform: scale(1.02);
+  transition: filter 0.25s ease, opacity 0.25s ease, transform 0.35s ease;
+}
+
+/* 2. Global page micro-parallax — a tiny 3D lean toward the cursor.
+   JS updates --tilt-x / --tilt-y on documentElement. */
+html.m-tilt-page {
+  perspective: 2000px;
+}
+html.m-tilt-page body {
+  transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg));
+  transform-style: preserve-3d;
+  transition: transform 0.4s cubic-bezier(.2,.6,.4,1);
+}
+
+/* 3. Word-by-word reveal — JS wraps <p>.m-words words in <span class="m-word"> */
+.m-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 0.5s ease, transform 0.5s cubic-bezier(.4,0,.2,1);
+}
+.m-word.on {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* 4. Gradient trail — a subtle gradient stroke that follows the cursor
+   across the viewport (JS-controlled). Renders behind content. */
+#m-trail {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  background: radial-gradient(
+    180px circle at var(--tx, -100px) var(--ty, -100px),
+    color-mix(in srgb, var(--accent-2, #a78bfa) 15%, transparent),
+    transparent 60%);
+  mix-blend-mode: screen;
+}
+#m-trail.on { opacity: 1; }
+[data-theme="light"] #m-trail { mix-blend-mode: multiply; }
+
+/* 5. Motion controls panel — a floating pill that appears with a keyboard
+   shortcut (Ctrl+Shift+M). Lets user quickly toggle motion intensity. */
+#m-controls {
+  position: fixed;
+  bottom: 20px; right: 20px;
+  z-index: 10003;
+  background: var(--panel, var(--app-bg, #27273a));
+  border: 1px solid var(--border, #3a3a52);
+  border-radius: 12px;
+  padding: 12px 14px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.4);
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text, #e4e4e7);
+  min-width: 200px;
+  animation: m-toast 0.28s cubic-bezier(.34,1.56,.64,1) both;
+}
+#m-controls.on { display: flex; }
+#m-controls h4 {
+  margin: 0 0 4px;
+  font-size: 12px;
+  color: var(--accent, #6366f1);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+#m-controls label {
+  display: flex; align-items: center; gap: 8px;
+  cursor: pointer;
+  padding: 4px 0;
+  user-select: none;
+}
+#m-controls input[type="checkbox"] {
+  accent-color: var(--accent, #6366f1);
+}
+#m-controls .close {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: transparent;
+  border: none;
+  color: var(--text-mute, #6b6b82);
+  cursor: pointer;
+  font-size: 12px;
+  padding: 4px 8px;
+}
+#m-controls .close:hover { color: var(--text, #e4e4e7); }
+#m-controls .hint {
+  color: var(--text-mute, #6b6b82);
+  font-size: 10px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid var(--border-soft, #2f2f47);
+}
+
+/* Motion intensity levels — controlled by root data-motion-level attribute */
+html[data-motion-level="off"] * {
+  animation: none !important;
+  transition: none !important;
+}
+html[data-motion-level="off"] body::before,
+html[data-motion-level="off"] body::after,
+html[data-motion-level="off"] #m-grain,
+html[data-motion-level="off"] #m-scroll-bar,
+html[data-motion-level="off"] #m-cursor-glow,
+html[data-motion-level="off"] #m-trail { display: none !important; }
+
+html[data-motion-level="light"] body::before,
+html[data-motion-level="light"] body::after { opacity: 0.15 !important; }
+html[data-motion-level="light"] #m-grain,
+html[data-motion-level="light"] #m-cursor-glow,
+html[data-motion-level="light"] #m-trail { display: none !important; }
+
+/* ============================================================
+   PARTY MODE — Konami code (↑↑↓↓←→←→BA) unlocks 10 seconds of chaos
+   ============================================================ */
+html.m-party body::before,
+html.m-party body::after {
+  animation-duration: 4s !important;
+  opacity: 0.8 !important;
+  filter: blur(70px) !important;
+}
+html.m-party #m-scroll-bar {
+  height: 6px !important;
+  background: linear-gradient(90deg, #ef4444, #f59e0b, #22c55e, #3b82f6, #a78bfa, #ec4899, #ef4444) !important;
+  background-size: 300% 100% !important;
+  animation: m-rainbow-slide 2s linear infinite !important;
+}
+@keyframes m-rainbow-slide {
+  from { background-position: 0% 0%; }
+  to   { background-position: 300% 0%; }
+}
+html.m-party h1, html.m-party h2, html.m-party .gradient {
+  animation: m-party-text 1.5s ease-in-out infinite !important;
+}
+@keyframes m-party-text {
+  0%, 100% { transform: rotate(-1deg) scale(1); }
+  50%      { transform: rotate(1deg) scale(1.04); }
+}
+html.m-party button:not(:disabled) {
+  animation: m-party-btn 0.4s ease-in-out infinite alternate !important;
+}
+@keyframes m-party-btn {
+  from { transform: translateY(-1px) rotate(-0.5deg); }
+  to   { transform: translateY(1px) rotate(0.5deg); }
+}
+/* ============================================================
+   LOTTIE SUPPORT
+   ============================================================ */
+.m-lottie {
+  display: inline-block;
+  width: 120px;
+  height: 120px;
+  vertical-align: middle;
+}
+.m-lottie.sm { width: 48px; height: 48px; }
+.m-lottie.lg { width: 240px; height: 240px; }
+.m-lottie.xl { width: 400px; height: 400px; }
+.m-lottie dotlottie-player, .m-lottie lottie-player {
+  width: 100%; height: 100%;
+  display: block;
+}
+/* Fallback placeholder while Lottie loads */
+.m-lottie:empty::before {
+  content: '';
+  display: block;
+  width: 100%; height: 100%;
+  border-radius: 50%;
+  background: radial-gradient(circle,
+    color-mix(in srgb, var(--accent, #6366f1) 25%, transparent),
+    transparent 60%);
+  animation: m-lottie-load 1.4s ease-in-out infinite;
+}
+@keyframes m-lottie-load {
+  0%, 100% { transform: scale(0.85); opacity: 0.5; }
+  50%      { transform: scale(1); opacity: 0.9; }
+}
+
+#m-party-toast {
+  position: fixed;
+  top: 24px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 10004;
+  padding: 14px 24px;
+  background: linear-gradient(135deg, #ef4444, #f59e0b, #22c55e, #3b82f6, #a78bfa);
+  background-size: 300% 300%;
+  animation: m-rainbow-shift 3s ease-in-out infinite, m-toast 0.4s cubic-bezier(.34,1.56,.64,1);
+  color: #fff;
+  font-weight: 700;
+  border-radius: 100px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  font-size: 15px;
+}
+@keyframes m-rainbow-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+
+/* -------- Reduced-motion respect -------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  body::before, body::after { display: none; }
+}

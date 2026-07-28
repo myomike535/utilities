@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SQL Formatter</title>
+<link rel="stylesheet" href="_motion.css">
+<script defer src="_motion.js"></script>
+<style>
+  :root {
+    --bg-1: #1e1e2f;
+    --bg-2: #2d2d44;
+    --app-bg: #27273a;
+    --card-bg: #1e1e2f;
+    --border: #3a3a52;
+    --border-soft: #2f2f47;
+    --text: #e4e4e7;
+    --text-dim: #9a9ab0;
+    --text-mute: #6b6b82;
+    --accent: #6366f1;
+    --accent-hover: #4f46e5;
+    --success: #22c55e;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --shadow: 0 20px 50px rgba(0,0,0,0.4);
+    --code-bg: #14141f;
+    --kw: #c084fc;
+    --fn: #38bdf8;
+    --str: #86efac;
+    --num: #fbbf24;
+    --cmt: #64748b;
+    --op: #f472b6;
+  }
+  [data-theme="light"] {
+    --bg-1: #eef2ff; --bg-2: #e0e7ff; --app-bg: #ffffff;
+    --card-bg: #f8fafc; --border: #e2e8f0; --border-soft: #eef2f7;
+    --text: #1e293b; --text-dim: #64748b; --text-mute: #94a3b8;
+    --accent: #6366f1; --accent-hover: #4f46e5;
+    --success: #16a34a; --warn: #d97706; --danger: #dc2626;
+    --shadow: 0 20px 50px rgba(30,41,59,0.15);
+    --code-bg: #f8fafc;
+    --kw: #7c3aed; --fn: #0284c7; --str: #16a34a; --num: #d97706; --cmt: #94a3b8; --op: #db2777;
+  }
+
+  * { margin:0; padding:0; box-sizing:border-box; font-family:'Segoe UI', system-ui, sans-serif; }
+  body {
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    color: var(--text);
+    min-height: 100vh;
+    padding: 30px 20px;
+    transition: background 0.3s;
+  }
+  .container { max-width: 1400px; margin: 0 auto; }
+
+  header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  h1 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    background: linear-gradient(90deg, var(--accent), #a78bfa);
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  header .sub { color: var(--text-dim); font-size: 0.85rem; margin-top: 2px; }
+  .header-actions { display: flex; gap: 6px; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+    text-decoration: none;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  .toolbar {
+    background: var(--app-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    align-items: center;
+    box-shadow: var(--shadow);
+  }
+  .toolbar .group { display: flex; gap: 6px; align-items: center; }
+  .toolbar label { font-size: 0.78rem; color: var(--text-dim); }
+  .toolbar select, .toolbar input[type="number"] {
+    padding: 5px 8px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--card-bg);
+    color: var(--text);
+    font-size: 0.82rem;
+    outline: none;
+  }
+  .toolbar input[type="number"] { width: 52px; }
+  .toolbar select:focus, .toolbar input:focus { border-color: var(--accent); }
+  .toolbar .checkbox { display: flex; gap: 4px; align-items: center; font-size: 0.82rem; color: var(--text); cursor: pointer; }
+  .btn {
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 600; }
+  .btn.primary:hover { background: var(--accent-hover); }
+
+  .panes {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+  }
+  .pane {
+    background: var(--app-bg);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    min-height: 500px;
+  }
+  .pane-head {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--card-bg);
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-weight: 600;
+  }
+  .pane-head .stats { color: var(--text-dim); font-size: 0.72rem; text-transform: none; letter-spacing: 0; font-weight: normal; font-family: Consolas, monospace; }
+  .pane-head .btn { padding: 3px 10px; font-size: 0.72rem; }
+
+  .editor, .output {
+    flex: 1;
+    padding: 12px 14px;
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+    font-size: 13.5px;
+    line-height: 1.5;
+    background: var(--code-bg);
+    color: var(--text);
+    border: none;
+    outline: none;
+    resize: none;
+    tab-size: 2;
+    -moz-tab-size: 2;
+    white-space: pre;
+    overflow: auto;
+  }
+  .output {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: var(--text);
+  }
+  .output .kw { color: var(--kw); font-weight: 600; }
+  .output .fn { color: var(--fn); }
+  .output .str { color: var(--str); }
+  .output .num { color: var(--num); }
+  .output .cmt { color: var(--cmt); font-style: italic; }
+  .output .op { color: var(--op); }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--app-bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 16px;
+    box-shadow: var(--shadow); font-size: 0.85rem;
+    opacity: 0; pointer-events: none; transition: all 0.25s;
+    z-index: 100;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  .hint {
+    color: var(--text-mute);
+    font-size: 0.75rem;
+    margin-top: 8px;
+    text-align: center;
+  }
+  kbd {
+    background: var(--border); color: var(--text);
+    padding: 1px 5px; border-radius: 3px;
+    font-family: Consolas, monospace; font-size: 0.72rem;
+  }
+
+  @media (max-width: 900px) {
+    .panes { grid-template-columns: 1fr; }
+    .pane { min-height: 300px; }
+  }
+</style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#a78bfa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div>
+        <h1>🔧 <span class="m-scramble">SQL Formatter</span></h1>
+        <div class="sub">Paste ugly SQL, get pretty. Handles CREATE PROCEDURE, phase1 output, and everything in between.</div>
+      </div>
+      <div class="header-actions">
+        <a class="icon-btn" href="index.html" title="Dashboard">🏠</a>
+        <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+      </div>
+    </header>
+
+    <div class="toolbar">
+      <div class="group">
+        <label>Keywords</label>
+        <select id="optKeyCase">
+          <option value="upper" selected>UPPERCASE</option>
+          <option value="lower">lowercase</option>
+          <option value="keep">Keep as-is</option>
+        </select>
+      </div>
+      <div class="group">
+        <label>Indent</label>
+        <input type="number" id="optIndent" min="1" max="8" value="4">
+        <label>spaces</label>
+      </div>
+      <div class="group">
+        <label>Commas</label>
+        <select id="optComma">
+          <option value="trail" selected>Trailing (col,)</option>
+          <option value="lead">Leading (,col)</option>
+        </select>
+      </div>
+      <label class="checkbox"><input type="checkbox" id="optLinesBetween" checked> Blank line between statements</label>
+      <div style="flex:1"></div>
+      <button class="btn" id="minifyBtn">Minify</button>
+      <button class="btn" id="clearBtn">Clear</button>
+      <button class="btn primary" id="formatBtn" data-motion="celebrate">✨ Format (Ctrl+Enter)</button>
+    </div>
+
+    <div class="panes">
+      <div class="pane">
+        <div class="pane-head">
+          <span>Input</span>
+          <span class="stats" id="inStats">0 lines · 0 chars</span>
+        </div>
+        <textarea class="editor" id="input" spellcheck="false" placeholder="-- Paste your SQL here, then click Format (or Ctrl+Enter)&#10;select id, name from users where active = 1 and created_at &gt; '2024-01-01' order by name;"></textarea>
+      </div>
+      <div class="pane">
+        <div class="pane-head">
+          <span>Output</span>
+          <span>
+            <span class="stats" id="outStats">—</span>
+            <button class="btn" id="copyBtn" style="margin-left:10px">📋 Copy</button>
+          </span>
+        </div>
+        <div class="output" id="output"></div>
+      </div>
+    </div>
+
+    <div class="hint"><kbd>Ctrl+Enter</kbd> format · <kbd>Ctrl+Shift+M</kbd> minify · <kbd>Ctrl+L</kbd> clear</div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script defer src="_settings.js"></script>
+<script>
+  const $ = id => document.getElementById(id);
+  const THEME_KEY = 'sqlfmt.theme';
+  const OPTS_KEY = 'sqlfmt.opts';
+
+  // ---- Theme ----
+  function applyTheme(t) {
+    document.documentElement.dataset.theme = t;
+    $('themeBtn').textContent = t === 'light' ? '☀' : '🌙';
+    localStorage.setItem(THEME_KEY, t);
+  }
+  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+  $('themeBtn').onclick = () => applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+
+  // ---- Options persistence ----
+  function loadOpts() {
+    try {
+      const o = JSON.parse(localStorage.getItem(OPTS_KEY) || '{}');
+      if (o.keyCase) $('optKeyCase').value = o.keyCase;
+      if (o.indent) $('optIndent').value = o.indent;
+      if (o.comma) $('optComma').value = o.comma;
+      if (typeof o.linesBetween === 'boolean') $('optLinesBetween').checked = o.linesBetween;
+    } catch {}
+  }
+  function saveOpts() {
+    localStorage.setItem(OPTS_KEY, JSON.stringify({
+      keyCase: $('optKeyCase').value,
+      indent: +$('optIndent').value,
+      comma: $('optComma').value,
+      linesBetween: $('optLinesBetween').checked,
+    }));
+  }
+  loadOpts();
+  ['optKeyCase','optIndent','optComma','optLinesBetween'].forEach(id => $(id).addEventListener('change', saveOpts));
+
+  // ---- SQL keyword sets ----
+  const KEYWORDS = new Set([
+    'SELECT','FROM','WHERE','JOIN','INNER','LEFT','RIGHT','FULL','OUTER','CROSS','ON','USING',
+    'GROUP','BY','ORDER','HAVING','LIMIT','OFFSET','TOP','DISTINCT','ALL',
+    'INSERT','INTO','VALUES','UPDATE','SET','DELETE','MERGE','WHEN','MATCHED',
+    'CREATE','ALTER','DROP','TABLE','VIEW','INDEX','PROCEDURE','FUNCTION','TRIGGER','DATABASE','SCHEMA','SEQUENCE',
+    'IF','ELSE','ELSEIF','THEN','END','CASE','WHILE','LOOP','FOR','DO','BEGIN','END','RETURN','RETURNS',
+    'AS','AND','OR','NOT','IS','NULL','TRUE','FALSE','IN','BETWEEN','LIKE','ILIKE','EXISTS','ANY','SOME','WITH','RECURSIVE',
+    'UNION','INTERSECT','EXCEPT','MINUS',
+    'PRIMARY','FOREIGN','KEY','REFERENCES','UNIQUE','CHECK','DEFAULT','CONSTRAINT','NOT NULL','IDENTITY',
+    'INT','INTEGER','BIGINT','SMALLINT','TINYINT','DECIMAL','NUMERIC','FLOAT','REAL','DOUBLE',
+    'VARCHAR','NVARCHAR','CHAR','NCHAR','TEXT','NTEXT','DATE','DATETIME','DATETIME2','TIME','TIMESTAMP','BIT','BOOLEAN','UNIQUEIDENTIFIER','MONEY',
+    'DECLARE','EXEC','EXECUTE','PRINT','GO','COMMIT','ROLLBACK','TRANSACTION','TRAN','BEGIN TRANSACTION','SAVEPOINT',
+    'GRANT','REVOKE','DENY','TO','FROM',
+    'CAST','CONVERT','TRY_CAST','TRY_CONVERT',
+    'ASC','DESC','NULLS','FIRST','LAST',
+    'OVER','PARTITION','ROWS','RANGE','UNBOUNDED','PRECEDING','FOLLOWING','CURRENT','ROW',
+    'OUTPUT','INSERTED','DELETED',
+    'PIVOT','UNPIVOT','APPLY',
+    'ADD','COLUMN','MODIFY','RENAME',
+    'TRUNCATE','TRUNC','REPLACE',
+  ]);
+  const NEWLINE_KWS = new Set(['SELECT','FROM','WHERE','GROUP BY','ORDER BY','HAVING','LIMIT','OFFSET','JOIN','INNER JOIN','LEFT JOIN','RIGHT JOIN','FULL JOIN','FULL OUTER JOIN','LEFT OUTER JOIN','RIGHT OUTER JOIN','CROSS JOIN','ON','SET','VALUES','UNION','UNION ALL','INTERSECT','EXCEPT','WITH','AND','OR','WHEN','ELSE','THEN']);
+  const FUNCTIONS = new Set(['COUNT','SUM','AVG','MIN','MAX','COALESCE','ISNULL','NULLIF','IFNULL','GETDATE','SYSDATETIME','CURRENT_TIMESTAMP','NOW','DATEADD','DATEDIFF','DATEPART','YEAR','MONTH','DAY','LEN','LENGTH','UPPER','LOWER','TRIM','LTRIM','RTRIM','SUBSTRING','SUBSTR','LEFT','RIGHT','REPLACE','CONCAT','CAST','CONVERT','ROUND','FLOOR','CEILING','CEIL','ABS','POWER','SQRT','ROW_NUMBER','RANK','DENSE_RANK','NTILE','LAG','LEAD','FIRST_VALUE','LAST_VALUE']);
+
+  // ---- Tokenizer ----
+  function tokenize(sql) {
+    const tokens = [];
+    let i = 0;
+    const len = sql.length;
+    while (i < len) {
+      const c = sql[i];
+      // whitespace
+      if (/\s/.test(c)) {
+        let j = i;
+        while (j < len && /\s/.test(sql[j])) j++;
+        tokens.push({ type: 'ws', value: sql.slice(i, j) });
+        i = j; continue;
+      }
+      // line comment
+      if (c === '-' && sql[i+1] === '-') {
+        let j = i;
+        while (j < len && sql[j] !== '\n') j++;
+        tokens.push({ type: 'cmt', value: sql.slice(i, j) });
+        i = j; continue;
+      }
+      // block comment
+      if (c === '/' && sql[i+1] === '*') {
+        let j = i + 2;
+        while (j < len && !(sql[j] === '*' && sql[j+1] === '/')) j++;
+        j += 2;
+        tokens.push({ type: 'cmt', value: sql.slice(i, j) });
+        i = j; continue;
+      }
+      // string
+      if (c === "'" || c === '"' || c === '`') {
+        let j = i + 1;
+        while (j < len) {
+          if (sql[j] === c) {
+            if (sql[j+1] === c) { j += 2; continue; } // escaped
+            j++; break;
+          }
+          j++;
+        }
+        tokens.push({ type: 'str', value: sql.slice(i, j) });
+        i = j; continue;
+      }
+      // bracketed identifier [name]
+      if (c === '[') {
+        let j = i + 1;
+        while (j < len && sql[j] !== ']') j++;
+        j++;
+        tokens.push({ type: 'ident', value: sql.slice(i, j) });
+        i = j; continue;
+      }
+      // number
+      if (/\d/.test(c) || (c === '.' && /\d/.test(sql[i+1]))) {
+        let j = i;
+        while (j < len && /[\d.eE+-]/.test(sql[j])) {
+          if ((sql[j] === '+' || sql[j] === '-') && !(sql[j-1] === 'e' || sql[j-1] === 'E')) break;
+          j++;
+        }
+        tokens.push({ type: 'num', value: sql.slice(i, j) });
+        i = j; continue;
+      }
+      // identifier / keyword
+      if (/[a-zA-Z_@#]/.test(c)) {
+        let j = i;
+        while (j < len && /[a-zA-Z0-9_$@#]/.test(sql[j])) j++;
+        const val = sql.slice(i, j);
+        const upper = val.toUpperCase();
+        if (KEYWORDS.has(upper)) tokens.push({ type: 'kw', value: val, upper });
+        else if (FUNCTIONS.has(upper) && sql[j] === '(') tokens.push({ type: 'fn', value: val });
+        else tokens.push({ type: 'ident', value: val });
+        i = j; continue;
+      }
+      // punctuation / operator
+      if ('(),;'.includes(c)) {
+        tokens.push({ type: 'punct', value: c });
+        i++; continue;
+      }
+      // multi-char operators
+      const two = sql.substr(i, 2);
+      if (['<=','>=','!=','<>','||'].includes(two)) {
+        tokens.push({ type: 'op', value: two });
+        i += 2; continue;
+      }
+      if ('+-*/%=<>!&|^~'.includes(c)) {
+        tokens.push({ type: 'op', value: c });
+        i++; continue;
+      }
+      // unknown — pass through
+      tokens.push({ type: 'other', value: c });
+      i++;
+    }
+    return tokens;
+  }
+
+  // Merge consecutive keyword tokens like "GROUP BY", "ORDER BY", "LEFT JOIN"
+  function combineKeywords(tokens) {
+    const out = [];
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      if (t.type === 'kw') {
+        // Try to merge with next kws separated only by ws
+        let j = i + 1;
+        while (j < tokens.length && tokens[j].type === 'ws' && !tokens[j].value.includes('\n')) j++;
+        if (j < tokens.length && tokens[j].type === 'kw') {
+          const combined = (t.upper + ' ' + tokens[j].upper);
+          if (NEWLINE_KWS.has(combined)) {
+            // check for a third word like FULL OUTER JOIN
+            let k = j + 1;
+            while (k < tokens.length && tokens[k].type === 'ws' && !tokens[k].value.includes('\n')) k++;
+            if (k < tokens.length && tokens[k].type === 'kw') {
+              const c3 = combined + ' ' + tokens[k].upper;
+              if (NEWLINE_KWS.has(c3)) {
+                out.push({ type: 'kw', value: c3, upper: c3, combined: true });
+                i = k; continue;
+              }
+            }
+            out.push({ type: 'kw', value: combined, upper: combined, combined: true });
+            i = j; continue;
+          }
+        }
+      }
+      out.push(t);
+    }
+    return out;
+  }
+
+  function applyCase(kw, mode) {
+    if (mode === 'upper') return kw.toUpperCase();
+    if (mode === 'lower') return kw.toLowerCase();
+    return kw;
+  }
+
+  // ---- Formatter ----
+  function format(sql) {
+    if (!sql.trim()) return '';
+    const opts = {
+      keyCase: $('optKeyCase').value,
+      indent: +$('optIndent').value || 4,
+      comma: $('optComma').value,
+      linesBetween: $('optLinesBetween').checked,
+    };
+    const IND = ' '.repeat(opts.indent);
+
+    // Split into statements by top-level ;
+    const statements = splitStatements(sql);
+    return statements
+      .map(s => formatStatement(s, opts, IND))
+      .filter(Boolean)
+      .join(opts.linesBetween ? '\n\n' : '\n');
+  }
+
+  function splitStatements(sql) {
+    // Simple split by ; but respect strings/comments
+    const tokens = tokenize(sql);
+    const stmts = [];
+    let cur = '';
+    for (const t of tokens) {
+      if (t.type === 'punct' && t.value === ';') {
+        cur += ';';
+        if (cur.trim()) stmts.push(cur);
+        cur = '';
+      } else {
+        cur += t.value;
+      }
+    }
+    if (cur.trim()) stmts.push(cur);
+    return stmts;
+  }
+
+  function formatStatement(sql, opts, IND) {
+    let tokens = tokenize(sql);
+    tokens = combineKeywords(tokens);
+    // Strip pure-whitespace tokens (we'll re-insert spacing)
+    tokens = tokens.filter(t => t.type !== 'ws');
+
+    let out = '';
+    let depth = 0; // parenthesis nesting
+    let stack = []; // per-paren indent state
+    let atLineStart = true;
+
+    const write = (s) => {
+      if (atLineStart) { out += IND.repeat(depth); atLineStart = false; }
+      out += s;
+    };
+    const newline = () => {
+      out = out.replace(/[ \t]+$/, '');
+      out += '\n';
+      atLineStart = true;
+    };
+    const space = () => { if (!atLineStart && !/\s$/.test(out)) out += ' '; };
+
+    for (let i = 0; i < tokens.length; i++) {
+      const t = tokens[i];
+      const prev = tokens[i-1];
+      const next = tokens[i+1];
+
+      if (t.type === 'cmt') {
+        if (!atLineStart) space();
+        write(t.value);
+        newline();
+        continue;
+      }
+
+      if (t.type === 'kw') {
+        const kwText = applyCase(t.value.replace(/\s+/g,' '), opts.keyCase);
+        if (NEWLINE_KWS.has(t.upper)) {
+          if (!atLineStart) newline();
+          // AND/OR indented further under WHERE/ON
+          if (t.upper === 'AND' || t.upper === 'OR') {
+            write('  ' + kwText);
+          } else {
+            write(kwText);
+          }
+          // After the clause keyword, put a space (fields on next indented line for SELECT)
+          if (t.upper === 'SELECT') {
+            newline();
+            depth++; write(''); depth--; // add indent for next token
+            // simpler: just leave a space so fields follow inline
+            out = out.slice(0, -0); // no-op
+          } else {
+            space();
+          }
+        } else if (t.upper === 'CASE') {
+          write(kwText); depth++; newline();
+        } else if (t.upper === 'END') {
+          depth = Math.max(0, depth - 1);
+          if (!atLineStart) newline();
+          write(kwText);
+        } else if (t.upper === 'BEGIN') {
+          if (!atLineStart) newline();
+          write(kwText); depth++; newline();
+        } else if (t.upper === 'THEN') {
+          space(); write(kwText); space();
+        } else if (t.upper === 'ELSE') {
+          if (!atLineStart) newline();
+          write(kwText); space();
+        } else {
+          if (!atLineStart) space();
+          write(kwText);
+        }
+        continue;
+      }
+
+      if (t.type === 'punct') {
+        if (t.value === '(') {
+          write('('); depth++; stack.push('paren');
+          continue;
+        }
+        if (t.value === ')') {
+          depth = Math.max(0, depth - 1);
+          stack.pop();
+          out = out.replace(/[ \t]+$/, '');
+          write(')');
+          continue;
+        }
+        if (t.value === ',') {
+          if (opts.comma === 'lead') {
+            newline(); write(', ');
+          } else {
+            out = out.replace(/[ \t]+$/, '');
+            write(',');
+            newline();
+          }
+          continue;
+        }
+        if (t.value === ';') {
+          out = out.replace(/[ \t]+$/, '');
+          write(';');
+          newline();
+          continue;
+        }
+      }
+
+      if (t.type === 'op') {
+        space(); write(t.value); space();
+        continue;
+      }
+
+      if (t.type === 'fn') {
+        if (!atLineStart) space();
+        // function names follow the same case rule as keywords for readability
+        write(applyCase(t.value, opts.keyCase));
+        continue;
+      }
+
+      // ident, str, num, other
+      if (!atLineStart && !/[(\s]$/.test(out)) space();
+      write(t.value);
+    }
+
+    // Cleanup
+    return out
+      .replace(/[ \t]+\n/g, '\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .replace(/^\s+|\s+$/g, '');
+  }
+
+  // ---- Minify ----
+  function minify(sql) {
+    const tokens = tokenize(sql).filter(t => t.type !== 'cmt');
+    let out = '';
+    let last = '';
+    for (const t of tokens) {
+      if (t.type === 'ws') {
+        // Only insert single space where needed (between two ident/kw/num tokens)
+        if (out && !/[\s(,;+\-*/=<>!]$/.test(out) && t.value) out += ' ';
+        continue;
+      }
+      // Remove space before ,;) and after (
+      if (t.type === 'punct' && ',;)'.includes(t.value)) out = out.replace(/\s+$/, '');
+      if (last === '(' && t.type === 'ws') continue;
+      out += t.value;
+      last = t.value.slice(-1);
+    }
+    return out.replace(/\s+/g, ' ').replace(/\s*([,;()])\s*/g, '$1').replace(/\(\s*/g, '(').trim();
+  }
+
+  // ---- Syntax highlight for output pane ----
+  function esc(s) { return s.replace(/[&<>]/g, c => ({ '&':'&amp;','<':'&lt;','>':'&gt;' }[c])); }
+  function highlight(sql) {
+    const tokens = tokenize(sql);
+    return tokens.map(t => {
+      const v = esc(t.value);
+      if (t.type === 'kw') return `<span class="kw">${v}</span>`;
+      if (t.type === 'fn') return `<span class="fn">${v}</span>`;
+      if (t.type === 'str') return `<span class="str">${v}</span>`;
+      if (t.type === 'num') return `<span class="num">${v}</span>`;
+      if (t.type === 'cmt') return `<span class="cmt">${v}</span>`;
+      if (t.type === 'op') return `<span class="op">${v}</span>`;
+      return v;
+    }).join('');
+  }
+
+  // ---- Buttons ----
+  function updateStats() {
+    const s = $('input').value;
+    const lines = s ? s.split('\n').length : 0;
+    $('inStats').textContent = `${lines} lines · ${s.length} chars`;
+  }
+  $('input').addEventListener('input', updateStats);
+  updateStats();
+
+  function doFormat() {
+    const src = $('input').value;
+    try {
+      const formatted = format(src);
+      $('output').innerHTML = highlight(formatted);
+      $('output').dataset.raw = formatted;
+      $('outStats').textContent = `${formatted.split('\n').length} lines · ${formatted.length} chars`;
+      toast('✨ Formatted');
+    } catch (err) {
+      $('output').innerHTML = `<span class="cmt">// Format error: ${esc(err.message)}</span>`;
+      $('outStats').textContent = '—';
+    }
+  }
+  function doMinify() {
+    const src = $('input').value;
+    try {
+      const min = minify(src);
+      $('output').innerHTML = highlight(min);
+      $('output').dataset.raw = min;
+      $('outStats').textContent = `1 line · ${min.length} chars`;
+      toast('Minified');
+    } catch (err) {
+      $('output').innerHTML = `<span class="cmt">// Minify error: ${esc(err.message)}</span>`;
+    }
+  }
+  $('formatBtn').onclick = doFormat;
+  $('minifyBtn').onclick = doMinify;
+  $('clearBtn').onclick = () => { $('input').value = ''; $('output').innerHTML = ''; $('output').dataset.raw = ''; updateStats(); $('outStats').textContent = '—'; $('input').focus(); };
+  $('copyBtn').onclick = async () => {
+    const text = $('output').dataset.raw || '';
+    if (!text) { toast('Nothing to copy'); return; }
+    try { await navigator.clipboard.writeText(text); toast('📋 Copied'); }
+    catch { toast('Copy failed'); }
+  };
+
+  // ---- Toast ----
+  let toastTimer = null;
+  function toast(msg) {
+    $('toast').textContent = msg;
+    $('toast').classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), 1600);
+  }
+
+  // ---- Keyboard ----
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') { e.preventDefault(); doFormat(); }
+    else if ((e.ctrlKey || e.metaKey) && e.shiftKey && (e.key === 'M' || e.key === 'm')) { e.preventDefault(); doMinify(); }
+    else if ((e.ctrlKey || e.metaKey) && (e.key === 'l' || e.key === 'L') && document.activeElement === $('input')) {
+      // Ctrl+L in input clears
+      e.preventDefault(); $('clearBtn').click();
+    }
+  });
+
+  // Tab insert in textarea
+  $('input').addEventListener('keydown', e => {
+    if (e.key === 'Tab' && !e.ctrlKey && !e.altKey) {
+      e.preventDefault();
+      const s = $('input').selectionStart;
+      const el = $('input');
+      const before = el.value.slice(0, s);
+      const after = el.value.slice(el.selectionEnd);
+      el.value = before + '  ' + after;
+      el.selectionStart = el.selectionEnd = s + 2;
+      updateStats();
+    }
+  });
+
+  // Autofocus
+  $('input').focus();
+</script>
+</body>
+</html>

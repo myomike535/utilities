@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Study Room &mdash; Pomodoro &amp; Flashcards</title>
+<style>
+  :root {
+    --bg-1: #0d1117;
+    --bg-2: #161b22;
+    --panel: #161b22;
+    --panel-2: #1e2530;
+    --border: #30363d;
+    --border-soft: #21262d;
+    --text: #e4e4e7;
+    --text-dim: #9a9ab0;
+    --text-mute: #6b6b82;
+    --accent: #f59e0b;      /* UI accent (buttons, ring) */
+    --accent-deep: #b45309;
+    --bar: #d97706;         /* chart data color — validated both modes */
+    --success: #22c55e;
+    --warn: #f59e0b;
+    --danger: #ef4444;
+    --shadow: 0 8px 24px rgba(0,0,0,0.35);
+  }
+  [data-theme="light"] {
+    --bg-1: #fffbeb; --bg-2: #fef3c7;
+    --panel: #ffffff; --panel-2: #f8fafc;
+    --border: #e2e8f0; --border-soft: #eef2f7;
+    --text: #1e293b; --text-dim: #64748b; --text-mute: #94a3b8;
+    --accent: #b45309; --accent-deep: #92400e;
+    --success: #16a34a; --warn: #d97706; --danger: #dc2626;
+    --shadow: 0 8px 24px rgba(30,41,59,0.10);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    color: var(--text);
+    min-height: 100vh;
+  }
+  header {
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 16px 28px;
+    display: flex; align-items: center; gap: 12px;
+    position: sticky; top: 0; z-index: 10;
+    box-shadow: var(--shadow);
+  }
+  header h1 { margin: 0; font-size: 19px; font-weight: 600; flex: 1; display: flex; align-items: center; gap: 10px; }
+  header h1 .gradient {
+    background: linear-gradient(90deg, var(--accent), var(--accent-deep));
+    -webkit-background-clip: text; background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+  .icon-btn {
+    width: 36px; height: 36px; border-radius: 8px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--text-dim); cursor: pointer;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 15px; text-decoration: none; transition: all 0.15s;
+  }
+  .icon-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  main { max-width: 860px; margin: 0 auto; padding: 22px 20px 60px; }
+  .tabs { display: flex; gap: 8px; margin-bottom: 20px; }
+  .tab {
+    background: var(--panel); border: 1px solid var(--border); color: var(--text-dim);
+    padding: 8px 16px; border-radius: 9px; font-size: 13.5px; cursor: pointer;
+    font-family: inherit; display: inline-flex; align-items: center; gap: 7px; transition: all 0.15s;
+  }
+  .tab:hover { color: var(--text); border-color: var(--accent); }
+  .tab.active { color: var(--accent); border-color: var(--accent); font-weight: 600; }
+  .tab .cnt { background: var(--accent); color: #1a1206; border-radius: 8px; padding: 0 6px; font-size: 11px; min-width: 18px; text-align: center; font-weight: 700; }
+
+  .panel {
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 22px 24px; margin-bottom: 16px;
+  }
+  .panel h2 { margin: 0 0 4px; font-size: 16px; }
+  .panel .sub { color: var(--text-mute); font-size: 12.5px; margin: 0 0 16px; }
+  button.btn {
+    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
+    padding: 8px 16px; border-radius: 9px; font-size: 13.5px; cursor: pointer; font-family: inherit;
+    transition: all 0.15s;
+  }
+  button.btn:hover { border-color: var(--accent); }
+  button.btn.primary { background: var(--accent); color: #1a1206; border-color: transparent; font-weight: 600; }
+  [data-theme="light"] button.btn.primary { color: #fff; }
+  button.btn.danger { color: var(--danger); }
+  input[type="text"], input[type="number"], select, textarea {
+    background: var(--bg-1); color: var(--text); border: 1px solid var(--border);
+    border-radius: 8px; padding: 8px 10px; font-size: 13.5px; font-family: inherit; outline: none;
+  }
+  [data-theme="light"] input, [data-theme="light"] select, [data-theme="light"] textarea { background: #fff; }
+  input:focus, select:focus, textarea:focus { border-color: var(--accent); }
+
+  /* ---- Focus timer ---- */
+  .timer-wrap { display: flex; flex-direction: column; align-items: center; padding: 10px 0 4px; }
+  .modes { display: flex; gap: 8px; margin-bottom: 18px; }
+  .ring-box { position: relative; width: 240px; height: 240px; }
+  .ring-box svg { transform: rotate(-90deg); }
+  .ring-track { fill: none; stroke: var(--border-soft); stroke-width: 10; }
+  .ring-fill { fill: none; stroke: var(--accent); stroke-width: 10; stroke-linecap: round; transition: stroke-dashoffset 0.25s linear; }
+  .time-big {
+    position: absolute; inset: 0; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; gap: 4px;
+  }
+  .time-big .t { font-size: 52px; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: 1px; }
+  .time-big .m { color: var(--text-mute); font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.08em; }
+  .dots { display: flex; gap: 7px; margin: 16px 0 4px; }
+  .dots span { width: 9px; height: 9px; border-radius: 50%; background: var(--border); }
+  .dots span.on { background: var(--accent); }
+  .timer-btns { display: flex; gap: 10px; margin-top: 14px; }
+  .cfg-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; margin-top: 20px; padding-top: 16px; border-top: 1px dashed var(--border-soft); }
+  .cfg-row label { font-size: 12px; color: var(--text-dim); display: flex; flex-direction: column; gap: 4px; }
+  .cfg-row input { width: 72px; }
+
+  /* ---- Flashcards ---- */
+  .deck-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
+  .deck-row select { min-width: 180px; }
+  .add-card { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 6px; }
+  @media (max-width: 620px) { .add-card { grid-template-columns: 1fr; } }
+  .review-card {
+    background: var(--panel-2); border: 1px solid var(--border);
+    border-radius: 12px; min-height: 150px; padding: 26px 22px;
+    display: flex; align-items: center; justify-content: center; text-align: center;
+    font-size: 18px; line-height: 1.55; cursor: pointer; user-select: none;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .review-card .hint { color: var(--text-mute); font-size: 12px; display: block; margin-top: 12px; }
+  .rate-row { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+  .rate-row .btn { min-width: 96px; }
+  .rate-row .k { display: block; font-size: 10.5px; color: var(--text-mute); margin-top: 2px; }
+  .card-list { margin-top: 6px; }
+  .card-item {
+    display: flex; gap: 10px; align-items: baseline; padding: 8px 10px;
+    border-bottom: 1px solid var(--border-soft); font-size: 13px;
+  }
+  .card-item .f { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-item .b { flex: 1; min-width: 0; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .card-item .due { color: var(--text-mute); font-size: 11px; white-space: nowrap; }
+  .card-item button { background: none; border: none; color: var(--text-mute); cursor: pointer; font-size: 13px; }
+  .card-item button:hover { color: var(--danger); }
+  .empty { color: var(--text-mute); text-align: center; padding: 28px 0; font-size: 13.5px; }
+
+  /* ---- Stats ---- */
+  .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .stat {
+    background: var(--panel-2); border: 1px solid var(--border-soft); border-radius: 10px;
+    padding: 14px; text-align: center;
+  }
+  .stat .n { font-size: 24px; font-weight: 700; }
+  .stat .l { font-size: 11px; color: var(--text-mute); text-transform: uppercase; letter-spacing: 0.05em; margin-top: 3px; }
+
+  /* Weekly focus chart: thin bars, rounded data-end, baseline-anchored,
+     data color #d97706 validated ≥3:1 on both surfaces. Labels use text
+     tokens (never the series color); per-bar hover tooltip. */
+  .chart-wrap { position: relative; }
+  .chart { display: flex; align-items: flex-end; gap: 10px; height: 130px; padding-top: 18px; }
+  .chart .col { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; height: 100%; justify-content: flex-end; min-width: 0; }
+  .chart .bar-hit { width: 100%; display: flex; align-items: flex-end; justify-content: center; flex: 1; cursor: default; }
+  .chart .bar { width: 26px; max-width: 70%; background: var(--bar); border-radius: 4px 4px 0 0; min-height: 2px; transition: height 0.3s ease; }
+  .chart .bar.zero { background: var(--border); }
+  .chart .dlbl { font-size: 11px; color: var(--text-mute); }
+  .chart .dlbl.today { color: var(--text); font-weight: 600; }
+  .chart .vlbl { font-size: 11px; color: var(--text-dim); font-variant-numeric: tabular-nums; height: 14px; }
+  .chart-tip {
+    position: absolute; pointer-events: none; display: none;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 7px;
+    padding: 5px 9px; font-size: 12px; box-shadow: var(--shadow); white-space: nowrap; z-index: 5;
+  }
+  .baseline { height: 1px; background: var(--border); margin-top: 2px; }
+
+  footer { text-align: center; color: var(--text-mute); font-size: 12px; padding: 10px 0 26px; }
+  .hidden { display: none !important; }
+</style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#a78bfa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+<header>
+  <a class="icon-btn" href="index.html" title="Back to utility hub">←</a>
+  <h1>📚 <span class="gradient">Study Room</span>
+    <span style="color:var(--text-dim); font-weight:400; font-size:13px;">&mdash; focus &amp; flashcards</span></h1>
+  <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+</header>
+
+<main>
+  <div class="tabs">
+    <button class="tab active" data-tab="focus">⏱ Focus</button>
+    <button class="tab" data-tab="cards">🃏 Flashcards <span class="cnt hidden" id="dueCnt">0</span></button>
+    <button class="tab" data-tab="stats">📊 Stats</button>
+  </div>
+
+  <!-- ================ FOCUS ================ -->
+  <section id="tab-focus" class="panel">
+    <div class="timer-wrap">
+      <div class="modes">
+        <button class="btn" data-mode="focus">🎯 Focus</button>
+        <button class="btn" data-mode="short">☕ Short break</button>
+        <button class="btn" data-mode="long">🌴 Long break</button>
+      </div>
+      <div class="ring-box">
+        <svg width="240" height="240" viewBox="0 0 240 240" aria-hidden="true">
+          <circle class="ring-track" cx="120" cy="120" r="110"></circle>
+          <circle class="ring-fill" id="ringFill" cx="120" cy="120" r="110"></circle>
+        </svg>
+        <div class="time-big">
+          <div class="t" id="timeTxt">25:00</div>
+          <div class="m" id="modeTxt">Focus</div>
+        </div>
+      </div>
+      <div class="dots" id="dots" title="Focus sessions until the long break"></div>
+      <div class="timer-btns">
+        <button class="btn primary" id="startBtn">▶ Start</button>
+        <button class="btn" id="resetBtn">↺ Reset</button>
+      </div>
+      <div class="cfg-row">
+        <label>Focus (min)<input type="number" id="cfgFocus" min="1" max="120"></label>
+        <label>Short break<input type="number" id="cfgShort" min="1" max="60"></label>
+        <label>Long break<input type="number" id="cfgLong" min="1" max="60"></label>
+        <label>Sessions / long<input type="number" id="cfgEvery" min="2" max="8"></label>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================ FLASHCARDS ================ -->
+  <section id="tab-cards" class="hidden">
+    <div class="panel">
+      <h2>🃏 Review</h2>
+      <p class="sub" id="reviewSub">—</p>
+      <div id="reviewArea"></div>
+    </div>
+    <div class="panel">
+      <h2>Decks &amp; cards</h2>
+      <p class="sub">Cards you add become due immediately; rating them schedules the next review (spaced repetition).</p>
+      <div class="deck-row">
+        <select id="deckSel"></select>
+        <button class="btn" id="newDeckBtn">＋ New deck</button>
+        <button class="btn" id="renameDeckBtn">✏ Rename</button>
+        <button class="btn danger" id="delDeckBtn">🗑 Delete</button>
+        <span style="flex:1"></span>
+        <button class="btn" id="exportBtn">⬇ Export</button>
+        <button class="btn" id="importBtn">⬆ Import</button>
+        <input type="file" id="importFile" accept=".json" class="hidden">
+      </div>
+      <div class="add-card">
+        <input type="text" id="frontInp" placeholder="Front — e.g. What does CSS stand for?">
+        <input type="text" id="backInp" placeholder="Back — e.g. Cascading Style Sheets">
+        <button class="btn primary" id="addCardBtn">Add card</button>
+      </div>
+      <div class="card-list" id="cardList"></div>
+    </div>
+  </section>
+
+  <!-- ================ STATS ================ -->
+  <section id="tab-stats" class="hidden">
+    <div class="panel">
+      <h2>📊 Your studying</h2>
+      <p class="sub">Streak counts days with at least one finished focus session or card review.</p>
+      <div class="stat-grid" id="statGrid"></div>
+      <h2 style="margin-top:18px">Focus minutes — last 7 days</h2>
+      <p class="sub" id="chartSub">—</p>
+      <div class="chart-wrap">
+        <div class="chart" id="chart" role="img" aria-label=""></div>
+        <div class="baseline"></div>
+        <div class="chart-tip" id="chartTip"></div>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>Developed by <b>MyoMT</b></footer>
+
+<script>
+(() => {
+  "use strict";
+  const $ = (id) => document.getElementById(id);
+  const DECKS_KEY = "study.decks";
+  const LOG_KEY = "study.log";
+  const CFG_KEY = "study.cfg";
+  const THEME_KEY = "utilities.theme"; /* shared with the hub */
+  const DAY = 86400000;
+
+  /* ---- Theme (synced with utility hub) ---- */
+  const applyTheme = (t) => {
+    document.documentElement.dataset.theme = t;
+    $("themeBtn").textContent = t === "light" ? "☀" : "🌙";
+    localStorage.setItem(THEME_KEY, t);
+  };
+  applyTheme(localStorage.getItem(THEME_KEY) || "dark");
+  $("themeBtn").onclick = () =>
+    applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
+
+  /* ---- Storage helpers ---- */
+  const load = (k, fb) => { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } };
+  const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+  const dayKey = (d) => {
+    const x = d || new Date();
+    return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0");
+  };
+  const bump = (field, n) => {
+    const log = load(LOG_KEY, {});
+    const k = dayKey();
+    log[k] = log[k] || { focusMin: 0, sessions: 0, reviews: 0 };
+    log[k][field] = (log[k][field] || 0) + n;
+    save(LOG_KEY, log);
+  };
+  const esc = (s) => String(s || "").replace(/[&<>"']/g, (c) =>
+    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+
+  /* ---- Tabs ---- */
+  document.querySelectorAll(".tab").forEach((b) =>
+    b.addEventListener("click", () => {
+      document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === b));
+      ["focus", "cards", "stats"].forEach((t) =>
+        $("tab-" + t).classList.toggle("hidden", t !== b.dataset.tab));
+      if (b.dataset.tab === "stats") renderStats();
+      if (b.dataset.tab === "cards") renderCards();
+    }));
+
+  /* ================= POMODORO ================= */
+  const cfg = Object.assign({ focus: 25, short: 5, long: 15, every: 4 }, load(CFG_KEY, {}));
+  const CIRC = 2 * Math.PI * 110;
+  $("ringFill").style.strokeDasharray = CIRC;
+  let mode = "focus";          /* focus | short | long */
+  let running = false;
+  let endAt = 0;               /* deadline timestamp while running */
+  let remainMs = cfg.focus * 60000;
+  let doneSessions = 0;        /* focus sessions since last long break */
+  let tickId = 0;
+
+  const modeLabel = { focus: "Focus", short: "Short break", long: "Long break" };
+  const modeMins = () => (mode === "focus" ? cfg.focus : mode === "short" ? cfg.short : cfg.long);
+
+  const fmtT = (ms) => {
+    const s = Math.max(0, Math.ceil(ms / 1000));
+    return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+  };
+  const paint = () => {
+    const total = modeMins() * 60000;
+    const left = running ? Math.max(0, endAt - Date.now()) : remainMs;
+    $("timeTxt").textContent = fmtT(left);
+    $("modeTxt").textContent = modeLabel[mode];
+    $("ringFill").style.strokeDashoffset = CIRC * (1 - left / total);
+    document.title = running ? fmtT(left) + " · " + modeLabel[mode] + " — Study Room" : "Study Room — Pomodoro & Flashcards";
+    document.querySelectorAll("[data-mode]").forEach((b) =>
+      b.classList.toggle("primary", b.dataset.mode === mode));
+    $("startBtn").textContent = running ? "⏸ Pause" : "▶ Start";
+    $("dots").innerHTML = Array.from({ length: cfg.every },
+      (_, i) => `<span class="${i < doneSessions ? "on" : ""}"></span>`).join("");
+  };
+  const beep = () => {
+    try {
+      const ac = new (window.AudioContext || window.webkitAudioContext)();
+      [0, 0.22, 0.44].forEach((t) => {
+        const o = ac.createOscillator(), g = ac.createGain();
+        o.frequency.value = 880; o.connect(g); g.connect(ac.destination);
+        g.gain.setValueAtTime(0.001, ac.currentTime + t);
+        g.gain.exponentialRampToValueAtTime(0.2, ac.currentTime + t + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + t + 0.18);
+        o.start(ac.currentTime + t); o.stop(ac.currentTime + t + 0.2);
+      });
+    } catch (e) {}
+  };
+  const notify = (msg) => {
+    if (!("Notification" in window)) return;
+    if (Notification.permission === "granted") new Notification("📚 Study Room", { body: msg });
+  };
+  const finish = () => {
+    stopTick(); running = false;
+    beep();
+    if (mode === "focus") {
+      bump("focusMin", cfg.focus); bump("sessions", 1);
+      doneSessions++;
+      const goLong = doneSessions >= cfg.every;
+      if (goLong) doneSessions = 0;
+      notify("Focus done — take a " + (goLong ? "long" : "short") + " break! 🎉");
+      setMode(goLong ? "long" : "short");
+    } else {
+      notify("Break over — back to it 💪");
+      setMode("focus");
+    }
+  };
+  const tick = () => { if (Date.now() >= endAt) finish(); else paint(); };
+  const startTick = () => { stopTick(); tickId = setInterval(tick, 250); };
+  const stopTick = () => { if (tickId) clearInterval(tickId); tickId = 0; };
+  const setMode = (m) => {
+    mode = m; running = false; stopTick();
+    remainMs = modeMins() * 60000;
+    paint();
+  };
+  $("startBtn").addEventListener("click", () => {
+    if (running) { remainMs = Math.max(0, endAt - Date.now()); running = false; stopTick(); }
+    else {
+      if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
+      endAt = Date.now() + remainMs; running = true; startTick();
+    }
+    paint();
+  });
+  $("resetBtn").addEventListener("click", () => setMode(mode));
+  document.querySelectorAll("[data-mode]").forEach((b) =>
+    b.addEventListener("click", () => setMode(b.dataset.mode)));
+  /* settings */
+  const cfgInputs = { focus: $("cfgFocus"), short: $("cfgShort"), long: $("cfgLong"), every: $("cfgEvery") };
+  Object.keys(cfgInputs).forEach((k) => {
+    cfgInputs[k].value = cfg[k];
+    cfgInputs[k].addEventListener("change", () => {
+      const v = parseInt(cfgInputs[k].value, 10);
+      if (isFinite(v) && v > 0) { cfg[k] = v; save(CFG_KEY, cfg); if (!running) setMode(mode); else paint(); }
+    });
+  });
+  /* space = start/pause when the Focus tab is visible and no input focused */
+  document.addEventListener("keydown", (e) => {
+    if (e.code !== "Space" || /input|textarea|select|button/i.test(document.activeElement.tagName)) return;
+    if (!$("tab-focus").classList.contains("hidden")) { e.preventDefault(); $("startBtn").click(); }
+    else if (!$("tab-cards").classList.contains("hidden")) { e.preventDefault(); flipCurrent(); }
+  });
+  setMode("focus");
+
+  /* ================= FLASHCARDS ================= */
+  let decks = load(DECKS_KEY, null);
+  if (!decks || !Array.isArray(decks) || !decks.length) {
+    decks = [{ id: "d" + Date.now().toString(36), name: "My first deck", cards: [] }];
+    save(DECKS_KEY, decks);
+  }
+  let deckId = decks[0].id;
+  let current = null;        /* card under review */
+  let showBack = false;
+  const deck = () => decks.find((d) => d.id === deckId) || decks[0];
+  const dueCards = (d) => (d || deck()).cards.filter((c) => (c.due || 0) <= Date.now());
+  const allDue = () => decks.reduce((n, d) => n + dueCards(d).length, 0);
+
+  const fmtDue = (c) => {
+    if ((c.due || 0) <= Date.now()) return "due now";
+    const days = Math.round((c.due - Date.now()) / DAY);
+    return days < 1 ? "later today" : "in " + days + "d";
+  };
+  const renderDueBadge = () => {
+    const n = allDue();
+    $("dueCnt").textContent = n;
+    $("dueCnt").classList.toggle("hidden", !n);
+  };
+  const renderDeckSel = () => {
+    $("deckSel").innerHTML = decks.map((d) =>
+      `<option value="${d.id}" ${d.id === deckId ? "selected" : ""}>${esc(d.name)} (${d.cards.length})</option>`).join("");
+  };
+  const renderList = () => {
+    const d = deck();
+    $("cardList").innerHTML = d.cards.length
+      ? d.cards.map((c, i) => `<div class="card-item">
+          <span class="f">${esc(c.f)}</span><span class="b">${esc(c.b)}</span>
+          <span class="due">${fmtDue(c)}</span>
+          <button data-del="${i}" title="Delete card">✕</button>
+        </div>`).join("")
+      : '<div class="empty">No cards in this deck yet — add your first one above.</div>';
+  };
+  const pickNext = () => {
+    const q = dueCards();
+    current = q.length ? q[Math.floor(Math.random() * q.length)] : null;
+    showBack = false;
+  };
+  const renderReview = () => {
+    const d = deck();
+    const due = dueCards(d).length;
+    $("reviewSub").textContent = d.cards.length
+      ? due + " of " + d.cards.length + " card" + (d.cards.length === 1 ? "" : "s") + " due in “" + d.name + "”"
+      : "This deck is empty.";
+    if (!current) {
+      $("reviewArea").innerHTML = `<div class="empty">${d.cards.length ? "🎉 All caught up — nothing due right now." : "Add cards below to start reviewing."}</div>`;
+      return;
+    }
+    $("reviewArea").innerHTML = `
+      <div class="review-card" id="revCard">${esc(showBack ? current.b : current.f)}
+        <span class="hint">${showBack ? "How well did you know it?" : "Click or press Space to flip"}</span></div>
+      <div class="rate-row ${showBack ? "" : "hidden"}">
+        <button class="btn" id="rateAgain">😅 Again<span class="k">1 · ~10 min</span></button>
+        <button class="btn" id="rateGood">🙂 Good<span class="k">2 · ${current.iv === 0 ? "1d" : current.iv === 1 ? "3d" : Math.round((current.iv || 1) * 2.3) + "d"}</span></button>
+        <button class="btn primary" id="rateEasy">😎 Easy<span class="k">3 · ${current.iv === 0 ? "3d" : Math.round((current.iv || 1) * 3.2) + "d"}</span></button>
+      </div>`;
+    $("revCard").onclick = flipCurrent;
+    const rate = (fn) => () => { fn(); bump("reviews", 1); save(DECKS_KEY, decks); pickNext(); renderCards(); };
+    const btnA = $("rateAgain"), btnG = $("rateGood"), btnE = $("rateEasy");
+    if (btnA) btnA.onclick = rate(() => { current.iv = 0; current.due = Date.now() + 10 * 60000; });
+    if (btnG) btnG.onclick = rate(() => {
+      current.iv = current.iv === 0 ? 1 : current.iv === 1 ? 3 : Math.round(current.iv * 2.3);
+      current.due = Date.now() + current.iv * DAY; current.reps = (current.reps || 0) + 1;
+    });
+    if (btnE) btnE.onclick = rate(() => {
+      current.iv = current.iv === 0 ? 3 : Math.round(current.iv * 3.2);
+      current.due = Date.now() + current.iv * DAY; current.reps = (current.reps || 0) + 1;
+    });
+  };
+  function flipCurrent() { if (current) { showBack = !showBack; renderReview(); } }
+  document.addEventListener("keydown", (e) => {
+    if (/input|textarea|select/i.test(document.activeElement.tagName)) return;
+    if ($("tab-cards").classList.contains("hidden") || !current || !showBack) return;
+    if (e.key === "1") $("rateAgain")?.click();
+    if (e.key === "2") $("rateGood")?.click();
+    if (e.key === "3") $("rateEasy")?.click();
+  });
+  const renderCards = () => { renderDeckSel(); renderList(); renderDueBadge(); if (!current || (current.due || 0) > Date.now()) pickNext(); renderReview(); };
+
+  $("deckSel").addEventListener("change", () => { deckId = $("deckSel").value; current = null; renderCards(); });
+  $("newDeckBtn").addEventListener("click", () => {
+    const name = prompt("Deck name:", "New deck");
+    if (!name) return;
+    const d = { id: "d" + Date.now().toString(36), name: name.trim().slice(0, 60), cards: [] };
+    decks.push(d); deckId = d.id; save(DECKS_KEY, decks); current = null; renderCards();
+  });
+  $("renameDeckBtn").addEventListener("click", () => {
+    const name = prompt("Rename deck:", deck().name);
+    if (!name) return;
+    deck().name = name.trim().slice(0, 60); save(DECKS_KEY, decks); renderCards();
+  });
+  $("delDeckBtn").addEventListener("click", () => {
+    if (!confirm('Delete deck "' + deck().name + '" and its ' + deck().cards.length + " cards?")) return;
+    decks = decks.filter((d) => d.id !== deckId);
+    if (!decks.length) decks = [{ id: "d" + Date.now().toString(36), name: "My first deck", cards: [] }];
+    deckId = decks[0].id; save(DECKS_KEY, decks); current = null; renderCards();
+  });
+  $("addCardBtn").addEventListener("click", () => {
+    const f = $("frontInp").value.trim(), b = $("backInp").value.trim();
+    if (!f || !b) return;
+    deck().cards.push({ id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), f, b, iv: 0, due: 0, reps: 0 });
+    $("frontInp").value = ""; $("backInp").value = ""; $("frontInp").focus();
+    save(DECKS_KEY, decks); renderCards();
+  });
+  $("backInp").addEventListener("keydown", (e) => { if (e.key === "Enter") $("addCardBtn").click(); });
+  $("cardList").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-del]"); if (!b) return;
+    deck().cards.splice(+b.dataset.del, 1);
+    save(DECKS_KEY, decks); current = null; renderCards();
+  });
+  $("exportBtn").addEventListener("click", () => {
+    const blob = new Blob([JSON.stringify(decks, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob); a.download = "study-decks.json"; a.click();
+    URL.revokeObjectURL(a.href);
+  });
+  $("importBtn").addEventListener("click", () => $("importFile").click());
+  $("importFile").addEventListener("change", async (e) => {
+    const file = e.target.files[0]; if (!file) return;
+    e.target.value = "";
+    try {
+      const arr = JSON.parse(await file.text());
+      if (!Array.isArray(arr)) throw 0;
+      let added = 0;
+      arr.forEach((d) => {
+        if (!d || !Array.isArray(d.cards)) return;
+        const cards = d.cards.filter((c) => c && typeof c.f === "string" && typeof c.b === "string")
+          .map((c) => ({ id: "c" + Math.random().toString(36).slice(2, 9), f: c.f, b: c.b, iv: +c.iv || 0, due: +c.due || 0, reps: +c.reps || 0 }));
+        decks.push({ id: "d" + Math.random().toString(36).slice(2, 9), name: String(d.name || "Imported").slice(0, 60), cards });
+        added += cards.length;
+      });
+      save(DECKS_KEY, decks); renderCards();
+      alert("Imported " + added + " cards.");
+    } catch { alert("Couldn't read that file — expecting a study-decks.json export."); }
+  });
+  renderCards();
+
+  /* ================= STATS ================= */
+  const streak = (log) => {
+    let n = 0;
+    const d = new Date();
+    const active = (k) => { const e = log[k]; return e && ((e.focusMin || 0) > 0 || (e.reviews || 0) > 0); };
+    if (!active(dayKey(d))) d.setDate(d.getDate() - 1); /* today not started yet ≠ broken streak */
+    while (active(dayKey(d))) { n++; d.setDate(d.getDate() - 1); }
+    return n;
+  };
+  function renderStats() {
+    const log = load(LOG_KEY, {});
+    const today = log[dayKey()] || { focusMin: 0, sessions: 0, reviews: 0 };
+    const totalCards = decks.reduce((n, d) => n + d.cards.length, 0);
+    const tiles = [
+      { n: "🔥 " + streak(log), l: "day streak" },
+      { n: today.focusMin, l: "min today" },
+      { n: today.sessions, l: "sessions today" },
+      { n: today.reviews, l: "reviews today" },
+      { n: totalCards, l: "cards total" },
+    ];
+    $("statGrid").innerHTML = tiles.map((s) => `<div class="stat"><div class="n">${s.n}</div><div class="l">${s.l}</div></div>`).join("");
+
+    /* 7-day bars */
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setDate(d.getDate() - i);
+      const k = dayKey(d);
+      days.push({ k, lbl: d.toLocaleDateString(undefined, { weekday: "short" }), min: (log[k] && log[k].focusMin) || 0, today: i === 0 });
+    }
+    const max = Math.max(...days.map((x) => x.min), 1);
+    const weekTotal = days.reduce((n, x) => n + x.min, 0);
+    $("chartSub").textContent = weekTotal ? weekTotal + " focused minutes this week" : "Finish a focus session to start the chart.";
+    $("chart").setAttribute("aria-label",
+      "Focus minutes per day, last 7 days: " + days.map((x) => x.lbl + " " + x.min).join(", "));
+    $("chart").innerHTML = days.map((x, i) => `
+      <div class="col" data-i="${i}">
+        <div class="vlbl">${x.today && x.min ? x.min : ""}</div>
+        <div class="bar-hit"><div class="bar ${x.min ? "" : "zero"}" style="height:${Math.max(2, (x.min / max) * 92)}px"></div></div>
+        <div class="dlbl ${x.today ? "today" : ""}">${x.today ? "Today" : x.lbl}</div>
+      </div>`).join("");
+    /* per-bar hover tooltip */
+    const tip = $("chartTip");
+    $("chart").onmousemove = (e) => {
+      const col = e.target.closest(".col");
+      if (!col) { tip.style.display = "none"; return; }
+      const d = days[+col.dataset.i];
+      tip.textContent = (d.today ? "Today" : d.lbl) + " · " + d.min + " min";
+      tip.style.display = "block";
+      const r = $("chart").parentElement.getBoundingClientRect();
+      tip.style.left = Math.min(e.clientX - r.left + 12, r.width - 110) + "px";
+      tip.style.top = (e.clientY - r.top - 34) + "px";
+    };
+    $("chart").onmouseleave = () => { tip.style.display = "none"; };
+  }
+  renderStats();
+})();
+</script>
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script defer src="_settings.js"></script>
+</body>
+</html>

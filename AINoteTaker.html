@@ -1,0 +1,1717 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Note Taker</title>
+<link rel="stylesheet" href="_motion.css">
+<script defer src="_motion.js"></script>
+<style>
+  :root {
+    --bg-grad-1: #1e1e2f;
+    --bg-grad-2: #2d2d44;
+    --app-bg: #27273a;
+    --card-bg: #1e1e2f;
+    --border: #3a3a52;
+    --border-soft: #2f2f47;
+    --text: #e4e4e7;
+    --text-dim: #9a9ab0;
+    --text-mute: #6b6b82;
+    --accent: #6366f1;
+    --accent-hover: #4f46e5;
+    --danger: #ef4444;
+    --success: #22c55e;
+    --warn: #f59e0b;
+    --shadow: 0 20px 50px rgba(0,0,0,0.4);
+    --code-bg: rgba(0,0,0,0.28);
+  }
+  [data-theme="light"] {
+    /* Notebook paper — classic warm cream + pen ink */
+    --bg-grad-1: #f0d5a0;
+    --bg-grad-2: #e8c489;
+    --app-bg: #fbeed0;
+    --card-bg: #f5e2b4;
+    --border: #d4b075;
+    --border-soft: #e2c58a;
+    --text: #2d2115;
+    --text-dim: #6b5738;
+    --text-mute: #a08967;
+    --accent: #c62d2d;
+    --accent-hover: #9e2020;
+    --danger: #b91c1c;
+    --success: #4a7c2e;
+    --warn: #d97706;
+    --shadow: 0 8px 24px rgba(139,100,40,0.18);
+    --code-bg: #ede0be;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
+  body {
+    background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2));
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 24px 16px;
+    transition: background 0.3s;
+  }
+  .wrap {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 1160px;
+    align-items: flex-start;
+  }
+
+  /* Slim sessions rail — Notion sidebar style */
+  .side-panel.side-left {
+    background: var(--app-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 10px 8px;
+    width: 56px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: width 0.2s ease;
+    max-height: calc(100vh - 48px);
+    overflow: hidden;
+    align-self: stretch;
+  }
+  .side-panel.side-left.expanded { width: 240px; }
+  .side-panel.side-left h3 { display: none; }
+  .side-panel.side-left.expanded h3 {
+    display: block;
+    font-size: 0.68rem; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.08em;
+    font-weight: 600;
+    padding: 4px 8px 2px;
+  }
+  .rail-toggle, .rail-newsession {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-dim); cursor: pointer;
+    height: 36px; border-radius: 8px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 10px;
+    font-size: 0.86rem; font-family: inherit;
+    justify-content: flex-start;
+    transition: all 0.15s;
+    flex-shrink: 0;
+  }
+  .rail-toggle:hover, .rail-newsession:hover { color: var(--text); border-color: var(--accent); }
+  .rail-toggle .lbl, .rail-newsession .lbl { display: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .side-panel.side-left.expanded .rail-toggle .lbl,
+  .side-panel.side-left.expanded .rail-newsession .lbl { display: inline; }
+  .side-panel.side-left:not(.expanded) .rail-toggle,
+  .side-panel.side-left:not(.expanded) .rail-newsession { justify-content: center; padding: 0; }
+
+  .sessions-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .sessions-list::-webkit-scrollbar { width: 4px; }
+  .sessions-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sessions-list li {
+    padding: 8px 10px;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.1s;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 36px;
+  }
+  .sessions-list li:hover { background: var(--card-bg); }
+  .sessions-list li.active { background: rgba(99,102,241,0.15); border-color: rgba(99,102,241,0.35); }
+  .sessions-list li .dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-mute); flex-shrink: 0;
+  }
+  .sessions-list li.active .dot { background: var(--accent); }
+  .sessions-list li.has-content .dot { background: var(--success); }
+  .sessions-list li .s-body { flex: 1; min-width: 0; display: none; }
+  .side-panel.side-left.expanded .sessions-list li .s-body { display: block; }
+  .sessions-list li .s-title { font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .sessions-list li .s-meta { font-size: 0.7rem; color: var(--text-dim); margin-top: 1px; }
+
+  .side-right { display: none !important; }
+  .side-panel h3 {
+    font-size: 0.72rem;
+    color: var(--text-dim);
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  .app {
+    background: var(--app-bg);
+    flex: 1;
+    min-width: 0;
+    max-width: 860px;
+    border-radius: 6px;
+    box-shadow: var(--shadow);
+    color: var(--text);
+    transition: background 0.3s;
+    display: flex;
+    flex-direction: column;
+    padding: 8px 44px 32px;
+    min-height: calc(100vh - 48px);
+    position: relative;
+  }
+  /* Subtle torn/notebook edge for the paper look */
+  [data-theme="light"] .app {
+    background:
+      linear-gradient(to right, transparent 0, transparent 42px, rgba(198,45,45,0.08) 42px, rgba(198,45,45,0.08) 44px, transparent 44px),
+      var(--app-bg);
+    box-shadow: 0 2px 0 rgba(139,100,40,0.15), 0 8px 30px rgba(139,100,40,0.15);
+    border: 1px solid #d4b075;
+  }
+
+  header {
+    padding: 18px 0 14px;
+    border-bottom: 1px solid var(--border-soft);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 4px;
+  }
+  header .title { flex: 1; min-width: 0; }
+  header .title-input {
+    background: transparent;
+    border: 1px solid transparent;
+    color: var(--text);
+    font-size: 1.35rem;
+    font-weight: 600;
+    padding: 4px 8px;
+    border-radius: 6px;
+    width: 100%;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  header .title-input:hover { background: var(--card-bg); }
+  header .title-input:focus { border-color: var(--accent); background: var(--card-bg); }
+  header .subtitle { color: var(--text-dim); font-size: 0.78rem; padding: 2px 8px; }
+
+  .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .icon-btn {
+    width: 34px; height: 34px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem;
+    transition: all 0.15s;
+  }
+  .icon-btn:hover { color: var(--text); border-color: var(--accent); }
+  .icon-btn.danger:hover { color: var(--danger); border-color: var(--danger); }
+  .icon-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .mic-bar {
+    display: flex; gap: 10px; align-items: center;
+    padding: 14px 0 12px;
+    flex-wrap: wrap;
+  }
+  .mic-btn {
+    padding: 8px 16px;
+    border: none;
+    border-radius: 10px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 8px;
+    transition: background 0.15s;
+  }
+  .mic-btn:hover { background: var(--accent-hover); }
+  .mic-btn.recording {
+    background: var(--danger);
+    animation: pulse 1.4s infinite;
+  }
+  .mic-btn.recording:hover { background: #b91c1c; }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.55); }
+    50% { box-shadow: 0 0 0 10px rgba(239,68,68,0); }
+  }
+  .mic-bar select {
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--app-bg);
+    color: var(--text);
+    font-size: 0.82rem;
+    outline: none;
+    cursor: pointer;
+  }
+  .mic-status {
+    color: var(--text-dim);
+    font-size: 0.82rem;
+    flex: 1;
+    text-align: right;
+  }
+  .mic-status .rec-dot {
+    display: inline-block; width: 8px; height: 8px;
+    background: var(--danger); border-radius: 50%;
+    margin-right: 6px; vertical-align: middle;
+    animation: blink 1s infinite;
+  }
+  @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .transcript {
+    padding: 8px 0;
+    min-height: 260px;
+    max-height: 62vh;
+    overflow-y: auto;
+    font-size: 1.05rem;
+    line-height: 28px;
+    color: var(--text);
+    outline: none;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: transparent;
+    border: none;
+  }
+  /* Notebook paper: ruled lines + red margin */
+  [data-theme="light"] .transcript {
+    background-image: repeating-linear-gradient(
+      to bottom,
+      transparent 0,
+      transparent 27px,
+      rgba(139,100,40,0.28) 28px
+    );
+    padding-left: 24px;
+    border-left: 2px solid rgba(198,45,45,0.45);
+    font-family: 'Georgia','Cambria','Times New Roman',serif;
+  }
+  [data-theme="light"] .transcript:empty::before {
+    font-family: 'Georgia','Cambria','Times New Roman',serif;
+    font-style: italic;
+    color: var(--text-mute);
+  }
+  [data-theme="light"] header .title-input,
+  [data-theme="light"] .insight-title,
+  [data-theme="light"] h1 {
+    font-family: 'Georgia','Cambria','Times New Roman',serif;
+  }
+  [data-theme="light"] .side-panel.side-left h3 {
+    font-family: 'Georgia','Cambria',serif;
+    text-transform: none;
+    letter-spacing: 0;
+    font-style: italic;
+  }
+  [data-theme="light"] .insight-section {
+    box-shadow: 0 1px 0 rgba(139,100,40,0.15);
+  }
+  .transcript .interim {
+    color: var(--text-mute);
+    font-style: italic;
+  }
+  .transcript:empty::before {
+    content: 'Start recording, or type/paste notes here…';
+    color: var(--text-mute);
+  }
+
+  .actions-bar {
+    padding: 10px 0 4px;
+    border-top: 1px solid var(--border-soft);
+    border-bottom: 1px solid var(--border-soft);
+    margin: 10px 0 20px;
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .action-btn {
+    padding: 8px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text);
+    font-size: 0.85rem;
+    cursor: pointer;
+    display: flex; align-items: center; gap: 6px;
+    transition: all 0.15s;
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .action-btn.ai { border-color: var(--accent); color: var(--accent); }
+  .action-btn.ai:hover { background: var(--accent); color: #fff; }
+  .action-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .action-btn .badge {
+    background: var(--accent); color: #fff;
+    font-size: 0.65rem; padding: 1px 5px; border-radius: 3px;
+    font-weight: 600;
+  }
+  .translate-group {
+    display: flex; align-items: stretch;
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  .translate-group .action-btn {
+    border: none; border-radius: 0;
+    color: var(--accent);
+  }
+  .translate-group .action-btn:hover { background: var(--accent); color: #fff; }
+  .translate-group select {
+    border: none; border-left: 1px solid var(--accent);
+    background: var(--card-bg); color: var(--text);
+    font-size: 0.82rem; padding: 0 8px;
+    outline: none; cursor: pointer;
+  }
+  .translate-group select:focus { background: var(--app-bg); }
+  .translation-box {
+    background: var(--card-bg);
+    border-left: 3px solid var(--accent);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    line-height: 1.55;
+    white-space: pre-wrap; word-break: break-word;
+    color: var(--text);
+    font-family: 'Segoe UI', 'Myanmar Text', 'Padauk', system-ui, sans-serif;
+  }
+  .translation-meta {
+    font-size: 0.7rem; color: var(--text-dim);
+    margin-top: 4px; text-align: right;
+  }
+
+  /* Sessions list */
+  .sessions-list { list-style: none; padding: 0; max-height: 500px; overflow-y: auto; }
+  .sessions-list li {
+    padding: 10px 12px;
+    margin-bottom: 6px;
+    background: var(--card-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.15s;
+    position: relative;
+  }
+  .sessions-list li:hover { border-color: var(--accent); }
+  .sessions-list li.active { border-color: var(--accent); background: rgba(99,102,241,0.1); }
+  .sessions-list .s-title { font-size: 0.88rem; font-weight: 500; word-break: break-word; }
+  .sessions-list .s-meta { font-size: 0.7rem; color: var(--text-dim); margin-top: 3px; }
+  .new-session-btn {
+    width: 100%;
+    padding: 10px;
+    border: 1px dashed var(--border);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-dim);
+    cursor: pointer;
+    margin-bottom: 12px;
+    font-size: 0.85rem;
+    transition: all 0.15s;
+  }
+  .new-session-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Insights — inline Notion-style blocks */
+  .insights-inline {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 4px;
+  }
+  .insight-section {
+    background: var(--card-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 14px 18px;
+    transition: border-color 0.15s;
+  }
+  .insight-section:hover { border-color: var(--border); }
+  .insight-title {
+    font-size: 0.78rem;
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 10px;
+    font-weight: 600;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .insight-body { font-size: 0.94rem; line-height: 1.6; color: var(--text); }
+  .insight-empty { color: var(--text-mute); font-style: italic; font-size: 0.88rem; }
+  .action-item {
+    background: var(--card-bg);
+    border-left: 3px solid var(--warn);
+    padding: 6px 10px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    font-size: 0.82rem;
+    display: flex; align-items: flex-start; gap: 6px;
+    word-break: break-word;
+  }
+  .action-item .check {
+    color: var(--warn); font-weight: bold; flex-shrink: 0;
+  }
+  .send-one-btn {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-dim); cursor: pointer;
+    width: 20px; height: 20px; border-radius: 4px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.85rem; flex-shrink: 0;
+    transition: all 0.15s;
+  }
+  .send-one-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .keywords { display: flex; flex-wrap: wrap; gap: 5px; }
+  .kw-chip {
+    background: rgba(99,102,241,0.15);
+    color: var(--accent);
+    font-size: 0.75rem;
+    padding: 2px 8px;
+    border-radius: 12px;
+    font-weight: 500;
+  }
+  .summary-box {
+    background: var(--card-bg);
+    border-left: 3px solid var(--accent);
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    word-break: break-word;
+  }
+
+  /* Chat */
+  .chat-box {
+    background: var(--card-bg);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px;
+    margin-top: 8px;
+  }
+  .chat-messages {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 4px;
+    font-size: 0.82rem;
+  }
+  .chat-msg { margin-bottom: 8px; padding: 6px 8px; border-radius: 6px; }
+  .chat-msg.user { background: rgba(99,102,241,0.12); color: var(--text); }
+  .chat-msg.assistant { background: var(--app-bg); color: var(--text); }
+  .chat-input {
+    display: flex; gap: 6px; margin-top: 6px;
+  }
+  .chat-input input {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    background: var(--app-bg);
+    color: var(--text);
+    font-size: 0.82rem;
+    outline: none;
+  }
+  .chat-input input:focus { border-color: var(--accent); }
+  .chat-input button {
+    padding: 6px 10px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.82rem;
+  }
+  .chat-input button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  /* Modal */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
+    display: none; align-items: flex-start; justify-content: center;
+    padding: 60px 20px 40px; z-index: 900; overflow-y: auto;
+  }
+  .modal-backdrop.show { display: flex; }
+  .modal {
+    background: var(--app-bg); color: var(--text);
+    border-radius: 16px; padding: 22px 26px 26px;
+    max-width: 520px; width: 100%;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+  }
+  .modal h2 { font-size: 1.15rem; margin-bottom: 12px; }
+  .modal p { font-size: 0.88rem; color: var(--text-dim); margin-bottom: 12px; line-height: 1.5; }
+  .modal input, .modal select {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--card-bg); color: var(--text);
+    font-size: 0.9rem; outline: none; margin-bottom: 10px;
+    font-family: 'Consolas','Monaco',monospace;
+  }
+  .modal input:focus, .modal select:focus { border-color: var(--accent); }
+  .modal .mlabel {
+    font-size: 0.7rem; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.06em;
+    display: block; margin-top: 6px; margin-bottom: 4px; font-weight: 600;
+  }
+  .modal .mlabel a { color: var(--accent); text-decoration: underline; text-decoration-style: dotted; font-weight: normal; text-transform: none; letter-spacing: 0; }
+  .modal code {
+    background: var(--code-bg); padding: 1px 5px; border-radius: 3px;
+    font-family: 'Consolas','Monaco',monospace; font-size: 0.82rem;
+  }
+  .modal .modal-actions {
+    display: flex; gap: 8px; justify-content: flex-end;
+    margin-top: 12px;
+  }
+  .modal button {
+    padding: 8px 16px; border: 1px solid var(--border);
+    border-radius: 8px; background: transparent; color: var(--text);
+    cursor: pointer; font-size: 0.85rem;
+  }
+  .modal button.primary {
+    background: var(--accent); color: #fff; border-color: var(--accent);
+  }
+  .modal button.primary:hover { background: var(--accent-hover); }
+  .modal .hint { font-size: 0.72rem; color: var(--text-mute); font-style: italic; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--app-bg); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 10px 16px; display: flex; gap: 14px; align-items: center;
+    box-shadow: var(--shadow); font-size: 0.88rem;
+    opacity: 0; pointer-events: none; transition: all 0.25s;
+    z-index: 1000;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+
+  input[type="file"] { display: none; }
+
+  @media (max-width: 1180px) {
+    body { flex-direction: column; align-items: center; }
+    .side-panel { width: 100%; max-width: 720px; order: 2; }
+    .app { order: 1; }
+  }
+</style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#a78bfa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+ <div class="wrap">
+  <aside class="side-panel side-left" id="sessionsRail">
+    <button class="rail-toggle" id="railToggle" title="Expand/collapse sessions"><span>☰</span><span class="lbl">Sessions</span></button>
+    <button class="rail-newsession" id="newSessionBtn" title="New session"><span>＋</span><span class="lbl">New session</span></button>
+    <h3>Recent</h3>
+    <ul class="sessions-list" id="sessionsList"></ul>
+  </aside>
+
+  <div class="app">
+    <header>
+      <div class="title">
+        <input class="title-input" id="titleInput" placeholder="Untitled session" maxlength="120">
+        <div class="subtitle" id="subtitle"></div>
+      </div>
+      <div class="header-actions">
+        <a class="icon-btn" href="index.html" title="Dashboard" style="text-decoration:none">🏠</a>
+        <button class="icon-btn" id="aiKeyBtn" title="Set Anthropic API key (unlocks AI features)">🔑</button>
+        <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+        <button class="icon-btn" id="exportBtn" title="Export as Markdown">⬇</button>
+        <button class="icon-btn" id="importBtn" title="Import JSON">⬆</button>
+        <input type="file" id="importFile" accept="application/json">
+        <button class="icon-btn danger" id="deleteBtn" title="Delete session">🗑</button>
+      </div>
+    </header>
+
+    <div class="mic-bar">
+      <button class="mic-btn" id="micBtn">🎤 Start recording</button>
+      <select id="langSelect" title="Recognition language">
+        <option value="en-US">English (US)</option>
+        <option value="en-GB">English (UK)</option>
+        <option value="my-MM">Myanmar (Burmese) — မြန်မာ</option>
+        <option value="ms-MY">Malay</option>
+        <option value="th-TH">Thai — ไทย</option>
+        <option value="vi-VN">Vietnamese</option>
+        <option value="id-ID">Indonesian</option>
+        <option value="zh-CN">Chinese (CN) — 中文</option>
+        <option value="ja-JP">Japanese — 日本語</option>
+        <option value="ko-KR">Korean — 한국어</option>
+        <option value="hi-IN">Hindi</option>
+        <option value="ta-IN">Tamil</option>
+        <option value="ar-SA">Arabic</option>
+        <option value="es-ES">Spanish</option>
+        <option value="fr-FR">French</option>
+        <option value="de-DE">German</option>
+      </select>
+      <span class="mic-status" id="micStatus">Click 🎤 or just start typing.</span>
+    </div>
+
+    <div class="transcript" id="transcript" contenteditable="true"></div>
+
+    <div class="actions-bar">
+      <button class="action-btn" id="summarizeBtn">✨ Summarize</button>
+      <button class="action-btn" id="extractBtn">📌 Extract action items</button>
+      <button class="action-btn" id="keywordsBtn">🏷 Keywords</button>
+      <div class="translate-group">
+        <button class="action-btn ai" id="translateBtn" title="Translate the transcript (needs an AI provider)">🌐 Translate to</button>
+        <select id="translateTarget" title="Target language">
+          <option value="Myanmar (Burmese)">မြန်မာ Myanmar</option>
+          <option value="English">English</option>
+          <option value="Malay">Malay</option>
+          <option value="Chinese (Simplified)">中文 Chinese</option>
+          <option value="Thai">ไทย Thai</option>
+          <option value="Japanese">日本語 Japanese</option>
+          <option value="Korean">한국어 Korean</option>
+          <option value="Vietnamese">Vietnamese</option>
+          <option value="Indonesian">Indonesian</option>
+          <option value="Spanish">Spanish</option>
+          <option value="French">French</option>
+          <option value="German">German</option>
+        </select>
+      </div>
+      <button class="action-btn ai" id="aiAskBtn" title="Ask a question about these notes (requires API key)">💬 Ask AI <span class="badge">AI</span></button>
+      <button class="action-btn" id="clearBtn" style="margin-left:auto;color:var(--danger);border-color:var(--danger)">Clear text</button>
+    </div>
+
+    <div class="insights-inline">
+      <div class="insight-section">
+        <div class="insight-title">✨ Summary</div>
+        <div class="insight-body" id="summaryOut"><div class="insight-empty">Click Summarize above.</div></div>
+      </div>
+      <div class="insight-section">
+        <div class="insight-title">📌 Action items</div>
+        <div class="insight-body" id="actionsOut"><div class="insight-empty">Click Extract action items above.</div></div>
+      </div>
+      <div class="insight-section">
+        <div class="insight-title">🏷 Keywords</div>
+        <div class="insight-body" id="keywordsOut"><div class="insight-empty">Click Keywords above.</div></div>
+      </div>
+      <div class="insight-section" id="translationSection" style="display:none">
+        <div class="insight-title">🌐 Translation <span id="translationLang" style="font-weight:normal;color:var(--text-mute);text-transform:none;letter-spacing:0"></span></div>
+        <div class="insight-body" id="translationOut"></div>
+      </div>
+      <div class="insight-section" id="chatSection" style="display:none">
+        <div class="insight-title">💬 Ask AI</div>
+        <div class="chat-box">
+          <div class="chat-messages" id="chatMessages"></div>
+          <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="Ask about your notes...">
+            <button id="chatSendBtn">Send</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+ </div>
+
+  <div class="modal-backdrop" id="apiKeyModal">
+    <div class="modal">
+      <h2>🔑 AI Provider</h2>
+      <p>Pick one — all three have a free path. Local heuristics keep working with no provider selected.</p>
+
+      <label class="mlabel">Provider</label>
+      <select id="providerSelect">
+        <option value="">None (local heuristics only)</option>
+        <option value="gemini">🟢 Google Gemini — free tier</option>
+        <option value="groq">🚀 Groq — free tier, fastest inference</option>
+        <option value="ollama">🖥 Ollama — local, offline, forever free</option>
+        <option value="custom">🔌 Custom OpenAI-compatible — OpenRouter / Cerebras / Mistral / LM Studio / ...</option>
+        <option value="anthropic">🟣 Anthropic Claude — paid</option>
+      </select>
+
+      <div id="providerFields"></div>
+
+      <div class="modal-actions">
+        <button id="apiKeyClearBtn">Clear this provider</button>
+        <button class="primary" id="apiKeySaveBtn">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script defer src="_settings.js"></script>
+<script>
+  // Key bootstrap intentionally removed — keys must never be committed to a public repo.
+  // Users add their own key via the 🔑 button (or ⚙ Settings → Ctrl+,).
+
+  const STORE_KEY = 'ainotes.v1';
+  const CURRENT_KEY = 'ainotes.current';
+  const THEME_KEY = 'ainotes.theme';
+  const APIKEY_KEY = 'ainotes.apikey';
+  const MODEL_KEY = 'ainotes.model';
+  const LANG_KEY = 'ainotes.lang';
+
+  const $ = id => document.getElementById(id);
+  let sessions = load();
+  let currentId = localStorage.getItem(CURRENT_KEY) || null;
+  if (!sessions.length) { newSession(); }
+  else if (!sessions.find(s => s.id === currentId)) { currentId = sessions[0].id; }
+
+  const transcript = $('transcript');
+  const titleInput = $('titleInput');
+  const micBtn = $('micBtn');
+  const micStatus = $('micStatus');
+  const langSelect = $('langSelect');
+  langSelect.value = localStorage.getItem(LANG_KEY) || 'en-US';
+  langSelect.addEventListener('change', () => localStorage.setItem(LANG_KEY, langSelect.value));
+
+  // ---- storage ----
+  function load() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+      return Array.isArray(raw) ? raw : [];
+    } catch { return []; }
+  }
+  function save() { localStorage.setItem(STORE_KEY, JSON.stringify(sessions)); localStorage.setItem(CURRENT_KEY, currentId); }
+
+  function newSession() {
+    const s = {
+      id: Date.now() + '.' + Math.random().toString(36).slice(2, 8),
+      title: '',
+      transcript: '',
+      summary: '',
+      actions: [],
+      keywords: [],
+      chat: [],
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    sessions.unshift(s);
+    currentId = s.id;
+    save();
+  }
+  function current() { return sessions.find(s => s.id === currentId); }
+  function touch() { const c = current(); if (c) c.updatedAt = Date.now(); }
+
+  // ---- theme ----
+  function applyTheme(t) {
+    document.documentElement.dataset.theme = t;
+    $('themeBtn').textContent = t === 'light' ? '☀' : '🌙';
+    localStorage.setItem(THEME_KEY, t);
+  }
+  applyTheme(localStorage.getItem(THEME_KEY) || 'light');
+  $('themeBtn').onclick = () => applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+
+  // ---- render ----
+  function isEmptySession(s) {
+    return !s.title && !(s.transcript || '').trim() && !s.summary && !(s.actions || []).length;
+  }
+  function renderSessions() {
+    const ul = $('sessionsList');
+    ul.textContent = '';
+    // Hide empty untitled sessions unless it's the current one
+    const visible = sessions.filter(s => s.id === currentId || !isEmptySession(s));
+    visible.forEach(s => {
+      const li = document.createElement('li');
+      if (s.id === currentId) li.classList.add('active');
+      const wordCount = (s.transcript || '').split(/\s+/).filter(Boolean).length;
+      if (wordCount > 0 || s.title) li.classList.add('has-content');
+
+      const dot = document.createElement('span');
+      dot.className = 'dot';
+      li.appendChild(dot);
+
+      const body = document.createElement('div');
+      body.className = 's-body';
+      const t = document.createElement('div');
+      t.className = 's-title';
+      t.textContent = s.title || '(untitled)';
+      const meta = document.createElement('div');
+      meta.className = 's-meta';
+      const d = new Date(s.updatedAt);
+      meta.textContent = `${d.toLocaleDateString()} · ${wordCount} words`;
+      body.append(t, meta);
+      li.appendChild(body);
+
+      li.title = `${s.title || '(untitled)'} · ${wordCount} words`;
+      li.onclick = () => selectSession(s.id);
+      ul.appendChild(li);
+    });
+  }
+
+  // Rail toggle
+  const RAIL_KEY = 'ainotes.rail.expanded';
+  const rail = $('sessionsRail');
+  function setRail(expanded) {
+    rail.classList.toggle('expanded', expanded);
+    localStorage.setItem(RAIL_KEY, expanded ? '1' : '0');
+  }
+  setRail(localStorage.getItem(RAIL_KEY) !== '0'); // default expanded
+  $('railToggle').onclick = () => setRail(!rail.classList.contains('expanded'));
+
+  function renderCurrent() {
+    const s = current(); if (!s) return;
+    titleInput.value = s.title;
+    transcript.textContent = s.transcript || '';
+    $('subtitle').textContent = `Created ${new Date(s.createdAt).toLocaleString()}`;
+    renderInsights();
+  }
+  function renderInsights() {
+    const s = current(); if (!s) return;
+    // summary
+    const sumEl = $('summaryOut');
+    sumEl.textContent = '';
+    if (s.summary) {
+      const box = document.createElement('div');
+      box.className = 'summary-box';
+      box.textContent = s.summary;
+      sumEl.appendChild(box);
+    } else {
+      const em = document.createElement('div'); em.className = 'insight-empty';
+      em.textContent = 'Click Summarize on the left.'; sumEl.appendChild(em);
+    }
+    // actions
+    const actEl = $('actionsOut');
+    actEl.textContent = '';
+    if (s.actions && s.actions.length) {
+      s.actions.forEach(a => {
+        const it = document.createElement('div'); it.className = 'action-item';
+        const c = document.createElement('span'); c.className = 'check'; c.textContent = '☐';
+        const t = document.createElement('span'); t.style.flex = '1'; t.textContent = a;
+        const add = document.createElement('button');
+        add.className = 'send-one-btn';
+        add.title = 'Send this item as a task to Task Manager';
+        add.textContent = '⊕';
+        add.onclick = e => { e.stopPropagation(); sendActionsToTasks([a]); };
+        it.append(c, t, add); actEl.appendChild(it);
+      });
+      const sendAll = document.createElement('button');
+      sendAll.className = 'action-btn';
+      sendAll.style.cssText = 'width:100%;margin-top:8px;font-size:0.78rem;padding:6px 10px;justify-content:center;';
+      sendAll.textContent = `📤 Send all ${s.actions.length} to Task Manager`;
+      sendAll.onclick = () => sendActionsToTasks(s.actions);
+      actEl.appendChild(sendAll);
+    } else {
+      const em = document.createElement('div'); em.className = 'insight-empty';
+      em.textContent = 'Click Extract action items.'; actEl.appendChild(em);
+    }
+    // keywords
+    const kwEl = $('keywordsOut');
+    kwEl.textContent = '';
+    if (s.keywords && s.keywords.length) {
+      const wrap = document.createElement('div'); wrap.className = 'keywords';
+      s.keywords.forEach(k => {
+        const chip = document.createElement('span'); chip.className = 'kw-chip'; chip.textContent = k;
+        wrap.appendChild(chip);
+      });
+      kwEl.appendChild(wrap);
+    } else {
+      const em = document.createElement('div'); em.className = 'insight-empty';
+      em.textContent = 'Click Keywords.'; kwEl.appendChild(em);
+    }
+    // translation
+    renderTranslation();
+    // chat
+    renderChat();
+  }
+
+  function renderTranslation() {
+    const s = current(); if (!s) return;
+    const sec = $('translationSection');
+    const out = $('translationOut');
+    const meta = $('translationLang');
+    out.textContent = '';
+    if (s.translation && s.translation.text) {
+      sec.style.display = '';
+      const box = document.createElement('div');
+      box.className = 'translation-box';
+      box.textContent = s.translation.text;
+      out.appendChild(box);
+      const info = document.createElement('div');
+      info.className = 'translation-meta';
+      const provider = getProvider ? getProvider() : '';
+      const providerLabel = PROVIDERS[provider]?.name || '';
+      info.textContent = `${s.translation.words || 0} words · ${providerLabel ? 'via ' + providerLabel : ''}`;
+      out.appendChild(info);
+      meta.textContent = ` — ${s.translation.target}`;
+    } else {
+      sec.style.display = 'none';
+      meta.textContent = '';
+    }
+  }
+
+  function selectSession(id) {
+    if (recognition && recording) stopRecording();
+    currentId = id; save(); renderSessions(); renderCurrent();
+  }
+
+  $('newSessionBtn').onclick = () => { if (recording) stopRecording(); newSession(); renderSessions(); renderCurrent(); titleInput.focus(); };
+
+  titleInput.addEventListener('input', () => { const c = current(); if (c) { c.title = titleInput.value; touch(); save(); renderSessions(); } });
+
+  transcript.addEventListener('input', () => {
+    const c = current(); if (c) { c.transcript = transcript.textContent; touch(); save(); renderSessions(); }
+  });
+
+  $('deleteBtn').onclick = () => {
+    const c = current(); if (!c) return;
+    if (!confirm(`Delete session "${c.title || '(untitled)'}"?`)) return;
+    sessions = sessions.filter(s => s.id !== currentId);
+    if (!sessions.length) newSession();
+    else currentId = sessions[0].id;
+    save(); renderSessions(); renderCurrent();
+  };
+
+  $('exportBtn').onclick = () => {
+    const c = current(); if (!c) return;
+    const md = toMarkdown(c);
+    const blob = new Blob([md], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${(c.title || 'note').replace(/[^a-z0-9]+/gi, '_')}_${new Date().toISOString().slice(0,10)}.md`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+  function toMarkdown(s) {
+    const lines = [`# ${s.title || 'Untitled'}`, ''];
+    lines.push(`_${new Date(s.createdAt).toLocaleString()}_`, '');
+    if (s.summary) lines.push('## Summary', '', s.summary, '');
+    if (s.actions && s.actions.length) {
+      lines.push('## Action items', '');
+      s.actions.forEach(a => lines.push(`- [ ] ${a}`));
+      lines.push('');
+    }
+    if (s.keywords && s.keywords.length) lines.push('## Keywords', '', s.keywords.join(', '), '');
+    if (s.translation && s.translation.text) {
+      lines.push(`## Translation (${s.translation.target})`, '', s.translation.text, '');
+    }
+    lines.push('## Transcript', '', s.transcript || '');
+    return lines.join('\n');
+  }
+
+  $('importBtn').onclick = () => $('importFile').click();
+  $('importFile').addEventListener('change', e => {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader();
+    r.onload = ev => {
+      try {
+        const data = JSON.parse(ev.target.result);
+        if (!Array.isArray(data)) throw new Error('Expected array');
+        sessions = data.concat(sessions);
+        save(); renderSessions(); renderCurrent();
+        showToast(`Imported ${data.length} session(s)`);
+      } catch (err) { alert('Import failed: ' + err.message); }
+    };
+    r.readAsText(file); e.target.value = '';
+  });
+
+  $('clearBtn').onclick = () => {
+    if (!confirm('Clear transcript?')) return;
+    const c = current(); if (!c) return;
+    c.transcript = ''; touch(); save(); renderCurrent();
+  };
+
+  // ---- Speech recognition ----
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null;
+  let recording = false;
+  let interimEl = null;
+
+  function initRecognition() {
+    if (!SR) { micStatus.textContent = 'Speech recognition not supported. Use Chrome/Edge.'; micBtn.disabled = true; return; }
+    recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.onstart = () => { micStatus.innerHTML = '<span class="rec-dot"></span>Listening...'; };
+    recognition.onerror = e => {
+      if (e.error === 'no-speech') return;
+      micStatus.textContent = `⚠ ${e.error}`;
+      if (['not-allowed', 'service-not-allowed'].includes(e.error)) stopRecording();
+    };
+    recognition.onend = () => {
+      if (recording) {
+        try { recognition.start(); } catch {}
+      } else {
+        micStatus.textContent = 'Stopped.';
+        removeInterim();
+      }
+    };
+    recognition.onresult = e => {
+      let finalText = '';
+      let interimText = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        const r = e.results[i];
+        if (r.isFinal) finalText += r[0].transcript;
+        else interimText += r[0].transcript;
+      }
+      if (finalText) appendFinal(finalText);
+      showInterim(interimText);
+    };
+  }
+  function appendFinal(text) {
+    removeInterim();
+    const c = current(); if (!c) return;
+    const trimmed = text.trim();
+    if (!trimmed) return;
+    const cur = c.transcript || '';
+    const sep = cur && !/[.!?\n]\s*$/.test(cur) ? ' ' : (cur ? ' ' : '');
+    c.transcript = cur + sep + trimmed;
+    transcript.textContent = c.transcript;
+    transcript.scrollTop = transcript.scrollHeight;
+    touch(); save(); renderSessions();
+  }
+  function showInterim(text) {
+    removeInterim();
+    if (!text) return;
+    interimEl = document.createElement('span');
+    interimEl.className = 'interim';
+    interimEl.textContent = ' ' + text;
+    transcript.appendChild(interimEl);
+    transcript.scrollTop = transcript.scrollHeight;
+  }
+  function removeInterim() { if (interimEl && interimEl.parentNode) interimEl.parentNode.removeChild(interimEl); interimEl = null; }
+
+  function startRecording() {
+    if (!recognition) initRecognition();
+    if (!recognition) return;
+    recognition.lang = langSelect.value;
+    try { recognition.start(); recording = true; micBtn.classList.add('recording'); micBtn.textContent = '⏹ Stop recording'; }
+    catch (err) { micStatus.textContent = `⚠ ${err.message}`; }
+  }
+  function stopRecording() {
+    if (!recognition) return;
+    recording = false;
+    try { recognition.stop(); } catch {}
+    micBtn.classList.remove('recording');
+    micBtn.textContent = '🎤 Start recording';
+    removeInterim();
+  }
+  micBtn.onclick = () => recording ? stopRecording() : startRecording();
+  initRecognition();
+
+  // ---- Local heuristics ----
+  const STOPWORDS = new Set(('a about above after again against all am an and any are as at be because been before being below between both but by could did do does doing down during each few for from further had has have having he her here hers herself him himself his how i if in into is it its itself just me might more most my myself no nor not now of off on once only or other our ours ourselves out over own same she should so some such than that the their theirs them themselves then there these they this those through to too under until up very was we were what when where which while who whom why will with would you your yours yourself yourselves ll ve re s t don m d re um uh yeah okay ok').split(/\s+/));
+
+  function splitSentences(text) {
+    return text.split(/(?<=[.!?])\s+|\n+/).map(s => s.trim()).filter(Boolean);
+  }
+
+  function heuristicSummary(text) {
+    const sents = splitSentences(text);
+    if (sents.length <= 3) return sents.join(' ');
+    const wordFreq = wordFrequencies(text);
+    const scored = sents.map((s, i) => {
+      const words = tokenize(s);
+      const score = words.reduce((a, w) => a + (wordFreq[w] || 0), 0) / Math.max(1, Math.sqrt(words.length));
+      const posBonus = (i < 2 || i >= sents.length - 2) ? 1.2 : 1.0;
+      return { s, i, score: score * posBonus };
+    });
+    const top = scored.sort((a, b) => b.score - a.score).slice(0, Math.min(5, Math.ceil(sents.length / 4)));
+    top.sort((a, b) => a.i - b.i);
+    return top.map(x => x.s).join(' ');
+  }
+
+  function heuristicActions(text) {
+    const sents = splitSentences(text);
+    const patterns = /\b(need to|needs to|should|must|will|going to|have to|action item|todo|to do|to-do|remember to|don'?t forget to|make sure|let's|lets|assigned to|follow up|follow-up)\b/i;
+    const bullets = text.match(/^(?:[-*]\s*\[[ x]\]\s*.+|TODO:.+|ACTION:.+)$/gim) || [];
+    const found = new Set();
+    bullets.forEach(b => found.add(b.replace(/^[-*]\s*\[[ x]\]\s*|^TODO:\s*|^ACTION:\s*/i, '').trim()));
+    sents.forEach(s => { if (patterns.test(s) && s.length < 240) found.add(s); });
+    return [...found].slice(0, 12);
+  }
+
+  function tokenize(text) {
+    return (text.toLowerCase().match(/\b[a-z][a-z'-]{1,}\b/g) || []).filter(w => !STOPWORDS.has(w));
+  }
+  function wordFrequencies(text) {
+    const words = tokenize(text);
+    const freq = {};
+    words.forEach(w => { freq[w] = (freq[w] || 0) + 1; });
+    return freq;
+  }
+  function heuristicKeywords(text) {
+    const freq = wordFrequencies(text);
+    return Object.entries(freq)
+      .filter(([w, n]) => n >= 2 && w.length >= 4)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 12)
+      .map(([w]) => w);
+  }
+
+  // ---- AI providers ----
+  const PROVIDERS = {
+    gemini: {
+      name: 'Google Gemini',
+      keyStorage: 'ainotes.apikey.gemini',
+      modelStorage: 'ainotes.model.gemini',
+      defaultModel: 'gemini-2.5-flash',
+      models: ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash', 'gemini-2.0-flash-lite'],
+      keyPlaceholder: 'AIza...',
+      keyLink: 'https://aistudio.google.com/apikey',
+      hint: 'Free tier: ~15 req/min, 1M tokens/day. No credit card required.',
+    },
+    groq: {
+      name: 'Groq',
+      keyStorage: 'ainotes.apikey.groq',
+      modelStorage: 'ainotes.model.groq',
+      defaultModel: 'llama-3.3-70b-versatile',
+      models: ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768', 'gemma2-9b-it', 'deepseek-r1-distill-llama-70b'],
+      keyPlaceholder: 'gsk_...',
+      keyLink: 'https://console.groq.com/keys',
+      hint: 'Fastest free tier available (~500 tok/sec). 30 req/min, 14,400 req/day. No credit card. Model list at console.groq.com/docs/models.',
+    },
+    ollama: {
+      name: 'Ollama (local)',
+      urlStorage: 'ainotes.ollama.url',
+      modelStorage: 'ainotes.model.ollama',
+      defaultUrl: 'http://localhost:11434',
+      defaultModel: 'llama3.1',
+    },
+    custom: {
+      name: 'Custom OpenAI-compatible',
+      keyStorage: 'ainotes.apikey.custom',
+      modelStorage: 'ainotes.model.custom',
+      urlStorage: 'ainotes.custom.url',
+      defaultModel: '',
+      hint: 'Any OpenAI-compatible endpoint. Base URL should end in <code>/v1</code>. Chat completions path is auto-appended.',
+    },
+    anthropic: {
+      name: 'Anthropic Claude',
+      keyStorage: 'ainotes.apikey.anthropic',
+      modelStorage: 'ainotes.model.anthropic',
+      defaultModel: 'claude-haiku-4-5-20251001',
+      models: ['claude-haiku-4-5-20251001', 'claude-sonnet-4-6', 'claude-opus-4-7'],
+      keyPlaceholder: 'sk-ant-api03-...',
+      keyLink: 'https://console.anthropic.com',
+      hint: 'Paid. Haiku ~$0.001 per summary. Requires payment method on Anthropic console.',
+    },
+  };
+
+  // Legacy migration: old flat keys → per-provider
+  (function migrate() {
+    const oldKey = localStorage.getItem(APIKEY_KEY);
+    if (oldKey && !localStorage.getItem(PROVIDERS.anthropic.keyStorage)) {
+      localStorage.setItem(PROVIDERS.anthropic.keyStorage, oldKey);
+      const oldModel = localStorage.getItem(MODEL_KEY);
+      if (oldModel) localStorage.setItem(PROVIDERS.anthropic.modelStorage, oldModel);
+      if (!localStorage.getItem('ainotes.provider')) localStorage.setItem('ainotes.provider', 'anthropic');
+      localStorage.removeItem(APIKEY_KEY);
+      localStorage.removeItem(MODEL_KEY);
+    }
+  })();
+
+  function getProvider() { return localStorage.getItem('ainotes.provider') || ''; }
+  function setProvider(p) { p ? localStorage.setItem('ainotes.provider', p) : localStorage.removeItem('ainotes.provider'); }
+  function getKey(p) { return localStorage.getItem(PROVIDERS[p]?.keyStorage) || ''; }
+  function setKey(p, v) { const s = PROVIDERS[p]?.keyStorage; if (s) v ? localStorage.setItem(s, v) : localStorage.removeItem(s); }
+  function getModel(p) { return localStorage.getItem(PROVIDERS[p]?.modelStorage) || PROVIDERS[p]?.defaultModel || ''; }
+  function setModel(p, m) { const s = PROVIDERS[p]?.modelStorage; if (s) localStorage.setItem(s, m); }
+  function getOllamaUrl() { return localStorage.getItem(PROVIDERS.ollama.urlStorage) || PROVIDERS.ollama.defaultUrl; }
+  function setOllamaUrl(u) { localStorage.setItem(PROVIDERS.ollama.urlStorage, u); }
+  function getCustomUrl() { return localStorage.getItem(PROVIDERS.custom.urlStorage) || ''; }
+  function setCustomUrl(u) { u ? localStorage.setItem(PROVIDERS.custom.urlStorage, u) : localStorage.removeItem(PROVIDERS.custom.urlStorage); }
+  function hasAI() {
+    const p = getProvider();
+    if (!p) return false;
+    if (p === 'ollama') return !!getOllamaUrl();
+    if (p === 'custom') return !!getCustomUrl() && !!getModel('custom');
+    return !!getKey(p);
+  }
+
+  async function callAI(system, user, history) {
+    const p = getProvider();
+    if (!p) throw new Error('No AI provider set');
+    if (p === 'gemini') return callGemini(system, user, history);
+    if (p === 'groq') return callGroq(system, user, history);
+    if (p === 'ollama') return callOllama(system, user, history);
+    if (p === 'custom') return callCustom(system, user, history);
+    if (p === 'anthropic') return callAnthropic(system, user, history);
+    throw new Error(`Unknown provider: ${p}`);
+  }
+
+  async function callOpenAICompat(baseUrl, apiKey, model, system, user, history) {
+    if (!baseUrl) throw new Error('No base URL');
+    if (!model) throw new Error('No model set');
+    const messages = [];
+    if (system) messages.push({ role: 'system', content: system });
+    (history || []).forEach(m => messages.push({ role: m.role, content: m.content }));
+    messages.push({ role: 'user', content: user });
+    const headers = { 'Content-Type': 'application/json' };
+    if (apiKey) headers['Authorization'] = `Bearer ${apiKey}`;
+    const url = `${baseUrl.replace(/\/+$/, '')}/chat/completions`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ model, messages, max_tokens: 1024, temperature: 0.7 }),
+    });
+    if (!res.ok) throw new Error(`${res.status}: ${(await res.text()).slice(0, 200)}`);
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || '';
+  }
+
+  async function callGroq(system, user, history) {
+    const key = getKey('groq');
+    if (!key) throw new Error('No Groq API key');
+    return callOpenAICompat('https://api.groq.com/openai/v1', key, getModel('groq'), system, user, history);
+  }
+
+  async function callCustom(system, user, history) {
+    const url = getCustomUrl();
+    if (!url) throw new Error('No custom base URL');
+    return callOpenAICompat(url, getKey('custom'), getModel('custom'), system, user, history);
+  }
+
+  async function callAnthropic(system, user, history) {
+    const key = getKey('anthropic');
+    if (!key) throw new Error('No Anthropic API key');
+    const messages = (history || []).map(m => ({ role: m.role, content: m.content }));
+    messages.push({ role: 'user', content: user });
+    const res = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': key,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true',
+      },
+      body: JSON.stringify({
+        model: getModel('anthropic'),
+        max_tokens: 1024,
+        system: system || undefined,
+        messages,
+      }),
+    });
+    if (!res.ok) throw new Error(`Anthropic ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    const data = await res.json();
+    return data.content?.[0]?.text || '';
+  }
+
+  async function callGemini(system, user, history) {
+    const key = getKey('gemini');
+    if (!key) throw new Error('No Gemini API key');
+    const contents = (history || []).map(m => ({
+      role: m.role === 'assistant' ? 'model' : 'user',
+      parts: [{ text: m.content }],
+    }));
+    contents.push({ role: 'user', parts: [{ text: user }] });
+    const body = { contents, generationConfig: { maxOutputTokens: 1024 } };
+    if (system) body.systemInstruction = { parts: [{ text: system }] };
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(getModel('gemini'))}:generateContent?key=${encodeURIComponent(key)}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+    if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  }
+
+  async function callOllama(system, user, history) {
+    const url = getOllamaUrl().replace(/\/$/, '');
+    const messages = [];
+    if (system) messages.push({ role: 'system', content: system });
+    (history || []).forEach(m => messages.push({ role: m.role, content: m.content }));
+    messages.push({ role: 'user', content: user });
+    const res = await fetch(`${url}/api/chat`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: getModel('ollama'), messages, stream: false, options: { num_predict: 1024 } }),
+    });
+    if (!res.ok) throw new Error(`Ollama ${res.status}: ${(await res.text()).slice(0, 200)}`);
+    const data = await res.json();
+    return data.message?.content || '';
+  }
+
+  async function fetchOllamaModels() {
+    try {
+      const url = getOllamaUrl().replace(/\/$/, '');
+      const res = await fetch(`${url}/api/tags`, { method: 'GET' });
+      if (!res.ok) return [];
+      const data = await res.json();
+      return (data.models || []).map(m => m.name);
+    } catch { return []; }
+  }
+
+  async function aiSummarize(text) {
+    const out = await callAI(
+      'You summarize meeting/note transcripts. Return 3-6 concise sentences capturing the key points. No preamble, just the summary.',
+      `Transcript:\n\n${text}`
+    );
+    return out.trim();
+  }
+  async function aiExtractActions(text) {
+    const out = await callAI(
+      'Extract concrete action items from the transcript. Return one per line, no numbering or bullets, imperative form. If none, return NONE.',
+      `Transcript:\n\n${text}`
+    );
+    if (/^\s*NONE\s*$/i.test(out)) return [];
+    return out.split('\n').map(l => l.replace(/^[-*\d.\s]+/, '').trim()).filter(Boolean).slice(0, 15);
+  }
+  async function aiKeywords(text) {
+    const out = await callAI(
+      'Extract 5-10 key topics/keywords from the transcript. Return comma-separated, no explanation.',
+      `Transcript:\n\n${text}`
+    );
+    return out.split(',').map(k => k.trim().toLowerCase()).filter(Boolean).slice(0, 12);
+  }
+  async function aiAsk(text, question, history) {
+    return callAI(
+      `You are answering questions about the following notes. Answer concisely, only using facts from the notes.\n\nNOTES:\n${text}`,
+      question,
+      history
+    );
+  }
+  async function aiTranslate(text, targetLang) {
+    const out = await callAI(
+      `You are a professional translator. Translate the user's text into ${targetLang}. Preserve line breaks, code blocks, and technical terms (function names, table names, SQL keywords, product names) verbatim — do NOT translate them. Return ONLY the translation, with no preamble, no wrapping, no notes.`,
+      text
+    );
+    return out.trim();
+  }
+
+  // ---- Buttons ----
+  function busy(btn, on) {
+    if (on) { btn.dataset.orig = btn.textContent; btn.textContent = '…'; btn.disabled = true; }
+    else { btn.textContent = btn.dataset.orig || btn.textContent; btn.disabled = false; }
+  }
+
+  $('summarizeBtn').onclick = async () => {
+    const c = current(); if (!c || !c.transcript.trim()) { showToast('Nothing to summarize.'); return; }
+    const btn = $('summarizeBtn'); busy(btn, true);
+    try {
+      c.summary = hasAI() ? await aiSummarize(c.transcript) : heuristicSummary(c.transcript);
+      touch(); save(); renderInsights();
+      showToast(hasAI() ? `✨ ${PROVIDERS[getProvider()].name} summary` : '✨ Summary (local heuristic)');
+    } catch (err) {
+      c.summary = heuristicSummary(c.transcript);
+      touch(); save(); renderInsights();
+      showToast(`⚠ ${err.message} — used local fallback`);
+    } finally { busy(btn, false); }
+  };
+
+  $('extractBtn').onclick = async () => {
+    const c = current(); if (!c || !c.transcript.trim()) { showToast('Nothing to extract from.'); return; }
+    const btn = $('extractBtn'); busy(btn, true);
+    try {
+      c.actions = hasAI() ? await aiExtractActions(c.transcript) : heuristicActions(c.transcript);
+      touch(); save(); renderInsights();
+      showToast(`📌 ${c.actions.length} action item${c.actions.length === 1 ? '' : 's'} found`);
+    } catch (err) {
+      c.actions = heuristicActions(c.transcript);
+      touch(); save(); renderInsights();
+      showToast(`⚠ ${err.message} — used local fallback`);
+    } finally { busy(btn, false); }
+  };
+
+  $('keywordsBtn').onclick = async () => {
+    const c = current(); if (!c || !c.transcript.trim()) { showToast('Nothing to analyze.'); return; }
+    const btn = $('keywordsBtn'); busy(btn, true);
+    try {
+      c.keywords = hasAI() ? await aiKeywords(c.transcript) : heuristicKeywords(c.transcript);
+      touch(); save(); renderInsights();
+      showToast(`🏷 ${c.keywords.length} keyword${c.keywords.length === 1 ? '' : 's'}`);
+    } catch (err) {
+      c.keywords = heuristicKeywords(c.transcript);
+      touch(); save(); renderInsights();
+      showToast(`⚠ ${err.message} — used local fallback`);
+    } finally { busy(btn, false); }
+  };
+
+  // Translate — remembers last target lang
+  const TRANSLATE_TARGET_KEY = 'ainotes.translate.target';
+  const savedTarget = localStorage.getItem(TRANSLATE_TARGET_KEY);
+  if (savedTarget) $('translateTarget').value = savedTarget;
+  $('translateTarget').addEventListener('change', () => localStorage.setItem(TRANSLATE_TARGET_KEY, $('translateTarget').value));
+
+  $('translateBtn').onclick = async () => {
+    const c = current(); if (!c || !c.transcript.trim()) { showToast('Nothing to translate.'); return; }
+    if (!hasAI()) { showToast('Translate needs an AI provider (Groq / Gemini / etc.)'); openApiModal(); return; }
+    const target = $('translateTarget').value;
+    const btn = $('translateBtn'); busy(btn, true);
+    try {
+      const translated = await aiTranslate(c.transcript, target);
+      c.translation = {
+        target,
+        text: translated,
+        words: translated.split(/\s+/).filter(Boolean).length,
+        at: Date.now(),
+      };
+      touch(); save(); renderTranslation();
+      showToast(`🌐 Translated to ${target}`);
+    } catch (err) {
+      showToast(`⚠ Translate failed: ${err.message}`);
+    } finally { busy(btn, false); }
+  };
+
+  $('aiAskBtn').onclick = () => {
+    if (!hasAI()) { showToast('Set an AI provider first'); openApiModal(); return; }
+    $('chatSection').style.display = '';
+    $('chatInput').focus();
+  };
+
+  function renderChat() {
+    const c = current(); if (!c) return;
+    const box = $('chatMessages');
+    box.textContent = '';
+    (c.chat || []).forEach(m => {
+      const el = document.createElement('div');
+      el.className = 'chat-msg ' + m.role;
+      el.textContent = (m.role === 'user' ? '❯ ' : '') + m.content;
+      box.appendChild(el);
+    });
+    box.scrollTop = box.scrollHeight;
+    if (c.chat && c.chat.length) $('chatSection').style.display = '';
+  }
+
+  async function sendChat() {
+    const c = current(); if (!c) return;
+    const q = $('chatInput').value.trim();
+    if (!q) return;
+    if (!hasAI()) { showToast('Set an AI provider first'); return; }
+    if (!c.chat) c.chat = [];
+    c.chat.push({ role: 'user', content: q });
+    $('chatInput').value = '';
+    renderChat();
+    $('chatSendBtn').disabled = true;
+    try {
+      const answer = await aiAsk(c.transcript, q, c.chat.slice(0, -1));
+      c.chat.push({ role: 'assistant', content: answer });
+      touch(); save(); renderChat();
+    } catch (err) {
+      c.chat.push({ role: 'assistant', content: `⚠ ${err.message}` });
+      renderChat();
+    } finally { $('chatSendBtn').disabled = false; }
+  }
+  $('chatSendBtn').onclick = sendChat;
+  $('chatInput').addEventListener('keypress', e => { if (e.key === 'Enter') sendChat(); });
+
+  // ---- Provider modal ----
+  function openApiModal() {
+    $('providerSelect').value = getProvider();
+    renderProviderFields();
+    $('apiKeyModal').classList.add('show');
+    setTimeout(() => {
+      const first = document.querySelector('#providerFields input, #providerFields select');
+      if (first) first.focus();
+    }, 50);
+  }
+  function closeApiModal() { $('apiKeyModal').classList.remove('show'); }
+  $('aiKeyBtn').onclick = openApiModal;
+  $('apiKeyModal').addEventListener('click', e => { if (e.target === $('apiKeyModal')) closeApiModal(); });
+  $('providerSelect').onchange = renderProviderFields;
+
+  function mkLabel(html) {
+    const l = document.createElement('label');
+    l.className = 'mlabel';
+    l.innerHTML = html;
+    return l;
+  }
+  function mkHint(html) {
+    const p = document.createElement('p');
+    p.className = 'hint';
+    p.innerHTML = html;
+    return p;
+  }
+
+  function renderProviderFields() {
+    const p = $('providerSelect').value;
+    const wrap = $('providerFields');
+    wrap.textContent = '';
+    if (!p) {
+      wrap.appendChild(mkHint('Summarize / Actions / Keywords will use local heuristics only. Ask AI will be disabled.'));
+      return;
+    }
+    const cfg = PROVIDERS[p];
+    if (p === 'custom') {
+      wrap.appendChild(mkLabel('Base URL (must end at <code>/v1</code>)'));
+      const urlInput = document.createElement('input');
+      urlInput.type = 'text';
+      urlInput.id = 'providerUrl';
+      urlInput.placeholder = 'https://openrouter.ai/api/v1';
+      urlInput.value = getCustomUrl();
+      wrap.appendChild(urlInput);
+
+      wrap.appendChild(mkLabel('API key (optional — leave blank for LM Studio etc.)'));
+      const keyInput = document.createElement('input');
+      keyInput.type = 'password';
+      keyInput.id = 'providerKey';
+      keyInput.placeholder = 'sk-... or token';
+      keyInput.value = getKey('custom');
+      keyInput.autocomplete = 'off';
+      wrap.appendChild(keyInput);
+
+      wrap.appendChild(mkLabel('Model name (exact string the endpoint expects)'));
+      const modelInput = document.createElement('input');
+      modelInput.type = 'text';
+      modelInput.id = 'providerModel';
+      modelInput.placeholder = 'meta-llama/llama-3.3-70b-instruct:free';
+      modelInput.value = getModel('custom');
+      wrap.appendChild(modelInput);
+
+      wrap.appendChild(mkHint(
+        `Works with any OpenAI-compatible endpoint. Presets:<br>` +
+        `• <b>OpenRouter</b> — <code>https://openrouter.ai/api/v1</code> · e.g. <code>meta-llama/llama-3.3-70b-instruct:free</code><br>` +
+        `• <b>Cerebras</b> — <code>https://api.cerebras.ai/v1</code> · e.g. <code>llama-3.3-70b</code><br>` +
+        `• <b>Mistral</b> — <code>https://api.mistral.ai/v1</code> · e.g. <code>mistral-small-latest</code><br>` +
+        `• <b>GitHub Models</b> — <code>https://models.github.ai/inference/v1</code> · use GH PAT · e.g. <code>openai/gpt-4o-mini</code><br>` +
+        `• <b>LM Studio</b> — <code>http://localhost:1234/v1</code> · no key`
+      ));
+    } else if (p === 'ollama') {
+      wrap.appendChild(mkLabel('Server URL'));
+      const urlInput = document.createElement('input');
+      urlInput.type = 'text';
+      urlInput.id = 'providerUrl';
+      urlInput.placeholder = cfg.defaultUrl;
+      urlInput.value = getOllamaUrl();
+      wrap.appendChild(urlInput);
+
+      wrap.appendChild(mkLabel('Model <a href="#" id="ollamaRefresh">↻ refresh from server</a>'));
+      const modelSel = document.createElement('select');
+      modelSel.id = 'providerModel';
+      const cur = getModel('ollama');
+      if (cur) {
+        const o = document.createElement('option'); o.value = cur; o.textContent = cur; modelSel.appendChild(o);
+      }
+      wrap.appendChild(modelSel);
+
+      const populate = async () => {
+        const models = await fetchOllamaModels();
+        if (!models.length) return;
+        const prev = modelSel.value || cur;
+        modelSel.textContent = '';
+        models.forEach(m => {
+          const o = document.createElement('option'); o.value = m; o.textContent = m;
+          if (m === prev) o.selected = true;
+          modelSel.appendChild(o);
+        });
+      };
+      populate();
+      wrap.querySelector('#ollamaRefresh').onclick = e => { e.preventDefault(); populate(); };
+
+      wrap.appendChild(mkHint(
+        `Install from <a href="https://ollama.com" target="_blank">ollama.com</a>, pull a model (e.g. <code>ollama pull llama3.1</code>). ` +
+        `To allow this <code>file://</code> page to reach Ollama, start it with:<br>` +
+        `<code>$env:OLLAMA_ORIGINS="*"; ollama serve</code>`
+      ));
+    } else {
+      wrap.appendChild(mkLabel(`API key — <a href="${cfg.keyLink}" target="_blank">get one</a>`));
+      const keyInput = document.createElement('input');
+      keyInput.type = 'password';
+      keyInput.id = 'providerKey';
+      keyInput.placeholder = cfg.keyPlaceholder;
+      keyInput.value = getKey(p);
+      keyInput.autocomplete = 'off';
+      wrap.appendChild(keyInput);
+
+      wrap.appendChild(mkLabel('Model'));
+      const modelSel = document.createElement('select');
+      modelSel.id = 'providerModel';
+      const cur = getModel(p);
+      cfg.models.forEach(m => {
+        const o = document.createElement('option'); o.value = m; o.textContent = m;
+        if (m === cur) o.selected = true;
+        modelSel.appendChild(o);
+      });
+      wrap.appendChild(modelSel);
+      wrap.appendChild(mkHint(cfg.hint));
+    }
+  }
+
+  $('apiKeySaveBtn').onclick = () => {
+    const p = $('providerSelect').value;
+    setProvider(p);
+    if (p === 'ollama') {
+      const u = $('providerUrl')?.value.trim();
+      if (u) setOllamaUrl(u);
+      const m = $('providerModel')?.value;
+      if (m) setModel('ollama', m);
+    } else if (p === 'custom') {
+      const u = $('providerUrl')?.value.trim();
+      setCustomUrl(u);
+      const k = $('providerKey')?.value.trim();
+      setKey('custom', k);
+      const m = $('providerModel')?.value.trim();
+      if (m) setModel('custom', m);
+    } else if (p) {
+      const k = $('providerKey')?.value.trim();
+      if (k) setKey(p, k);
+      const m = $('providerModel')?.value;
+      if (m) setModel(p, m);
+    }
+    updateAiButtonState();
+    closeApiModal();
+    showToast(p ? `🔑 ${PROVIDERS[p].name} ready` : 'AI disabled — local heuristics only');
+  };
+  $('apiKeyClearBtn').onclick = () => {
+    const p = $('providerSelect').value;
+    if (!p) { showToast('Nothing to clear'); return; }
+    setKey(p, '');
+    if (p === 'ollama') localStorage.removeItem(PROVIDERS.ollama.urlStorage);
+    if (p === 'custom') { setCustomUrl(''); localStorage.removeItem(PROVIDERS.custom.modelStorage); }
+    renderProviderFields();
+    updateAiButtonState();
+    showToast(`Cleared ${PROVIDERS[p].name}`);
+  };
+  function updateAiButtonState() {
+    const has = hasAI();
+    const p = getProvider();
+    $('aiKeyBtn').classList.toggle('active', has);
+    $('aiKeyBtn').title = has
+      ? `AI: ${PROVIDERS[p].name} · ${getModel(p) || 'default'}`
+      : 'Set an AI provider (all have free options)';
+  }
+  updateAiButtonState();
+
+  // ---- Send to Task Manager ----
+  // Relative path — assumes ToDo.html is in the same folder (Utilities.Tool/)
+  const TASK_MANAGER_URL = 'ToDo.html';
+  function sendActionsToTasks(actions) {
+    if (!actions || !actions.length) { showToast('Nothing to send'); return; }
+    const s = current();
+    const payload = {
+      source: 'AI Note Taker',
+      sourceTitle: s?.title || 'Untitled note',
+      at: Date.now(),
+      tasks: actions.map(text => ({
+        text: String(text),
+        priority: 'med',
+        status: 'todo',
+        note: s ? `From note: ${s.title || 'Untitled'} (${new Date().toLocaleDateString()})` : '',
+      })),
+    };
+    let encoded;
+    try {
+      encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+    } catch (err) {
+      showToast('⚠ Encode failed: ' + err.message); return;
+    }
+    const url = `${TASK_MANAGER_URL}#import-tasks=${encoded}`;
+    const w = window.open(url, '_blank');
+    if (!w || w.closed) {
+      navigator.clipboard.writeText(url).then(
+        () => showToast('⚠ Popup blocked. Link copied — paste into a new tab.'),
+        () => showToast('⚠ Popup blocked. Open Task Manager manually and check.')
+      );
+    } else {
+      showToast(`📤 Sent ${payload.tasks.length} to Task Manager`);
+    }
+  }
+
+  // ---- Toast ----
+  let toastTimer = null;
+  function showToast(msg) {
+    $('toastMsg').textContent = msg;
+    $('toast').classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), 3000);
+  }
+
+  // ---- Keyboard ----
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      if ($('apiKeyModal').classList.contains('show')) closeApiModal();
+    }
+    const a = document.activeElement;
+    const inField = a && (a.tagName === 'INPUT' || a.tagName === 'SELECT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
+    if (inField) return;
+    if ((e.ctrlKey || e.metaKey) && e.key === '.') { e.preventDefault(); recording ? stopRecording() : startRecording(); }
+  });
+
+  // ---- init ----
+  renderSessions();
+  renderCurrent();
+</script>
+</body>
+</html>

@@ -1,0 +1,23 @@
+# Never commit secrets
+*.key
+*.secret
+.env
+.env.*
+secrets.json
+apikey.*
+_local.*
+
+# OS clutter
+Thumbs.db
+Desktop.ini
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp
+*~
+
+# Node (if you add build tooling later)
+node_modules/
+package-lock.json

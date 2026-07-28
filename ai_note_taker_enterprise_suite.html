@@ -1,0 +1,2172 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Note Taker Enterprise Suite</title>
+<style>
+  :root {
+    --bg-grad-1: #181825;
+    --bg-grad-2: #242438;
+    --app-bg: #1e1e2e;
+    --card-bg: #28283d;
+    --border: #3b3b54;
+    --border-soft: #2f2f47;
+    --text: #cdd6f4;
+    --text-dim: #9399b2;
+    --text-mute: #6c7086;
+    --accent: #89b4fa;
+    --accent-hover: #74c7ec;
+    --accent-solid: #6c5ce7;
+    --danger: #f38ba8;
+    --success: #a6e3a1;
+    --warn: #f9e2af;
+    --purple: #cba6f7;
+    --teal: #94e2d5;
+    --shadow: 0 20px 50px rgba(0,0,0,0.5);
+  }
+  [data-theme="light"] {
+    --bg-grad-1: #f4ecd8;
+    --bg-grad-2: #e6d7b8;
+    --app-bg: #faf4e6;
+    --card-bg: #f0e2c8;
+    --border: #d3c0a3;
+    --border-soft: #e2d2b9;
+    --text: #2d241e;
+    --text-dim: #6e5c4d;
+    --text-mute: #998573;
+    --accent: #b83b3b;
+    --accent-hover: #962828;
+    --accent-solid: #b83b3b;
+    --danger: #c0392b;
+    --success: #27ae60;
+    --warn: #d35400;
+    --purple: #8e44ad;
+    --teal: #16a085;
+    --shadow: 0 8px 28px rgba(139,100,40,0.18);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Pyidaungsu', 'Padauk', 'Myanmar Text', 'Segoe UI', system-ui, sans-serif; }
+  body {
+    background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2));
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 16px 12px;
+    transition: background 0.3s;
+  }
+  .wrap {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    max-width: 1380px;
+    align-items: flex-start;
+  }
+
+  /* Sidebar */
+  .side-panel.side-left {
+    background: var(--app-bg);
+    border-radius: 12px;
+    box-shadow: var(--shadow);
+    padding: 12px 10px;
+    width: 60px;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    transition: width 0.22s ease;
+    max-height: calc(100vh - 32px);
+    overflow: hidden;
+    align-self: stretch;
+    border: 1px solid var(--border-soft);
+  }
+  .side-panel.side-left.expanded { width: 270px; }
+  .side-panel.side-left h3 { display: none; }
+  .side-panel.side-left.expanded h3 {
+    display: block; font-size: 0.72rem; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.08em; font-weight: 600; padding: 6px 6px 2px;
+  }
+
+  .rail-toggle, .rail-newsession {
+    background: transparent; border: 1px solid var(--border);
+    color: var(--text-dim); cursor: pointer;
+    height: 38px; border-radius: 8px;
+    display: flex; align-items: center; gap: 8px;
+    padding: 0 10px; font-size: 0.88rem; font-family: inherit;
+    justify-content: flex-start; transition: all 0.15s; flex-shrink: 0;
+  }
+  .rail-toggle:hover, .rail-newsession:hover { color: var(--text); border-color: var(--accent); }
+  .rail-toggle .lbl, .rail-newsession .lbl { display: none; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .side-panel.side-left.expanded .rail-toggle .lbl,
+  .side-panel.side-left.expanded .rail-newsession .lbl { display: inline; }
+  .side-panel.side-left:not(.expanded) .rail-toggle,
+  .side-panel.side-left:not(.expanded) .rail-newsession { justify-content: center; padding: 0; }
+
+  /* Category Pills */
+  .category-pills { display: none; gap: 4px; flex-wrap: wrap; padding: 4px 0; }
+  .side-panel.side-left.expanded .category-pills { display: flex; }
+  .cat-pill {
+    font-size: 0.72rem; padding: 3px 8px; border-radius: 12px;
+    border: 1px solid var(--border); background: var(--card-bg);
+    color: var(--text-dim); cursor: pointer; transition: all 0.15s;
+  }
+  .cat-pill.active, .cat-pill:hover { background: var(--accent-solid); color: #fff; border-color: var(--accent-solid); }
+
+  .search-box { display: none; padding: 2px 0; }
+  .side-panel.side-left.expanded .search-box { display: block; }
+  .search-box input {
+    width: 100%; padding: 6px 10px; border-radius: 6px;
+    border: 1px solid var(--border); background: var(--card-bg);
+    color: var(--text); font-size: 0.82rem; outline: none;
+  }
+
+  .sessions-list { list-style: none; padding: 0; margin: 0; overflow-y: auto; flex: 1; display: flex; flex-direction: column; gap: 4px; }
+  .sessions-list::-webkit-scrollbar { width: 4px; }
+  .sessions-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  .sessions-list li {
+    padding: 8px 10px; background: transparent; border: 1px solid transparent;
+    border-radius: 6px; cursor: pointer; transition: background 0.1s;
+    display: flex; align-items: center; gap: 8px; min-height: 38px;
+  }
+  .sessions-list li:hover { background: var(--card-bg); }
+  .sessions-list li.active { background: rgba(137,180,250,0.15); border-color: rgba(137,180,250,0.35); }
+  .sessions-list li .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-mute); flex-shrink: 0; }
+  .sessions-list li.active .dot { background: var(--accent); }
+  .sessions-list li.has-content .dot { background: var(--success); }
+  .sessions-list li .s-body { flex: 1; min-width: 0; display: none; }
+  .side-panel.side-left.expanded .sessions-list li .s-body { display: block; }
+  .sessions-list li .s-title { font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text); }
+  .sessions-list li .s-meta { font-size: 0.7rem; color: var(--text-dim); margin-top: 1px; }
+  .pin-btn { background: transparent; border: none; cursor: pointer; color: var(--text-dim); font-size: 0.8rem; display: none; }
+  .side-panel.side-left.expanded .pin-btn { display: inline-block; }
+  .sessions-list li.pinned .pin-btn { color: var(--warn); }
+
+  /* Main Workspace */
+  .app {
+    background: var(--app-bg); flex: 1; min-width: 0; max-width: 1060px;
+    border-radius: 12px; box-shadow: var(--shadow); color: var(--text);
+    transition: background 0.3s; display: flex; flex-direction: column;
+    padding: 16px 24px 28px; min-height: calc(100vh - 32px);
+    position: relative; border: 1px solid var(--border-soft);
+  }
+
+  header { padding: 8px 0 12px; border-bottom: 1px solid var(--border-soft); display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+  header .title { flex: 1; min-width: 240px; }
+  header .title-input {
+    background: transparent; border: 1px solid transparent; color: var(--text);
+    font-size: 1.35rem; font-weight: 600; padding: 4px 8px; border-radius: 6px;
+    width: 100%; outline: none; transition: border-color 0.15s, background 0.15s;
+  }
+  header .title-input:hover { background: var(--card-bg); }
+  header .title-input:focus { border-color: var(--accent); background: var(--card-bg); }
+  
+  .category-selector {
+    padding: 2px 8px; font-size: 0.78rem; background: var(--card-bg);
+    color: var(--accent); border: 1px solid var(--border); border-radius: 6px; outline: none; cursor: pointer;
+  }
+
+  .stats-bar { font-size: 0.75rem; color: var(--text-dim); padding: 4px 8px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+  .stat-badge { background: rgba(137,180,250,0.12); color: var(--accent); padding: 2px 6px; border-radius: 4px; font-weight: 500; }
+  .auto-tag { background: rgba(203,166,247,0.15); color: var(--purple); padding: 2px 8px; border-radius: 10px; font-size: 0.72rem; font-weight: 600; }
+  .autosave-status { font-size: 0.7rem; color: var(--success); }
+
+  .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--text-dim); cursor: pointer;
+    display: flex; align-items: center; justify-content: center; font-size: 0.95rem; transition: all 0.15s;
+  }
+  .icon-btn:hover { color: var(--text); border-color: var(--accent); }
+  .icon-btn.danger:hover { color: var(--danger); border-color: var(--danger); }
+
+  /* Visualizer Canvas */
+  .visualizer-box {
+    width: 100%; height: 44px; display: none; align-items: center; justify-content: center;
+    background: var(--card-bg); border-radius: 8px; margin: 8px 0; padding: 4px 12px; border: 1px solid var(--border);
+    position: relative;
+  }
+  .visualizer-box.active { display: flex; }
+  canvas#waveCanvas { width: 100%; height: 36px; }
+
+  /* Embedded Audio Player Widget */
+  .audio-player-widget {
+    display: none; align-items: center; gap: 10px; background: var(--card-bg);
+    border: 1px solid var(--border); padding: 6px 12px; border-radius: 8px; margin: 6px 0;
+  }
+  .audio-player-widget.active { display: flex; }
+  .audio-player-widget audio { height: 30px; flex: 1; outline: none; }
+
+  /* Formatting Bar */
+  .formatting-bar {
+    display: flex; gap: 4px; padding: 6px 0; border-bottom: 1px solid var(--border-soft); margin-top: 4px; flex-wrap: wrap;
+  }
+  .fmt-btn {
+    background: transparent; border: 1px solid var(--border); color: var(--text-dim);
+    border-radius: 4px; padding: 3px 8px; font-size: 0.8rem; cursor: pointer;
+  }
+  .fmt-btn:hover { color: var(--text); border-color: var(--accent); }
+
+  .mic-bar { display: flex; gap: 8px; align-items: center; padding: 10px 0; flex-wrap: wrap; }
+  .btn-action {
+    padding: 7px 12px; border: none; border-radius: 8px; background: var(--accent-solid);
+    color: #fff; font-size: 0.84rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px; transition: background 0.15s;
+  }
+  .btn-action:hover { opacity: 0.9; }
+  .btn-green { background: #27ae60; }
+  .btn-blue { background: #2980b9; }
+  .btn-purple { background: var(--purple); color: #1e1e2e; }
+
+  .btn-action.recording { background: var(--danger); animation: pulse 1.4s infinite; }
+  @keyframes pulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(243,139,168,0.55); } 50% { box-shadow: 0 0 0 10px rgba(243,139,168,0); } }
+  .mic-bar select { padding: 6px 8px; border: 1px solid var(--border); border-radius: 8px; background: var(--app-bg); color: var(--text); font-size: 0.82rem; outline: none; cursor: pointer; }
+  .mic-status { color: var(--text-dim); font-size: 0.8rem; flex: 1; text-align: right; }
+
+  .transcript {
+    padding: 12px; min-height: 200px; max-height: 48vh; overflow-y: auto; font-size: 1.05rem; line-height: 1.6;
+    color: var(--text); outline: none; white-space: pre-wrap; word-break: break-word; background: rgba(0,0,0,0.1); border: 1px solid var(--border-soft);
+    border-radius: 8px; margin-top: 6px;
+  }
+  .transcript:empty::before { content: 'စကားပြော၍ အသံဖမ်းပါ၊ ပုံတင်ပါ သို့မဟုတ် စာရိုက်ထည့်ပါ...'; color: var(--text-mute); }
+
+  .actions-bar {
+    padding: 10px 0; border-top: 1px solid var(--border-soft); border-bottom: 1px solid var(--border-soft);
+    margin: 12px 0 14px; display: flex; gap: 6px; flex-wrap: wrap; align-items: center;
+  }
+  .action-btn {
+    padding: 6px 11px; border: 1px solid var(--border); border-radius: 8px; background: transparent;
+    color: var(--text); font-size: 0.81rem; cursor: pointer; display: flex; align-items: center; gap: 5px; transition: all 0.15s;
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .action-btn.ai { border-color: var(--accent); color: var(--accent); }
+  .action-btn.ai:hover { background: var(--accent-solid); color: #fff; }
+
+  .translate-group { display: flex; gap: 4px; align-items: center; }
+  .translate-group select { padding: 5px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--card-bg); color: var(--text); font-size: 0.8rem; }
+
+  /* Interactive Graph SVG */
+  .graph-container {
+    width: 100%; height: 260px; background: rgba(0,0,0,0.25);
+    border-radius: 8px; border: 1px solid var(--border); overflow: hidden; position: relative;
+  }
+  .graph-svg { width: 100%; height: 100%; }
+
+  /* Debate Grid */
+  .debate-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 8px; }
+  @media (max-width: 640px) { .debate-grid { grid-template-columns: 1fr; } }
+  .debate-card { background: var(--app-bg); border-radius: 8px; padding: 12px; border: 1px solid var(--border); font-size: 0.86rem; }
+
+  /* Flashcards Flip Effect */
+  .flashcard-container { perspective: 1000px; width: 100%; margin-bottom: 8px; cursor: pointer; }
+  .flashcard-inner {
+    position: relative; width: 100%; min-height: 80px; text-align: center;
+    transition: transform 0.6s; transform-style: preserve-3d;
+    background: var(--app-bg); border: 1px solid var(--border); border-radius: 8px; padding: 12px;
+  }
+  .flashcard-container.flipped .flashcard-inner { transform: rotateY(180deg); }
+  .flashcard-front, .flashcard-back {
+    width: 100%; height: 100%; backface-visibility: hidden; display: flex; align-items: center; justify-content: center; flex-direction: column;
+  }
+  .flashcard-back { transform: rotateY(180deg); position: absolute; top: 0; left: 0; padding: 12px; background: var(--card-bg); color: var(--success); border-radius: 8px; }
+
+  /* Insights Section */
+  .insights-inline { display: flex; flex-direction: column; gap: 12px; margin-top: 4px; }
+  .insight-section { background: var(--card-bg); border: 1px solid var(--border-soft); border-radius: 8px; padding: 12px 16px; position: relative; }
+  .insight-title { font-size: 0.78rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; font-weight: 600; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 6px; }
+  .insight-body { font-size: 0.92rem; line-height: 1.6; color: var(--text); }
+  .insight-empty { color: var(--text-mute); font-style: italic; font-size: 0.85rem; }
+
+  .summary-box { background: var(--app-bg); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.9rem; line-height: 1.6; white-space: pre-wrap; }
+  .copy-btn, .tts-btn { background: transparent; border: none; color: var(--text-dim); cursor: pointer; font-size: 0.85rem; padding: 2px 6px; border-radius: 4px; }
+  .copy-btn:hover, .tts-btn:hover { color: var(--accent); background: rgba(137,180,250,0.1); }
+  
+  .media-controls-group { display: flex; gap: 4px; align-items: center; }
+  .media-ctrl-btn { background: var(--app-bg); border: 1px solid var(--border); color: var(--text); padding: 3px 8px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
+  .media-ctrl-btn:hover { border-color: var(--accent); color: var(--accent); }
+
+  .action-item { display: flex; align-items: center; gap: 8px; padding: 4px 0; }
+  .keywords { display: flex; gap: 6px; flex-wrap: wrap; }
+  .kw-chip { background: rgba(137,180,250,0.15); color: var(--accent); border-radius: 12px; padding: 2px 10px; font-size: 0.78rem; border: 1px solid rgba(137,180,250,0.3); }
+
+  /* Grounding Links List */
+  .grounding-links { font-size: 0.78rem; color: var(--accent); margin-top: 8px; padding-top: 6px; border-top: 1px dashed var(--border); }
+  .grounding-links a { color: var(--accent); text-decoration: underline; margin-right: 12px; display: inline-block; }
+
+  /* Chat Box */
+  .chat-box { background: var(--app-bg); border: 1px solid var(--border); border-radius: 8px; padding: 8px; margin-top: 6px; }
+  .chat-messages { max-height: 200px; overflow-y: auto; padding: 4px; font-size: 0.85rem; }
+  .chat-msg { margin-bottom: 6px; padding: 6px 8px; border-radius: 6px; }
+  .chat-msg.user { background: rgba(137,180,250,0.15); color: var(--text); }
+  .chat-msg.assistant { background: var(--card-bg); color: var(--text); }
+  .chat-input { display: flex; gap: 6px; margin-top: 6px; }
+  .chat-input input { flex: 1; padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; background: var(--card-bg); color: var(--text); font-size: 0.85rem; outline: none; }
+  .chat-input button { padding: 6px 12px; border: none; background: var(--accent-solid); color: #fff; border-radius: 6px; cursor: pointer; font-size: 0.82rem; }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--app-bg); color: var(--text); border: 1px solid var(--border);
+    border-radius: 10px; padding: 10px 16px; display: flex; gap: 14px; align-items: center;
+    box-shadow: var(--shadow); font-size: 0.88rem; opacity: 0; pointer-events: none; transition: all 0.25s; z-index: 1000;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
+
+  input[type="file"] { display: none; }
+
+  @media (max-width: 900px) {
+    .wrap { flex-direction: column; align-items: stretch; }
+    .side-panel.side-left { width: 100% !important; max-height: 200px; order: 2; }
+    .app { order: 1; max-height: none; }
+  }
+</style>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#a78bfa">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+</head>
+<body>
+ <div class="wrap">
+  <!-- Sidebar Panel -->
+  <aside class="side-panel side-left" id="sessionsRail">
+    <button class="rail-toggle" id="railToggle" title="Expand/collapse sessions"><span>☰</span><span class="lbl">Sessions</span></button>
+    <button class="rail-newsession" id="newSessionBtn" title="New session"><span>＋</span><span class="lbl">New Note</span></button>
+    
+    <div class="category-pills" id="categoryPills">
+      <span class="cat-pill active" data-cat="all">All</span>
+      <span class="cat-pill" data-cat="general">📁 General</span>
+      <span class="cat-pill" data-cat="work">💼 Work</span>
+      <span class="cat-pill" data-cat="study">🎓 Study</span>
+      <span class="cat-pill" data-cat="meeting">🤝 Meeting</span>
+      <span class="cat-pill" data-cat="ideas">💡 Ideas</span>
+    </div>
+
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="မှတ်စုများ ရှာရန်...">
+    </div>
+    <h3>Recent Notes</h3>
+    <ul class="sessions-list" id="sessionsList"></ul>
+  </aside>
+
+  <!-- Main Workspace -->
+  <div class="app">
+    <header>
+      <div class="title">
+        <input class="title-input" id="titleInput" placeholder="ခေါင်းစဉ်မရှိသော မှတ်စု (Untitled)" maxlength="120">
+        <div class="stats-bar">
+          <select class="category-selector" id="categorySelect">
+            <option value="general">📁 General</option>
+            <option value="work">💼 Work</option>
+            <option value="study">🎓 Study</option>
+            <option value="meeting">🤝 Meeting</option>
+            <option value="ideas">💡 Ideas</option>
+          </select>
+          <span class="stat-badge" id="statsBar">0 စာလုံး | ~0 မိနစ်</span>
+          <span class="auto-tag" id="autoTagLabel">🏷 General</span>
+          <span class="autosave-status" id="autosaveLabel">✓ Autosaved</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <a class="icon-btn" href="index.html" title="Dashboard" style="text-decoration:none">🏠</a>
+        <button class="icon-btn" id="apiKeyBtn" title="Set Gemini API key">🔑</button>
+        <button class="icon-btn" id="calendarBtn" title="Export Action Items to .ICS Calendar">📅</button>
+        <button class="icon-btn" id="ttsMainBtn" title="Speak Note (အသံဖတ်ပြမည်)">🔊</button>
+        <button class="icon-btn" id="copyMainBtn" title="Copy Text">📋</button>
+        <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+        <button class="icon-btn" id="exportBtn" title="Export Markdown">⬇</button>
+        <button class="icon-btn danger" id="deleteBtn" title="Delete note">🗑</button>
+      </div>
+    </header>
+
+    <!-- Mic & Audio Input Controls -->
+    <div class="mic-bar">
+      <button class="btn-action" id="micBtn" title="Real-time Speech">🎤 Voice</button>
+      <button class="btn-action btn-green" id="aiRecBtn" title="AI Voice Transcribe">🎙 AI Voice</button>
+      <button class="btn-action btn-blue" id="audioUploadBtn" title="Upload Audio File">📁 Audio</button>
+      <input type="file" id="audioFileInput" accept="audio/*">
+      <button class="btn-action btn-purple" id="ocrBtn" title="Extract text from Image/OCR">📸 Image OCR</button>
+      <input type="file" id="ocrFileInput" accept="image/*">
+
+      <select id="langSelect">
+        <option value="my-MM" selected>🇲🇲 မြန်မာ (Myanmar)</option>
+        <option value="en-US">🇺🇸 English (US)</option>
+        <option value="zh-CN">🇨🇳 Chinese</option>
+        <option value="ja-JP">🇯🇵 Japanese</option>
+        <option value="ko-KR">🇰🇷 Korean</option>
+        <option value="th-TH">🇹🇭 Thai</option>
+      </select>
+      <span class="mic-status" id="micStatus">🎤 အသံဖမ်းရန် သို့မဟုတ် စာရိုက်ပါ</span>
+    </div>
+
+    <!-- Active Audio Visualizer Canvas -->
+    <div class="visualizer-box" id="visualizerBox">
+      <canvas id="waveCanvas"></canvas>
+    </div>
+
+    <!-- Embedded Audio Player Widget -->
+    <div class="audio-player-widget" id="audioPlayerWidget">
+      <span style="font-size:0.8rem;color:var(--text-dim)">🎵 Recorded Audio:</span>
+      <audio id="recordedAudioPlayer" controls></audio>
+      <div class="media-controls-group">
+        <button class="media-ctrl-btn" onclick="pauseRecordAudio()">⏸ Pause</button>
+        <button class="media-ctrl-btn" onclick="stopRecordAudio()">⏹ Stop</button>
+      </div>
+    </div>
+
+    <!-- Formatting Bar -->
+    <div class="formatting-bar">
+      <button class="fmt-btn" onclick="execCmd('bold')"><b>B</b></button>
+      <button class="fmt-btn" onclick="execCmd('italic')"><i>I</i></button>
+      <button class="fmt-btn" onclick="execCmd('underline')"><u>U</u></button>
+      <button class="fmt-btn" onclick="execCmd('insertUnorderedList')">• List</button>
+    </div>
+
+    <div class="transcript" id="transcript" contenteditable="true"></div>
+
+    <!-- Actions Bar -->
+    <div class="actions-bar">
+      <button class="action-btn ai" id="meetingModeBtn" style="background:linear-gradient(135deg,#f472b6,#a78bfa);color:#fff;font-weight:bold">🎯 Meeting Mode</button>
+      <button class="action-btn ai" id="groundingBtn" style="background:var(--accent-solid);color:#fff;font-weight:bold">🌐 Ground Search</button>
+      <button class="action-btn ai" id="podcastBtn">🎙 Multi-Voice Podcast</button>
+      <button class="action-btn ai" id="debateBtn">💬 Debate & Critique</button>
+      <button class="action-btn ai" id="mindmapBtn">🧠 Mind Map</button>
+      <button class="action-btn ai" id="flashcardsBtn">🎴 Flashcards Quiz</button>
+      <button class="action-btn ai" id="summarizeBtn">✨ အနှစ်ချုပ်</button>
+      <button class="action-btn ai" id="extractBtn">📌 Actions</button>
+      <button class="action-btn ai" id="keywordsBtn">🏷 Keywords</button>
+
+      <div class="translate-group">
+        <button class="action-btn ai" id="translateBtn">🌐 ဘာသာပြန်</button>
+        <select id="translateTarget">
+          <option value="Myanmar (Burmese)">မြန်မာ</option>
+          <option value="English">English</option>
+          <option value="Chinese (Simplified)">中文</option>
+          <option value="Japanese">日本語</option>
+        </select>
+      </div>
+      <button class="action-btn ai" id="aiAskBtn">💬 မေးမည် (Ask AI)</button>
+      <button class="action-btn" id="clearBtn" style="margin-left:auto;color:var(--danger);border-color:var(--danger)">စာရှင်းမည်</button>
+    </div>
+
+    <!-- Insights Display Sections -->
+    <div class="insights-inline">
+      <!-- Grounded Web Verification Section -->
+      <div class="insight-section" id="groundingSection" style="display:none">
+        <div class="insight-title">
+          <span>🌐 Google Grounded Fact Verification & Web Sources</span>
+        </div>
+        <div class="insight-body" id="groundingOut"></div>
+      </div>
+
+      <!-- Multi-Voice Podcast Audio Overview Section -->
+      <div class="insight-section" id="podcastSection" style="display:none">
+        <div class="insight-title">
+          <span>🎙 Dual-Speaker AI Podcast Dialogue</span>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button class="tts-btn" id="playPodcastAudioBtn">🔊 Play</button>
+            <button class="media-ctrl-btn" onclick="pausePodcastAudio()">⏸ Pause</button>
+            <button class="media-ctrl-btn" onclick="stopPodcastAudio()">⏹ Stop</button>
+          </div>
+        </div>
+        <div class="insight-body" id="podcastOut"></div>
+      </div>
+
+      <!-- Debate & Critique Section -->
+      <div class="insight-section" id="debateSection" style="display:none">
+        <div class="insight-title">
+          <span>💬 Multi-Perspective Debate & Strategy Critique</span>
+        </div>
+        <div class="insight-body" id="debateOut"></div>
+      </div>
+
+      <!-- Interactive Mind Map Diagram -->
+      <div class="insight-section" id="mindmapSection" style="display:none">
+        <div class="insight-title">
+          <span>🧠 Interactive Visual Concept Mind Map</span>
+        </div>
+        <div class="insight-body">
+          <div class="graph-container" id="graphContainer">
+            <svg class="graph-svg" id="graphSvg"></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactive Flashcards Quiz Section -->
+      <div class="insight-section" id="flashcardsSection" style="display:none">
+        <div class="insight-title">
+          <span>🎴 Flashcards & Quiz Assessment (Click to Flip)</span>
+        </div>
+        <div class="insight-body" id="flashcardsOut"></div>
+      </div>
+
+      <!-- Summary Section -->
+      <div class="insight-section">
+        <div class="insight-title">
+          <span>✨ အနှစ်ချုပ် (Summary)</span>
+          <div style="display:flex;gap:4px;align-items:center;">
+            <button class="tts-btn" onclick="speakText(document.getElementById('summaryBox')?.innerText)">🔊 Play</button>
+            <button class="media-ctrl-btn" onclick="pauseGlobalSpeech()">⏸ Pause</button>
+            <button class="media-ctrl-btn" onclick="stopGlobalSpeech()">⏹ Stop</button>
+            <button class="copy-btn" onclick="copyText('summaryBox')">📋</button>
+          </div>
+        </div>
+        <div class="insight-body" id="summaryOut"><div class="insight-empty">"အနှစ်ချုပ်" ကို နှိပ်ပါ။</div></div>
+      </div>
+
+      <!-- Action items -->
+      <div class="insight-section">
+        <div class="insight-title">
+          <span>📌 လုပ်ဆောင်ရန် အချက်များ (Action items)</span>
+          <button class="copy-btn" onclick="copyText('actionsOut')">📋</button>
+        </div>
+        <div class="insight-body" id="actionsOut"><div class="insight-empty">"Actions" ကို နှိပ်ပါ။</div></div>
+      </div>
+
+      <!-- Keywords -->
+      <div class="insight-section">
+        <div class="insight-title">
+          <span>🏷 သော့ချက်စကားလုံးများ (Keywords)</span>
+        </div>
+        <div class="insight-body" id="keywordsOut"><div class="insight-empty">"Keywords" ကို နှိပ်ပါ။</div></div>
+      </div>
+
+      <!-- Interactive Chat with AI -->
+      <div class="insight-section" id="chatSection" style="display:none">
+        <div class="insight-title">💬 မှတ်စုအကြောင်း မေးမြန်းရန် (Ask AI)</div>
+        <div class="chat-box">
+          <div class="chat-messages" id="chatMessages"></div>
+          <div class="chat-input">
+            <input type="text" id="chatInput" placeholder="ဒီမှတ်စုအကြောင်း မေးပါ...">
+            <button id="chatSendBtn">မေးမည်</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+ </div>
+
+ <div class="toast" id="toast"><span id="toastMsg"></span></div>
+
+ <!-- Meeting Mode: fullscreen split-view overlay -->
+ <div class="mm-backdrop" id="meetingMode">
+   <div class="mm-shell">
+     <header class="mm-header">
+       <div class="mm-title">
+         <span class="mm-dot" id="mmDot"></span>
+         <b>🎯 Meeting Mode</b>
+         <span class="mm-elapsed" id="mmElapsed">00:00</span>
+       </div>
+       <div class="mm-actions">
+         <select id="mmLangSelect" title="Recognition language" style="padding:5px 8px;font-size:0.82rem;border-radius:6px;border:1px solid var(--border);background:var(--app-bg);color:var(--text);outline:none;">
+           <option value="my-MM" selected>🇲🇲 မြန်မာ</option>
+           <option value="en-US">🇺🇸 English</option>
+           <option value="zh-CN">🇨🇳 Chinese</option>
+           <option value="ja-JP">🇯🇵 Japanese</option>
+         </select>
+         <select id="mmInterval" title="AI refresh interval" style="padding:5px 8px;font-size:0.82rem;border-radius:6px;border:1px solid var(--border);background:var(--app-bg);color:var(--text);outline:none;">
+           <option value="20">Every 20 sec</option>
+           <option value="30" selected>Every 30 sec</option>
+           <option value="60">Every 1 min</option>
+           <option value="120">Every 2 min</option>
+         </select>
+         <button class="mm-btn mm-btn-primary" id="mmStartBtn">🎤 စတင်မည်</button>
+         <button class="mm-btn" id="mmRefreshBtn" title="Regenerate insights now">↻ Refresh</button>
+         <button class="mm-btn mm-btn-close" id="mmCloseBtn" title="Close & save to note">✕</button>
+       </div>
+     </header>
+
+     <div class="mm-panes">
+       <div class="mm-pane mm-pane-transcript">
+         <div class="mm-pane-head">📝 Live Transcript <span class="mm-pane-info" id="mmTranscriptInfo">0 စာလုံး</span></div>
+         <div class="mm-transcript" id="mmTranscript" contenteditable="true"></div>
+       </div>
+       <div class="mm-pane mm-pane-insights">
+         <div class="mm-pane-head">✨ Live Insights <span class="mm-pane-info" id="mmInsightsInfo">—</span></div>
+         <div class="mm-insights-body">
+           <div class="mm-block">
+             <div class="mm-block-head">📄 Summary</div>
+             <div class="mm-block-body" id="mmSummary"><div class="mm-empty">စတင်ရုံနှင့် အလိုအလျောက် ဖန်တီးမည်</div></div>
+           </div>
+           <div class="mm-block">
+             <div class="mm-block-head">📌 Action Items</div>
+             <div class="mm-block-body" id="mmActions"><div class="mm-empty">—</div></div>
+           </div>
+           <div class="mm-block">
+             <div class="mm-block-head">💡 Key Decisions & Topics</div>
+             <div class="mm-block-body" id="mmTopics"><div class="mm-empty">—</div></div>
+           </div>
+         </div>
+       </div>
+     </div>
+   </div>
+ </div>
+
+ <style>
+   .mm-backdrop {
+     position: fixed; inset: 0;
+     background: rgba(15, 15, 25, 0.85);
+     backdrop-filter: blur(6px);
+     display: none;
+     z-index: 950;
+   }
+   .mm-backdrop.show { display: block; }
+   .mm-shell {
+     position: absolute; inset: 20px;
+     background: var(--app-bg);
+     border-radius: 14px;
+     border: 1px solid var(--border);
+     display: flex; flex-direction: column;
+     overflow: hidden;
+     box-shadow: 0 30px 60px rgba(0,0,0,0.4);
+   }
+   .mm-header {
+     padding: 12px 20px;
+     border-bottom: 1px solid var(--border-soft);
+     display: flex; align-items: center; justify-content: space-between;
+     gap: 12px; flex-wrap: wrap;
+     background: var(--card-bg);
+   }
+   .mm-title { display: flex; align-items: center; gap: 10px; font-size: 0.95rem; }
+   .mm-title b { color: var(--text); font-weight: 600; }
+   .mm-dot {
+     width: 10px; height: 10px; border-radius: 50%;
+     background: var(--text-mute); transition: background 0.2s;
+   }
+   .mm-dot.recording { background: #ef4444; animation: mmPulse 1.4s infinite; }
+   @keyframes mmPulse { 50% { transform: scale(1.35); opacity: 0.65; } }
+   .mm-elapsed {
+     font-family: 'Consolas','Monaco',monospace;
+     color: var(--text-dim); font-size: 0.88rem;
+     background: var(--app-bg); padding: 3px 10px; border-radius: 6px;
+     border: 1px solid var(--border-soft);
+   }
+   .mm-actions { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
+   .mm-btn {
+     padding: 7px 12px;
+     border: 1px solid var(--border);
+     border-radius: 8px;
+     background: transparent;
+     color: var(--text);
+     font-family: inherit;
+     font-size: 0.84rem; cursor: pointer;
+     transition: all 0.15s ease;
+   }
+   .mm-btn:hover { color: var(--accent); border-color: var(--accent); }
+   .mm-btn-primary {
+     background: linear-gradient(135deg, #f472b6, #a78bfa);
+     color: #fff; border: none; font-weight: 600;
+   }
+   .mm-btn-primary:hover { color: #fff; filter: brightness(1.1); }
+   .mm-btn-primary.recording { background: #ef4444; }
+   .mm-btn-close {
+     width: 34px; padding: 0; display: flex; align-items: center; justify-content: center;
+     color: var(--danger);
+   }
+
+   .mm-panes {
+     flex: 1;
+     display: grid;
+     grid-template-columns: 1fr 1fr;
+     gap: 0;
+     min-height: 0;
+   }
+   .mm-pane {
+     display: flex; flex-direction: column;
+     min-height: 0;
+     border-right: 1px solid var(--border-soft);
+   }
+   .mm-pane:last-child { border-right: none; }
+   .mm-pane-head {
+     padding: 10px 18px;
+     font-size: 0.75rem;
+     color: var(--text-dim);
+     text-transform: uppercase;
+     letter-spacing: 0.06em;
+     font-weight: 600;
+     border-bottom: 1px solid var(--border-soft);
+     display: flex; justify-content: space-between; align-items: center;
+   }
+   .mm-pane-info { color: var(--text-mute); font-size: 0.7rem; text-transform: none; letter-spacing: 0; font-family: 'Consolas',monospace; font-weight: normal; }
+   .mm-transcript {
+     flex: 1; padding: 18px 22px;
+     overflow-y: auto;
+     font-size: 1.05rem;
+     line-height: 1.7;
+     color: var(--text);
+     outline: none;
+     white-space: pre-wrap; word-break: break-word;
+   }
+   .mm-transcript:empty::before {
+     content: '🎤 "စတင်မည်" ကို နှိပ်ပါ — အသံဖမ်းပြီး အလိုအလျောက် စာသားပြောင်းလဲမည်';
+     color: var(--text-mute); font-style: italic;
+   }
+   .mm-transcript .mm-interim { color: var(--text-mute); font-style: italic; }
+   .mm-insights-body {
+     flex: 1; overflow-y: auto;
+     padding: 14px 18px;
+     display: flex; flex-direction: column; gap: 14px;
+   }
+   .mm-block {
+     background: var(--card-bg);
+     border: 1px solid var(--border-soft);
+     border-radius: 8px;
+     padding: 12px 14px;
+   }
+   .mm-block-head {
+     font-size: 0.72rem;
+     color: var(--text-dim);
+     text-transform: uppercase;
+     letter-spacing: 0.06em;
+     font-weight: 600;
+     margin-bottom: 8px;
+   }
+   .mm-block-body {
+     font-size: 0.9rem;
+     line-height: 1.55;
+     color: var(--text);
+   }
+   .mm-block-body.updating { opacity: 0.5; transition: opacity 0.2s; }
+   .mm-empty { color: var(--text-mute); font-style: italic; font-size: 0.85rem; }
+   .mm-action-item {
+     padding: 4px 0;
+     display: flex; gap: 6px;
+   }
+   .mm-action-item::before { content: '☐'; color: var(--warn); flex-shrink: 0; }
+   .mm-topic-chip {
+     display: inline-block;
+     padding: 3px 10px;
+     margin: 3px 4px 3px 0;
+     background: rgba(203,166,247,0.15);
+     color: var(--purple, #cba6f7);
+     border-radius: 12px;
+     font-size: 0.8rem;
+   }
+
+   @media (max-width: 900px) {
+     .mm-panes { grid-template-columns: 1fr; }
+     .mm-pane { border-right: none; border-bottom: 1px solid var(--border-soft); max-height: 50vh; }
+   }
+ </style>
+
+ <div class="modal-backdrop" id="apiKeyModal">
+   <div class="api-modal">
+     <h2>🔑 Gemini API Key</h2>
+     <p>The Enterprise features (Grounding, Podcast TTS, Mind Map, Flashcards, Debate) require Google Gemini. Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank">aistudio.google.com/apikey</a> — no credit card, 1M tokens/day free.</p>
+     <label>API Key</label>
+     <input type="password" id="apiKeyInput" placeholder="AIza..." autocomplete="off">
+     <label>Model</label>
+     <select id="modelSelect">
+       <option value="gemini-2.5-flash">gemini-2.5-flash (recommended)</option>
+       <option value="gemini-2.5-pro">gemini-2.5-pro (highest quality)</option>
+       <option value="gemini-2.0-flash">gemini-2.0-flash (fast, stable)</option>
+     </select>
+     <p class="hint">Stored only in this browser's localStorage. Basic AI features (Summarize, Actions, Keywords, Translate, Chat) also work; advanced features (Grounding, Podcast, Debate, Mind Map, Flashcards) require Gemini specifically.</p>
+     <div class="modal-actions">
+       <button class="btn-cancel" id="apiKeyClearBtn">Clear key</button>
+       <button class="btn-save" id="apiKeySaveBtn">Save</button>
+     </div>
+   </div>
+ </div>
+
+<style>
+  .modal-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: flex-start; justify-content: center; padding: 60px 20px 40px; z-index: 900; overflow-y: auto; }
+  .modal-backdrop.show { display: flex; }
+  .api-modal { background: var(--app-bg); color: var(--text); border-radius: 16px; padding: 22px 26px; max-width: 520px; width: 100%; box-shadow: var(--shadow); border: 1px solid var(--border); }
+  .api-modal h2 { font-size: 1.15rem; margin-bottom: 10px; }
+  .api-modal p { font-size: 0.86rem; color: var(--text-dim); margin-bottom: 12px; line-height: 1.5; }
+  .api-modal p a { color: var(--accent); }
+  .api-modal label { font-size: 0.72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; display: block; margin-top: 8px; margin-bottom: 4px; font-weight: 600; }
+  .api-modal input, .api-modal select { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--card-bg); color: var(--text); font-size: 0.9rem; outline: none; margin-bottom: 4px; font-family: 'Consolas','Monaco',monospace; }
+  .api-modal input:focus, .api-modal select:focus { border-color: var(--accent); }
+  .api-modal .hint { font-size: 0.74rem; color: var(--text-mute); font-style: italic; margin-top: 10px; }
+  .api-modal .modal-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+  .api-modal .btn-cancel, .api-modal .btn-save { padding: 8px 16px; border: 1px solid var(--border); border-radius: 8px; background: transparent; color: var(--text); cursor: pointer; font-size: 0.85rem; }
+  .api-modal .btn-save { background: var(--accent-solid); color: #fff; border-color: var(--accent-solid); font-weight: 600; }
+  .icon-btn.active { background: var(--accent-solid); color: #fff; border-color: var(--accent-solid); }
+
+  /* Loading state */
+  .action-btn.busy { opacity: 0.6; pointer-events: none; }
+  .action-btn.busy::after { content: '…'; margin-left: 4px; }
+
+  /* Insight sections for translation */
+  .translation-box { background: var(--app-bg); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 6px; font-size: 0.95rem; line-height: 1.6; white-space: pre-wrap; word-break: break-word; font-family: 'Segoe UI','Myanmar Text','Padauk',system-ui,sans-serif; }
+
+  /* Sending to task manager */
+  .send-tasks-btn { margin-top: 8px; width: 100%; padding: 6px 10px; font-size: 0.78rem; justify-content: center; }
+</style>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script defer src="_settings.js"></script>
+<script>
+  // Gemini API Configuration — key + model stored in localStorage
+  const API_KEY_STORE = 'ainotes.enterprise.gemini.key';
+  const MODEL_STORE = 'ainotes.enterprise.gemini.model';
+  const getApiKey = () => localStorage.getItem(API_KEY_STORE) || '';
+  const getTextModel = () => localStorage.getItem(MODEL_STORE) || 'gemini-2.5-flash';
+  // TTS uses a dedicated preview model (Gemini native audio output)
+  const GEMINI_TTS_MODEL = "gemini-2.5-flash-preview-tts";
+
+  const STORE_KEY = 'ainotes.v11.enterprise';
+  const CURRENT_KEY = 'ainotes.current.enterprise';
+  const THEME_KEY = 'ainotes.theme';
+  const TASK_MANAGER_URL = 'ToDo.html';
+
+  const $ = id => document.getElementById(id);
+  let sessions = load();
+  let currentId = localStorage.getItem(CURRENT_KEY) || null;
+  if (!sessions.length) { newSession(); }
+  else if (!sessions.find(s => s.id === currentId)) { currentId = sessions[0].id; }
+
+  const transcript = $('transcript');
+  const titleInput = $('titleInput');
+  const categorySelect = $('categorySelect');
+  const micBtn = $('micBtn');
+  const aiRecBtn = $('aiRecBtn');
+  const micStatus = $('micStatus');
+  const langSelect = $('langSelect');
+  let selectedCategoryFilter = 'all';
+
+  // Active Audio Player References for Pause/Stop control
+  let activeAudioElement = null;
+
+  function load() {
+    try {
+      const raw = JSON.parse(localStorage.getItem(STORE_KEY) || '[]');
+      return Array.isArray(raw) ? raw : [];
+    } catch { return []; }
+  }
+  function save() { 
+    localStorage.setItem(STORE_KEY, JSON.stringify(sessions)); 
+    localStorage.setItem(CURRENT_KEY, currentId);
+    $('autosaveLabel').textContent = '✓ Autosaved ' + new Date().toLocaleTimeString();
+  }
+
+  setInterval(() => { save(); }, 30000);
+
+  function newSession() {
+    const s = {
+      id: Date.now() + '.' + Math.random().toString(36).slice(2, 8),
+      title: '',
+      category: 'general',
+      autoTag: '#General',
+      transcript: '',
+      summary: '',
+      actions: [],
+      keywords: [],
+      chat: [],
+      pinned: false,
+      audioUrl: null,
+      createdAt: Date.now(),
+      updatedAt: Date.now(),
+    };
+    sessions.unshift(s);
+    currentId = s.id;
+    save();
+  }
+  function current() { return sessions.find(s => s.id === currentId); }
+  function touch() { const c = current(); if (c) { c.updatedAt = Date.now(); } }
+
+  function applyTheme(t) {
+    document.documentElement.dataset.theme = t;
+    $('themeBtn').textContent = t === 'light' ? '☀' : '🌙';
+    localStorage.setItem(THEME_KEY, t);
+  }
+  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+  $('themeBtn').onclick = () => applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
+
+  function execCmd(command) { document.execCommand(command, false, null); }
+
+  document.querySelectorAll('.cat-pill').forEach(pill => {
+    pill.addEventListener('click', () => {
+      document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+      selectedCategoryFilter = pill.dataset.cat;
+      renderSessions();
+    });
+  });
+
+  categorySelect.addEventListener('change', () => {
+    const c = current(); if (c) { c.category = categorySelect.value; touch(); save(); renderSessions(); }
+  });
+
+  $('searchInput').addEventListener('input', () => renderSessions());
+
+  function renderSessions() {
+    const ul = $('sessionsList'); ul.textContent = '';
+    const query = ($('searchInput').value || '').toLowerCase().trim();
+
+    const filtered = sessions.filter(s => {
+      const matchCat = selectedCategoryFilter === 'all' || s.category === selectedCategoryFilter;
+      const matchQuery = !query || (s.title || '').toLowerCase().includes(query) || (s.transcript || '').toLowerCase().includes(query);
+      return matchCat && matchQuery;
+    });
+
+    filtered.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0));
+
+    filtered.forEach(s => {
+      const li = document.createElement('li');
+      if (s.id === currentId) li.classList.add('active');
+      if (s.pinned) li.classList.add('pinned');
+
+      const words = (s.transcript || '').replace(/<[^>]*>/g, '').trim().split(/\s+/).filter(Boolean).length;
+      if (words > 0 || s.title) li.classList.add('has-content');
+
+      const dot = document.createElement('span'); dot.className = 'dot'; li.appendChild(dot);
+
+      const body = document.createElement('div'); body.className = 's-body';
+      const t = document.createElement('div'); t.className = 's-title'; t.textContent = s.title || '(ခေါင်းစဉ်မရှိ)';
+      const meta = document.createElement('div'); meta.className = 's-meta'; meta.textContent = `${new Date(s.updatedAt).toLocaleDateString()} · ${words} စာလုံး`;
+      body.append(t, meta); li.appendChild(body);
+
+      const pin = document.createElement('button'); pin.className = 'pin-btn'; pin.textContent = s.pinned ? '★' : '☆';
+      pin.onclick = (e) => { e.stopPropagation(); s.pinned = !s.pinned; save(); renderSessions(); };
+      li.appendChild(pin);
+
+      li.onclick = () => selectSession(s.id);
+      ul.appendChild(li);
+    });
+  }
+
+  function setRail(expanded) { $('sessionsRail').classList.toggle('expanded', expanded); }
+  $('railToggle').onclick = () => setRail(!$('sessionsRail').classList.contains('expanded'));
+
+  function renderCurrent() {
+    const s = current(); if (!s) return;
+    titleInput.value = s.title || '';
+    categorySelect.value = s.category || 'general';
+    $('autoTagLabel').textContent = s.autoTag || '#General';
+    // Store & render transcript as plain text (XSS safe). Rich formatting via execCommand
+    // still works during editing; on save we snapshot innerText, on load we drop it back as text.
+    transcript.textContent = s.transcript || '';
+
+    const playerWidget = $('audioPlayerWidget');
+    const audioPlayer = $('recordedAudioPlayer');
+    if (s.audioUrl) {
+      audioPlayer.src = s.audioUrl;
+      playerWidget.classList.add('active');
+    } else { playerWidget.classList.remove('active'); }
+
+    updateStats(); renderInsights();
+  }
+
+  function updateStats() {
+    const text = transcript.innerText || '';
+    const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+    const readTime = Math.ceil(words / 150);
+    $('statsBar').textContent = `${words} စာလုံး | ~${readTime} မိနစ်ဖတ်ရန်`;
+  }
+
+  function renderInsights() {
+    const s = current(); if (!s) return;
+    
+    // Summary
+    const sumEl = $('summaryOut'); sumEl.textContent = '';
+    if (s.summary) {
+      const box = document.createElement('div'); box.className = 'summary-box'; box.id = 'summaryBox'; box.textContent = s.summary;
+      sumEl.appendChild(box);
+    } else { sumEl.innerHTML = '<div class="insight-empty">"အနှစ်ချုပ်" ကို နှိပ်ပါ။</div>'; }
+
+    // Actions (safe DOM building — no innerHTML with LLM text)
+    const actEl = $('actionsOut'); actEl.textContent = '';
+    if (s.actions && s.actions.length) {
+      s.actions.forEach(a => {
+        const it = el('div', { class: 'action-item' },
+          el('span', { style: 'color:var(--warn)', text: '☐' }),
+          el('span', { style: 'flex:1', text: a })
+        );
+        actEl.appendChild(it);
+      });
+      // Send-to-Task-Manager button
+      const send = el('button', {
+        class: 'action-btn send-tasks-btn',
+        text: `📤 Task Manager သို့ ပို့မည် (${s.actions.length} items)`,
+        onclick: () => sendActionsToTasks(s.actions, s.title),
+      });
+      actEl.appendChild(send);
+    } else {
+      actEl.appendChild(el('div', { class: 'insight-empty', text: '"Actions" ကို နှိပ်ပါ။' }));
+    }
+
+    // Translation (NEW — was previously overwriting summary)
+    let transSec = $('translationSection');
+    if (!transSec) {
+      transSec = el('div', { class: 'insight-section', id: 'translationSection' });
+      transSec.appendChild(el('div', { class: 'insight-title', id: 'translationTitle', text: '🌐 Translation' }));
+      transSec.appendChild(el('div', { class: 'insight-body', id: 'translationOut' }));
+      // Insert after keywords section
+      const kwSection = $('keywordsOut').closest('.insight-section');
+      kwSection.parentNode.insertBefore(transSec, kwSection.nextSibling);
+    }
+    const transOut = $('translationOut'); transOut.textContent = '';
+    if (s.translation && s.translation.text) {
+      transSec.style.display = '';
+      $('translationTitle').textContent = `🌐 Translation — ${s.translation.target}`;
+      transOut.appendChild(el('div', { class: 'translation-box', text: s.translation.text }));
+    } else {
+      transSec.style.display = 'none';
+    }
+
+    // Keywords
+    const kwEl = $('keywordsOut'); kwEl.textContent = '';
+    if (s.keywords && s.keywords.length) {
+      const wrap = document.createElement('div'); wrap.className = 'keywords';
+      s.keywords.forEach(k => {
+        const chip = document.createElement('span'); chip.className = 'kw-chip'; chip.textContent = k;
+        wrap.appendChild(chip);
+      });
+      kwEl.appendChild(wrap);
+    } else { kwEl.innerHTML = '<div class="insight-empty">"Keywords" ကို နှိပ်ပါ။</div>'; }
+
+    renderChat();
+  }
+
+  function selectSession(id) {
+    if (recognition && recording) stopRecording();
+    if (mediaRecorder && isAiRecording) stopAiRecording();
+    currentId = id; save(); renderSessions(); renderCurrent();
+  }
+
+  $('newSessionBtn').onclick = () => { 
+    if (recording) stopRecording(); if (isAiRecording) stopAiRecording();
+    newSession(); renderSessions(); renderCurrent(); titleInput.focus(); 
+  };
+
+  titleInput.addEventListener('input', () => { const c = current(); if (c) { c.title = titleInput.value; touch(); save(); renderSessions(); } });
+  transcript.addEventListener('input', () => {
+    const c = current(); if (c) {
+      // Store plain text (innerText), not innerHTML — prevents XSS via saved notes
+      c.transcript = transcript.innerText; touch(); save(); renderSessions(); updateStats();
+    }
+  });
+
+  // Calendar .ICS File Generator
+  $('calendarBtn').onclick = () => {
+    const c = current();
+    if (!c || !c.actions || !c.actions.length) { showToast('Calendar ထည့်သွင်းရန် Action items မရှိပါ'); return; }
+    
+    let icsContent = "BEGIN:VCALENDAR\nVERSION:2.0\nPRODID:-//AI Note Taker//EN\n";
+    c.actions.forEach((act, i) => {
+      icsContent += `BEGIN:VEVENT\nSUMMARY:${act}\nDESCRIPTION:From note: ${c.title || 'Note'}\nDTSTART:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z\nEND:VEVENT\n`;
+    });
+    icsContent += "END:VCALENDAR";
+
+    const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a'); a.href = url;
+    a.download = `${(c.title || 'tasks')}.ics`; a.click();
+    showToast('📅 .ICS Calendar File ထုတ်ယူပြီးပါပြီ');
+  };
+
+  $('deleteBtn').onclick = () => {
+    sessions = sessions.filter(s => s.id !== currentId);
+    if (!sessions.length) newSession(); else currentId = sessions[0].id;
+    save(); renderSessions(); renderCurrent(); showToast('မှတ်စုကို ဖျက်ပြီးပါပြီ');
+  };
+
+  $('exportBtn').onclick = () => {
+    const c = current(); if (!c) return;
+    const parts = [`# ${c.title || 'Untitled'}`, ''];
+    if (c.autoTag) parts.push(`Tag: ${c.autoTag}`);
+    parts.push(`_${new Date(c.createdAt).toLocaleString()}_`, '');
+    if (c.summary) parts.push('## Summary', '', c.summary, '');
+    if (c.actions && c.actions.length) {
+      parts.push('## Action items', '');
+      c.actions.forEach(a => parts.push(`- [ ] ${a}`));
+      parts.push('');
+    }
+    if (c.keywords && c.keywords.length) parts.push('## Keywords', '', c.keywords.join(', '), '');
+    if (c.translation && c.translation.text) parts.push(`## Translation (${c.translation.target})`, '', c.translation.text, '');
+    parts.push('## Transcript', '', c.transcript || '');
+    const md = parts.join('\n');
+    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+    const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.href = url;
+    // Unicode-aware filename sanitizer (handles Myanmar chars properly)
+    const safe = (c.title || 'note').replace(/[^\p{L}\p{N}]+/gu, '_').slice(0, 60) || 'note';
+    a.download = `${safe}_${new Date().toISOString().slice(0,10)}.md`; a.click(); URL.revokeObjectURL(url);
+    showToast('⬇ Markdown export ပြီးပါပြီ');
+  };
+
+  $('clearBtn').onclick = () => {
+    const c = current(); if (!c) return; c.transcript = ''; touch(); save(); renderCurrent(); showToast('စာသားများ ရှင်းလင်းပြီးပါပြီ');
+  };
+
+  function copyText(elementId) {
+    const text = document.getElementById(elementId)?.innerText || transcript.innerText;
+    if (!text) { showToast('ကူးယူရန် စာသားမရှိပါ'); return; }
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(text).then(() => showToast('📋 Clipboard သို့ ကူးယူပြီးပါပြီ')).catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const textArea = document.createElement("textarea");
+    textArea.value = text;
+    document.body.appendChild(textArea);
+    textArea.select();
+    try {
+      document.execCommand('copy');
+      showToast('📋 Clipboard သို့ ကူးယူပြီးပါပြီ');
+    } catch (err) {
+      showToast('ကူးယူ၍ မရပါ');
+    }
+    document.body.removeChild(textArea);
+  }
+
+  $('copyMainBtn').onclick = () => copyText('transcript');
+
+  // PCM16 to WAV Converter
+  function pcmToWav(base64Pcm, sampleRate = 24000) {
+    const binaryStr = atob(base64Pcm); const len = binaryStr.length; const pcmData = new Uint8Array(len);
+    for (let i = 0; i < len; i++) pcmData[i] = binaryStr.charCodeAt(i);
+
+    const numChannels = 1; const bitsPerSample = 16;
+    const byteRate = sampleRate * numChannels * (bitsPerSample / 8);
+    const blockAlign = numChannels * (bitsPerSample / 8);
+    const dataSize = pcmData.length;
+    const buffer = new ArrayBuffer(44 + dataSize); const view = new DataView(buffer);
+
+    function writeString(offset, string) {
+      for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+    }
+    writeString(0, 'RIFF'); view.setUint32(4, 36 + dataSize, true); writeString(8, 'WAVE'); writeString(12, 'fmt ');
+    view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, numChannels, true);
+    view.setUint32(24, sampleRate, true); view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true); view.setUint16(34, bitsPerSample, true);
+    writeString(36, 'data'); view.setUint32(40, dataSize, true);
+
+    const pcmBytes = new Uint8Array(buffer, 44); pcmBytes.set(pcmData);
+    return new Blob([buffer], { type: 'audio/wav' });
+  }
+
+  // ---- Safe DOM utilities (XSS prevention) ----
+  function el(tag, props = {}, ...children) {
+    const e = document.createElement(tag);
+    Object.entries(props).forEach(([k, v]) => {
+      if (k === 'class') e.className = v;
+      else if (k === 'style') e.style.cssText = v;
+      else if (k === 'text') e.textContent = v;
+      else if (k === 'html') { /* explicitly opt-in — used only for pre-sanitized content */ e.innerHTML = v; }
+      else if (k.startsWith('on')) e[k] = v;
+      else e.setAttribute(k, v);
+    });
+    children.flat().forEach(c => {
+      if (c == null) return;
+      e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    });
+    return e;
+  }
+  function safeUrl(u) {
+    // Whitelist only http(s) URLs — blocks javascript:, data:, etc.
+    try {
+      const parsed = new URL(u, location.href);
+      return (parsed.protocol === 'http:' || parsed.protocol === 'https:') ? parsed.href : '#';
+    } catch { return '#'; }
+  }
+
+  // Gemini API Call Helper with Exponential Backoff
+  async function callGeminiText(prompt, sysInstruction = "", jsonMode = false, useSearch = false) {
+    const apiKey = getApiKey();
+    if (!apiKey) throw new Error('Gemini API key not set. Click 🔑 to add one.');
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(getTextModel())}:generateContent?key=${encodeURIComponent(apiKey)}`;
+    const payload = { contents: [{ role: "user", parts: [{ text: prompt }] }] };
+    if (sysInstruction) payload.systemInstruction = { parts: [{ text: sysInstruction }] };
+    if (jsonMode) payload.generationConfig = { responseMimeType: "application/json" };
+    if (useSearch) payload.tools = [{ "google_search": {} }];
+
+    let delay = 1000;
+    for (let attempt = 0; attempt < 5; attempt++) {
+      try {
+        const res = await fetch(endpoint, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+        });
+        if (!res.ok) {
+          const errText = await res.text().catch(() => '');
+          if (res.status === 400 || res.status === 401 || res.status === 403) {
+            // Non-retryable — bail immediately with meaningful message
+            throw new Error(`Gemini ${res.status}: ${errText.slice(0, 160)}`);
+          }
+          throw new Error(`HTTP ${res.status}`);
+        }
+        const data = await res.json();
+
+        if (useSearch) {
+          const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          // Modern Gemini returns groundingMetadata.groundingChunks[]; fall back to legacy groundingAttributions
+          const meta = data.candidates?.[0]?.groundingMetadata || {};
+          const chunks = meta.groundingChunks || [];
+          const legacy = meta.groundingAttributions || [];
+          const sources = (chunks.length ? chunks : legacy)
+            .map(c => ({ uri: c.web?.uri || c.uri || '', title: c.web?.title || c.title || '' }))
+            .filter(s => s.uri);
+          return { text, sources };
+        }
+
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      } catch (err) {
+        // Bail on non-retryable auth/quota errors
+        if (String(err.message).match(/Gemini (400|401|403)/)) throw err;
+        if (attempt === 4) throw err;
+        await new Promise(r => setTimeout(r, delay));
+        delay *= 2;
+      }
+    }
+    throw new Error('Unreachable');
+  }
+
+  function busyBtn(btn, on) {
+    if (!btn) return;
+    if (on) btn.classList.add('busy'); else btn.classList.remove('busy');
+    btn.disabled = on;
+  }
+  function requireKey() {
+    if (!getApiKey()) { showToast('🔑 API key ဦးစွာ ထည့်ပါ (Set API key first)'); openApiKeyModal(); return false; }
+    return true;
+  }
+
+  // 1. 🌐 Google Grounded Web Verification Search
+  $('groundingBtn').onclick = async () => {
+    const c = current(); if (!c?.transcript.trim()) { showToast('စစ်ဆေးရန် စာသားမရှိပါ'); return; }
+    if (!requireKey()) return;
+    const btn = $('groundingBtn'); busyBtn(btn, true);
+    showToast('🌐 Google Search ဖြင့် အချက်အလက်များ တိုက်ဆိုင်စစ်ဆေးနေသည်...');
+    try {
+      const res = await callGeminiText(
+        `မှတ်စုထဲက အချက်အလက်များကို live web search ဖြင့် စစ်ဆေးပြီး၊ မှားနေသည်များ၊ ဖြည့်စွက်ရမည်များကို ဖော်ပြပါ။ မြန်မာလို ဖြေပါ။ Sources ကို ကိုးကားပါ။\n\nမှတ်စု:\n${c.transcript}`,
+        "You are an expert fact-checker. Verify facts using web search and cite sources. Respond primarily in Myanmar (Burmese).",
+        false, true
+      );
+
+      const out = $('groundingOut'); out.textContent = '';
+      out.appendChild(el('div', { class: 'summary-box', text: res.text }));
+
+      if (res.sources && res.sources.length) {
+        const links = el('div', { class: 'grounding-links' });
+        links.appendChild(el('b', { text: '🔗 Web Sources:' }));
+        links.appendChild(el('br'));
+        res.sources.forEach(s => {
+          links.appendChild(el('a', {
+            href: safeUrl(s.uri),
+            target: '_blank',
+            rel: 'noopener',
+            text: s.title || s.uri,
+          }));
+        });
+        out.appendChild(links);
+      }
+      $('groundingSection').style.display = '';
+      showToast('🌐 Fact Check ပြီးပါပြီ');
+    } catch (e) { showToast('⚠ ' + e.message); } finally { busyBtn(btn, false); }
+  };
+
+  // 2. 🎙 Multi-Voice Podcast Dialogue
+  $('podcastBtn').onclick = async () => {
+    const c = current(); if (!c?.transcript.trim()) return;
+    if (!requireKey()) return;
+    const btn = $('podcastBtn'); busyBtn(btn, true);
+    showToast('🎙 Dual-Voice Podcast ဖန်တီးနေသည်...');
+    try {
+      const script = await callGeminiText(
+        `မှတ်စုကို အခြေခံ၍ Alex (အစီအစဉ်တင်ဆက်သူ) နှင့် Sam (ကျွမ်းကျင်သူ) ၂ ဦး၏ podcast စကားပြောခန်း script ကို မြန်မာလို ရေးပါ။ တစ်ဦးလျှင် တစ်ကြောင်းချင်း ဖော်ပြပါ။ Format:
+Alex: ...
+Sam: ...
+
+မှတ်စု:
+${c.transcript}`
+      );
+
+      const out = $('podcastOut'); out.textContent = '';
+      out.appendChild(el('div', { class: 'summary-box', id: 'podcastScriptText', text: script }));
+      $('podcastSection').style.display = '';
+      showToast('🎙 Podcast script ဖန်တီးပြီးပါပြီ — Play button ကို နှိပ်၍ နားထောင်ပါ');
+    } catch (e) { showToast('⚠ ' + e.message); } finally { busyBtn(btn, false); }
+  };
+
+  $('playPodcastAudioBtn').onclick = async () => {
+    const scriptText = document.getElementById('podcastScriptText')?.innerText;
+    if (!scriptText) return;
+    if (!requireKey()) return;
+    showToast('🔊 Dual-Voice Audio Synthesizing...');
+
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_TTS_MODEL}:generateContent?key=${encodeURIComponent(getApiKey())}`;
+      const payload = {
+        contents: [{ parts: [{ text: scriptText }] }],
+        generationConfig: {
+          responseModalities: ["AUDIO"],
+          speechConfig: {
+            multiSpeakerVoiceConfig: {
+              speakerVoiceConfigs: [
+                { speaker: "Alex", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Zephyr" } } },
+                { speaker: "Sam", voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } }
+              ]
+            }
+          }
+        }
+      };
+
+      const res = await fetch(endpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
+      });
+      const data = await res.json();
+      const pcmBase64 = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+
+      if (pcmBase64) {
+        if (activeAudioElement) { activeAudioElement.pause(); }
+        const audioBlob = pcmToWav(pcmBase64, 24000);
+        activeAudioElement = new Audio(URL.createObjectURL(audioBlob));
+        activeAudioElement.play();
+        showToast('🔊 Dual-Voice Podcast နားထောင်နေသည်');
+      }
+    } catch (e) { showToast('Error: ' + e.message); }
+  };
+
+  function pausePodcastAudio() {
+    if (activeAudioElement) { activeAudioElement.pause(); showToast('⏸ Podcast ခေတ္တရပ်ထားသည်'); }
+  }
+  function stopPodcastAudio() {
+    if (activeAudioElement) { activeAudioElement.pause(); activeAudioElement.currentTime = 0; showToast('⏹ Podcast ရပ်တန့်လိုက်ပါပြီ'); }
+  }
+
+  function pauseRecordAudio() {
+    const audioPlayer = $('recordedAudioPlayer');
+    if (audioPlayer) { audioPlayer.pause(); showToast('⏸ အသံဖိုင် ခေတ္တရပ်ထားသည်'); }
+  }
+  function stopRecordAudio() {
+    const audioPlayer = $('recordedAudioPlayer');
+    if (audioPlayer) { audioPlayer.pause(); audioPlayer.currentTime = 0; showToast('⏹ အသံဖိုင် ရပ်တန့်လိုက်ပါပြီ'); }
+  }
+
+  // 3. 💬 Debate & Strategy Critique
+  $('debateBtn').onclick = async () => {
+    const c = current(); if (!c?.transcript.trim()) return;
+    if (!requireKey()) return;
+    const btn = $('debateBtn'); busyBtn(btn, true);
+    showToast('💬 Multi-Perspective Debate ဖန်တီးနေသည်...');
+    try {
+      const res = await callGeminiText(
+        `မှတ်စုအပေါ် အပြုသဘော (Pro) နှင့် အနုတ်သဘော (Con) ရှုထောင့် ၂ ခုမှ သုံးသပ်ပါ။ မြန်မာလို ဖြေပါ။ JSON format သာ ပြန်ပါ (အခြားစာသား မထည့်ပါနှင့်): {"pro":"...", "con":"..."}\n\nမှတ်စု:\n${c.transcript}`,
+        "", true
+      );
+      let data;
+      try { data = JSON.parse(res); }
+      catch { throw new Error('Model returned invalid JSON. Try again.'); }
+      if (!data.pro || !data.con) throw new Error('Missing pro/con in response.');
+
+      const out = $('debateOut'); out.textContent = '';
+      const grid = el('div', { class: 'debate-grid' });
+      const pro = el('div', { class: 'debate-card', style: 'border-top:3px solid var(--success)' });
+      pro.appendChild(el('h4', { style: 'color:var(--success);margin-bottom:6px', text: '👍 Pro / Benefits' }));
+      pro.appendChild(el('div', { text: data.pro }));
+      const con = el('div', { class: 'debate-card', style: 'border-top:3px solid var(--danger)' });
+      con.appendChild(el('h4', { style: 'color:var(--danger);margin-bottom:6px', text: '👎 Con / Challenges' }));
+      con.appendChild(el('div', { text: data.con }));
+      grid.append(pro, con); out.appendChild(grid);
+      $('debateSection').style.display = '';
+      showToast('💬 Debate သုံးသပ်ပြီးပါပြီ');
+    } catch (e) { showToast('⚠ ' + e.message); } finally { busyBtn(btn, false); }
+  };
+
+  // 4. 🧠 Interactive Visual Mind Map Diagram
+  $('mindmapBtn').onclick = async () => {
+    const c = current(); if (!c?.transcript.trim()) return;
+    if (!requireKey()) return;
+    const btn = $('mindmapBtn'); busyBtn(btn, true);
+    showToast('🧠 Mind Map ရေးဆွဲနေပါသည်...');
+    try {
+      const res = await callGeminiText(
+        `မှတ်စု၏ အဓိက concept ၅-၈ ခုနှင့် ၎င်းတို့၏ ဆက်နွယ်မှုများကို ထုတ်ယူပါ။ Label များကို မြန်မာလို ရေးပါ (တိုတိုတုတ်တုတ်၊ ၂-၄ လုံး)။ JSON format သာ ပြန်ပါ:\n{"nodes":[{"id":1,"label":"ခေါင်းစဉ်"}], "edges":[{"from":1,"to":2}]}\n\nမှတ်စု:\n${c.transcript}`,
+        "", true
+      );
+      let data;
+      try { data = JSON.parse(res); }
+      catch { throw new Error('Model returned invalid JSON. Try again.'); }
+      if (!Array.isArray(data.nodes)) throw new Error('Missing nodes in response.');
+      renderConceptMap(data);
+      $('mindmapSection').style.display = '';
+      showToast('🧠 Mind Map ရေးဆွဲပြီးပါပြီ');
+    } catch (e) { showToast('⚠ ' + e.message); } finally { busyBtn(btn, false); }
+  };
+
+  function renderConceptMap(data) {
+    const svg = $('graphSvg'); svg.innerHTML = '';
+    const nodes = data.nodes || []; const edges = data.edges || [];
+    const width = $('graphContainer').offsetWidth || 500; const height = 260;
+    const cx = width / 2; const cy = height / 2; const radius = Math.min(width, height) / 2.8;
+
+    const positions = {};
+    nodes.forEach((node, i) => {
+      const angle = (i / nodes.length) * 2 * Math.PI;
+      positions[node.id] = { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle), label: node.label };
+    });
+
+    const cs = getComputedStyle(document.documentElement);
+    const edgeCol = cs.getPropertyValue('--text-mute').trim() || '#6c7086';
+    const nodeCol = cs.getPropertyValue('--accent-solid').trim() || '#6c5ce7';
+    const textCol = cs.getPropertyValue('--text').trim() || '#cdd6f4';
+
+    edges.forEach(e => {
+      const p1 = positions[e.from]; const p2 = positions[e.to];
+      if (p1 && p2) {
+        const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+        line.setAttribute('x1', p1.x); line.setAttribute('y1', p1.y);
+        line.setAttribute('x2', p2.x); line.setAttribute('y2', p2.y);
+        line.setAttribute('stroke', edgeCol); line.setAttribute('stroke-width', '1.5');
+        svg.appendChild(line);
+      }
+    });
+
+    Object.keys(positions).forEach(id => {
+      const pos = positions[id]; const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+      const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      circle.setAttribute('cx', pos.x); circle.setAttribute('cy', pos.y); circle.setAttribute('r', '18');
+      circle.setAttribute('fill', nodeCol);
+      const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      text.setAttribute('x', pos.x); text.setAttribute('y', pos.y + 32); text.setAttribute('text-anchor', 'middle');
+      text.setAttribute('fill', textCol); text.setAttribute('font-size', '11px');
+      text.textContent = pos.label; // textContent = safe (no XSS)
+      g.appendChild(circle); g.appendChild(text); svg.appendChild(g);
+    });
+  }
+
+  // 5. 🎴 Flashcards & Quiz Assessment
+  $('flashcardsBtn').onclick = async () => {
+    const c = current(); if (!c?.transcript.trim()) return;
+    if (!requireKey()) return;
+    const btn = $('flashcardsBtn'); busyBtn(btn, true);
+    showToast('🎴 Flashcards ဖန်တီးနေသည်...');
+    try {
+      const res = await callGeminiText(
+        `မှတ်စုအခြေခံ၍ လေ့လာရေး flashcards ၃-၆ ခု ဖန်တီးပါ။ မေးခွန်း (q) နှင့် အဖြေ (a) မြန်မာလို ရေးပါ။ JSON format သာ ပြန်ပါ:\n[{"q":"မေးခွန်း", "a":"အဖြေ"}]\n\nမှတ်စု:\n${c.transcript}`,
+        "", true
+      );
+      let cards;
+      try { cards = JSON.parse(res); }
+      catch { throw new Error('Model returned invalid JSON. Try again.'); }
+      if (!Array.isArray(cards) || !cards.length) throw new Error('No flashcards produced.');
+
+      const out = $('flashcardsOut'); out.textContent = '';
+      cards.forEach(card => {
+        const wrap = el('div', { class: 'flashcard-container', onclick: (e) => e.currentTarget.classList.toggle('flipped') });
+        const inner = el('div', { class: 'flashcard-inner' });
+        const front = el('div', { class: 'flashcard-front' },
+          el('div', {}, el('b', { text: 'Q: ' }), document.createTextNode(String(card.q || ''))),
+          el('span', { style: 'font-size:0.7rem;color:var(--text-dim);margin-top:4px;display:block', text: '(Click to flip)' })
+        );
+        const back = el('div', { class: 'flashcard-back' },
+          el('b', { text: 'Ans: ' }), document.createTextNode(String(card.a || ''))
+        );
+        inner.append(front, back); wrap.appendChild(inner); out.appendChild(wrap);
+      });
+      $('flashcardsSection').style.display = '';
+      showToast('🎴 Flashcards ဖန်တီးပြီးပါပြီ');
+    } catch (e) { showToast('⚠ ' + e.message); } finally { busyBtn(btn, false); }
+  };
+
+  // Standard Actions
+  $('summarizeBtn').onclick = async () => {
+    const c = current(); if (!c?.transcript.trim()) return;
+    if (!requireKey()) return;
+    const btn = $('summarizeBtn'); busyBtn(btn, true);
+    showToast('✨ အနှစ်ချုပ်နေပါသည်...');
+    try {
+      c.summary = await callGeminiText(`အောက်ပါ မှတ်စုကို ဝါကျ ၃ ကြောင်းမှ ၆ ကြောင်းအထိ တိုတိုတုတ်တုတ် အနှစ်ချုပ်ပေးပါ။ မြန်မာလို ဖြေပါ။ နည်းပညာဆိုင်ရာ အင်္ဂလိပ်စကားလုံးများ (function name၊ table name၊ SQL keyword) ကို မဘာသာပြန်ဘဲ ထားပါ။ ဆက်စပ်စကား မထည့်ဘဲ အနှစ်ချုပ်ကို တိုက်ရိုက် ဖြေပါ။\n\n${c.transcript}`);
+      touch(); save(); renderInsights(); showToast('✨ အနှစ်ချုပ်ပြီးပါပြီ');
+    } catch (e) { showToast('⚠ ' + e.message); } finally { busyBtn(btn, false); }
+  };
+
+  $('extractBtn').onclick = async () => {
+    const c = current(); if (!c?.transcript.trim()) return;
+    if (!requireKey()) return;
+    const btn = $('extractBtn'); busyBtn(btn, true);
+    showToast('📌 Actions ထုတ်ယူနေသည်...');
+    try {
+      const res = await callGeminiText(`မှတ်စုထဲမှ လုပ်ဆောင်ရမည့် အချက်များ (action items) ကို မြန်မာလို ထုတ်ယူပါ။ တစ်ကြောင်းလျှင် တစ်ခုစီ။ Bullet၊ number၊ ခေါင်းစဉ် မလိုပါ။ လုပ်ဆောင်ရမည့် ဖော်ပြချက်ပုံစံ (imperative) ဖြင့် ရေးပါ။ တစ်ခုမှမရှိပါက NONE ဟု ဖြေပါ။\n\n${c.transcript}`);
+      c.actions = /^\s*NONE\s*$/i.test(res)
+        ? []
+        : res.split('\n').map(l => l.replace(/^[-*\d.\s]+/, '').trim()).filter(Boolean).slice(0, 15);
+      touch(); save(); renderInsights();
+      showToast(`📌 ${c.actions.length} items ထုတ်ယူပြီးပါပြီ`);
+    } catch (e) { showToast('⚠ ' + e.message); } finally { busyBtn(btn, false); }
+  };
+
+  $('keywordsBtn').onclick = async () => {
+    const c = current(); if (!c?.transcript.trim()) return;
+    if (!requireKey()) return;
+    const btn = $('keywordsBtn'); busyBtn(btn, true);
+    showToast('🏷 Keywords ထုတ်ယူနေသည်...');
+    try {
+      const res = await callGeminiText(`မှတ်စု၏ အဓိက keyword ၅-၁၀ ခုကို ကော်မာခြားပြီး ပေးပါ။ မြန်မာ သို့ အင်္ဂလိပ် — မူရင်း စာသားထဲက စကားလုံးအတိုင်း ထား၍ ဖော်ပြပါ။ ရှင်းလင်းချက် မလိုပါ။\n\n${c.transcript}`);
+      c.keywords = res.split(',').map(k => k.trim()).filter(Boolean).slice(0, 12);
+      touch(); save(); renderInsights(); showToast('🏷 ရရှိပါပြီ');
+    } catch (e) { showToast('⚠ ' + e.message); } finally { busyBtn(btn, false); }
+  };
+
+  $('translateBtn').onclick = async () => {
+    const c = current(); if (!c?.transcript.trim()) return;
+    if (!requireKey()) return;
+    const target = $('translateTarget').value;
+    const btn = $('translateBtn'); busyBtn(btn, true);
+    showToast(`🌐 ${target} သို့ ဘာသာပြန်နေသည်...`);
+    try {
+      const res = await callGeminiText(`You are a professional translator. Translate the following text into ${target}. Preserve technical terms verbatim. Return only the translation.\n\n${c.transcript}`);
+      // FIXED: store separately from summary
+      c.translation = { text: res.trim(), target, at: Date.now() };
+      touch(); save(); renderInsights(); showToast('🌐 ဘာသာပြန်ပြီးပါပြီ');
+    } catch (e) { showToast('⚠ ' + e.message); } finally { busyBtn(btn, false); }
+  };
+
+  // Text To Speech — Gemini native audio; falls back to browser speechSynthesis
+  async function speakText(text) {
+    if (!text || !text.trim()) { showToast('အသံဖတ်ပြရန် စာသားမရှိပါ'); return; }
+    // If no API key, jump straight to browser speech synthesis
+    if (!getApiKey()) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text.slice(0, 4000));
+        u.lang = 'my-MM';
+        window.speechSynthesis.speak(u);
+        showToast('🔊 Browser speech synthesis');
+      } else { showToast('Speech not supported'); }
+      return;
+    }
+    showToast('🔊 အသံထုတ်ယူနေပါသည်...');
+
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_TTS_MODEL}:generateContent?key=${encodeURIComponent(getApiKey())}`;
+      const res = await fetch(endpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: text.slice(0, 3000) }] }],
+          generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: "Kore" } } } }
+        })
+      });
+      const data = await res.json();
+      const pcmBase64 = data.candidates?.[0]?.content?.parts?.[0]?.inlineData?.data;
+      if (pcmBase64) { 
+        if (activeAudioElement) { activeAudioElement.pause(); }
+        const blob = pcmToWav(pcmBase64, 24000);
+        activeAudioElement = new Audio(URL.createObjectURL(blob)); 
+        activeAudioElement.play(); return; 
+      }
+    } catch (e) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utter = new SpeechSynthesisUtterance(text);
+        window.speechSynthesis.speak(utter);
+      }
+    }
+  }
+
+  function pauseGlobalSpeech() {
+    if (activeAudioElement) activeAudioElement.pause();
+    if ('speechSynthesis' in window) window.speechSynthesis.pause();
+    showToast('⏸ အသံဖတ်ခြင်း ခေတ္တရပ်ထားသည်');
+  }
+
+  function stopGlobalSpeech() {
+    if (activeAudioElement) { activeAudioElement.pause(); activeAudioElement.currentTime = 0; }
+    if ('speechSynthesis' in window) window.speechSynthesis.cancel();
+    showToast('⏹ အသံဖတ်ခြင်း ရပ်တန့်လိုက်ပါပြီ');
+  }
+
+  $('ttsMainBtn').onclick = () => speakText(transcript.innerText);
+
+  // Canvas Waveform
+  let audioCtx, analyser, dataArray, animFrameId;
+  function startAudioWaveform(stream) {
+    $('visualizerBox').classList.add('active');
+    const canvas = $('waveCanvas'); const ctx = canvas.getContext('2d');
+    canvas.width = canvas.offsetWidth; canvas.height = canvas.offsetHeight;
+
+    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const source = audioCtx.createMediaStreamSource(stream);
+    analyser = audioCtx.createAnalyser(); analyser.fftSize = 64;
+    source.connect(analyser); dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+    function draw() {
+      analyser.getByteFrequencyData(dataArray); ctx.clearRect(0, 0, canvas.width, canvas.height);
+      const barWidth = (canvas.width / dataArray.length) * 1.5; let x = 0;
+      for (let i = 0; i < dataArray.length; i++) {
+        const barHeight = (dataArray[i] / 255) * canvas.height;
+        ctx.fillStyle = '#89b4fa'; ctx.fillRect(x, canvas.height - barHeight, barWidth - 2, barHeight);
+        x += barWidth;
+      }
+      animFrameId = requestAnimationFrame(draw);
+    }
+    draw();
+  }
+
+  function stopAudioWaveform() {
+    $('visualizerBox').classList.remove('active');
+    if (animFrameId) cancelAnimationFrame(animFrameId);
+    if (audioCtx) audioCtx.close();
+  }
+
+  // Speech Recognition
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let recognition = null; let recording = false;
+
+  function initRecognition() {
+    if (!SR) { micStatus.textContent = '⚠ Browser က Speech Recognition ကို မထောက်ပံ့ပါ (Chrome/Edge သုံးပါ)'; micBtn.disabled = true; return; }
+    recognition = new SR(); recognition.continuous = true; recognition.interimResults = true;
+    recognition.onstart = () => {
+      micStatus.textContent = ''; // clear first for safety
+      const dot = el('span', { class: 'rec-dot' });
+      micStatus.appendChild(dot);
+      micStatus.appendChild(document.createTextNode(' နားထောင်နေသည်...'));
+    };
+    recognition.onerror = e => {
+      if (e.error === 'no-speech') return; // silent transient
+      micStatus.textContent = `⚠ Speech error: ${e.error}`;
+      if (['not-allowed', 'service-not-allowed', 'audio-capture'].includes(e.error)) {
+        recording = false;
+        micBtn.classList.remove('recording'); micBtn.textContent = '🎤 Voice';
+        stopAudioWaveform();
+      }
+    };
+    recognition.onend = () => { stopAudioWaveform(); if (recording) { try { recognition.start(); } catch {} } };
+    recognition.onresult = e => {
+      let finalText = '';
+      for (let i = e.resultIndex; i < e.results.length; i++) {
+        if (e.results[i].isFinal) finalText += e.results[i][0].transcript;
+      }
+      if (finalText) appendFinal(finalText);
+    };
+  }
+
+  function appendFinal(text) {
+    const c = current(); if (!c) return;
+    c.transcript = (c.transcript || '') + (c.transcript ? ' ' : '') + text.trim();
+    transcript.textContent = c.transcript; touch(); save(); updateStats();
+  }
+
+  async function startRecording() {
+    if (!recognition) initRecognition();
+    if (!recognition) return;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      startAudioWaveform(stream);
+      recognition.lang = langSelect.value;
+      recognition.start(); recording = true;
+      micBtn.classList.add('recording'); micBtn.textContent = '⏹ ရပ်မည်';
+    } catch(e) { showToast('Mic မရရှိပါ'); }
+  }
+  function stopRecording() {
+    if (!recognition) return;
+    recording = false; recognition.stop();
+    micBtn.classList.remove('recording'); micBtn.textContent = '🎤 Voice';
+    stopAudioWaveform();
+  }
+  micBtn.onclick = () => recording ? stopRecording() : startRecording();
+  initRecognition();
+
+  // AI Recording
+  let mediaRecorder = null; let audioChunks = []; let isAiRecording = false;
+
+  async function startAiRecording() {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      audioChunks = [];
+      const mimeType = MediaRecorder.isTypeSupported('audio/webm') ? 'audio/webm' : 'audio/mp4';
+      mediaRecorder = new MediaRecorder(stream, { mimeType });
+      startAudioWaveform(stream);
+      mediaRecorder.ondataavailable = e => { if (e.data.size > 0) audioChunks.push(e.data); };
+      mediaRecorder.onstop = async () => {
+        stream.getTracks().forEach(t => t.stop()); stopAudioWaveform();
+        micStatus.textContent = '⏳ AI ဖြင့် စာသားပြောင်းနေပါသည်...';
+        const blob = new Blob(audioChunks, { type: mimeType });
+        const c = current(); if (c) { c.audioUrl = URL.createObjectURL(blob); save(); renderCurrent(); }
+        const r = new FileReader(); r.readAsDataURL(blob);
+        r.onloadend = async () => {
+          await processMediaWithGemini(r.result.split(',')[1], mimeType, "Transcribe this audio into text clearly.");
+        };
+      };
+      mediaRecorder.start(); isAiRecording = true;
+      aiRecBtn.classList.add('recording'); aiRecBtn.textContent = '⏹ ရပ်မည်';
+    } catch (e) { showToast('Mic အလုပ်မလုပ်ပါ'); }
+  }
+  function stopAiRecording() {
+    if (mediaRecorder && isAiRecording) {
+      isAiRecording = false; aiRecBtn.classList.remove('recording');
+      aiRecBtn.textContent = '🎙 AI Voice'; mediaRecorder.stop();
+    }
+  }
+  aiRecBtn.onclick = () => isAiRecording ? stopAiRecording() : startAiRecording();
+
+  // Audio & OCR Upload
+  $('audioUploadBtn').onclick = () => $('audioFileInput').click();
+  $('audioFileInput').onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const c = current(); if (c) { c.audioUrl = URL.createObjectURL(file); save(); renderCurrent(); }
+    const r = new FileReader(); r.readAsDataURL(file);
+    r.onloadend = async () => {
+      micStatus.textContent = '⏳ Audio စာသားပြောင်းနေပါသည်...';
+      await processMediaWithGemini(r.result.split(',')[1], file.type || 'audio/mp3', "Transcribe this audio verbatim into text. If Myanmar, output Myanmar script. Preserve pauses as line breaks.");
+    };
+  };
+
+  $('ocrBtn').onclick = () => $('ocrFileInput').click();
+  $('ocrFileInput').onchange = e => {
+    const file = e.target.files[0]; if (!file) return;
+    const r = new FileReader(); r.readAsDataURL(file);
+    r.onloadend = async () => {
+      micStatus.textContent = '⏳ ပုံထဲမှ စာသားများ ထုတ်ယူနေပါသည်...';
+      await processMediaWithGemini(r.result.split(',')[1], file.type || 'image/png', "Extract all text visible in this image verbatim. Preserve original language, layout, and formatting. Return the text only.");
+    };
+  };
+
+  async function processMediaWithGemini(base64Data, mimeType, promptText) {
+    if (!requireKey()) return;
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(getTextModel())}:generateContent?key=${encodeURIComponent(getApiKey())}`;
+      const res = await fetch(endpoint, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: promptText }, { inlineData: { mimeType, data: base64Data } }] }] })
+      });
+      if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 160)}`);
+      const data = await res.json();
+      const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+      if (text) {
+        appendFinal('\n' + text.trim());
+        micStatus.textContent = '✅ စာသားပြောင်းလဲမှု အောင်မြင်သည်'; showToast('✨ စာသားများ ထည့်သွင်းပြီးပါပြီ');
+      } else {
+        micStatus.textContent = '⚠ စာသား မထုတ်ယူနိုင်ပါ';
+      }
+    } catch (e) { showToast('⚠ ' + e.message); micStatus.textContent = '⚠ Media processing failed'; }
+  }
+
+  // Chat
+  $('aiAskBtn').onclick = () => { $('chatSection').style.display = ''; $('chatInput').focus(); };
+  function renderChat() {
+    const c = current(); if (!c) return;
+    const box = $('chatMessages'); box.textContent = '';
+    (c.chat || []).forEach(m => {
+      const el = document.createElement('div'); el.className = 'chat-msg ' + m.role;
+      el.textContent = (m.role === 'user' ? '❯ ' : '') + m.content;
+      box.appendChild(el);
+    });
+    box.scrollTop = box.scrollHeight;
+    if (c.chat && c.chat.length) $('chatSection').style.display = '';
+  }
+
+  // ---- Streaming chat via Gemini SSE endpoint ----
+  async function callGeminiTextStreaming(prompt, sysInstruction, onDelta) {
+    const apiKey = getApiKey();
+    if (!apiKey) throw new Error('Gemini API key not set');
+    // The `streamGenerateContent` endpoint returns SSE — text arrives incrementally
+    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(getTextModel())}:streamGenerateContent?alt=sse&key=${encodeURIComponent(apiKey)}`;
+    const payload = { contents: [{ role: 'user', parts: [{ text: prompt }] }] };
+    if (sysInstruction) payload.systemInstruction = { parts: [{ text: sysInstruction }] };
+
+    const res = await fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 160)}`);
+    if (!res.body) throw new Error('No response body — streaming not supported here');
+
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    let full = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      // SSE frames are separated by \n\n; each frame is `data: {json}\n`
+      const frames = buffer.split('\n\n');
+      buffer = frames.pop(); // keep incomplete tail
+      for (const frame of frames) {
+        const line = frame.replace(/^data:\s*/, '').trim();
+        if (!line || line === '[DONE]') continue;
+        try {
+          const chunk = JSON.parse(line);
+          const delta = chunk.candidates?.[0]?.content?.parts?.[0]?.text || '';
+          if (delta) {
+            full += delta;
+            onDelta(delta, full);
+          }
+        } catch { /* partial frame — will complete next read */ }
+      }
+    }
+    return full;
+  }
+
+  $('chatSendBtn').onclick = async () => {
+    const c = current(); const q = $('chatInput').value.trim(); if (!q) return;
+    if (!requireKey()) return;
+    if (!c.chat) c.chat = [];
+    c.chat.push({ role: 'user', content: q });
+    // Placeholder assistant message so streamed tokens can flow in
+    c.chat.push({ role: 'assistant', content: '' });
+    $('chatInput').value = '';
+    renderChat();
+    const btn = $('chatSendBtn'); btn.disabled = true;
+    // Locate the streaming target element (last .chat-msg.assistant)
+    const streamTarget = $('chatMessages').lastElementChild;
+    if (streamTarget) streamTarget.textContent = '⋯';
+
+    try {
+      const system = `မှတ်စုစာသားများကို အခြေခံ၍ မြန်မာလို တိုတိုတုတ်တုတ် ဖြေပါ။ မှတ်စုမှ လူသိသာသော အချက်များကိုသာ ကိုးကားပါ။\n\nမှတ်စု:\n${c.transcript}`;
+      let acc = '';
+      const ans = await callGeminiTextStreaming(q, system, (delta, full) => {
+        acc = full;
+        if (streamTarget) {
+          streamTarget.textContent = full;
+          $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
+        }
+        // Also update backing store live so a Save-mid-stream doesn't lose data
+        c.chat[c.chat.length - 1].content = full;
+      });
+      c.chat[c.chat.length - 1].content = (ans || acc).trim();
+      touch(); save();
+    } catch (e) {
+      c.chat[c.chat.length - 1].content = '⚠ ' + e.message;
+      if (streamTarget) streamTarget.textContent = '⚠ ' + e.message;
+    } finally {
+      btn.disabled = false;
+      // Final re-render for consistent DOM (in case streaming target got detached)
+      renderChat();
+    }
+  };
+  $('chatInput').addEventListener('keypress', e => { if (e.key === 'Enter') $('chatSendBtn').click(); });
+
+  function showToast(msg) {
+    $('toastMsg').textContent = msg; $('toast').classList.add('show');
+    setTimeout(() => $('toast').classList.remove('show'), 3000);
+  }
+
+  // ---- API Key Modal wiring ----
+  function openApiKeyModal() {
+    $('apiKeyInput').value = getApiKey();
+    $('modelSelect').value = getTextModel();
+    $('apiKeyModal').classList.add('show');
+    setTimeout(() => $('apiKeyInput').focus(), 40);
+  }
+  function closeApiKeyModal() { $('apiKeyModal').classList.remove('show'); }
+  $('apiKeyBtn').onclick = openApiKeyModal;
+  $('apiKeyModal').addEventListener('click', e => { if (e.target === $('apiKeyModal')) closeApiKeyModal(); });
+  $('apiKeySaveBtn').onclick = () => {
+    const k = $('apiKeyInput').value.trim();
+    if (k) localStorage.setItem(API_KEY_STORE, k);
+    localStorage.setItem(MODEL_STORE, $('modelSelect').value);
+    updateApiKeyBtnState();
+    closeApiKeyModal();
+    showToast(k ? '🔑 API key သိမ်းဆည်းပြီးပါပြီ' : 'Model ကို ပြင်ဆင်ပြီးပါပြီ');
+  };
+  $('apiKeyClearBtn').onclick = () => {
+    localStorage.removeItem(API_KEY_STORE); $('apiKeyInput').value = '';
+    updateApiKeyBtnState(); showToast('API key ကို ဖျက်ပြီးပါပြီ');
+  };
+  function updateApiKeyBtnState() {
+    const has = !!getApiKey();
+    $('apiKeyBtn').classList.toggle('active', has);
+    $('apiKeyBtn').title = has ? `Gemini API key set (${getTextModel()})` : 'Set Gemini API key';
+  }
+  updateApiKeyBtnState();
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && $('apiKeyModal').classList.contains('show')) closeApiKeyModal();
+  });
+
+  // ---- Send action items to Task Manager (URL-hash bridge) ----
+  function sendActionsToTasks(actions, sourceTitle) {
+    if (!actions || !actions.length) { showToast('ပို့ရန် action items မရှိပါ'); return; }
+    const payload = {
+      source: 'AI Note Taker Enterprise',
+      sourceTitle: sourceTitle || '(Untitled note)',
+      at: Date.now(),
+      tasks: actions.map(text => ({
+        text: String(text),
+        priority: 'med',
+        status: 'todo',
+        note: sourceTitle ? `From note: ${sourceTitle} (${new Date().toLocaleDateString()})` : '',
+      })),
+    };
+    let encoded;
+    try { encoded = btoa(unescape(encodeURIComponent(JSON.stringify(payload)))); }
+    catch (err) { showToast('⚠ Encode failed: ' + err.message); return; }
+    const url = `${TASK_MANAGER_URL}#import-tasks=${encoded}`;
+    const w = window.open(url, '_blank');
+    if (!w || w.closed) {
+      navigator.clipboard.writeText(url).then(
+        () => showToast('⚠ Popup blocked — link ကို clipboard သို့ ကူးထားပြီးပါပြီ'),
+        () => showToast('⚠ Popup blocked')
+      );
+    } else {
+      showToast(`📤 ${payload.tasks.length} tasks ကို Task Manager သို့ ပို့ပြီးပါပြီ`);
+    }
+  }
+
+  // Show a friendly one-time nudge if no API key
+  if (!getApiKey()) {
+    setTimeout(() => {
+      if (!localStorage.getItem('ainotes.enterprise.keyNudgeSeen')) {
+        showToast('🔑 Gemini API key ထည့်ရန် လိုအပ်ပါသည် — 🔑 button ကို နှိပ်ပါ');
+        localStorage.setItem('ainotes.enterprise.keyNudgeSeen', '1');
+      }
+    }, 800);
+  }
+
+  // ============================================================
+  // Meeting Mode — split-view live transcript + auto-updating AI
+  // ============================================================
+  (function () {
+    const mmBackdrop = $('meetingMode');
+    const mmDot      = $('mmDot');
+    const mmElapsed  = $('mmElapsed');
+    const mmStartBtn = $('mmStartBtn');
+    const mmRefreshBtn = $('mmRefreshBtn');
+    const mmCloseBtn = $('mmCloseBtn');
+    const mmTranscript = $('mmTranscript');
+    const mmLangSelect = $('mmLangSelect');
+    const mmInterval = $('mmInterval');
+    const mmTranscriptInfo = $('mmTranscriptInfo');
+    const mmInsightsInfo = $('mmInsightsInfo');
+
+    let mmRecognition = null;
+    let mmRecording = false;
+    let mmInterimEl = null;
+    let mmStartTime = 0;
+    let mmElapsedTimer = null;
+    let mmRefreshTimer = null;
+    let mmLastAiTranscript = ''; // dedupe: skip AI call if transcript unchanged
+    let mmAiInFlight = false;
+
+    // ---- Init ----
+    $('meetingModeBtn').onclick = () => openMeetingMode();
+
+    function openMeetingMode() {
+      const c = current();
+      // Load existing transcript into meeting view for continuity
+      mmTranscript.textContent = c?.transcript || '';
+      updateTranscriptInfo();
+      mmBackdrop.classList.add('show');
+      // Render any existing insights we already have
+      renderMeetingInsights(c);
+      // Auto-start recording after brief delay
+      setTimeout(() => {
+        if (mmBackdrop.classList.contains('show') && !mmRecording) mmStart();
+      }, 400);
+    }
+    function closeMeetingMode() {
+      mmStop();
+      // Save transcript back to current note
+      const c = current();
+      if (c) {
+        c.transcript = mmTranscript.innerText;
+        touch(); save(); renderCurrent(); renderSessions();
+      }
+      mmBackdrop.classList.remove('show');
+      showToast('🎯 Meeting Mode ပိတ်ပြီးပါပြီ — မှတ်စုသို့ ပြန်သိမ်းထားပါပြီ');
+    }
+    mmCloseBtn.onclick = closeMeetingMode;
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && mmBackdrop.classList.contains('show')) closeMeetingMode();
+    });
+    mmBackdrop.addEventListener('click', e => { if (e.target === mmBackdrop) closeMeetingMode(); });
+
+    // ---- Speech Recognition (independent instance so it doesn't fight the main one) ----
+    function initMmRecognition() {
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SR) { showToast('⚠ Browser သည် Speech Recognition ကို မထောက်ပံ့ပါ'); return null; }
+      const r = new SR();
+      r.continuous = true; r.interimResults = true;
+      r.onstart = () => { mmDot.classList.add('recording'); };
+      r.onerror = ev => {
+        if (ev.error === 'no-speech') return;
+        showToast('⚠ Speech: ' + ev.error);
+        if (['not-allowed','service-not-allowed','audio-capture'].includes(ev.error)) mmStop();
+      };
+      r.onend = () => {
+        // Auto-restart while recording (browser drops after ~30s)
+        if (mmRecording) { try { r.start(); } catch {} }
+        else mmDot.classList.remove('recording');
+      };
+      r.onresult = ev => {
+        let finalText = '', interimText = '';
+        for (let i = ev.resultIndex; i < ev.results.length; i++) {
+          const t = ev.results[i][0].transcript;
+          if (ev.results[i].isFinal) finalText += t; else interimText += t;
+        }
+        if (finalText) mmAppendFinal(finalText);
+        mmShowInterim(interimText);
+      };
+      return r;
+    }
+    function mmAppendFinal(text) {
+      mmRemoveInterim();
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      const cur = mmTranscript.innerText || '';
+      const sep = cur && !/[.!?။၏\n]\s*$/.test(cur) ? ' ' : (cur ? ' ' : '');
+      mmTranscript.textContent = cur + sep + trimmed;
+      mmTranscript.scrollTop = mmTranscript.scrollHeight;
+      updateTranscriptInfo();
+    }
+    function mmShowInterim(text) {
+      mmRemoveInterim();
+      if (!text) return;
+      mmInterimEl = document.createElement('span');
+      mmInterimEl.className = 'mm-interim';
+      mmInterimEl.textContent = ' ' + text;
+      mmTranscript.appendChild(mmInterimEl);
+      mmTranscript.scrollTop = mmTranscript.scrollHeight;
+    }
+    function mmRemoveInterim() { if (mmInterimEl?.parentNode) mmInterimEl.parentNode.removeChild(mmInterimEl); mmInterimEl = null; }
+
+    function mmStart() {
+      if (mmRecording) return;
+      if (!mmRecognition) mmRecognition = initMmRecognition();
+      if (!mmRecognition) return;
+      mmRecognition.lang = mmLangSelect.value;
+      try {
+        mmRecognition.start();
+        mmRecording = true;
+        mmStartTime = Date.now();
+        mmStartBtn.textContent = '⏹ ရပ်မည်';
+        mmStartBtn.classList.add('recording');
+        startElapsedTimer();
+        startAiRefreshTimer();
+      } catch (err) { showToast('⚠ Mic start failed: ' + err.message); }
+    }
+    function mmStop() {
+      if (!mmRecording) return;
+      mmRecording = false;
+      try { mmRecognition && mmRecognition.stop(); } catch {}
+      mmStartBtn.textContent = '🎤 စတင်မည်';
+      mmStartBtn.classList.remove('recording');
+      mmDot.classList.remove('recording');
+      stopElapsedTimer(); stopAiRefreshTimer();
+    }
+    mmStartBtn.onclick = () => mmRecording ? mmStop() : mmStart();
+
+    // ---- Elapsed timer ----
+    function startElapsedTimer() {
+      if (mmElapsedTimer) clearInterval(mmElapsedTimer);
+      const tick = () => {
+        const secs = Math.floor((Date.now() - mmStartTime) / 1000);
+        const m = Math.floor(secs / 60), s = secs % 60;
+        mmElapsed.textContent = `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      };
+      tick();
+      mmElapsedTimer = setInterval(tick, 500);
+    }
+    function stopElapsedTimer() { if (mmElapsedTimer) { clearInterval(mmElapsedTimer); mmElapsedTimer = null; } }
+
+    // ---- Live transcript stats ----
+    function updateTranscriptInfo() {
+      const t = mmTranscript.innerText || '';
+      const chars = t.replace(/\s+/g, '').length;
+      const words = t.trim() ? t.trim().split(/\s+/).length : 0;
+      mmTranscriptInfo.textContent = `${words} words · ${chars} chars`;
+    }
+    mmTranscript.addEventListener('input', updateTranscriptInfo);
+
+    // ---- AI auto-refresh timer ----
+    function startAiRefreshTimer() {
+      stopAiRefreshTimer();
+      const interval = Math.max(15, parseInt(mmInterval.value, 10) || 30) * 1000;
+      mmRefreshTimer = setInterval(runMeetingAi, interval);
+      // Also trigger a first refresh 8 sec in to give initial insight
+      setTimeout(() => { if (mmRecording) runMeetingAi(); }, 8000);
+    }
+    function stopAiRefreshTimer() { if (mmRefreshTimer) { clearInterval(mmRefreshTimer); mmRefreshTimer = null; } }
+
+    mmRefreshBtn.onclick = () => runMeetingAi(true);
+    mmInterval.onchange = () => { if (mmRecording) startAiRefreshTimer(); };
+
+    // ---- Meeting AI — single call returns summary + actions + topics ----
+    async function runMeetingAi(force = false) {
+      if (mmAiInFlight) return;
+      const transcript = mmTranscript.innerText.trim();
+      if (!transcript) return;
+      if (!getApiKey()) {
+        mmInsightsInfo.textContent = '⚠ API key မထည့်ရသေးပါ';
+        return;
+      }
+      // Skip if transcript unchanged since last call (unless forced)
+      if (!force && transcript === mmLastAiTranscript) {
+        mmInsightsInfo.textContent = 'No change since last update';
+        return;
+      }
+      mmLastAiTranscript = transcript;
+      mmAiInFlight = true;
+      mmInsightsInfo.textContent = '⏳ AI updating…';
+      document.querySelectorAll('.mm-block-body').forEach(el => el.classList.add('updating'));
+
+      try {
+        const prompt = `You are analyzing a live meeting transcript. Return valid JSON only:
+{
+  "summary": "1-3 sentence summary in Myanmar",
+  "actions": ["action item 1", "action item 2"],
+  "topics": ["topic 1", "topic 2", "topic 3"]
+}
+- summary: မြန်မာလို ဝါကျ ၂-၃ ကြောင်း
+- actions: Concrete tasks/decisions surfaced, in Myanmar. Empty array if none.
+- topics: Key topics/decisions discussed, 3-6 items in Myanmar or original language. Empty array if none yet.
+
+Transcript so far:
+${transcript}`;
+        const raw = await callGeminiText(prompt, "", true);
+        let data;
+        try { data = JSON.parse(raw); }
+        catch { throw new Error('AI returned invalid JSON'); }
+
+        // Update store on current session
+        const c = current();
+        if (c) {
+          c.summary = data.summary || c.summary;
+          if (Array.isArray(data.actions)) c.actions = data.actions;
+          if (Array.isArray(data.topics)) c.keywords = data.topics;
+          touch(); save();
+        }
+        renderMeetingInsights({ summary: data.summary, actions: data.actions, keywords: data.topics });
+        const now = new Date();
+        mmInsightsInfo.textContent = `Updated ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}:${String(now.getSeconds()).padStart(2,'0')}`;
+      } catch (err) {
+        mmInsightsInfo.textContent = '⚠ ' + err.message;
+      } finally {
+        mmAiInFlight = false;
+        document.querySelectorAll('.mm-block-body').forEach(el => el.classList.remove('updating'));
+      }
+    }
+
+    function renderMeetingInsights(data) {
+      if (!data) return;
+
+      // Summary
+      const sumEl = $('mmSummary'); sumEl.textContent = '';
+      if (data.summary) sumEl.appendChild(el('div', { text: data.summary }));
+      else sumEl.appendChild(el('div', { class: 'mm-empty', text: 'စတင်ရုံနှင့် အလိုအလျောက် ဖန်တီးမည်' }));
+
+      // Actions
+      const actEl = $('mmActions'); actEl.textContent = '';
+      if (data.actions && data.actions.length) {
+        data.actions.forEach(a => actEl.appendChild(el('div', { class: 'mm-action-item', text: a })));
+      } else {
+        actEl.appendChild(el('div', { class: 'mm-empty', text: '—' }));
+      }
+
+      // Topics
+      const topEl = $('mmTopics'); topEl.textContent = '';
+      const topics = data.keywords || data.topics || [];
+      if (topics.length) {
+        topics.forEach(t => topEl.appendChild(el('span', { class: 'mm-topic-chip', text: t })));
+      } else {
+        topEl.appendChild(el('div', { class: 'mm-empty', text: '—' }));
+      }
+    }
+  })();
+
+  renderSessions(); renderCurrent();
+</script>
+</body>
+</html>
