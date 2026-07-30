@@ -405,6 +405,171 @@
   }
   .quick-strip .qs-empty { color: var(--text-mute); font-style: italic; }
 
+  /* Prompt Spotlight widget */
+  .spotlight-widget {
+    margin-top: 20px;
+    padding: 18px 20px;
+    background: linear-gradient(135deg, rgba(167,139,250,0.08), rgba(244,114,182,0.08));
+    border: 1px solid rgba(167,139,250,0.28);
+    border-radius: 16px;
+    box-shadow: var(--shadow);
+    position: relative;
+    z-index: 1;
+  }
+  .sp-head {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 12px; gap: 12px; flex-wrap: wrap;
+  }
+  .sp-title { font-size: 0.95rem; font-weight: 600; }
+  .sp-tabs {
+    display: inline-flex;
+    background: rgba(0,0,0,0.15);
+    border-radius: 999px; padding: 3px;
+    gap: 2px;
+  }
+  .sp-tab {
+    background: transparent; border: none;
+    color: var(--text-dim); font-family: inherit; cursor: pointer;
+    font-size: 0.78rem; padding: 6px 14px;
+    border-radius: 999px;
+    transition: all 0.2s ease;
+  }
+  .sp-tab:hover { color: var(--text); }
+  .sp-tab.active {
+    background: linear-gradient(135deg, #a78bfa, #f472b6);
+    color: #fff; font-weight: 600;
+    box-shadow: 0 3px 10px rgba(167,139,250,0.4);
+  }
+  .sp-body {
+    background: rgba(0,0,0,0.15);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 12px;
+  }
+  [data-theme="light"] .sp-body { background: rgba(255,255,255,0.5); }
+  .sp-name {
+    font-size: 1rem; font-weight: 600;
+    color: var(--text);
+    margin-bottom: 6px;
+  }
+  .sp-template {
+    font-size: 0.82rem;
+    color: var(--text-dim);
+    line-height: 1.5;
+    white-space: pre-wrap;
+    max-height: 100px;
+    overflow: hidden;
+    position: relative;
+    mask-image: linear-gradient(to bottom, black 60%, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, black 60%, transparent);
+  }
+  .sp-actions {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .sp-btn {
+    padding: 7px 12px;
+    border-radius: 8px; border: 1px solid var(--border);
+    background: transparent; color: var(--text);
+    font-size: 0.8rem; font-family: inherit;
+    cursor: pointer; text-decoration: none;
+    display: inline-flex; align-items: center; gap: 4px;
+    transition: all 0.15s ease;
+  }
+  .sp-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .sp-btn-primary {
+    background: linear-gradient(135deg, #a78bfa, #f472b6);
+    color: #fff !important; border-color: transparent;
+    font-weight: 600;
+  }
+  .sp-btn-primary:hover { filter: brightness(1.1); color: #fff !important; }
+  .sp-btn-lib { margin-left: auto; }
+  @media (max-width: 640px) {
+    .sp-btn-lib { margin-left: 0; }
+    .sp-actions { justify-content: flex-start; }
+  }
+
+  /* Activity heatmap */
+  .heatmap-widget {
+    margin-top: 20px;
+    padding: 18px 20px;
+    background: var(--app-bg);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    position: relative;
+    z-index: 1;
+  }
+  .hm-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .hm-title {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+  }
+  .hm-legend {
+    display: flex; align-items: center; gap: 4px;
+    font-size: 0.7rem;
+    color: var(--text-dim);
+  }
+  .hm-swatch {
+    width: 11px; height: 11px;
+    border-radius: 3px;
+    background: rgba(148,163,184,0.12);
+    display: inline-block;
+  }
+  .hm-swatch[data-level="1"] { background: rgba(167,139,250,0.35); }
+  .hm-swatch[data-level="2"] { background: rgba(167,139,250,0.6); }
+  .hm-swatch[data-level="3"] { background: rgba(167,139,250,0.85); }
+  .hm-swatch[data-level="4"] { background: #a78bfa; box-shadow: 0 0 6px rgba(167,139,250,0.55); }
+  .hm-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-auto-rows: 14px;
+    gap: 3px;
+    overflow-x: auto;
+  }
+  .hm-cell {
+    height: 14px;
+    border-radius: 3px;
+    background: rgba(148,163,184,0.12);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    cursor: pointer;
+    position: relative;
+  }
+  .hm-cell[data-level="1"] { background: rgba(167,139,250,0.35); }
+  .hm-cell[data-level="2"] { background: rgba(167,139,250,0.6); }
+  .hm-cell[data-level="3"] { background: rgba(167,139,250,0.85); }
+  .hm-cell[data-level="4"] { background: #a78bfa; }
+  .hm-cell:hover {
+    transform: scale(1.35);
+    box-shadow: 0 0 10px rgba(167,139,250,0.6);
+    z-index: 2;
+  }
+  .hm-cell[data-today="1"] {
+    outline: 1.5px solid var(--accent);
+    outline-offset: 1px;
+  }
+  .hm-stats {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--border-soft);
+    color: var(--text-dim);
+    font-size: 0.78rem;
+  }
+  .hm-stat b { color: var(--text); font-weight: 600; }
+  @media (max-width: 640px) {
+    .heatmap-widget { padding: 14px 12px; }
+    .hm-grid { grid-auto-rows: 12px; gap: 2px; }
+    .hm-cell { height: 12px; }
+  }
+
   /* Weekly recap banner — Sunday evening */
   .weekly-recap-banner {
     display: flex; align-items: center; gap: 14px;
@@ -764,6 +929,46 @@
       </a>
     </div>
 
+    <!-- Prompt Spotlight — rotates daily/weekly/monthly -->
+    <div class="spotlight-widget" id="spotlightWidget">
+      <div class="sp-head">
+        <div class="sp-title">📚 Prompt Spotlight</div>
+        <div class="sp-tabs">
+          <button class="sp-tab active" data-period="daily">Today</button>
+          <button class="sp-tab" data-period="weekly">This Week</button>
+          <button class="sp-tab" data-period="monthly">This Month</button>
+        </div>
+      </div>
+      <div class="sp-body">
+        <div class="sp-name" id="spName">—</div>
+        <div class="sp-template" id="spTemplate">—</div>
+      </div>
+      <div class="sp-actions">
+        <a class="sp-btn sp-btn-primary" id="spTryRecap" href="#" title="Open in Recap Audio Maker">🎧 Try in Recap</a>
+        <a class="sp-btn" id="spTryNote" href="#" title="Open in AI Note Taker">🎙 Try in Note</a>
+        <button class="sp-btn" id="spCopy">📋 Copy</button>
+        <button class="sp-btn sp-btn-lib" id="spBrowse">📖 Browse all…</button>
+      </div>
+    </div>
+
+    <!-- Activity heatmap — last 12 weeks -->
+    <div class="heatmap-widget" id="heatmapWidget">
+      <div class="hm-head">
+        <div class="hm-title">📊 Activity — last 12 weeks</div>
+        <div class="hm-legend">
+          <span>Less</span>
+          <span class="hm-swatch" data-level="0"></span>
+          <span class="hm-swatch" data-level="1"></span>
+          <span class="hm-swatch" data-level="2"></span>
+          <span class="hm-swatch" data-level="3"></span>
+          <span class="hm-swatch" data-level="4"></span>
+          <span>More</span>
+        </div>
+      </div>
+      <div class="hm-grid" id="hmGrid"></div>
+      <div class="hm-stats" id="hmStats"></div>
+    </div>
+
     <!-- Weekly recap nudge — Sunday evening, shown once per week -->
     <a class="weekly-recap-banner" id="weeklyRecapBanner" href="RecapAudioMaker.html?src=week" style="display:none">
       <span class="wr-ico">🎧</span>
@@ -819,6 +1024,7 @@
 <script defer src="_ui.js"></script>
 <script defer src="_pwa.js"></script>
 <script defer src="_cloudsync.js"></script>
+<script defer src="_prompts.js"></script>
 <script defer src="_settings.js"></script>
 <script>
   const $ = id => document.getElementById(id);
@@ -1394,6 +1600,171 @@
     }
     setTimeout(typeStep, 300);
   }
+
+  // ---- Prompt Spotlight ----
+  (function spotlight() {
+    const widget = document.getElementById('spotlightWidget');
+    if (!widget || !window.PromptLib) {
+      // PromptLib might not have loaded yet — retry once after defer scripts settle
+      setTimeout(spotlight, 300);
+      return;
+    }
+    const nameEl = document.getElementById('spName');
+    const tmplEl = document.getElementById('spTemplate');
+    const tryRecap = document.getElementById('spTryRecap');
+    const tryNote  = document.getElementById('spTryNote');
+    const copyBtn  = document.getElementById('spCopy');
+    const browseBtn = document.getElementById('spBrowse');
+    let currentPeriod = 'daily';
+    let currentPrompt = null;
+
+    function render() {
+      currentPrompt = window.PromptLib.spotlight(currentPeriod);
+      if (!currentPrompt) return;
+      nameEl.textContent = currentPrompt.name;
+      tmplEl.textContent = currentPrompt.template;
+      // Wire "Try in" links with the prompt template pre-filled via localStorage handoff
+      // (Simplest: store in a shared key, target tool reads on load)
+      const handoffKey = 'promptlib.spotlight.pending';
+      const handoff = JSON.stringify({ name: currentPrompt.name, template: currentPrompt.template, at: Date.now() });
+      tryRecap.onclick = (e) => { localStorage.setItem(handoffKey, handoff); /* href navigates */ };
+      tryNote.onclick  = (e) => { localStorage.setItem(handoffKey, handoff); };
+      tryRecap.href = 'RecapAudioMaker.html?spotlight=1';
+      tryNote.href = 'AINoteTaker.html?spotlight=1';
+    }
+
+    document.querySelectorAll('.sp-tab').forEach(tab => {
+      tab.addEventListener('click', () => {
+        document.querySelectorAll('.sp-tab').forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentPeriod = tab.dataset.period;
+        render();
+      });
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      if (!currentPrompt) return;
+      try { await navigator.clipboard.writeText(currentPrompt.template); copyBtn.textContent = '✓ Copied'; setTimeout(() => copyBtn.textContent = '📋 Copy', 1500); }
+      catch { alert('Copy failed'); }
+    });
+
+    browseBtn.addEventListener('click', () => {
+      if (window.PromptLib && window.PromptLib.pick) {
+        window.PromptLib.pick((p) => {
+          // Show picked prompt in the widget without needing a tool
+          currentPrompt = p;
+          nameEl.textContent = p.name;
+          tmplEl.textContent = p.template;
+        });
+      }
+    });
+
+    render();
+  })();
+
+  // ---- Activity heatmap ----
+  (function renderHeatmap() {
+    const grid = document.getElementById('hmGrid');
+    const stats = document.getElementById('hmStats');
+    if (!grid) return;
+
+    const WEEKS = 12;
+    const DAYS = 7;
+    const now = new Date(); now.setHours(0,0,0,0);
+    // Anchor: end of current week (Saturday if week starts Sunday)
+    // Start of oldest week = now - (WEEKS * 7 + today's weekday index) days back
+    const start = new Date(now);
+    start.setDate(now.getDate() - now.getDay() - (WEEKS - 1) * 7);
+
+    // Collect per-day activity counts
+    const counts = {};
+    function bump(dateMs, kind) {
+      if (!dateMs) return;
+      const d = new Date(dateMs); d.setHours(0,0,0,0);
+      if (d < start || d > now) return;
+      const key = d.toDateString();
+      if (!counts[key]) counts[key] = { total: 0, tasks: 0, notes: 0, recaps: 0 };
+      counts[key][kind]++;
+      counts[key].total++;
+    }
+    // Tasks completed
+    try {
+      const tasks = JSON.parse(localStorage.getItem('tasks.v3') || '[]');
+      tasks.forEach(t => { if (t.status === 'done' && t.doneAt) bump(t.doneAt, 'tasks'); });
+    } catch {}
+    // Notes touched (v1 + enterprise)
+    try {
+      ['ainotes.v1', 'ainotes.v11.enterprise'].forEach(key => {
+        const notes = JSON.parse(localStorage.getItem(key) || '[]');
+        notes.forEach(n => { if (n.updatedAt) bump(n.updatedAt, 'notes'); });
+      });
+    } catch {}
+    // Recaps
+    try {
+      const recaps = JSON.parse(localStorage.getItem('recap.history.v1') || '[]');
+      recaps.forEach(r => bump(r.at, 'recaps'));
+    } catch {}
+
+    // Compute totals for stats
+    let totalTasks = 0, totalNotes = 0, totalRecaps = 0, activeDays = 0, maxCount = 0;
+    Object.values(counts).forEach(c => {
+      totalTasks += c.tasks; totalNotes += c.notes; totalRecaps += c.recaps;
+      activeDays++;
+      if (c.total > maxCount) maxCount = c.total;
+    });
+
+    // Build the grid — column-major (each column = 1 week, top→bottom = Sun→Sat)
+    // Grid CSS is 12 columns × 7 rows via grid-auto-rows — we set grid-row per cell.
+    grid.style.gridTemplateColumns = `repeat(${WEEKS}, 1fr)`;
+    grid.style.gridTemplateRows = `repeat(${DAYS}, 12px)`;
+    grid.style.gridAutoRows = 'unset';
+
+    for (let col = 0; col < WEEKS; col++) {
+      for (let row = 0; row < DAYS; row++) {
+        const d = new Date(start);
+        d.setDate(start.getDate() + col * 7 + row);
+        if (d > now) {
+          // Future day of current week — render an empty faded cell
+          const cell = document.createElement('div');
+          cell.className = 'hm-cell';
+          cell.style.gridColumn = (col + 1);
+          cell.style.gridRow = (row + 1);
+          cell.style.opacity = '0.3';
+          grid.appendChild(cell);
+          continue;
+        }
+        const key = d.toDateString();
+        const c = counts[key] || { total: 0 };
+        // Level 0-4 based on count relative to max
+        let level = 0;
+        if (c.total > 0) {
+          if (c.total >= 8) level = 4;
+          else if (c.total >= 5) level = 3;
+          else if (c.total >= 3) level = 2;
+          else level = 1;
+        }
+        const cell = document.createElement('div');
+        cell.className = 'hm-cell';
+        cell.dataset.level = level;
+        if (d.getTime() === now.getTime()) cell.dataset.today = '1';
+        cell.style.gridColumn = (col + 1);
+        cell.style.gridRow = (row + 1);
+        const dateStr = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' });
+        cell.title = c.total
+          ? `${dateStr} — ${c.total} activit${c.total === 1 ? 'y' : 'ies'} (${c.tasks || 0} tasks · ${c.notes || 0} notes · ${c.recaps || 0} recaps)`
+          : `${dateStr} — no activity`;
+        grid.appendChild(cell);
+      }
+    }
+
+    // Stats row
+    stats.innerHTML = `
+      <span class="hm-stat"><b>${totalTasks}</b> tasks done</span>
+      <span class="hm-stat"><b>${totalNotes}</b> note edits</span>
+      <span class="hm-stat"><b>${totalRecaps}</b> recaps</span>
+      <span class="hm-stat"><b>${activeDays}</b> / ${WEEKS * 7} active days</span>
+    `;
+  })();
 
   // ---- Weekly recap Sunday nudge ----
   (function weeklyRecapNudge() {

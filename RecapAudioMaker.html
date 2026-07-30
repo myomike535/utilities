@@ -441,6 +441,7 @@
     <!-- Actions -->
     <div class="action-row">
       <button class="btn-primary" id="generateBtn">✨ Script ဖန်တီးမည်</button>
+      <button class="btn-secondary" id="usePromptBtn" title="Custom Prompt Library ကို အသုံးပြု၍ input ကို ဖြည့်ရန်">📚 Prompt</button>
       <button class="btn-secondary" id="clearBtn">🗑 ရှင်းမည်</button>
       <span id="wordStats" style="color:var(--text-dim);font-size:0.8rem;margin-left:auto"></span>
     </div>
@@ -500,6 +501,7 @@
 <script defer src="_ui.js"></script>
 <script defer src="_pwa.js"></script>
 <script defer src="_cloudsync.js"></script>
+<script defer src="_prompts.js"></script>
 <script defer src="_settings.js"></script>
 <script>
   // ===== Shared with Enterprise Suite (same storage keys) =====
@@ -971,14 +973,43 @@ ${text}`;
     if (e.key === 'Escape' && $('apiKeyModal').classList.contains('show')) closeApiModal();
   });
 
+  // Custom Prompt Library integration — apply {text} placeholder against current input
+  $('usePromptBtn').addEventListener('click', () => {
+    if (!window.PromptLib) { toast('Prompt library not loaded'); return; }
+    window.PromptLib.pick((p) => {
+      const currentText = $('inputText').value.trim();
+      const applied = window.PromptLib.apply(p.template, { text: currentText });
+      $('inputText').value = applied;
+      updateStats();
+      toast(`📚 Applied: ${p.name}`);
+    });
+  });
+
   // Init source — respect ?src=paste|note|today|week URL param (used by Dashboard weekly nudge)
+  // Also respect ?spotlight=1 — pulls a prompt from the Dashboard's Prompt Spotlight
   (function initFromUrlParam() {
     const params = new URLSearchParams(location.search);
+    // Prompt Spotlight handoff
+    if (params.get('spotlight') === '1') {
+      try {
+        const raw = localStorage.getItem('promptlib.spotlight.pending');
+        if (raw) {
+          const p = JSON.parse(raw);
+          if (p.template) {
+            $('inputText').value = p.template;
+            toast(`📚 Applied: ${p.name}`);
+            localStorage.removeItem('promptlib.spotlight.pending');
+          }
+        }
+      } catch {}
+      history.replaceState({}, '', location.pathname);
+      onSourceChange();
+      return;
+    }
     const src = params.get('src');
     if (src && ['paste','note','today','week'].includes(src)) {
       const tab = document.querySelector(`.source-tab[data-src="${src}"]`);
       if (tab) tab.click();
-      // Clean the URL so refresh doesn't re-trigger
       history.replaceState({}, '', location.pathname);
       return;
     }

@@ -758,6 +758,7 @@
 <script defer src="_ui.js"></script>
 <script defer src="_pwa.js"></script>
 <script defer src="_cloudsync.js"></script>
+<script defer src="_prompts.js"></script>
 <script defer src="_settings.js"></script>
 <script>
   // Key bootstrap intentionally removed — keys must never be committed to a public repo.
@@ -1742,6 +1743,30 @@
   // ---- init ----
   renderSessions();
   renderCurrent();
+
+  // Prompt Spotlight handoff — if the Dashboard sent us a prompt, drop it into the transcript of a new session
+  (function initSpotlight() {
+    const params = new URLSearchParams(location.search);
+    if (params.get('spotlight') !== '1') return;
+    try {
+      const raw = localStorage.getItem('promptlib.spotlight.pending');
+      if (!raw) return;
+      const p = JSON.parse(raw);
+      if (!p.template) return;
+      // Create a new session titled after the prompt, seed the transcript with the template
+      newSession();
+      const c = current();
+      if (c) {
+        c.title = `📚 ${p.name}`;
+        c.transcript = p.template;
+        touch(); save();
+        renderSessions(); renderCurrent();
+        setTimeout(() => showToast(`📚 Applied: ${p.name}`), 300);
+      }
+      localStorage.removeItem('promptlib.spotlight.pending');
+    } catch {}
+    history.replaceState({}, '', location.pathname);
+  })();
 </script>
 </body>
 </html>

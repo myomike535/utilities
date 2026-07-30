@@ -3,7 +3,7 @@
 // offline fallback for navigation to any cached tool.
 // Bump CACHE_VERSION to force clients to fetch fresh copies.
 
-const CACHE_VERSION = 'utilities-v8';
+const CACHE_VERSION = 'utilities-v10';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -26,6 +26,7 @@ const PRECACHE_URLS = [
   './_pwa.js',
   './_settings.js',
   './_cloudsync.js',
+  './_prompts.js',
   './_motion.js',
   './_motion.css',
   './manifest.json',

@@ -213,10 +213,25 @@
       </div>
 
       <div class="st-section">
+        <h3>📚 Custom Prompt Library</h3>
+        <div class="st-hint" style="margin-bottom:8px;padding-left:0;">
+          Reusable prompt templates for Note Taker + Recap. Use <code>{text}</code> as the transcript placeholder.
+          Access anywhere via the 📚 button in tools.
+        </div>
+        <div id="stPromptsList" style="max-height:200px;overflow-y:auto;margin-bottom:8px;"></div>
+        <div class="st-row" style="gap:8px;flex-wrap:wrap;">
+          <button class="st-btn" id="stPromptAdd">+ Add prompt</button>
+          <button class="st-btn" id="stPromptReset">Reset to defaults</button>
+        </div>
+      </div>
+
+      <div class="st-section">
         <h3>Data</h3>
-        <div class="st-row" style="gap:8px;">
-          <button class="st-btn" id="stExportAll">⬇ Export All Data (JSON)</button>
+        <div class="st-row" style="gap:8px;flex-wrap:wrap;">
+          <button class="st-btn" id="stExportAll">⬇ Export All Data</button>
+          <button class="st-btn" id="stImportAll">⬆ Import Backup</button>
           <button class="st-btn" id="stStorageInfo">📊 Storage Usage</button>
+          <input type="file" id="stImportFile" accept="application/json" style="display:none">
         </div>
         <div class="st-hint" id="stStorageOut" style="margin-top:6px;"></div>
       </div>
@@ -260,11 +275,74 @@
     $$('#stRailPin').checked = localStorage.getItem('utilities.navrail.expanded') === '1';
     // Cloud sync
     populateSyncSection();
+    // Prompts
+    renderPromptsList();
     // Storage info (fresh)
     updateStorageInfo();
 
     backdrop.classList.add('show');
   }
+
+  // ---- Custom Prompts CRUD UI ----
+  function renderPromptsList() {
+    if (!window.PromptLib) return;
+    const list = $$('#stPromptsList');
+    list.textContent = '';
+    const items = window.PromptLib.getAll();
+    if (!items.length) {
+      list.innerHTML = '<div style="text-align:center;padding:16px;color:#9399b2;font-style:italic;font-size:0.82rem;">No prompts yet.</div>';
+      return;
+    }
+    items.forEach(p => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:6px;align-items:center;padding:8px 10px;margin-bottom:4px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.06);border-radius:8px;';
+      row.innerHTML = `
+        <div style="flex:1;min-width:0;">
+          <div style="font-size:0.86rem;font-weight:500;"></div>
+          <div style="font-size:0.7rem;color:#9399b2;margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;"></div>
+        </div>
+        <button class="st-btn" data-edit="${p.id}" style="padding:4px 10px;font-size:0.72rem;">Edit</button>
+        <button class="st-btn danger" data-del="${p.id}" style="padding:4px 10px;font-size:0.72rem;">🗑</button>
+      `;
+      row.querySelector('div div:first-child').textContent = p.name;
+      row.querySelector('div div:last-child').textContent = (p.template || '').slice(0, 80);
+      list.appendChild(row);
+    });
+    // Wire buttons
+    list.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => promptEditor(b.dataset.edit));
+    list.querySelectorAll('[data-del]').forEach(b => b.onclick = () => {
+      if (!confirm('Delete this prompt?')) return;
+      window.PromptLib.remove(b.dataset.del);
+      renderPromptsList();
+    });
+  }
+
+  function promptEditor(id) {
+    const existing = id ? window.PromptLib.get(id) : null;
+    const name = prompt('Prompt name:', existing?.name || '');
+    if (name == null) return;
+    const template = prompt('Prompt template (use {text} where the transcript should be inserted):', existing?.template || '');
+    if (template == null) return;
+    if (existing) {
+      window.PromptLib.update(id, { name: name.trim(), template });
+    } else {
+      window.PromptLib.add({ name: name.trim(), template, category: 'other' });
+    }
+    renderPromptsList();
+    if (window.showToast) window.showToast('📚 Prompt saved');
+  }
+
+  const stPromptAdd = $$('#stPromptAdd');
+  const stPromptReset = $$('#stPromptReset');
+  if (stPromptAdd) stPromptAdd.onclick = () => promptEditor(null);
+  if (stPromptReset) stPromptReset.onclick = () => {
+    if (!confirm('Reset prompts to default library?\n(Your custom prompts will be lost.)')) return;
+    localStorage.removeItem('prompts.custom.v1');
+    // Force _prompts.js to reseed on next getAll()
+    if (window.PromptLib) window.PromptLib.getAll();
+    renderPromptsList();
+    if (window.showToast) window.showToast('Prompts reset');
+  };
 
   // ---- Cloud Sync UI ----
   function populateSyncSection() {
@@ -429,6 +507,7 @@
       'ainotes.v1', 'ainotes.v11.enterprise',
       'pm-vault-v2',
       'recap.history.v1',
+      'prompts.custom.v1',
     ];
     exportKeys.forEach(k => {
       const v = localStorage.getItem(k);
@@ -443,6 +522,65 @@
     a.click(); URL.revokeObjectURL(url);
     if (window.showToast) window.showToast('⬇ Backup saved');
   };
+
+  // ---- Import All ----
+  $$('#stImportAll').onclick = () => $$('#stImportFile').click();
+  $$('#stImportFile').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      let data;
+      try { data = JSON.parse(ev.target.result); }
+      catch { alert('Import failed: not valid JSON'); return; }
+      if (!data || typeof data !== 'object') { alert('Import failed: unexpected format'); return; }
+
+      // Whitelist of keys we accept from a backup — same list Export All writes
+      const IMPORT_KEYS = [
+        'tasks.v3', 'tasks.sort', 'tasks.view',
+        'ainotes.v1', 'ainotes.v11.enterprise',
+        'pm-vault-v2',
+        'recap.history.v1',
+        'prompts.custom.v1',
+      ];
+      // Count what would be restored
+      const found = IMPORT_KEYS.filter(k => k in data);
+      if (!found.length) { alert('No importable data found in this file.'); return; }
+
+      const meta = data._meta ? `\n\nBackup made: ${data._meta.exportedAt || 'unknown'}` : '';
+      const ok = confirm(
+        `Import ${found.length} data set${found.length === 1 ? '' : 's'} from this backup?${meta}\n\n` +
+        `⚠ This will OVERWRITE your current data for:\n${found.map(k => '  • ' + friendlyKeyName(k)).join('\n')}\n\n` +
+        `Cannot be undone. Continue?`
+      );
+      if (!ok) return;
+
+      let restored = 0;
+      found.forEach(k => {
+        try { localStorage.setItem(k, data[k]); restored++; }
+        catch (err) { console.warn('Failed to restore ' + k, err); }
+      });
+      alert(`✅ Restored ${restored} data set${restored === 1 ? '' : 's'}. Refresh the page to see them.`);
+      if (window.showToast) window.showToast(`⬆ Imported ${restored} data sets`);
+      updateStorageInfo();
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  function friendlyKeyName(k) {
+    const map = {
+      'tasks.v3': 'Task Manager tasks',
+      'tasks.sort': 'Task sort preference',
+      'tasks.view': 'Task view (list/kanban)',
+      'ainotes.v1': 'AI Note Taker (Classic) sessions',
+      'ainotes.v11.enterprise': 'AI Note Taker (Enterprise) sessions',
+      'pm-vault-v2': 'Password Manager vault',
+      'recap.history.v1': 'Recap Audio history',
+      'prompts.custom.v1': 'Custom prompt library',
+    };
+    return map[k] || k;
+  }
 
   // ---- Storage info ----
   function updateStorageInfo() {
