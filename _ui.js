@@ -182,19 +182,37 @@
       .pane { min-height: 220px !important; }
       .mm-pane { max-height: 45vh !important; border-right: none !important; border-bottom: 1px solid var(--border-soft, #313244); }
 
-      /* Modals — full-width with breathing room */
-      .modal, .st-modal, .api-modal, .mm-shell {
-        max-width: calc(100vw - 20px) !important;
-        width: calc(100vw - 20px) !important;
-        padding: 16px !important;
-        max-height: 88vh !important;
-        overflow-y: auto !important;
+      /* Kimi-style bottom-sheet modals on mobile — slide up from bottom */
+      .modal-backdrop, .st-backdrop, .cp-backdrop {
+        padding: 0 !important;
+        align-items: flex-end !important;
       }
+      .modal, .st-modal, .api-modal, .cp-modal {
+        max-width: 100% !important;
+        width: 100% !important;
+        padding: 20px 18px 80px !important;
+        max-height: 85vh !important;
+        overflow-y: auto !important;
+        border-radius: 20px 20px 0 0 !important;
+        margin-bottom: 0 !important;
+        animation: sheetUp 0.28s cubic-bezier(.4,0,.2,1) !important;
+      }
+      @keyframes sheetUp { from { transform: translateY(30%); opacity: 0.7; } to { transform: translateY(0); opacity: 1; } }
+      /* Drag handle at top of bottom sheet */
+      .modal::before, .st-modal::before, .api-modal::before, .cp-modal::before {
+        content: '';
+        display: block;
+        width: 40px; height: 4px;
+        background: rgba(148,163,184,0.35);
+        border-radius: 2px;
+        margin: -8px auto 14px;
+      }
+
+      /* Meeting Mode overlay stays fullscreen */
       .mm-shell { inset: 8px !important; border-radius: 10px !important; }
       .mm-header { padding: 10px 14px !important; }
       .mm-transcript { padding: 12px 16px !important; font-size: 1rem !important; }
       .mm-insights-body { padding: 10px 14px !important; }
-      .modal-backdrop { padding: 20px 8px !important; }
 
       /* Command palette — bigger touch targets */
       .cp-modal { max-width: calc(100vw - 20px) !important; }
@@ -205,10 +223,38 @@
          so tool content doesn't hide behind the floating hamburger. */
       body { padding-top: 60px !important; padding-left: 6px !important; padding-right: 6px !important; }
 
-      /* Floating helper buttons — bottom corners, don't collide with hamburger (top-left) */
-      .st-gear { right: 10px !important; left: auto !important; bottom: 10px !important; width: 42px !important; height: 42px !important; }
-      body.nr-expanded .st-gear { left: auto !important; right: 10px !important; }
-      .pwa-install-btn { right: 62px !important; bottom: 10px !important; padding: 8px 12px !important; }
+      /* Floating buttons: sit above the 60px bottom nav bar */
+      .st-gear { right: 12px !important; left: auto !important; bottom: 76px !important; width: 44px !important; height: 44px !important; box-shadow: 0 6px 16px rgba(0,0,0,0.35) !important; }
+      body.nr-expanded .st-gear { left: auto !important; right: 12px !important; }
+      .pwa-install-btn { right: 12px !important; bottom: 76px !important; padding: 9px 14px !important; box-shadow: 0 6px 16px rgba(167,139,250,0.4) !important; }
+      /* Toast: sits above nav bar too */
+      .toast { bottom: 84px !important; }
+
+      /* Kimi polish: larger touch targets, softer borders, chunkier spacing */
+      .tool-card { border-radius: 18px !important; border-width: 1px !important; }
+      .tool-card:active { transform: scale(0.985) !important; }
+      .filter-btn, .action-btn, .cat-pill, .source-tab {
+        border-radius: 20px !important;
+        min-height: 36px !important;
+      }
+      .btn, .btn-primary, .btn-secondary, .btn-action {
+        border-radius: 12px !important;
+        min-height: 40px !important;
+      }
+      .icon-btn { border-radius: 10px !important; }
+      /* Chip/tag rounding */
+      .kw-chip, .ticket-chip, .att-badge, .stat-badge, .auto-tag, .st-badge { border-radius: 999px !important; }
+      /* Inputs — softer, chunkier */
+      input, textarea, select {
+        border-radius: 12px !important;
+        min-height: 42px !important;
+      }
+      textarea { min-height: 140px !important; }
+      /* Sections/cards: soften shadows on mobile — feel lighter */
+      .app, .container, .side-panel, .insight-section, .card, .toolbar, .input-area, .script-section, .audio-section, .history-section, .opt-block, .modal, .st-modal, .api-modal {
+        box-shadow: none !important;
+      }
+      .app, .container { border-radius: 20px !important; }
 
       /* AI Note Taker classic — sidebars stack */
       .side-panel.side-left { width: 100% !important; max-height: none !important; }

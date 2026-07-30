@@ -405,6 +405,44 @@
   }
   .quick-strip .qs-empty { color: var(--text-mute); font-style: italic; }
 
+  /* Weekly recap banner — Sunday evening */
+  .weekly-recap-banner {
+    display: flex; align-items: center; gap: 14px;
+    padding: 14px 18px; padding-right: 40px;
+    margin-top: 20px;
+    background: linear-gradient(135deg, rgba(244,114,182,0.15), rgba(167,139,250,0.15));
+    border: 1px solid rgba(244,114,182,0.4);
+    border-radius: 14px;
+    text-decoration: none; color: var(--text);
+    position: relative;
+    animation: wrSlide 0.5s cubic-bezier(.34,1.56,.64,1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  .weekly-recap-banner:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px -8px rgba(244,114,182,0.4);
+  }
+  @keyframes wrSlide { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+  .wr-ico {
+    font-size: 1.8rem; flex-shrink: 0;
+    animation: wrSpin 8s linear infinite;
+    display: inline-block;
+  }
+  @keyframes wrSpin { 100% { transform: rotate(360deg); } }
+  .wr-body { flex: 1; min-width: 0; }
+  .wr-title { font-weight: 600; font-size: 1rem; margin-bottom: 2px; }
+  .wr-desc { font-size: 0.82rem; color: var(--text-dim); }
+  .wr-cta { font-size: 0.88rem; color: #f472b6; font-weight: 600; flex-shrink: 0; }
+  .wr-dismiss {
+    position: absolute; top: 8px; right: 10px;
+    background: transparent; border: none;
+    color: var(--text-dim); cursor: pointer;
+    width: 24px; height: 24px; border-radius: 50%;
+    font-size: 16px; line-height: 1;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .wr-dismiss:hover { background: rgba(255,255,255,0.1); color: var(--text); }
+
   .data-panel {
     margin-top: 20px;
     padding: 16px 20px;
@@ -725,6 +763,17 @@
         <span class="spotlight"></span>
       </a>
     </div>
+
+    <!-- Weekly recap nudge — Sunday evening, shown once per week -->
+    <a class="weekly-recap-banner" id="weeklyRecapBanner" href="RecapAudioMaker.html?src=week" style="display:none">
+      <span class="wr-ico">🎧</span>
+      <div class="wr-body">
+        <div class="wr-title">Sunday recap ready</div>
+        <div class="wr-desc" id="wrDesc">Generate this week's audio summary — <span id="wrTaskCount">0</span> tasks completed</div>
+      </div>
+      <span class="wr-cta">Generate →</span>
+      <button class="wr-dismiss" id="wrDismiss" title="Dismiss for this week" aria-label="Dismiss">×</button>
+    </a>
 
     <div class="quick-strip">
       <div class="qs-title">Focus now</div>
@@ -1345,6 +1394,52 @@
     }
     setTimeout(typeStep, 300);
   }
+
+  // ---- Weekly recap Sunday nudge ----
+  (function weeklyRecapNudge() {
+    const banner = document.getElementById('weeklyRecapBanner');
+    if (!banner) return;
+
+    const now = new Date();
+    const isSunday = now.getDay() === 0;
+    const isEvening = now.getHours() >= 17; // Show from 5pm Sunday
+    // ISO week identifier (YYYY-Wxx) so "already dismissed this week" works
+    const weekId = `${now.getFullYear()}-W${Math.ceil((((now - new Date(now.getFullYear(),0,1)) / 86400000) + new Date(now.getFullYear(),0,1).getDay()+1)/7)}`;
+    const dismissedKey = 'weekly-recap.dismissed.' + weekId;
+    const generatedKey = 'weekly-recap.generated.' + weekId;
+
+    // Show only Sunday evening + not dismissed + not already generated
+    if (!isSunday || !isEvening) return;
+    if (localStorage.getItem(dismissedKey)) return;
+    if (localStorage.getItem(generatedKey)) return;
+
+    // Count this week's completed tasks
+    let taskCount = 0;
+    try {
+      const tasks = JSON.parse(localStorage.getItem('tasks.v3') || '[]');
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - now.getDay());
+      weekStart.setHours(0,0,0,0);
+      taskCount = tasks.filter(t => t.status === 'done' && t.doneAt && t.doneAt >= weekStart.getTime()).length;
+    } catch {}
+
+    document.getElementById('wrTaskCount').textContent = taskCount;
+    // If literally 0 tasks done, don't nag
+    if (taskCount === 0) return;
+
+    banner.style.display = 'flex';
+
+    // Dismiss handler
+    document.getElementById('wrDismiss').addEventListener('click', (e) => {
+      e.preventDefault(); e.stopPropagation();
+      banner.style.display = 'none';
+      localStorage.setItem(dismissedKey, '1');
+    });
+    // Click banner → mark as generated so it doesn't re-appear on return
+    banner.addEventListener('click', () => {
+      localStorage.setItem(generatedKey, '1');
+    });
+  })();
 </script>
 </body>
 </html>

@@ -971,8 +971,19 @@ ${text}`;
     if (e.key === 'Escape' && $('apiKeyModal').classList.contains('show')) closeApiModal();
   });
 
-  // Init source
-  onSourceChange();
+  // Init source — respect ?src=paste|note|today|week URL param (used by Dashboard weekly nudge)
+  (function initFromUrlParam() {
+    const params = new URLSearchParams(location.search);
+    const src = params.get('src');
+    if (src && ['paste','note','today','week'].includes(src)) {
+      const tab = document.querySelector(`.source-tab[data-src="${src}"]`);
+      if (tab) tab.click();
+      // Clean the URL so refresh doesn't re-trigger
+      history.replaceState({}, '', location.pathname);
+      return;
+    }
+    onSourceChange();
+  })();
 
   // Nudge if no key
   if (!getApiKey()) {

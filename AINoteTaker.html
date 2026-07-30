@@ -580,9 +580,39 @@
   input[type="file"] { display: none; }
 
   @media (max-width: 1180px) {
-    body { flex-direction: column; align-items: center; }
-    .side-panel { width: 100%; max-width: 720px; order: 2; }
-    .app { order: 1; }
+    .wrap { flex-direction: column; align-items: stretch; max-width: 720px; margin: 0 auto; }
+    .side-panel.side-left { width: 100% !important; max-height: 240px; order: 2; }
+    .app { order: 1; max-width: 100% !important; padding: 12px 20px 24px !important; }
+  }
+  @media (max-width: 640px) {
+    .wrap { flex-direction: column !important; gap: 8px !important; max-width: 100% !important; }
+    .side-panel.side-left,
+    .side-panel.side-left.expanded {
+      width: 100% !important;
+      max-height: 200px;
+      order: 2;
+      padding: 10px 8px !important;
+    }
+    .side-panel.side-left h3,
+    .side-panel.side-left .sessions-list li .s-body,
+    .side-panel.side-left .rail-toggle .lbl,
+    .side-panel.side-left .rail-newsession .lbl { display: block !important; }
+    .side-panel.side-left .rail-toggle,
+    .side-panel.side-left .rail-newsession { justify-content: flex-start !important; padding: 0 10px !important; }
+    .app {
+      order: 1;
+      max-width: 100% !important;
+      padding: 10px 14px 20px !important;
+      min-height: unset !important;
+    }
+    .app header { padding: 10px 0 8px !important; }
+    .app .transcript {
+      padding-left: 20px !important;
+      max-height: 40vh !important;
+      font-size: 1rem !important;
+    }
+    /* Kill the notebook margin line's leftover width claim */
+    [data-theme="light"] .app { background-position: 0 0 !important; }
   }
 </style>
   <link rel="manifest" href="manifest.json">
