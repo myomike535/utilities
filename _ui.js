@@ -200,14 +200,15 @@
       .cp-modal { max-width: calc(100vw - 20px) !important; }
       .cp-item { padding: 12px 14px !important; }
 
-      /* Nav rail — already becomes top horizontal bar (in _navrail.js).
-         Kick tool bodies down more if needed for tools with fixed headers. */
-      body { padding-top: 48px !important; padding-left: 6px !important; padding-right: 6px !important; }
+      /* Nav rail is now a slide-in drawer on mobile (see _navrail.js),
+         so body doesn't need left padding. Just give a small top offset
+         so tool content doesn't hide behind the floating hamburger. */
+      body { padding-top: 60px !important; padding-left: 6px !important; padding-right: 6px !important; }
 
-      /* Floating helper buttons — avoid overlap with nav rail bottom */
-      .st-gear { left: 10px !important; bottom: 10px !important; width: 40px !important; height: 40px !important; }
-      body.nr-expanded .st-gear { left: 10px !important; }
-      .pwa-install-btn { right: 10px !important; bottom: 10px !important; }
+      /* Floating helper buttons — bottom corners, don't collide with hamburger (top-left) */
+      .st-gear { right: 10px !important; left: auto !important; bottom: 10px !important; width: 42px !important; height: 42px !important; }
+      body.nr-expanded .st-gear { left: auto !important; right: 10px !important; }
+      .pwa-install-btn { right: 62px !important; bottom: 10px !important; padding: 8px 12px !important; }
 
       /* AI Note Taker classic — sidebars stack */
       .side-panel.side-left { width: 100% !important; max-height: none !important; }

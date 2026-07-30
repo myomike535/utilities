@@ -191,22 +191,80 @@
     .nr-toggle svg { width: 16px; height: 16px; transition: transform 0.25s ease; }
     .nr.expanded .nr-toggle svg { transform: rotate(180deg); }
 
-    /* Mobile: rail collapses to top bar */
+    /* ═══════════════ MOBILE: hamburger + slide-in drawer ═══════════════ */
     @media (max-width: 640px) {
-      body { padding-left: 0 !important; padding-top: 44px !important; }
-      body.nr-expanded { padding-left: 0 !important; }
-      .nr {
-        width: 100%; height: 44px;
-        flex-direction: row;
-        top: 0; bottom: auto;
-        padding: 4px 8px;
-        border-right: none;
-        border-bottom: 1px solid #313244;
+      body { padding-left: 0 !important; padding-top: 0 !important; }
+      body.nr-expanded { padding-left: 0 !important; padding-top: 0 !important; }
+
+      /* Hamburger button — always visible, top-left */
+      .nr-mobile-hamburger {
+        display: flex !important;
+        position: fixed;
+        top: 10px; left: 10px;
+        width: 40px; height: 40px;
+        border-radius: 10px;
+        background: rgba(30,30,46,0.9);
+        color: #cdd6f4;
+        border: 1px solid #3b3b54;
+        align-items: center; justify-content: center;
+        cursor: pointer;
+        z-index: 810;
+        backdrop-filter: blur(6px);
+        -webkit-backdrop-filter: blur(6px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       }
-      .nr.expanded { width: 100%; }
-      .nr-brand { border: none; padding: 0 8px 0 0; margin: 0; }
-      .nr-brand .nr-brand-text { display: none; }
-      .nr-items { flex-direction: row; overflow-x: auto; overflow-y: hidden; gap: 4px; }
+      html[data-theme="light"] .nr-mobile-hamburger {
+        background: rgba(245,226,180,0.92); color: #2d241e; border-color: #d3c0a3;
+      }
+      .nr-mobile-hamburger svg { width: 20px; height: 20px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+      .nr-mobile-hamburger.open svg { transform: rotate(90deg); }
+
+      /* Backdrop */
+      .nr-mobile-backdrop {
+        display: block !important;
+        position: fixed; inset: 0;
+        background: rgba(0,0,0,0.5);
+        z-index: 805;
+        opacity: 0; pointer-events: none;
+        transition: opacity 0.2s ease;
+      }
+      .nr-mobile-backdrop.show {
+        opacity: 1; pointer-events: auto;
+      }
+
+      /* Rail: hidden by default, slides in from left when open */
+      .nr {
+        width: 260px !important;
+        height: 100vh !important;
+        flex-direction: column !important;
+        top: 0; left: 0; bottom: 0;
+        padding: 60px 10px 16px !important;
+        border-right: 1px solid #3b3b54;
+        border-bottom: none;
+        transform: translateX(-100%);
+        transition: transform 0.28s cubic-bezier(.4,0,.2,1);
+        z-index: 806;
+        box-shadow: 0 0 30px rgba(0,0,0,0.4);
+      }
+      .nr.mobile-open {
+        transform: translateX(0);
+      }
+      /* On mobile, always show labels since drawer is wide enough */
+      .nr .nr-brand-text { display: inline !important; }
+      .nr .nr-label { opacity: 1 !important; display: inline !important; }
+      .nr .rail-toggle .lbl, .nr .rail-newsession .lbl { display: inline !important; }
+      .nr .sessions-list li .s-body { display: block !important; }
+      /* Hide the desktop expand/collapse toggle — irrelevant in drawer mode */
+      .nr-bottom .nr-toggle { display: none; }
+      .nr-brand { padding: 4px 8px 12px !important; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; }
+      html[data-theme="light"] .nr-brand { border-bottom-color: rgba(139,100,40,0.15); }
+
+      /* Item styling in drawer */
+      .nr-items { flex-direction: column !important; overflow-y: auto !important; gap: 2px !important; }
+      .nr-item { padding: 12px 10px !important; min-height: 44px !important; }
+      .nr-item.active::before { left: -10px; top: 6px; bottom: 6px; height: auto; width: 3px; border-radius: 0 3px 3px 0; }
+      /* No tooltip on mobile (labels are always visible) */
+      .nr:not(.expanded) .nr-item::after { display: none !important; }
       .nr-item { padding: 6px 10px; min-height: unset; }
       .nr-label { display: none; }
       .nr-item.active::before { left: 4px; right: 4px; top: auto; bottom: -4px; height: 2px; width: auto; border-radius: 2px 2px 0 0; }
@@ -262,6 +320,47 @@
   rail.appendChild(bottom);
 
   document.body.insertBefore(rail, document.body.firstChild);
+
+  // ---- Mobile hamburger + backdrop (only visible on ≤640px via CSS) ----
+  const hamburger = document.createElement('button');
+  hamburger.className = 'nr-mobile-hamburger';
+  hamburger.setAttribute('aria-label', 'Open navigation');
+  hamburger.innerHTML = '<svg viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>';
+  hamburger.style.display = 'none'; // shown by mobile CSS
+  document.body.appendChild(hamburger);
+
+  const backdrop = document.createElement('div');
+  backdrop.className = 'nr-mobile-backdrop';
+  backdrop.style.display = 'none'; // shown by mobile CSS
+  document.body.appendChild(backdrop);
+
+  function openMobileNav() {
+    rail.classList.add('mobile-open');
+    backdrop.classList.add('show');
+    hamburger.classList.add('open');
+    hamburger.setAttribute('aria-label', 'Close navigation');
+  }
+  function closeMobileNav() {
+    rail.classList.remove('mobile-open');
+    backdrop.classList.remove('show');
+    hamburger.classList.remove('open');
+    hamburger.setAttribute('aria-label', 'Open navigation');
+  }
+  function toggleMobileNav() {
+    rail.classList.contains('mobile-open') ? closeMobileNav() : openMobileNav();
+  }
+  hamburger.addEventListener('click', toggleMobileNav);
+  backdrop.addEventListener('click', closeMobileNav);
+  // Close drawer when a nav item is tapped
+  rail.addEventListener('click', (e) => {
+    if (e.target.closest('.nr-item') && window.innerWidth <= 640) {
+      closeMobileNav();
+    }
+  });
+  // Escape key closes drawer
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && rail.classList.contains('mobile-open')) closeMobileNav();
+  });
 
   // ---- Behavior ----
   const RAIL_KEY = 'utilities.navrail.expanded';
