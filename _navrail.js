@@ -20,6 +20,9 @@
     headphones: '<svg viewBox="0 0 24 24"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4a1 1 0 0 1-1-1v-6a9 9 0 0 1 18 0v6a1 1 0 0 1-1 1h-2a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>',
     palette:    '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 4v16"/><path d="M14 8h4"/><path d="M14 12h4"/><path d="M14 16h2"/></svg>',
     chevron:    '<svg viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"/></svg>',
+    book:       '<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+    scroll:     '<svg viewBox="0 0 24 24"><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/></svg>',
+    study:      '<svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>',
   };
 
   const TOOLS = [
@@ -32,6 +35,9 @@
     { href: 'SqlFormatter.html',                   icon: 'braces',     label: 'SQL Formatter',  color: '#ec4899' },
     { href: 'SqlDeploy.html',                      icon: 'rocket',     label: 'SQL Deploy',     color: '#38bdf8' },
     { href: 'GithubTrending.html',                 icon: 'trending',   label: 'GH Trending',    color: '#58a6ff' },
+    { href: 'StudyRoom.html',                      icon: 'study',      label: 'Study Room',     color: '#f59e0b' },
+    { href: 'dhammapada.html',                     icon: 'book',       label: 'Dhammapada',     color: '#c62d2d' },
+    { href: 'jataka550.html',                      icon: 'scroll',     label: 'Jataka 550',     color: '#b8860b' },
   ];
 
   // ---- Styles (scoped by .nr- prefix, so no collisions with host page) ----

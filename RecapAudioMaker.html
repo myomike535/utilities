@@ -445,6 +445,7 @@
       <button class="btn-secondary" id="clearBtn">🗑 ရှင်းမည်</button>
       <span id="wordStats" style="color:var(--text-dim);font-size:0.8rem;margin-left:auto"></span>
     </div>
+    <div id="providerHint" style="font-size:0.75rem;color:var(--text-mute);text-align:center;margin-top:-4px;padding:4px 8px;"></div>
 
     <!-- Script preview + edit -->
     <div class="script-section" id="scriptSection">
@@ -563,6 +564,28 @@
   }
   $('inputText').addEventListener('input', updateStats);
   updateStats();
+
+  // Provider hint — shows which provider will be used for script gen + TTS status
+  function updateProviderHint() {
+    const el = $('providerHint');
+    if (!el) return;
+    const preferred = localStorage.getItem('ainotes.provider') || 'gemini';
+    const hasGemini = !!getApiKey();
+    const hasGroq = !!getGroqKey();
+    const parts = [];
+    if (preferred === 'groq' && hasGroq) parts.push('📝 Script: <b style="color:#f472b6">Groq</b>');
+    else if (hasGemini) parts.push('📝 Script: <b style="color:#a78bfa">Gemini</b>');
+    else if (hasGroq) parts.push('📝 Script: <b style="color:#f472b6">Groq</b>');
+    else parts.push('📝 Script: <b style="color:var(--danger)">no key</b>');
+    if (hasGemini && hasGroq) parts[0] += ' <span style="opacity:0.6">(auto-fallback enabled)</span>';
+    parts.push('🎧 Audio: <b style="color:#a78bfa">Gemini TTS</b>' + (hasGemini ? '' : ' <span style="color:var(--danger)">(needs Gemini key)</span>'));
+    el.innerHTML = parts.join(' · ');
+  }
+  updateProviderHint();
+  // Refresh hint when Settings modal saves (via storage event)
+  window.addEventListener('storage', updateProviderHint);
+  // Also on window focus (returning from Settings modal)
+  window.addEventListener('focus', updateProviderHint);
 
   // ---- Source tabs ----
   document.querySelectorAll('.source-tab').forEach(tab => {
@@ -690,18 +713,91 @@
     return parts.join('\n').trim() || 'ဒီရက်ပိုင်း လုပ်ဆောင်ချက် မရှိသေးပါ။';
   }
 
-  // ---- Gemini text call ----
-  async function callGemini(prompt) {
+  // ---- Text generation: tries Gemini first, auto-falls back to Groq on 429/quota errors ----
+  // Groq gives 14,400 free requests/day — vastly more than Gemini's 500 for 2.5-flash.
+  // TTS (audio synthesis) still needs Gemini — only the SCRIPT step supports Groq fallback.
+
+  function getGroqKey()   { return localStorage.getItem('ainotes.apikey.groq') || ''; }
+  function getGroqModel() { return localStorage.getItem('ainotes.model.groq') || 'llama-3.3-70b-versatile'; }
+
+  async function callGeminiRaw(prompt) {
     const key = getApiKey();
-    if (!key) throw new Error('Gemini API key မထည့်ရသေးပါ (🔑 button ကို နှိပ်ပါ)');
+    if (!key) throw new Error('NO_GEMINI_KEY');
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(getTextModel())}:generateContent?key=${encodeURIComponent(key)}`;
     const res = await fetch(url, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
     });
-    if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 160)}`);
-    const data = await res.json();
+    const bodyText = await res.text();
+    if (!res.ok) {
+      // Tag rate-limit / quota errors so the caller can fall back
+      const err = new Error(`Gemini ${res.status}: ${bodyText.slice(0, 160)}`);
+      err.status = res.status;
+      err.provider = 'gemini';
+      if (res.status === 429 || /quota|rate/i.test(bodyText)) err.retryable = true;
+      throw err;
+    }
+    const data = JSON.parse(bodyText);
     return data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+  }
+
+  async function callGroqRaw(prompt) {
+    const key = getGroqKey();
+    if (!key) throw new Error('NO_GROQ_KEY');
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${key}` },
+      body: JSON.stringify({
+        model: getGroqModel(),
+        messages: [{ role: 'user', content: prompt }],
+        max_tokens: 2048,
+        temperature: 0.7,
+      }),
+    });
+    if (!res.ok) {
+      const bodyText = await res.text();
+      const err = new Error(`Groq ${res.status}: ${bodyText.slice(0, 160)}`);
+      err.status = res.status;
+      err.provider = 'groq';
+      throw err;
+    }
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || '';
+  }
+
+  // Main dispatcher — respects provider preference, auto-fallback on quota errors
+  async function callGemini(prompt) {
+    const preferred = (localStorage.getItem('ainotes.provider') || 'gemini').toLowerCase();
+    const hasGemini = !!getApiKey();
+    const hasGroq = !!getGroqKey();
+
+    if (!hasGemini && !hasGroq) {
+      throw new Error('Gemini or Groq API key မထည့်ရသေးပါ (🔑 button ကို နှိပ်ပါ)');
+    }
+
+    // Ordered attempts: preferred first, then the other as fallback
+    const attempts = [];
+    if (preferred === 'groq' && hasGroq) attempts.push({ fn: callGroqRaw, label: 'Groq' });
+    if (hasGemini)                       attempts.push({ fn: callGeminiRaw, label: 'Gemini' });
+    if (preferred !== 'groq' && hasGroq) attempts.push({ fn: callGroqRaw, label: 'Groq' });
+
+    let lastErr = null;
+    for (const a of attempts) {
+      try {
+        const out = await a.fn(prompt);
+        if (a.label !== (preferred === 'groq' ? 'Groq' : 'Gemini')) {
+          toast(`⚡ Fell back to ${a.label} (${lastErr ? lastErr.status : 'other'})`);
+        }
+        return out;
+      } catch (err) {
+        lastErr = err;
+        // Only fall back on retryable errors (quota/429) or if key missing
+        if (!err.retryable && err.message !== 'NO_GEMINI_KEY' && err.message !== 'NO_GROQ_KEY') {
+          throw err; // non-retryable — bubble up
+        }
+      }
+    }
+    throw lastErr || new Error('No provider available');
   }
 
   // ---- Generate Script ----
