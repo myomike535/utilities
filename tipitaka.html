@@ -382,6 +382,52 @@
   }
   .close-sutta:hover { color: var(--accent); border-color: var(--accent); }
 
+  .famous-panel {
+    margin-bottom: 22px;
+    padding: 14px 16px;
+    background: var(--paper-2);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+  }
+  .famous-title {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 0.92rem;
+    margin-bottom: 12px;
+  }
+  .famous-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+  }
+  .famous-chip {
+    display: flex; flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    padding: 10px 12px;
+    background: var(--paper);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    cursor: pointer;
+    text-align: left;
+    transition: all 0.15s;
+    font-family: var(--sans);
+  }
+  .famous-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .famous-chip .fc-my {
+    color: var(--ink);
+    font-weight: 700;
+    font-size: 0.92rem;
+  }
+  .famous-chip .fc-pali {
+    color: var(--ink-mute);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.75rem;
+  }
+
   .external-links {
     margin-top: 24px;
     padding: 14px 16px;
@@ -509,16 +555,16 @@
           my: 'ဒီဃနိကာယ်', pali: 'Dīgha Nikāya', desc: 'ရှည်လျားသော သုတ်တော် ၃၄ သုတ်။', suttaCount: 34,
           children: [
             { my: 'သီလက္ခန္ဓဝဂ်ပါဠိတော်', pali: 'Sīlakkhandhavagga', count: 13 },
-            { my: 'မဟာဝဂ်ပါဠိတော်', pali: 'Mahāvagga', count: 10, key: 'dn-maha-parinibbana' },
-            { my: 'ပါထိကဝဂ်ပါဠိတော်', pali: 'Pāthikavagga', count: 11 },
+            { my: 'မဟာဝဂ်ပါဠိတော် (မဟာပရိနိဗ္ဗာန်)', pali: 'Mahāvagga', count: 10 },
+            { my: 'ပါထိကဝဂ်ပါဠိတော် (သိင်္ဂါလောဝါဒ)', pali: 'Pāthikavagga', count: 11, key: 'dn-sigalovada' },
           ],
         },
         {
           my: 'မဇ္ဈိမနိကာယ်', pali: 'Majjhima Nikāya', desc: 'အလယ်အလတ်အရွယ် သုတ်တော် ၁၅၂ သုတ်။', suttaCount: 152,
           children: [
-            { my: 'မူလပဏ္ဏာသပါဠိတော်', pali: 'Mūlapaṇṇāsa', count: 50, key: 'mn-satipatthana' },
-            { my: 'မဇ္ဈိမပဏ္ဏာသပါဠိတော်', pali: 'Majjhimapaṇṇāsa', count: 50 },
-            { my: 'ဥပရိပဏ္ဏာသပါဠိတော်', pali: 'Uparipaṇṇāsa', count: 52, key: 'mn-anapanasati' },
+            { my: 'မူလပဏ္ဏာသပါဠိတော် (သတိပဋ္ဌာန)', pali: 'Mūlapaṇṇāsa', count: 50, key: 'mn-satipatthana' },
+            { my: 'မဇ္ဈိမပဏ္ဏာသပါဠိတော် (ရာဟုလောဝါဒ)', pali: 'Majjhimapaṇṇāsa', count: 50, key: 'mn-rahulovada' },
+            { my: 'ဥပရိပဏ္ဏာသပါဠိတော် (အာနာပါနသတိ)', pali: 'Uparipaṇṇāsa', count: 52, key: 'mn-anapanasati' },
           ],
         },
         {
@@ -526,9 +572,9 @@
           children: [
             { my: 'သဂါထာဝဂ်ပါဠိတော်', pali: 'Sagāthavagga', count: 271 },
             { my: 'နိဒါနဝဂ်ပါဠိတော်', pali: 'Nidānavagga', count: 286 },
-            { my: 'ခန္ဓဝဂ်ပါဠိတော်', pali: 'Khandhavagga', count: 733 },
-            { my: 'သဠာယတနဝဂ်ပါဠိတော်', pali: 'Saḷāyatanavagga', count: 391 },
-            { my: 'မဟာဝဂ်ပါဠိတော်', pali: 'Mahāvagga', count: 5081, key: 'sn-dhammacakka' },
+            { my: 'ခန္ဓဝဂ်ပါဠိတော် (အနတ္တလက္ခဏ)', pali: 'Khandhavagga', count: 733, key: 'sn-anatta' },
+            { my: 'သဠာယတနဝဂ်ပါဠိတော် (အာဒိတ္တပရိယာယ)', pali: 'Saḷāyatanavagga', count: 391, key: 'sn-aditta' },
+            { my: 'မဟာဝဂ်ပါဠိတော် (ဓမ္မစကြာ)', pali: 'Mahāvagga', count: 5081, key: 'sn-dhammacakka' },
           ],
         },
         {
@@ -536,8 +582,9 @@
           children: [
             { my: 'ဧကနိပါတ်ပါဠိတော်', pali: 'Ekakanipāta', count: 611 },
             { my: 'ဒုကနိပါတ်ပါဠိတော်', pali: 'Dukanipāta', count: 494 },
-            { my: 'တိကနိပါတ်ပါဠိတော်', pali: 'Tikanipāta', count: 352, key: 'an-kalama' },
-            { my: 'ကာဠာမသုတ်တော်ပါဋ်တော်ဆိုင်ရာ', pali: '…and 8 more nipātas', count: 8100 },
+            { my: 'တိကနိပါတ်ပါဠိတော် (ကာလာမ)', pali: 'Tikanipāta', count: 352, key: 'an-kalama' },
+            { my: 'အဋ္ဌကနိပါတ်ပါဠိတော် (ဗျာဂ္ဃပဇ္ဇ)', pali: 'Aṭṭhakanipāta', count: 626, key: 'an-vyagghapajja' },
+            { my: 'ကျန်ရှိ နိပါတ် ၇ ခု', pali: '…7 more nipātas', count: 7474 },
           ],
         },
         {
@@ -717,6 +764,174 @@
       ],
     },
 
+    'kp-ratana': {
+      my: 'ရတနသုတ်',
+      pali: 'Ratana Sutta',
+      source: 'ခုဒ္ဒကပါဌ (Khuddakapāṭha 6) · သုတ်နိပါတ်တွင်လည်း (Sn 2.1)',
+      context: 'ဝေသာလီပြည်၌ ဘေးအန္တရာယ် ၃ ပါး (ငတ်မွတ်ခြင်း၊ ဘေးရုပ်ဆိုးများ၊ ရောဂါ) ကျရောက်ရာ မြတ်စွာဘုရားထံ လျှောက်ထား၍ အာနန္ဒာအား ဤသုတ်ဖြင့် ရွတ်ဖတ်စေတော်မူသည်။ ရတနာ ၃ ပါး (ဗုဒ္ဓ၊ ဓမ္မ၊ သံဃ) ၏ ဂုဏ်များကို ချီးမြှင့်ရွတ်ဆိုသည်။ ရန်အန္တရာယ်ကာကွယ်ရာ ပရိတ်တစ်ခု။',
+      my_body: [
+        'ဤအရပ်၌ စုဝေးရောက်ရှိကုန်သော ဘုမ္မ (မြေ)၊ အာကာသ (ကောင်းကင်) ဘုံ၌ နေသော နတ်အားလုံး — ချမ်းသာစွာ ရှိကြပါစေ။ တစ်ခုစိုက်၍ ငါ့စကားကို နာကြပါ။',
+        'အားလုံးသော နတ်တို့ ကျေးဇူးသိတတ်စွာ နာယူပါ။ လူသားများအား မေတ္တာဖြင့် ကာကွယ်ပါ။ နေ့ရော ညပါ ပူဇော်ကုန်သော ဤသူတို့အား ဂရုစိုက်ပါ။',
+        '"ဤဘဝတွင်ဖြစ်စေ၊ တခြားဘဝတွင်ဖြစ်စေ၊ နတ်ပြည်တွင်ဖြစ်စေ — ဗုဒ္ဓနှင့် တူသော ရတနာမရှိ။ ဤသည်ကား ဗုဒ္ဓရတနာ၌ရှိသော အထူးဂုဏ်။ ဤသစ္စာဖြင့် ဘေးအန္တရာယ်များ ငြိမ်းစေပါ။"',
+        '"ငြိမ်းအေးခြင်း၊ ရာဂကင်းခြင်း၊ အသေမရှိခြင်း၊ မြတ်ခြင်း — ဤသည်တို့ကို သာကျမင်းသည် ဈာန်ဖြင့် ရရှိတော်မူသည်။ ထိုတရားနှင့် တူသော အရာမရှိ။ ဤသည်ကား ဓမ္မရတနာ၌ရှိသော အထူးဂုဏ်။ ဤသစ္စာဖြင့် ဘေးအန္တရာယ်များ ငြိမ်းစေပါ။"',
+        '"ပညာရှိတို့က ချီးမြှင့်ကုန်သော ပုဂ္ဂိုလ်ရှစ်ဦး၊ တွဲ့လျှင် တွဲ့စုံ လေးတွဲ — သောတာပန်၊ သကဒါဂါမ်၊ အနာဂါမ်၊ အရဟန်္တ — ဤသည်တို့သည် ဒါန၏ အသီးအပွင့်ကို ဖြစ်စေတတ်ကုန်၏။ ဤသည်ကား သံဃရတနာ၌ရှိသော အထူးဂုဏ်။ ဤသစ္စာဖြင့် ဘေးအန္တရာယ်များ ငြိမ်းစေပါ။"',
+        '"ကာမတွယ်တာမှုကို ဖျက်ဆီး၍ မြတ်ဗုဒ္ဓ၏ တရားတော်၌ တည်ကြည်စွာ ကြိုးစားကုန်သော ရဟန္တာတို့သည် — အသေမရှိ နိဗ္ဗာန်၌ ပျော်မွေ့စွာ နေထိုင်ကုန်၏။ ဤသည်ကား သံဃရတနာ၌ရှိသော အထူးဂုဏ်။ ဤသစ္စာဖြင့် ဘေးအန္တရာယ်များ ငြိမ်းစေပါ။"',
+        '(ဂါထာ ၁၇ ဂါထာ ရှိသည်။ ကျန်ဂါထာများနှင့် အပြည့်အစုံကို tipitaka.org ၌ ဖတ်နိုင်ပါသည်။)',
+      ],
+      pali_body: [
+        'Yānīdha bhūtāni samāgatāni, bhummāni vā yāni va antalikkhe;\nSabbeva bhūtā sumanā bhavantu, athopi sakkacca suṇantu bhāsitaṃ.',
+        'Yaṃ kiñci vittaṃ idha vā huraṃ vā, saggesu vā yaṃ ratanaṃ paṇītaṃ;\nNa no samaṃ atthi tathāgatena, idampi buddhe ratanaṃ paṇītaṃ;\nEtena saccena suvatthi hotu.',
+        'Khayaṃ virāgaṃ amataṃ paṇītaṃ, yadajjhagā sakyamunī samāhito;\nNa tena dhammena samatthi kiñci, idampi dhamme ratanaṃ paṇītaṃ;\nEtena saccena suvatthi hotu.',
+        'Ye puggalā aṭṭha sataṃ pasatthā, cattāri etāni yugāni honti;\nTe dakkhiṇeyyā sugatassa sāvakā, etesu dinnāni mahapphalāni;\nIdampi saṅghe ratanaṃ paṇītaṃ, etena saccena suvatthi hotu.',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
+    'dn-sigalovada': {
+      my: 'သိင်္ဂါလောဝါဒသုတ်',
+      pali: 'Sigālovāda Sutta',
+      source: 'ဒီဃနိကာယ် (Dīgha Nikāya 31) · ပါထိကဝဂ်',
+      context: 'သိင်္ဂါလ ဟူသော အိမ်ရှင်လူငယ်တစ်ဦးက အရပ် ၆ မျက်နှာသို့ ရှိခိုးနေရာ မြတ်စွာဘုရားက အဓိပ္ပါယ်အသစ်ကို ဟောကြားခြင်း။ လူ့ဝတ်ကျင့်၏ ကျမ်း (ဂိဟိဝိနယ) ဟုခေါ်၏။ လူသိအများဆုံး နှစ်သက်သော လူ့ဆွေ့ဇာတ်ဆိုင်ရာ သုတ်တစ်ခု။',
+      my_body: [
+        'တစ်ခါက မြတ်စွာဘုရားသည် ရာဇဂြိုဟ်ပြည်၊ ဝေဠုဝန်ကျောင်း၌ သီတင်းသုံးနေတော်မူ၏။',
+        'ထိုအခါ သိင်္ဂါလ ဟူသော အိမ်ရှင်လူငယ်သည် နံနက်ခင်း၌ ရေချိုးပြီး အရပ်ခြောက်မျက်နှာ (အရှေ့၊ တောင်၊ အနောက်၊ မြောက်၊ အောက်၊ အထက်) သို့ လက်အုပ်ချီ၍ ရှိခိုးနေ၏။',
+        'မြတ်စွာဘုရားက "သိင်္ဂါလ — ငါ့ဘုန်းတော်၌ အရပ်ခြောက်မျက်နှာ၏ အနက်သည် — အရှေ့ = မိဘ။ တောင် = ဆရာ။ အနောက် = ဇနီးမောင်နှံ။ မြောက် = မိတ်ဆွေ။ အောက် = အလုပ်လုပ်သူ။ အထက် = ရဟန်း/တရားပညာရှိ။"',
+        '**မိဘအား တာဝန် (၅ ချက်):** ၁) ကျွေးမွေးမည်။ ၂) မိမိတာဝန်ကို ကျေပွန်စွာ ဆောင်ရွက်မည်။ ၃) မိသားစုစဉ်ဆက်ကို ထိန်းသိမ်းမည်။ ၄) မိမိအမွေကို ထိန်းမည်။ ၅) မိဘသေဆုံးပါက အလှူဒါန ပြုမည်။',
+        '**ဆရာအား တာဝန် (၅ ချက်):** ၁) ရိုသေမည်။ ၂) ဆီးကြိုမည်။ ၃) စိတ်အားထက်သန်စွာ လေ့လာမည်။ ၄) စေခိုင်း၍ ချက်ချင်း လုပ်မည်။ ၅) အနှစ်သာရဖြင့် သင်ယူမည်။',
+        '**ဇနီးအား တာဝန် (၅ ချက်):** ၁) ချီးမြှင့်မည်။ ၂) မထီမဲ့မြင်မပြု။ ၃) မဖောက်ပြန်။ ၄) အာဏာအခွင့်ကို ပေးမည်။ ၅) လက်ဝတ်ရတနာဖြင့် ဂုဏ်ပြုမည်။',
+        '**မိတ်ဆွေအား တာဝန် (၅ ချက်):** ၁) ဒါန။ ၂) ချစ်ခင်စွာ ပြောဆိုခြင်း။ ၃) အကျိုးရှိစွာ လုပ်ဆောင်ပေးခြင်း။ ၄) မိမိကိုယ်နှင့် တူညီစွာ ဆက်ဆံခြင်း။ ၅) စကားတည်ကြည်ခြင်း။',
+        '**အလုပ်လုပ်သူအား တာဝန် (၅ ချက်):** ၁) စွမ်းအားနှင့်အညီ လုပ်ငန်းပေးမည်။ ၂) စားစရာ၊ လုပ်ခ ပေးမည်။ ၃) နာမကျန်းသောအခါ ကုသမည်။ ၄) မွန်မြတ်သော အစားအစာ ဝေမည်။ ၅) အခါအားလျော်စွာ အနားပေးမည်။',
+        '**ရဟန်း/ဆရာအား တာဝန် (၅ ချက်):** ၁) မေတ္တာနှင့် အလုပ်ဆောင်။ ၂) မေတ္တာနှင့် စကားပြော။ ၃) မေတ္တာနှင့် စဉ်းစား။ ၄) အိမ်ကို လွတ်လွတ်လပ်လပ် ဖွင့်ထား။ ၅) ပစ္စည်း ၄ ပါးဖြင့် ကုသိုလ်ပြု။',
+        'ဤသို့သော ကျင့်ဝတ်ကို လိုက်နာသူသည် အရပ်ခြောက်မျက်နှာလုံးကို လုံခြုံစွာ ကာကွယ်ထား၍ ချမ်းသာစွာ နေထိုင်ရ၏။',
+      ],
+      pali_body: [
+        'Yato kho, gahapatiputta, ariyasāvakassa cattāro kammakilesā pahīnā honti, catūhi ca ṭhānehi pāpakammaṃ na karoti, chahi ca bhogānaṃ apāyamukhāni na sevati, so evaṃ cuddasa pāpakāpagato chaddisāpaṭicchādī ubholokavijayāya paṭipanno hoti.',
+        'Puratthimā disā mātāpitaro veditabbā, dakkhiṇā disā ācariyā veditabbā, pacchimā disā puttadārā veditabbā, uttarā disā mittāmaccā veditabbā, heṭṭhimā disā dāsakammakarā veditabbā, uparimā disā samaṇabrāhmaṇā veditabbā.',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
+    'sn-anatta': {
+      my: 'အနတ္တလက္ခဏသုတ်',
+      pali: 'Anattalakkhaṇa Sutta',
+      source: 'သံယုတ္တနိကာယ် (Saṃyutta Nikāya 22.59) · ခန္ဓဝဂ်',
+      context: 'ဓမ္မစကြာဟော ၅ ရက်အကြာတွင် အာဠကာဠာမ ငါးဦးသော တပည့်တော်များအား ဟောကြားသော ဒုတိယ တရားတော်။ ခန္ဓာ ၅ ပါးသည် အနတ္တ (ငါဆိုသည် မဟုတ်) ကို ဟော၍ ငါးဦးလုံး ရဟန္တာဖြစ်ကုန်၏။',
+      my_body: [
+        '"ရဟန်းတို့ — ရုပ်သည် အနတ္တ (ငါ မဟုတ်) ဖြစ်၏။ အကယ်၍ ရုပ်သည် အတ္တ (ငါ) ဖြစ်ရလျှင် ရုပ်သည် နာမကျန်းသို့ မရောက်နိုင်။ ‘ငါ့ရုပ်သည် ဤသို့ ဖြစ်စေ၊ ဤသို့ မဖြစ်စေ’ ဟု အလိုရှိ၍ ရနိုင်။ ရုပ်သည် အနတ္တ ဖြစ်၍သာ ရုပ်သည် နာမကျန်းသို့ ရောက်၏။ ‘ငါ့ရုပ်သည် ဤသို့ဖြစ်စေ’ ဟု အလိုရှိ၍ မရ။"',
+        '"ဝေဒနာ (ခံစားမှု) သည် အနတ္တ။ သညာ (မှတ်သားမှု) သည် အနတ္တ။ သင်္ခါရ (ပြုပြင်မှုများ) သည် အနတ္တ။ ဝိညာဏ် (သိမှု) သည် အနတ္တ။ အားလုံး ထို့အတူ။"',
+        '"ရဟန်းတို့ — ဤအရာကို ဘယ်လိုထင်သနည်း? ရုပ်သည် အမြဲတမ်း (နိစ္စ) ဖြစ်၏လော? မဖြစ်ပါ။ အမြဲမတည်သည်၊ ဒုက္ခဖြစ်လော၊ ချမ်းသာဖြစ်လော? ဒုက္ခ။ ဒုက္ခ၊ ပြောင်းလဲ ဖျက်ဆီးသည်ကို ‘ဤသည် ငါ့ဟာ၊ ဤသည် ငါ၊ ဤသည် ငါ့အတ္တ’ ဟု မြင်ရမလား? မမြင်နိုင်ပါ။"',
+        '(ဝေဒနာ၊ သညာ၊ သင်္ခါရ၊ ဝိညာဏ်နှင့် တူညီစွာ ဆွေးနွေးတော်မူသည်)',
+        '"ထို့ကြောင့် ရဟန်းတို့ — ရုပ် အားလုံး — အတိတ်၊ အနာဂတ်၊ ပစ္စုပ္ပန်၊ အတွင်း၊ အပြင်၊ ကြမ်း၊ ချောမွေ့၊ ယုတ်နိမ့်၊ မြင့်မြတ်၊ ဝေး၊ နီး — အားလုံးကို ‘ဤသည် ငါ့ဟာ မဟုတ်၊ ဤသည် ငါ မဟုတ်၊ ဤသည် ငါ့အတ္တ မဟုတ်’ ဟု ဟုတ်တိုင်း ဉာဏ်ဖြင့် မြင်ရ၏။"',
+        '"ဤသို့ ရှုမြင်၍ အာသဝေါများမှ လွတ်၏။ ‘ငါ လွတ်ပြီ’ ဟု သိ၏။ ‘ဇာတိ ကုန်ပြီ။ ဗြဟ္မစရိုယ ရောက်ပြီ။ ကရိုးရမည့်အမှုကို ကရိုးပြီ။ ဤဘဝထက် တခြားဘဝ မရှိတော့’ ဟု ဟုတ်တိုင်း သိ၏။"',
+        'ဤသို့ ဟောကြားခဲ့ရာ ရဟန်း ငါးဦးလုံး — အာသဝေါများမှ လွတ်၍ အရဟတ်ဖိုလ်သို့ ရောက်ကုန်၏။',
+      ],
+      pali_body: [
+        'Rūpaṃ, bhikkhave, anattā. Rūpañca hidaṃ, bhikkhave, attā abhavissa, nayidaṃ rūpaṃ ābādhāya saṃvatteyya, labbhetha ca rūpe — ‘evaṃ me rūpaṃ hotu, evaṃ me rūpaṃ mā ahosī’ti.',
+        'Vedanā anattā... Saññā anattā... Saṅkhārā anattā... Viññāṇaṃ anattā...',
+        'Taṃ kiṃ maññatha, bhikkhave, rūpaṃ niccaṃ vā aniccaṃ vāti? Aniccaṃ, bhante. Yaṃ panāniccaṃ dukkhaṃ vā taṃ sukhaṃ vāti? Dukkhaṃ, bhante.',
+        'Tasmātiha, bhikkhave, yaṃ kiñci rūpaṃ atītānāgatapaccuppannaṃ... sabbaṃ rūpaṃ ‘netaṃ mama, nesohamasmi, na meso attā’ti evametaṃ yathābhūtaṃ sammappaññāya daṭṭhabbaṃ.',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
+    'sn-aditta': {
+      my: 'အာဒိတ္တပရိယာယသုတ် (မီးလောင်နေသော သုတ်)',
+      pali: 'Ādittapariyāya Sutta',
+      source: 'သံယုတ္တနိကာယ် (Saṃyutta Nikāya 35.28) · သဠာယတနဝဂ်',
+      context: 'ဂယာသီသ တောင်၌ မြတ်စွာဘုရားသည် ရဟန်း ၁၀၀၀ (ဥရုဝေလ ကဿပ တပည့်များ) အား ဤသုတ်ကို ဟော၏။ ရဟန်း ၁၀၀၀ လုံး နာယူပြီး ရဟန္တာဖြစ်ကုန်၏။ ဗုဒ္ဓ၏ တတိယ တရားတော်။',
+      my_body: [
+        '"ရဟန်းတို့ — အားလုံးသည် မီးလောင်နေ၏။ ဘယ်ဟာအားလုံးလဲ?"',
+        '"မျက်စိသည် မီးလောင်နေ၏။ ရုပ်များ မီးလောင်နေ၏။ မျက်စိသိမှု (စက္ခုဝိညာဏ်) မီးလောင်နေ၏။ မျက်စိတွေ့ခြင်း (စက္ခုသမ္ဖဿ) မီးလောင်နေ၏။ မျက်စိတွေ့မှုကြောင့် ဖြစ်လာသော ခံစားမှု (ချမ်းသာ၊ ဆင်းရဲ၊ မဲ့) — မီးလောင်နေ၏။"',
+        '"ဘယ်မီးဖြင့် လောင်နေသနည်း? ရာဂ၏ မီး၊ ဒေါသ၏ မီး၊ မောဟ၏ မီး၊ ဇာတိ ဇရာ မရဏ၊ ငိုကြွေး ဆင်းရဲ ပူဆွေးမှုတို့၏ မီးဖြင့် လောင်နေ၏ ဟု ငါဆို၏။"',
+        '"နား၊ နှာခေါင်း၊ လျှာ၊ ကိုယ်၊ စိတ် — အားလုံး တူညီစွာ မီးလောင်နေ၏။ ၎င်းတို့၏ အာရုံများ၊ သိမှုများ၊ တွေ့မှုများ၊ ခံစားမှုများ — အားလုံး မီးလောင်နေ၏။"',
+        '"ဤသို့ မြင်လျှင် — ကျင့်ကြံသော အရိယာသာဝကသည် မျက်စိ၌ ငြီးငွေ့၏။ ရုပ်၌၊ သိမှု၌၊ တွေ့ခြင်း၌၊ ခံစားမှု၌ ငြီးငွေ့၏။ နား၊ နှာ၊ လျှာ၊ ကိုယ်၊ စိတ်၌ တူညီစွာ ငြီးငွေ့၏။"',
+        '"ငြီးငွေ့ခြင်းဖြင့် ရာဂကင်း၏။ ရာဂကင်းခြင်းဖြင့် လွတ်၏။ လွတ်၍ ‘ငါ လွတ်ပြီ’ ဟု ဉာဏ်ဖြင့် သိ၏။ ‘ဇာတိ ကုန်ပြီ။ ဗြဟ္မစရိုယ ရောက်ပြီ။ ကရိုးရမည့်အမှုကို ကရိုးပြီ။ ဤဘဝထက် တခြားဘဝ မရှိတော့’ ဟု သိ၏။"',
+        'ဤသို့ ဟောကြားခဲ့ရာ ရဟန်း ၁၀၀၀ လုံး အာသဝေါများမှ လွတ်၍ ရဟတ်ဖိုလ်သို့ ရောက်ကုန်၏။',
+      ],
+      pali_body: [
+        'Sabbaṃ, bhikkhave, ādittaṃ. Kiñca, bhikkhave, sabbaṃ ādittaṃ?',
+        'Cakkhu ādittaṃ, rūpā ādittā, cakkhuviññāṇaṃ ādittaṃ, cakkhusamphasso āditto...',
+        'Kena ādittaṃ? Rāgagginā dosagginā mohagginā ādittaṃ; jātiyā jarāya maraṇena sokehi paridevehi dukkhehi domanassehi upāyāsehi ādittanti vadāmi.',
+        'Evaṃ passaṃ, bhikkhave, sutavā ariyasāvako cakkhusmimpi nibbindati... Nibbindaṃ virajjati; virāgā vimuccati; vimuttasmiṃ vimuttamiti ñāṇaṃ hoti.',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
+    'mn-anapanasati': {
+      my: 'အာနာပါနသတိသုတ်',
+      pali: 'Ānāpānasati Sutta',
+      source: 'မဇ္ဈိမနိကာယ် (Majjhima Nikāya 118) · ဥပရိပဏ္ဏာသ',
+      context: 'ဝါဆိုသုံးလ ဖြတ်၍ မြတ်စွာဘုရားနှင့် ရဟန်းသံဃာ တစ်ရာဦးက ဟောကြားခဲ့သော အာနာပါနသတိ (ဝင်ထွက်လေ သတိပွား) ကို အသေးစိတ် ဖော်ပြသည်။ သတိပဋ္ဌာန် ၄ ပါးလုံးကို အာနာပါန ဖြင့် ဖြည့်ဆည်းနိုင်သည်ကို ဟော။',
+      my_body: [
+        '"ရဟန်းတို့ — အာနာပါနသတိကို လေ့ကျင့်ခြင်း၊ ပွားများခြင်းသည် ကြီးမြတ်သော အသီးအပွင့်ကို ဖြစ်စေ၏။ သတိပဋ္ဌာန် ၄ ပါးကို ဖြည့်ဆည်း၏။ သတိပဋ္ဌာန် ၄ ပါးကို ဖြည့်ဆည်းလျှင် ဗောဇ္ဈင် ၇ ပါးကို ဖြည့်ဆည်း၏။ ဗောဇ္ဈင် ၇ ပါးကို ဖြည့်ဆည်းလျှင် ဝိဇ္ဇာ-ဝိမုတ္တိ (ဉာဏ်-လွတ်လပ်ခြင်း) ကို ဖြည့်ဆည်း၏။"',
+        '**၁၆ ချက် အာနာပါန ကျင့်စဉ်:**',
+        '၁) ရှည်စွာ ဝင်လျှင် "ရှည်စွာ ဝင်နေ၏" ဟု သိ၏။ ရှည်စွာ ထွက်လျှင် "ရှည်စွာ ထွက်နေ၏" ဟု သိ၏။',
+        '၂) တိုစွာ ဝင်လျှင် "တိုစွာ ဝင်နေ၏" ဟု သိ၏။ တိုစွာ ထွက်လျှင် "တိုစွာ ထွက်နေ၏" ဟု သိ၏။',
+        '၃) "ကိုယ်ခန္ဓာ (လေ၏ ကိုယ်) အားလုံးကို ခံစား၍ ဝင်ရမည်" ဟု လေ့ကျင့်၏။',
+        '၄) "ကိုယ်ခန္ဓာသို့ ငြိမ်းအေးစေ၍ ဝင်ရမည်" ဟု လေ့ကျင့်၏။',
+        '၅-၈) ဝေဒနာ (ပီတိ၊ ချမ်းသာ၊ စိတ်၏ ပြုပြင်မှု) ကို ခံစား၊ ငြိမ်းအေးစေ။',
+        '၉-၁၂) စိတ်ကို ခံစား၊ ချမ်းမြေ့စေ၊ တည်ကြည်စေ၊ လွှတ်စေ။',
+        '၁၃-၁၆) အနိစ္စ၊ ရာဂကင်း၊ နိရောဓ၊ စွန့်ခြင်း — ဤ ၄ ကို ရှုမြင်၍ ဝင်ထွက်လေ။',
+        '"ရဟန်းတို့ — ဤ ၁၆ ချက်သည် သတိပဋ္ဌာန် ၄ ပါးလုံးကို ဖြည့်ဆည်း၏။ (၁-၄ = ကာယ၊ ၅-၈ = ဝေဒနာ၊ ၉-၁၂ = စိတ်၊ ၁၃-၁၆ = ဓမ္မ)"',
+        '"ဤအာနာပါနကို ရဟန်းက ကျင့်ကြံလျှင် — ငြိမ်းအေး၍ မွန်မြတ်၏။ ကိလေသာ မြင့်တက်လာသည်ကို ချက်ချင်း ဖျောက်ဖျက်၏။"',
+      ],
+      pali_body: [
+        'Ānāpānassati, bhikkhave, bhāvitā bahulīkatā mahapphalā hoti mahānisaṃsā. Ānāpānassati bhāvitā bahulīkatā cattāro satipaṭṭhāne paripūreti. Cattāro satipaṭṭhānā bhāvitā satta bojjhaṅge paripūrenti. Satta bojjhaṅgā bhāvitā vijjāvimuttiṃ paripūrenti.',
+        'Dīghaṃ vā assasanto ‘dīghaṃ assasāmī’ti pajānāti, dīghaṃ vā passasanto ‘dīghaṃ passasāmī’ti pajānāti.',
+        'Rassaṃ vā assasanto ‘rassaṃ assasāmī’ti pajānāti...',
+        '‘Sabbakāyapaṭisaṃvedī assasissāmī’ti sikkhati; ‘passambhayaṃ kāyasaṅkhāraṃ assasissāmī’ti sikkhati.',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
+    'mn-rahulovada': {
+      my: 'အမ္ဗလဋ္ဌိကရာဟုလောဝါဒသုတ်',
+      pali: 'Ambalaṭṭhika Rāhulovāda Sutta',
+      source: 'မဇ္ဈိမနိကာယ် (Majjhima Nikāya 61) · မဇ္ဈိမပဏ္ဏာသ',
+      context: 'သားတော် ရာဟုလာ ခုနစ်နှစ်သားရွယ်၌ မိမိသားအား ဆုံးမတော်မူသော သုတ်။ လိမ်ညာခြင်း၏ အန္တရာယ်ကို ရေဆေးအိုးဖြင့် ဥပမာပြ၍ ဆုံးမ၏။ အလုပ်တိုင်း မလုပ်ခင်၊ လုပ်နေစဉ်၊ လုပ်ပြီးနောက် — ဆင်ခြင်ရန် သွန်သင်သည်။',
+      my_body: [
+        'တစ်ခါက မြတ်စွာဘုရားသည် ရာဇဂြိုဟ်ပြည်၊ အမ္ဗလဋ္ဌိကရာဟုလ ကျောင်း၌ သားတော် ရာဟုလာအား တွေ့တော်မူ၏။',
+        'မြတ်စွာဘုရားက ရေဆေးအိုးထဲသို့ ရေအနည်းငယ် ထည့်စေ၍ — "ဤသို့ ရာဟုလ — မထင်မိမိ လိမ်ညာမည့်သူတွင် ရဟန်း၏ တရားသည် ဤရေအနည်းငယ်မျှသာ ရှိ၏။"',
+        'ရေအိုးကို လှန်ချ၍ ဗလာဖြစ်စေ — "ဤသို့ ရာဟုလ — မထင်မိမိ လိမ်ညာသည်ဆိုသည်ကို ရှက်စိတ်မရှိသူသည် ရဟန်း၏ တရားများကို လုံးဝ ဗလာ ဖြစ်စေ၏။"',
+        '"ဆင်ကြီးက စစ်ပွဲ၌ ကိုယ်၏ အသက်ကို မကာကွယ်ဘဲ တိုက်ခိုက်သကဲ့သို့ — မိမိလုပ်သည်ကို ရှက်စိတ်မရှိသူသည် အကုသိုလ်မှန်သမျှကို လုပ်နိုင်၏။ ထို့ကြောင့် ‘စမ်းသာ လိမ်ညာမည်’ ဟု မကျင့်နှင့်။"',
+        '"ရာဟုလ — ကြေးမုံ ဘယ်အသုံးဝင်သနည်း? ရှုစား၍ ကြည့်ရန်။ ဤသို့ ရာဟုလ — အလုပ်ကို မလုပ်ခင် ‘ဤအလုပ်သည် ကိုယ်ကို စော်ကားနိုင်၏? သူ့ကို စော်ကားနိုင်၏? နှစ်ဦးလုံးကို စော်ကားနိုင်၏?’ ဟု ရှုစားဆင်ခြင်။"',
+        '"ဆင်ခြင်ပြီး — အကုသိုလ်ဖြစ်နိုင်ဟု တွေ့လျှင် မလုပ်။ ကုသိုလ်သာ ဖြစ်နိုင်ဟု တွေ့လျှင် လုပ်။"',
+        '"အလုပ်လုပ်နေစဉ်၊ လုပ်ပြီးနောက်တွင်လည်း — တူညီစွာ ဆင်ခြင်ရ၏။ အကုသိုလ်လုပ်မိလျှင် ဆရာ၊ သင်္ဂကို ဝန်ခံ၍ နောင်တွင် မလုပ်ရန် သတိထား။ ကုသိုလ်ဖြစ်လျှင် ဝမ်းသာ၍ ဆက်လက် ကျင့်ကြံ။"',
+        '"ဤသို့ ဆင်ခြင်ကာ ကာယ (ကိုယ်)၊ ဝစီ (နှုတ်)၊ မနော (စိတ်) ကို သန့်စင်ရ။ ဤသည်ကား သင်ကြားရမည့် အခြေခံ။"',
+      ],
+      pali_body: [
+        'Passasi no tvaṃ, rāhula, imasmiṃ udakadhāne parittaṃ udakaṃ ṭhitanti? Evaṃ, bhante. Evameva kho, rāhula, parittakaṃ tesaṃ sāmaññaṃ, yesaṃ natthi sampajānamusāvāde lajjāti.',
+        'Ādāsaṃ, rāhula, kimatthiyanti? Paccavekkhaṇattho, bhanteti. Evameva kho, rāhula, paccavekkhitvā paccavekkhitvā kāyena kammaṃ kattabbaṃ, paccavekkhitvā paccavekkhitvā vācāya kammaṃ kattabbaṃ, paccavekkhitvā paccavekkhitvā manasā kammaṃ kattabbaṃ.',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
+    'an-vyagghapajja': {
+      my: 'ဗျာဂ္ဃပဇ္ဇသုတ် (ဒီဃဇာနုသုတ်)',
+      pali: 'Vyagghapajja / Dīghajānu Sutta',
+      source: 'အင်္ဂုတ္တရနိကာယ် (Aṅguttara Nikāya 8.54) · အဋ္ဌကနိပါတ်',
+      context: 'ဒီဃဇာနု ဟူသော ကောလိယမင်းသားက "ဤဘဝ၌ ချမ်းသာ၊ နောင်ဘဝ၌လည်း ချမ်းသာ ရအောင် ကျင့်နည်း ပြရန်" လျှောက်၍ ဟော၏။ လူ့ဆွေ့ဇာတ် စီးပွားရေး/ဘဝနေထိုင်ရေး ကျမ်း။',
+      my_body: [
+        '"ဒီဃဇာနု — ဤဘဝ၌ ချမ်းသာစေမည့် အကြောင်း ၄ ပါး ရှိ၏ —"',
+        '၁) **ဥဋ္ဌာနသမ္ပဒါ (လုပ်ငန်း၌ တက်ကြွခြင်း)** — ကုသိုလ်ရှိသော လုပ်ငန်း (တောစိုက်ခြင်း၊ ကုန်ကူးခြင်း၊ စာရေးဆရာ၊ တွက်ချက်ခြင်း — အနစ်နာမဲ့သော လုပ်ငန်း) ကို ကျွမ်းကျင်စွာ တက်ကြွစွာ လုပ်ခြင်း။',
+        '၂) **အာရက္ခသမ္ပဒါ (ရရှိသောပစ္စည်းကို ကာကွယ်ခြင်း)** — ကြိုးစား၍ ရရှိသော ဥစ္စာကို ရာဇတိုက်၊ ခိုးသူ၊ မီး၊ ရေ၊ မိုက်မဲသော အမွေဆက်ခံသူ တို့မှ ကာကွယ်ခြင်း။',
+        '၃) **ကလျာဏမိတ္တတ (ကောင်းသော မိတ်ဆွေ ရှိခြင်း)** — သီလ၊ ခါဂ (စွန့်လှူ)၊ သဒ္ဓါ (ယုံကြည်ခြင်း)၊ ပညာ — ဤ ၄ ဂုဏ်ရှိသူတို့နှင့် တွဲ၍ နေခြင်း။',
+        '၄) **သမဇီဝိတ (ဝင်ငွေ-ထွက်ငွေ မျှတစွာ ရှင်သန်ခြင်း)** — ကုန်ကျစရိတ်နှင့် ဝင်ငွေကို ကိုက်ညီစွာ ကြည့်၍ ချိန်ခွင်လျှာမျှတစွာ ရှင်သန်ခြင်း။',
+        '"ဒီဃဇာနု — ရနိုင်သော ဥစ္စာကို လူ ၄ ရပ်၍ ဆုံးရှုံးစေ၏ — မိန်းမ၊ အရက်၊ လောင်းကစား၊ မိုက်မဲသော မိတ်ဆွေ။ ဤ ၄ ခုကို ရှောင်ရ။"',
+        '"နောင်ဘဝ၌ ချမ်းသာစေမည့် အကြောင်း ၄ ပါး —',
+        '၁) **သဒ္ဓါသမ္ပဒါ** — ဗုဒ္ဓ၊ ဓမ္မ၊ သံဃ၏ ဂုဏ်ကို ယုံကြည်ခြင်း။',
+        '၂) **သီလသမ္ပဒါ** — မကုန်ခန်း၊ မခိုးမလုပ်၊ မဖောက်ပြန်၊ မလိမ်၊ မသောက်စား။',
+        '၃) **ခါဂသမ္ပဒါ** — မနှမြော၍ လွှတ်လွှတ်စွာ ဒါန ပြုခြင်း။',
+        '၄) **ပညာသမ္ပဒါ** — ဖြစ်ခြင်း-ချုပ်ခြင်း သဘောကို မြင်တတ်သော ပညာ။',
+        '"ဤ ၄ ပါးဖြင့် နောင်ဘဝ၌ ချမ်းသာစေမည်။"',
+      ],
+      pali_body: [
+        'Cattārome, byagghapajja, dhammā kulaputtassa diṭṭhadhammahitāya saṃvattanti diṭṭhadhammasukhāya. Katame cattāro? Uṭṭhānasampadā, ārakkhasampadā, kalyāṇamittatā, samajīvitā.',
+        'Cattārome, byagghapajja, dhammā kulaputtassa samparāyahitāya saṃvattanti samparāyasukhāya. Katame cattāro? Saddhāsampadā, sīlasampadā, cāgasampadā, paññāsampadā.',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
     'mn-satipatthana': {
       my: 'သတိပဋ္ဌာနသုတ်',
       pali: 'Satipaṭṭhāna Sutta',
@@ -805,6 +1020,24 @@
     `;
     c.appendChild(header);
 
+    // Famous suttas quick-access panel (shown on Sutta Piṭaka) — full text available
+    if (activePitaka === 'sutta') {
+      const famous = document.createElement('div');
+      famous.className = 'famous-panel';
+      famous.innerHTML = `<div class="famous-title">📖 အပြည့်အစုံ ဖတ်နိုင်သော ကျော်ကြားသုတ်များ · Full-text Suttas (မြန်မာပြန်)</div>`;
+      const grid = document.createElement('div');
+      grid.className = 'famous-grid';
+      Object.entries(SUTTAS).forEach(([key, s]) => {
+        const chip = document.createElement('button');
+        chip.className = 'famous-chip';
+        chip.innerHTML = `<span class="fc-my">${s.my}</span><span class="fc-pali">${s.pali}</span>`;
+        chip.onclick = () => { activeSutta = key; renderContent(); window.scrollTo({top:0,behavior:'smooth'}); };
+        grid.appendChild(chip);
+      });
+      famous.appendChild(grid);
+      c.appendChild(famous);
+    }
+
     const list = document.createElement('div');
     list.className = 'book-list';
 
@@ -828,15 +1061,22 @@
       const children = card.querySelector('.b-children');
       if (book.children?.length) {
         book.children.forEach(ch => {
+          const hasSutta = !!SUTTAS[ch.key];
+          const hasTool = !!ch.link;
           const row = document.createElement('div');
-          row.className = 'child-row' + (SUTTAS[ch.key] || ch.link ? ' has-content' : '');
-          const link = ch.link || (SUTTAS[ch.key] ? '#sutta:' + ch.key : null);
+          // Every row is now actionable — embedded sutta, linked tool, or external tipitaka.org
+          row.className = 'child-row has-content';
+          let badge;
+          if (hasSutta) badge = '· 📖 ဖတ်ရန်';
+          else if (hasTool) badge = '· 🔗 ဖွင့်ရန်';
+          else badge = '· 🌐 tipitaka.org';
           row.innerHTML = `
             <span><span class="c-name">${ch.my}</span> <span class="c-pali">· ${ch.pali}</span></span>
-            <span class="c-pali">${ch.count} ${SUTTAS[ch.key] ? '· 📖 ဖတ်ရန်' : ch.link ? '· 🔗 ဖွင့်ရန်' : ''}</span>
+            <span class="c-pali">${ch.count} ${badge}</span>
           `;
-          if (ch.link) row.onclick = () => location.href = ch.link;
-          else if (SUTTAS[ch.key]) row.onclick = (e) => { e.stopPropagation(); activeSutta = ch.key; renderContent(); };
+          if (hasSutta) row.onclick = (e) => { e.stopPropagation(); activeSutta = ch.key; renderContent(); window.scrollTo({top:0,behavior:'smooth'}); };
+          else if (hasTool) row.onclick = () => location.href = ch.link;
+          else row.onclick = (e) => { e.stopPropagation(); window.open('https://www.tipitaka.org/romn/', '_blank'); };
           children.appendChild(row);
         });
       }
@@ -892,6 +1132,7 @@
       <div class="s-actions">
         <button class="mini-btn ${isFav ? 'active' : ''}" data-act="fav">${isFav ? '★ ကြိုက်နှစ်သက်' : '☆ ကြိုက်နှစ်သက်ရန်'}</button>
         <button class="mini-btn" data-act="copy">📋 ကူးရန်</button>
+        ${s.external ? `<a class="mini-btn" href="${s.external}" target="_blank" rel="noopener" style="text-decoration:none">🔗 tipitaka.org ၌ အပြည့်အစုံ</a>` : ''}
       </div>
     `;
     const bodies = card.querySelectorAll('.lang');
