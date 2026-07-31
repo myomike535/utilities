@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="parchment">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ပိဋကတ်သုံးပုံ · Tipiṭaka</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8b6f47">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  :root, [data-theme="parchment"] {
+    --bg-1: #f0d5a0;
+    --bg-2: #e2c185;
+    --paper: #fbeed0;
+    --paper-2: #f5e2b4;
+    --paper-3: #eed99f;
+    --ink: #2d2115;
+    --ink-dim: #6b5738;
+    --ink-mute: #a08967;
+    --accent: #c62d2d;
+    --accent-2: #8b6f47;
+    --gold: #b8860b;
+    --border: #d4b075;
+    --border-soft: #e2c58a;
+    --shadow: 0 8px 24px rgba(139,100,40,0.22);
+    --rule: rgba(198,45,45,0.35);
+    --line: rgba(139,100,40,0.28);
+    --serif: 'Georgia', 'Cambria', 'Times New Roman', serif;
+    --sans: 'Pyidaungsu', 'Padauk', 'Myanmar Text', 'Segoe UI', system-ui, sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg-1: #1a1310; --bg-2: #2a1e18;
+    --paper: #2f231a; --paper-2: #3a2c22; --paper-3: #453629;
+    --ink: #f5e2b4; --ink-dim: #c9ac74; --ink-mute: #8a7654;
+    --accent: #e8a3a3; --accent-2: #d4b075; --gold: #ffd76a;
+    --border: #4a3a2a; --border-soft: #3a2c22;
+    --shadow: 0 8px 24px rgba(0,0,0,0.5);
+    --rule: rgba(232,163,163,0.4); --line: rgba(212,176,117,0.22);
+  }
+  [data-theme="royal"] {
+    --bg-1: #1a1830; --bg-2: #2d2650;
+    --paper: #241e42; --paper-2: #2d2650; --paper-3: #362e5d;
+    --ink: #f2d98a; --ink-dim: #d4b56a; --ink-mute: #9b8248;
+    --accent: #ffd76a; --accent-2: #b8860b; --gold: #ffd76a;
+    --border: #4a3d78; --border-soft: #362e58;
+    --shadow: 0 12px 32px rgba(0,0,0,0.55);
+    --rule: rgba(255,215,106,0.4); --line: rgba(212,181,106,0.25);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--sans); }
+  body {
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    color: var(--ink);
+    min-height: 100vh;
+    padding: 24px 16px;
+    display: flex; justify-content: center;
+  }
+
+  .app {
+    background: var(--paper);
+    max-width: 900px;
+    width: 100%;
+    border-radius: 6px;
+    padding: 32px 40px 40px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    position: relative;
+    background-image: linear-gradient(to right, transparent 0, transparent 32px,
+                     var(--rule) 32px, var(--rule) 34px, transparent 34px);
+  }
+  [data-theme="royal"] .app {
+    background: radial-gradient(ellipse at top, rgba(255,215,106,0.05), transparent 60%), var(--paper);
+    border-color: var(--gold);
+  }
+
+  header {
+    padding-bottom: 18px;
+    margin-bottom: 22px;
+    border-bottom: 1.5px solid var(--line);
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+  }
+  header .title { flex: 1; min-width: 200px; padding-left: 12px; }
+  header h1 {
+    font-family: var(--serif);
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--accent);
+    font-style: italic;
+    letter-spacing: 0.02em;
+  }
+  header .subtitle {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-dim);
+    font-size: 0.92rem;
+    margin-top: 2px;
+  }
+
+  .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: var(--ink-dim);
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    text-decoration: none;
+    transition: all 0.15s;
+    font-family: inherit;
+  }
+  .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+
+  .search-bar {
+    display: flex; gap: 10px; align-items: center;
+    padding-left: 12px;
+    margin-bottom: 20px;
+  }
+  .search-bar input {
+    flex: 1;
+    padding: 10px 14px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--paper-2);
+    color: var(--ink);
+    font-size: 0.95rem;
+    outline: none;
+    font-family: inherit;
+  }
+  .search-bar input:focus { border-color: var(--accent); }
+
+  .pitaka-nav {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    padding-left: 12px;
+    margin-bottom: 24px;
+  }
+  .pitaka-nav .p-btn {
+    padding: 14px 16px;
+    border: 1.5px solid var(--border);
+    border-radius: 10px;
+    background: var(--paper-2);
+    color: var(--ink);
+    font-family: var(--serif);
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: center;
+    font-style: italic;
+    font-weight: 600;
+  }
+  .pitaka-nav .p-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .pitaka-nav .p-btn.active {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+  }
+  .pitaka-nav .p-btn .p-my {
+    display: block;
+    font-family: var(--sans);
+    font-size: 1rem;
+    font-style: normal;
+    font-weight: 700;
+    margin-bottom: 2px;
+  }
+  @media (max-width: 640px) {
+    .pitaka-nav { grid-template-columns: 1fr; }
+  }
+
+  .content { padding-left: 12px; }
+  .section-title {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--accent);
+    font-size: 1.4rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .section-sub {
+    font-family: var(--serif);
+    color: var(--ink-mute);
+    font-size: 0.85rem;
+    font-style: italic;
+    margin-bottom: 20px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--line);
+  }
+  .section-intro {
+    background: var(--paper-2);
+    border-left: 3px solid var(--accent-2);
+    padding: 12px 16px;
+    border-radius: 4px;
+    margin-bottom: 20px;
+    color: var(--ink);
+    line-height: 1.8;
+    font-size: 0.95rem;
+  }
+
+  .book-list {
+    display: flex; flex-direction: column;
+    gap: 8px;
+  }
+  .book-card {
+    background: var(--paper-2);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 14px 16px;
+    transition: border-color 0.15s;
+  }
+  .book-card:hover { border-color: var(--border); }
+  .book-card .b-head {
+    display: flex; justify-content: space-between; align-items: baseline;
+    gap: 10px; flex-wrap: wrap;
+    cursor: pointer;
+  }
+  .book-card .b-name {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--accent);
+    font-weight: 600;
+    font-size: 1rem;
+  }
+  .book-card .b-my {
+    color: var(--ink);
+    font-size: 1.05rem;
+    font-weight: 600;
+    font-family: var(--sans);
+    margin-right: 6px;
+  }
+  .book-card .b-count {
+    font-family: var(--serif);
+    color: var(--ink-mute);
+    font-size: 0.8rem;
+    font-style: italic;
+  }
+  .book-card .b-desc {
+    margin-top: 6px;
+    color: var(--ink-dim);
+    font-size: 0.88rem;
+    line-height: 1.7;
+  }
+  .book-card .b-children {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px dashed var(--line);
+    display: none;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .book-card.open .b-children { display: flex; }
+  .book-card .b-chev { color: var(--ink-mute); font-size: 0.85rem; transition: transform 0.2s; }
+  .book-card.open .b-chev { transform: rotate(90deg); }
+  .child-row {
+    display: flex; justify-content: space-between; align-items: baseline;
+    padding: 6px 10px;
+    background: var(--paper);
+    border-radius: 4px;
+    font-size: 0.86rem;
+    color: var(--ink);
+  }
+  .child-row.has-content {
+    cursor: pointer;
+    border-left: 3px solid var(--accent);
+  }
+  .child-row.has-content:hover { background: var(--paper-3); }
+  .child-row .c-name { font-family: var(--sans); font-weight: 600; }
+  .child-row .c-pali { color: var(--ink-mute); font-family: var(--serif); font-style: italic; font-size: 0.78rem; }
+
+  /* Full-text sutta reader */
+  .sutta {
+    background: var(--paper);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 22px 26px;
+    margin-top: 20px;
+    animation: sutFade 0.4s ease;
+  }
+  @keyframes sutFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
+  .sutta .s-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
+  .sutta .s-my {
+    font-family: var(--sans);
+    color: var(--accent);
+    font-size: 1.35rem;
+    font-weight: 700;
+  }
+  .sutta .s-pali {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--ink-mute);
+    font-size: 0.9rem;
+    margin-bottom: 16px;
+  }
+  .sutta .s-source {
+    font-family: var(--serif);
+    color: var(--ink-mute);
+    font-style: italic;
+    font-size: 0.72rem;
+    letter-spacing: 0.06em;
+  }
+  .sutta .s-context {
+    background: var(--paper-2);
+    border-left: 3px solid var(--gold);
+    padding: 10px 14px;
+    border-radius: 4px;
+    margin-bottom: 16px;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--ink-dim);
+    font-style: italic;
+  }
+  .sutta .s-body {
+    display: flex; flex-direction: column;
+    gap: 14px;
+  }
+  .sutta .lang {
+    padding: 12px 16px;
+    background: var(--paper-2);
+    border-left: 3px solid var(--accent-2);
+    border-radius: 4px;
+    font-size: 1rem;
+    line-height: 1.9;
+  }
+  .sutta .lang.my {
+    font-family: var(--sans);
+    color: var(--ink);
+    border-left-color: var(--accent);
+  }
+  .sutta .lang.pali {
+    font-family: var(--serif);
+    font-style: italic;
+    color: var(--accent);
+  }
+  .sutta .lang.en {
+    font-family: var(--serif);
+    color: var(--ink);
+  }
+  .sutta .lang .lbl {
+    display: block;
+    font-family: var(--sans);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--ink-mute);
+    font-style: normal;
+    font-weight: 600;
+    margin-bottom: 6px;
+  }
+  .sutta .s-actions {
+    display: flex; gap: 6px;
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--line);
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
+  .sutta .mini-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-dim);
+    padding: 5px 12px;
+    border-radius: 6px;
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .sutta .mini-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .sutta .mini-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .close-sutta {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--ink-dim);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    cursor: pointer;
+    margin-bottom: 12px;
+  }
+  .close-sutta:hover { color: var(--accent); border-color: var(--accent); }
+
+  .external-links {
+    margin-top: 24px;
+    padding: 14px 16px;
+    background: var(--paper-2);
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+    font-size: 0.85rem;
+  }
+  .external-links .el-title {
+    font-family: var(--serif);
+    color: var(--accent);
+    font-weight: 600;
+    font-style: italic;
+    margin-bottom: 6px;
+  }
+  .external-links a {
+    color: var(--accent);
+    text-decoration: underline;
+    text-decoration-style: dotted;
+    display: block;
+    padding: 3px 0;
+  }
+  .external-links a:hover { color: var(--gold); }
+
+  .stats {
+    padding: 12px;
+    text-align: center;
+    color: var(--ink-mute);
+    font-family: var(--serif);
+    font-style: italic;
+    font-size: 0.85rem;
+    margin-top: 20px;
+  }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--paper); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 16px; box-shadow: var(--shadow);
+    font-size: 0.85rem; opacity: 0; pointer-events: none;
+    transition: all 0.25s; z-index: 1000;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  @media (max-width: 640px) {
+    body { padding: 12px 8px; }
+    .app { padding: 20px 20px 28px; padding-left: 32px;
+      background-image: linear-gradient(to right, transparent 0, transparent 20px,
+                       var(--rule) 20px, var(--rule) 22px, transparent 22px);
+    }
+    header h1 { font-size: 1.5rem; }
+    .content, .search-bar, .pitaka-nav { padding-left: 0; }
+    .sutta { padding: 16px 18px; }
+    .sutta .s-my { font-size: 1.15rem; }
+  }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>ပိဋကတ်သုံးပုံ · Tipiṭaka</h1>
+        <div class="subtitle">မြန်မာဘာသာပြန် · The Three Baskets (Myanmar Translation)</div>
+      </div>
+      <div class="header-actions">
+        <a class="icon-btn" href="index.html" title="Home">🏠</a>
+        <button class="icon-btn" id="themeBtn" title="Theme">📜</button>
+        <button class="icon-btn" id="favToggle" title="Favorites">⭐</button>
+      </div>
+    </header>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="🔍 ရှာဖွေရန် — သုတ်၊ ကျမ်း၊ ဘာသာပြန် (Search suttas, books, translations)">
+    </div>
+
+    <div class="pitaka-nav" id="pitakaNav"></div>
+
+    <div class="content" id="content"></div>
+
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script defer src="_prompts.js"></script>
+<script>
+  const THEME_KEY = 'tipitaka.theme';
+  const FAV_KEY = 'tipitaka.favs.v1';
+  const THEMES = ['parchment', 'dark', 'royal'];
+  const $ = id => document.getElementById(id);
+
+  // ═══════════════════════════════════════════════════════════════
+  // TIPIṬAKA STRUCTURE — full three-basket index in Myanmar
+  // ═══════════════════════════════════════════════════════════════
+
+  const PITAKAS = [
+    {
+      id: 'vinaya',
+      my: 'ဝိနယပိဋက',
+      pali: 'Vinaya Piṭaka',
+      en: 'The Discipline Basket',
+      intro: 'ရဟန်းသံဃာတော်တို့အတွက် ကျင့်ဝတ်၊ သီလ၊ စည်းကမ်းများကို ဖော်ပြသော ကျမ်း။ ပါရာဇိကာ ၄ ပါး၊ သံဃာဒိသေသ်၊ နိသ္ဆေယျ၊ ပါစိတ်၊ ပါဋိဒေသနီ၊ သိက္ခာပုဒ်တို့ ပါဝင်၏။',
+      books: [
+        { my: 'ပါရာဇိကာပါဠိတော်', pali: 'Pārājika Pāḷi', desc: 'ရဟန်းအဖြစ်မှ ကျဆုံးစေတတ်သော ကြီးမားသည့် အပြစ် ၄ ပါး။', suttaCount: 4 },
+        { my: 'ပါစိတ်ပါဠိတော်', pali: 'Pācittiya Pāḷi', desc: 'ဒေသနာဖြင့် ကုစားနိုင်သော အပြစ်ငယ်များ။', suttaCount: 227 },
+        { my: 'မဟာဝဂ်ပါဠိတော်', pali: 'Mahāvagga Pāḷi', desc: 'သာသနာစတင်ကာလ၊ ရဟန်းအဖြစ်ရရှိခြင်း (ဥပသမ္ပဒ)၊ ဥပုသ်၊ ဝါဆို၊ ပဝါရဏာ။', suttaCount: 10 },
+        { my: 'စူဠဝဂ်ပါဠိတော်', pali: 'Cūḷavagga Pāḷi', desc: 'ရဟန်းများ၏ ကျင့်ဝတ်များ၊ ဘိက္ခုနီသာသနာ၊ သင်္ဂါယနာ။', suttaCount: 12 },
+        { my: 'ပရိဝါရပါဠိတော်', pali: 'Parivāra Pāḷi', desc: 'ဝိနယကျမ်း၏ အနှစ်ချုပ်၊ မေးခွန်း-အဖြေပုံစံ။', suttaCount: 19 },
+      ],
+    },
+    {
+      id: 'sutta',
+      my: 'သုတ္တန်ပိဋက',
+      pali: 'Sutta Piṭaka',
+      en: 'The Discourses Basket',
+      intro: 'မြတ်စွာဘုရား၏ တရားတော်၊ တပည့်တော်ကြီးများ၏ တရားများ။ နိကာယ် ၅ ရပ်ဖြင့် ဖွဲ့စည်းထား၏။ Dhammapada, Jātaka တို့ ခုဒ္ဒကနိကာယ်တွင် ပါဝင်၏။',
+      books: [
+        {
+          my: 'ဒီဃနိကာယ်', pali: 'Dīgha Nikāya', desc: 'ရှည်လျားသော သုတ်တော် ၃၄ သုတ်။', suttaCount: 34,
+          children: [
+            { my: 'သီလက္ခန္ဓဝဂ်ပါဠိတော်', pali: 'Sīlakkhandhavagga', count: 13 },
+            { my: 'မဟာဝဂ်ပါဠိတော်', pali: 'Mahāvagga', count: 10, key: 'dn-maha-parinibbana' },
+            { my: 'ပါထိကဝဂ်ပါဠိတော်', pali: 'Pāthikavagga', count: 11 },
+          ],
+        },
+        {
+          my: 'မဇ္ဈိမနိကာယ်', pali: 'Majjhima Nikāya', desc: 'အလယ်အလတ်အရွယ် သုတ်တော် ၁၅၂ သုတ်။', suttaCount: 152,
+          children: [
+            { my: 'မူလပဏ္ဏာသပါဠိတော်', pali: 'Mūlapaṇṇāsa', count: 50, key: 'mn-satipatthana' },
+            { my: 'မဇ္ဈိမပဏ္ဏာသပါဠိတော်', pali: 'Majjhimapaṇṇāsa', count: 50 },
+            { my: 'ဥပရိပဏ္ဏာသပါဠိတော်', pali: 'Uparipaṇṇāsa', count: 52, key: 'mn-anapanasati' },
+          ],
+        },
+        {
+          my: 'သံယုတ္တနိကာယ်', pali: 'Saṃyutta Nikāya', desc: 'အကြောင်းအရာအားဖြင့် ဆက်စပ်ထားသော သုတ်တော် ၇၇၆၂ သုတ်။', suttaCount: 7762,
+          children: [
+            { my: 'သဂါထာဝဂ်ပါဠိတော်', pali: 'Sagāthavagga', count: 271 },
+            { my: 'နိဒါနဝဂ်ပါဠိတော်', pali: 'Nidānavagga', count: 286 },
+            { my: 'ခန္ဓဝဂ်ပါဠိတော်', pali: 'Khandhavagga', count: 733 },
+            { my: 'သဠာယတနဝဂ်ပါဠိတော်', pali: 'Saḷāyatanavagga', count: 391 },
+            { my: 'မဟာဝဂ်ပါဠိတော်', pali: 'Mahāvagga', count: 5081, key: 'sn-dhammacakka' },
+          ],
+        },
+        {
+          my: 'အင်္ဂုတ္တရနိကာယ်', pali: 'Aṅguttara Nikāya', desc: 'အရေအတွက်အားဖြင့် စီစဉ်ထားသော သုတ်တော် ၉၅၅၇ သုတ်။', suttaCount: 9557,
+          children: [
+            { my: 'ဧကနိပါတ်ပါဠိတော်', pali: 'Ekakanipāta', count: 611 },
+            { my: 'ဒုကနိပါတ်ပါဠိတော်', pali: 'Dukanipāta', count: 494 },
+            { my: 'တိကနိပါတ်ပါဠိတော်', pali: 'Tikanipāta', count: 352, key: 'an-kalama' },
+            { my: 'ကာဠာမသုတ်တော်ပါဋ်တော်ဆိုင်ရာ', pali: '…and 8 more nipātas', count: 8100 },
+          ],
+        },
+        {
+          my: 'ခုဒ္ဒကနိကာယ်', pali: 'Khuddaka Nikāya', desc: 'အထောက်အထား ရုပ်ရုပ်လုပ်လုပ်များ ပါဝင်သော နိကာယ်။ ဓမ္မပဒ၊ ဇာတ်နိပါတ်၊ သုတ်နိပါတ်၊ ဗောဓိသတ်တော် ရင်းစိုက်ပါဝင်၏။', suttaCount: 18,
+          children: [
+            { my: 'ခုဒ္ဒကပါဌပါဠိတော်', pali: 'Khuddakapāṭha', count: 9, key: 'kp-mangala' },
+            { my: 'ဓမ္မပဒပါဠိတော်', pali: 'Dhammapada', count: 423, link: 'dhammapada.html' },
+            { my: 'ဥဒါန်ပါဠိတော်', pali: 'Udāna', count: 80 },
+            { my: 'ဣတိဝုတ်ပါဠိတော်', pali: 'Itivuttaka', count: 112 },
+            { my: 'သုတ်နိပါတ်ပါဠိတော်', pali: 'Sutta Nipāta', count: 71, key: 'sn-metta' },
+            { my: 'ဝိမာနဝတ္ထုပါဠိတော်', pali: 'Vimānavatthu', count: 85 },
+            { my: 'ပေတဝတ္ထုပါဠိတော်', pali: 'Petavatthu', count: 51 },
+            { my: 'ထေရဂါထာပါဠိတော်', pali: 'Theragāthā', count: 264 },
+            { my: 'ထေရီဂါထာပါဠိတော်', pali: 'Therīgāthā', count: 73 },
+            { my: 'ဇာတ်ပါဠိတော် (၅၄၇ ဇာတ်)', pali: 'Jātaka', count: 547, link: 'jataka550.html' },
+            { my: 'နိဒ္ဒေသပါဠိတော်', pali: 'Niddesa', count: 2 },
+            { my: 'ပဋိသမ္ဘိဒါမဂ်ပါဠိတော်', pali: 'Paṭisambhidāmagga', count: 30 },
+            { my: 'အပါဒါန်ပါဠိတော်', pali: 'Apadāna', count: 613 },
+            { my: 'ဗုဒ္ဓဝင်ပါဠိတော်', pali: 'Buddhavaṃsa', count: 28 },
+            { my: 'စရိယာပိဋကပါဠိတော်', pali: 'Cariyāpiṭaka', count: 35 },
+          ],
+        },
+      ],
+    },
+    {
+      id: 'abhidhamma',
+      my: 'အဘိဓမ္မာပိဋက',
+      pali: 'Abhidhamma Piṭaka',
+      en: 'The Higher Doctrine Basket',
+      intro: 'တရားတော်၏ အနက်နှင့် အသေးစိတ်တို့ကို လေ့လာသုံးသပ်သော ကျမ်း ၇ စောင်။ စိတ်၊ စေတသိက်၊ ရုပ်၊ နိဗ္ဗာန်တို့ကို အသေးစိတ်ဖော်ပြ၏။',
+      books: [
+        { my: 'ဓမ္မသင်္ဂဏီပါဠိတော်', pali: 'Dhammasaṅgaṇī', desc: 'တရားများ၏ စာရင်း၊ အုပ်စုခွဲခြင်း။' },
+        { my: 'ဝိဘင်းပါဠိတော်', pali: 'Vibhaṅga', desc: 'တရားများကို အသေးစိတ် ခွဲခြားခြင်း (၁၈ ဝိဘင်း)။' },
+        { my: 'ဓာတုကထာပါဠိတော်', pali: 'Dhātukathā', desc: 'ဓာတ်များ၏ ဆက်စပ်မှုကို ဆွေးနွေးခြင်း။' },
+        { my: 'ပုဂ္ဂလပညတ်ပါဠိတော်', pali: 'Puggalapaññatti', desc: 'ပုဂ္ဂိုလ်အမျိုးအစားများကို ဖော်ပြခြင်း။' },
+        { my: 'ကထာဝတ္ထုပါဠိတော်', pali: 'Kathāvatthu', desc: 'တတိယသင်္ဂါယနာက ဆွေးနွေးခဲ့သော ငြင်းချက်များ။' },
+        { my: 'ယမကပါဠိတော်', pali: 'Yamaka', desc: 'အတွဲအမျိုးမျိုးဖြင့် တရားများကို ဆွေးနွေးခြင်း။' },
+        { my: 'ပဋ္ဌာန်းပါဠိတော်', pali: 'Paṭṭhāna', desc: 'အကြောင်း ၂၄ မျိုးအားဖြင့် တရားများ၏ ဆက်စပ်မှုကို ဖော်ပြခြင်း (အကျယ်ဆုံး ကျမ်း)။' },
+      ],
+    },
+  ];
+
+  // ═══════════════════════════════════════════════════════════════
+  // SELECTED FAMOUS SUTTAS — full text with Myanmar leading
+  // ═══════════════════════════════════════════════════════════════
+
+  const SUTTAS = {
+    'kp-mangala': {
+      my: 'မင်္ဂလသုတ်',
+      pali: 'Maṅgala Sutta',
+      source: 'ခုဒ္ဒကပါဌ (Khuddakapāṭha 5) · ရတနသုတ်နှင့်တွဲ',
+      context: 'တနင်္ဂနွေ ညနက်၌ နတ်တစ်ဦးက "မင်္ဂလာဟူသည် ဘယ်ဟာလဲ" ဟု မေးလျှောက်ရာ မြတ်စွာဘုရားရှင် ဖြေဆိုတော်မူသော သုတ်တော်။ မင်္ဂလာ ၃၈ ပါးကို ဖော်ပြထား၏။',
+      my_body: [
+        'ဤသို့ ငါကြားနာခဲ့ရ၏။ တစ်ခါက မြတ်စွာဘုရားသည် သာဝတ္ထိပြည်၊ ဇေတဝန်ကျောင်း၊ အနာထပိဏ်၏ ဥယျာဉ်၌ သီတင်းသုံးနေတော်မူ၏။',
+        'ထိုအခါ နတ်တစ်ဦးသည် ညနက်၌ တောက်ပသော အသွင်ဖြင့် ဇေတဝန်ကို လင်းစေ၍ မြတ်စွာဘုရားထံ ချဉ်းကပ်၏။ ရိုသေစွာ ရှိခိုးပြီး တစ်ဖက်၌ ရပ်နေ၏။',
+        'ထိုနတ်သည် မြတ်စွာဘုရားရှင်ကို "အသျှင်ဘုရား — များစွာသော နတ်များ၊ လူများသည် မင်္ဂလာအကြောင်း ကြံစည်ကုန်၏။ လုံခြုံခြင်းကို လိုလား၍ ဖြစ်ကုန်၏။ အမြင့်ဆုံး မင်္ဂလာကို ဟောကြားတော်မူပါ" ဟု လျှောက်၏။',
+        '၁) မိုက်မဲသူတို့ကို မကူးလူးခြင်း၊ ပညာရှိတို့ကို ကူးလူးခြင်း၊ ပူဇော်ထိုက်သူတို့ကို ပူဇော်ခြင်း — ဤသုံးပါးသည် အမြင့်ဆုံး မင်္ဂလာတည်း။',
+        '၂) သင့်တင့်လျောက်ပတ်သော အရပ်၌ နေခြင်း၊ ရှေးက ကုသိုလ်ပြုခဲ့ခြင်း၊ မိမိကိုယ်ကို မှန်ကန်စွာ ထားခြင်း — ဤသုံးပါးသည် အမြင့်ဆုံး မင်္ဂလာတည်း။',
+        '၃) များစွာ သင်ကြားခြင်း (ဗဟုသုတ)၊ အလုပ်အကိုင်ကို ကျွမ်းကျင်ခြင်း၊ ကောင်းစွာ လေ့ကျင့်ထားသော ဝိနယရှိခြင်း၊ ကောင်းစွာ ပြောဆိုသော စကားရှိခြင်း — ဤသုံးပါးသည် အမြင့်ဆုံး မင်္ဂလာတည်း။',
+        '၄) မိဘကို လုပ်ကျွေးခြင်း၊ သားမယားကို ထောက်ပံ့ခြင်း၊ မရှုပ်ထွေးသော အလုပ်ကို ပြုခြင်း — ဤသုံးပါးသည် အမြင့်ဆုံး မင်္ဂလာတည်း။',
+        '၅) ဒါန (ပေးလှူခြင်း)၊ ဓမ္မစရိယ (တရားကျင့်ခြင်း)၊ ဆွေမျိုးများကို ချစ်ခြင်း၊ အပြစ်မဲ့သော အလုပ်ကို ပြုခြင်း — ဤသုံးပါးသည် အမြင့်ဆုံး မင်္ဂလာတည်း။',
+        '၆) မကောင်းမှုမှ ကြဉ်ရှောင်ခြင်း၊ သေရည်သောက်ခြင်းမှ ကြဉ်ရှောင်ခြင်း၊ တရား၌ မမေ့မလျော့ခြင်း — ဤသုံးပါးသည် အမြင့်ဆုံး မင်္ဂလာတည်း။',
+        '၇) ရိုသေခြင်း၊ နှိမ့်ချခြင်း၊ ရောင့်ရဲခြင်း၊ ကျေးဇူးသိတတ်ခြင်း၊ အခါခါ တရားနာခြင်း — ဤသုံးပါးသည် အမြင့်ဆုံး မင်္ဂလာတည်း။',
+        '၈) သည်းခံခြင်း၊ ဆုံးမလွယ်ခြင်း၊ ရဟန်းများနှင့် တွေ့ခြင်း၊ အခါခါ တရားစကားပြောခြင်း — ဤသုံးပါးသည် အမြင့်ဆုံး မင်္ဂလာတည်း။',
+        '၉) တပ (ဣန္ဒြေစောင့်ခြင်း)၊ ဗြဟ္မစရိုယ (ကာမမှ ကင်းခြင်း)၊ အရိယာသစ္စာ ၄ ပါးကို မြင်ခြင်း၊ နိဗ္ဗာန်ကို မျက်မှောက်ပြုခြင်း — ဤသုံးပါးသည် အမြင့်ဆုံး မင်္ဂလာတည်း။',
+        '၁၀) လောကီတရားများနှင့် တွေ့ရသော် စိတ်မတုန်လှုပ်ခြင်း၊ မပူဆွေးခြင်း၊ ကိလေသာ ကင်းစင်ခြင်း၊ ဘေးမဲ့ခြင်း — ဤသုံးပါးသည် အမြင့်ဆုံး မင်္ဂလာတည်း။',
+        'ဤသို့သော အကျင့်တို့ကို ကျင့်ကြသူတို့သည် ခပ်သိမ်းသော အရာ၌ မရှုံးမနှိမ့်ကြ။ အရပ်ရပ်၌ ချမ်းသာစွာ ရောက်ကြ၏။ ဤသည်ပင် သူတို့၏ အမြင့်ဆုံး မင်္ဂလာတည်း။',
+      ],
+      pali_body: [
+        'Evaṃ me sutaṃ — ekaṃ samayaṃ bhagavā sāvatthiyaṃ viharati jetavane anāthapiṇḍikassa ārāme.',
+        'Atha kho aññatarā devatā abhikkantāya rattiyā abhikkantavaṇṇā kevalakappaṃ jetavanaṃ obhāsetvā yena bhagavā tenupasaṅkami; upasaṅkamitvā bhagavantaṃ abhivādetvā ekamantaṃ aṭṭhāsi.',
+        '"Bahū devā manussā ca, maṅgalāni acintayuṃ;\nĀkaṅkhamānā sotthānaṃ, brūhi maṅgalamuttamaṃ."',
+        '"Asevanā ca bālānaṃ, paṇḍitānañca sevanā;\nPūjā ca pūjaneyyānaṃ, etaṃ maṅgalamuttamaṃ."',
+        '"Patirūpadesavāso ca, pubbe ca katapuññatā;\nAttasammāpaṇidhi ca, etaṃ maṅgalamuttamaṃ."',
+        '"Bāhusaccañca sippañca, vinayo ca susikkhito;\nSubhāsitā ca yā vācā, etaṃ maṅgalamuttamaṃ."',
+        '"Mātāpitu upaṭṭhānaṃ, puttadārassa saṅgaho;\nAnākulā ca kammantā, etaṃ maṅgalamuttamaṃ."',
+        '"Dānañca dhammacariyā ca, ñātakānañca saṅgaho;\nAnavajjāni kammāni, etaṃ maṅgalamuttamaṃ."',
+        '"Ārati virati pāpā, majjapānā ca saññamo;\nAppamādo ca dhammesu, etaṃ maṅgalamuttamaṃ."',
+        '"Gāravo ca nivāto ca, santuṭṭhi ca kataññutā;\nKālena dhammassavanaṃ, etaṃ maṅgalamuttamaṃ."',
+        '"Khantī ca sovacassatā, samaṇānañca dassanaṃ;\nKālena dhammasākacchā, etaṃ maṅgalamuttamaṃ."',
+        '"Tapo ca brahmacariyañca, ariyasaccāna dassanaṃ;\nNibbānasacchikiriyā ca, etaṃ maṅgalamuttamaṃ."',
+        '"Phuṭṭhassa lokadhammehi, cittaṃ yassa na kampati;\nAsokaṃ virajaṃ khemaṃ, etaṃ maṅgalamuttamaṃ."',
+        '"Etādisāni katvāna, sabbattha maparājitā;\nSabbattha sotthiṃ gacchanti, taṃ tesaṃ maṅgalamuttamaṃ."',
+      ],
+    },
+
+    'sn-metta': {
+      my: 'မေတ္တာသုတ်',
+      pali: 'Karaṇīya Metta Sutta',
+      source: 'သုတ်နိပါတ် (Sutta Nipāta 1.8) · ခုဒ္ဒကနိကာယ်',
+      context: 'ရဟန်းများ တောသို့ တရားကျင့်ရန် ဝင်ရာ၊ ရုက္ခစိုးများ နှောင့်ယှက်သဖြင့် မြတ်စွာဘုရားထံ ပြန်လာလျှောက်ရာ ဘုရားက မေတ္တာ တရားဖြင့် ဒေါသကို ဖျောက်ဖျက်ရန် ဟောကြားတော်မူသော သုတ်တော်။',
+      my_body: [
+        'ငြိမ်းအေးရာသို့ ရောက်လိုသူ၊ ကုန်ခန်းရာသို့ ရောက်လိုသူ၊ ကျင့်ကြံသင့်သော အကျင့်ရှိသူသည် — ဤသို့ ကျင့်ရ၏။',
+        'တတ်စွမ်းသူ၊ ဖြောင့်မတ်သူ၊ ကောင်းစွာ ဖြောင့်မတ်သူ၊ ဆုံးမလွယ်သူ၊ နူးညံ့သူ၊ မမာနတက်သူ။',
+        'ရောင့်ရဲသူ၊ လွယ်ကူစွာ လုပ်ကျွေးနိုင်သူ၊ လုပ်စရာ များများ မရှိသူ၊ ပေါ့ပါးသော ကျင့်ဝတ်ရှိသူ။',
+        'ငြိမ်းအေးသော ဣန္ဒြေရှိသူ၊ ပညာရှိသူ၊ မကြမ်းတမ်းသူ၊ အိမ်ထောင်စုတွင် မတွယ်တာသူ။',
+        'ပညာရှိတို့ ကဲ့ရဲ့ရမည့် အနည်းငယ်မျှ အမှုကိုမပြုသင့်။',
+        '"သတ္တဝါအားလုံး ချမ်းသာစွာ နေရပါစေ။ ဘေးကင်းပါစေ။ စိတ်ချမ်းသာ ရရှိပါစေ။"',
+        'ရှိရှိသမျှ သတ္တဝါများ — ကြောက်တတ်၊ ကြံ့ခိုင်၊ ရှည်လျား၊ ကြီးမား၊ အလယ်အလတ်၊ တိုတောင်း၊ သေးငယ်၊ ကြီးထွား — အားလုံး ချမ်းသာစွာ နေရပါစေ။',
+        'တွေ့မြင်ရသည်၊ မတွေ့မမြင်ရသည်၊ ဝေးဝေး၊ နီးနီး၌ နေသည်၊ ဖြစ်ပြီးသည်၊ ဖြစ်လာမည့်သည် — အားလုံး ချမ်းသာစွာ နေရပါစေ။',
+        'တစ်ဦးက အခြားတစ်ဦးကို လှည့်ပြားခြင်း၊ ဘယ်နေရာ၌မဆို မထီမဲ့မြင်ခြင်း၊ ဒေါသ၊ ရန်စိတ်ဖြင့် တစ်ဦးဆီ တစ်ဦး ဆင်းရဲစေခြင်း — ဘယ်တော့မှ မတောင့်တပါစေနှင့်။',
+        'အမိသည် ကိုယ်လွန်၍ တစ်ဦးတည်းသော သားကို စောင့်ရှောက်သကဲ့သို့ — သတ္တဝါအားလုံးအပေါ်၌ အကန့်အသတ်မရှိသော မေတ္တာစိတ်ကို ပွားစေရ၏။',
+        'အထက်၊ အောက်၊ ဘေးဘီ — အားလုံးသို့ အကန့်အသတ်မရှိ၊ ရန်မဲ့၊ တုန်လှုပ်မှုမဲ့သော မေတ္တာစိတ်ကို ဤလောကတွင် ပွားစေရ၏။',
+        'ရပ်နေ၊ လမ်းလျှောက်နေ၊ ထိုင်နေ၊ လျောင်းနေ — အိပ်မပျော်နေသရွေ့၊ ဤသတိကို ကျင့်ရ၏။ ဤသည်ကို ဗြဟ္မဝိဟာရ (နတ်ပြည်၌ နေရာ) ဟုဆို၏။',
+        'အယူဝါဒနှင့် မယှက်နွယ်၊ သီလရှိ၊ အသိဥာဏ်ရှိ၊ ကာမတွင် တွယ်တာမှု ကင်းရှင်း၍ ဇာတိ (ပြန်ဖြစ်ခြင်း) ကို ဘယ်တော့မှ မခံရ။',
+      ],
+      pali_body: [
+        'Karaṇīyamatthakusalena, yantasantaṃ padaṃ abhisamecca;\nSakko ujū ca suhujū ca, sūvaco cassa mudu anatimānī.',
+        'Santussako ca subharo ca, appakicco ca sallahukavutti;\nSantindriyo ca nipako ca, appagabbho kulesvananugiddho.',
+        'Na ca khuddamācare kiñci, yena viññū pare upavadeyyuṃ;\nSukhino va khemino hontu, sabbasattā bhavantu sukhitattā.',
+        'Ye keci pāṇabhūtatthi, tasā vā thāvarā vanavasesā;\nDīghā vā ye va mahantā, majjhimā rassakā aṇukathūlā.',
+        'Diṭṭhā vā ye va adiṭṭhā, ye va dūre vasanti avidūre;\nBhūtā va sambhavesī va, sabbasattā bhavantu sukhitattā.',
+        'Na paro paraṃ nikubbetha, nātimaññetha katthaci na kañci;\nByārosanā paṭighasaññā, nāññamaññassa dukkhamiccheyya.',
+        'Mātā yathā niyaṃ puttamāyusā ekaputtamanurakkhe;\nEvampi sabbabhūtesu, mānasaṃ bhāvaye aparimāṇaṃ.',
+        'Mettañca sabbalokasmi, mānasaṃ bhāvaye aparimāṇaṃ;\nUddhaṃ adho ca tiriyañca, asambādhaṃ averamasapattaṃ.',
+        'Tiṭṭhaṃ caraṃ nisinno va, sayāno yāvatāssa vitamiddho;\nEtaṃ satiṃ adhiṭṭheyya, brahmametaṃ vihāramidhamāhu.',
+        'Diṭṭhiñca anupaggamma, sīlavā dassanena sampanno;\nKāmesu vineyya gedhaṃ, na hi jātuggabbhaseyya punaretīti.',
+      ],
+    },
+
+    'sn-dhammacakka': {
+      my: 'ဓမ္မစကြာပဝတ္တနသုတ်',
+      pali: 'Dhammacakkappavattana Sutta',
+      source: 'သံယုတ္တနိကာယ် (Saṃyutta Nikāya 56.11) · မဟာဝဂ်',
+      context: 'ဗောဓိပညာ ရရှိပြီးနောက် မြတ်စွာဘုရားရှင် ဟောကြားတော်မူသော ပထမဆုံး တရားတော်။ ဣသိပတန (မိဂဒါဝုန်)၌ ငါးဦးသော အာဠကာဠာမ တပည့်တော်များအား ဟော၏။ လမ်း ၂ ခုကို ရှောင်၍ မဇ္ဈိမပဋိပဒါ (အလယ်လမ်း) ကို ဖော်ပြသည်။',
+      my_body: [
+        'ဤသို့ ငါကြားနာခဲ့ရ၏။ တစ်ခါက မြတ်စွာဘုရားသည် ဗာရာဏသီပြည်၊ ဣသိပတန မိဂဒါဝုန်၌ သီတင်းသုံးနေတော်မူ၏။',
+        'ထိုအခါ မြတ်စွာဘုရားသည် ရဟန်း ငါးဦးအား မိန့်တော်မူ၏။',
+        '"ရဟန်းတို့ — ကာမ၏ ချမ်းသာ၌ တွယ်တာ၍ နစ်မွန်းခြင်း၊ ကိုယ်ကို ပင်ပန်းစွာ ညှင်းဆဲ၍ တပကျင့်ခြင်း — ဤအစွန်း ၂ ပါးကို ရဟန်းသည် မကျင့်သင့်။ ဤအစွန်း ၂ ပါးကို ရှောင်၍ တထာဂတသည် အလယ်လမ်း (မဇ္ဈိမပဋိပဒါ) ကို ရရှိထား၏။ ဤအလယ်လမ်းသည် စက္ခုကို ဖြစ်စေ၏။ ဉာဏ်ကို ဖြစ်စေ၏။ ငြိမ်းအေးခြင်း၊ ဉာဏ်ရရှိခြင်း၊ သမ္ဗောဓိ၊ နိဗ္ဗာန်သို့ ဆောင်ကြဉ်း၏။"',
+        '"အလယ်လမ်း (မဂ္ဂင် ၈ ပါး) ဟူသည် — မှန်ကန်သော အယူ (သမ္မာဒိဋ္ဌိ)၊ မှန်ကန်သော အကြံ (သမ္မာသင်္ကပ္ပ)၊ မှန်ကန်သော စကား (သမ္မာဝါစာ)၊ မှန်ကန်သော အလုပ် (သမ္မာကမ္မန္တ)၊ မှန်ကန်သော အသက်မွေးမှု (သမ္မာအာဇီဝ)၊ မှန်ကန်သော ကြိုးစားမှု (သမ္မာဝါယာမ)၊ မှန်ကန်သော သတိ (သမ္မာသတိ)၊ မှန်ကန်သော တည်ကြည်မှု (သမ္မာသမာဓိ) — ဤ ၈ ပါးတည်း။"',
+        '"ရဟန်းတို့ — ဤသည်ကား ဒုက္ခအရိယာသစ္စာ။ ဇာတိ (ပြန်ဖြစ်ခြင်း) သည် ဒုက္ခ။ ဇရာ (အိုမင်းခြင်း) သည် ဒုက္ခ။ ဗျာဓိ (နာမကျန်းခြင်း) သည် ဒုက္ခ။ မရဏ (သေခြင်း) သည် ဒုက္ခ။ မခစ်သော အရာနှင့် တွေ့ရခြင်း၊ ချစ်သော အရာနှင့် ခွဲရခြင်း၊ လိုချင်၍ မရခြင်း — အားလုံး ဒုက္ခ။ ချုပ်လျှင် ဥပါဒါနက္ခန္ဓာ ငါးပါးသည် ဒုက္ခ။"',
+        '"ဤသည်ကား ဒုက္ခ၏ အကြောင်း (သမုဒယ) အရိယာသစ္စာ။ ဘဝသစ်သို့ ဆောင်ကြဉ်း၍ ချမ်းသာမြတ်နိုးမှုနှင့် ယှဉ်သော တဏှာသည် — ကာမတဏှာ၊ ဘဝတဏှာ၊ ဝိဘဝတဏှာ။"',
+        '"ဤသည်ကား ဒုက္ခ၏ ချုပ်ငြိမ်းရာ (နိရောဓ) အရိယာသစ္စာ။ တဏှာကို ကြွင်းမဲ့ ချုပ်ငြိမ်း၍ လွှတ်ခြင်း၊ စွန့်ခြင်း၊ ငြိမ်းအေးခြင်း — နိဗ္ဗာန်တည်း။"',
+        '"ဤသည်ကား ဒုက္ခ၏ ချုပ်ငြိမ်းရာသို့ ဆောင်ကြဉ်းသော အကျင့် (မဂ္ဂ) အရိယာသစ္စာ။ အထက်ဆိုခဲ့သော အလယ်လမ်း (မဂ္ဂင် ၈ ပါး)။"',
+        'ဤသို့ မြတ်စွာဘုရားသည် ဟောကြားခဲ့ရာ ကောဏ္ဍညသည် "ဖြစ်ခြင်း သဘောရှိသမျှသည် ချုပ်ခြင်း သဘောရှိ၏" ဟု ဓမ္မစက္ခု (တရားမြင်ခြင်း) ရရှိတော်မူ၏။',
+        'ထိုအခါ မြတ်စွာဘုရားက "ကောဏ္ဍညသည် သိပြီ။ ကောဏ္ဍညသည် သိပြီ" ဟု ဆိုတော်မူသည်။ ဤသို့ဖြင့် ကောဏ္ဍညသည် "အညာသိကောဏ္ဍည" ဟု အမည်တင်ခဲ့ရ၏။',
+      ],
+      pali_body: [
+        'Evaṃ me sutaṃ — ekaṃ samayaṃ bhagavā bārāṇasiyaṃ viharati isipatane migadāye.',
+        'Tatra kho bhagavā pañcavaggiye bhikkhū āmantesi.',
+        '"Dveme, bhikkhave, antā pabbajitena na sevitabbā. Yo cāyaṃ kāmesu kāmasukhallikānuyogo — hīno gammo pothujjaniko anariyo anatthasaṃhito. Yo cāyaṃ attakilamathānuyogo — dukkho anariyo anatthasaṃhito. Ete kho, bhikkhave, ubho ante anupagamma majjhimā paṭipadā tathāgatena abhisambuddhā."',
+        '"Ayameva ariyo aṭṭhaṅgiko maggo, seyyathidaṃ — sammādiṭṭhi, sammāsaṅkappo, sammāvācā, sammākammanto, sammāājīvo, sammāvāyāmo, sammāsati, sammāsamādhi."',
+        '"Idaṃ kho pana, bhikkhave, dukkhaṃ ariyasaccaṃ — jātipi dukkhā, jarāpi dukkhā, byādhipi dukkho, maraṇampi dukkhaṃ, appiyehi sampayogo dukkho, piyehi vippayogo dukkho, yampicchaṃ na labhati tampi dukkhaṃ — saṃkhittena pañcupādānakkhandhā dukkhā."',
+        '"Idaṃ kho pana, bhikkhave, dukkhasamudayaṃ ariyasaccaṃ — yāyaṃ taṇhā ponobbhavikā nandirāgasahagatā tatratatrābhinandinī, seyyathidaṃ — kāmataṇhā, bhavataṇhā, vibhavataṇhā."',
+        '"Idaṃ kho pana, bhikkhave, dukkhanirodhaṃ ariyasaccaṃ — yo tassāyeva taṇhāya asesavirāganirodho cāgo paṭinissaggo mutti anālayo."',
+        '"Idaṃ kho pana, bhikkhave, dukkhanirodhagāminī paṭipadā ariyasaccaṃ — ayameva ariyo aṭṭhaṅgiko maggo."',
+        '"Yaṃ kiñci samudayadhammaṃ, sabbaṃ taṃ nirodhadhammanti."',
+      ],
+    },
+
+    'an-kalama': {
+      my: 'ကာလာမသုတ်',
+      pali: 'Kālāma Sutta (Kesamutti)',
+      source: 'အင်္ဂုတ္တရနိကာယ် (Aṅguttara Nikāya 3.65) · တိကနိပါတ်',
+      context: 'ကာလာမမင်းသားများသည် ဆရာအမျိုးမျိုးက အယူဝါဒ မတူသည်များ ဟောကြားသဖြင့် ရွှေ့ဆိုင်းနေ၏။ ဘုရားထံ ချဉ်းကပ်၍ "ဘယ်ဟာ မှန်သနည်း၊ ဘယ်ဟာ မှားသနည်း" ဟု လျှောက်ရာ ဘုရားက အသိပညာဆိုင်ရာ လွတ်လပ်စွာ စဉ်းစားခြင်း၏ လမ်းညွှန်ကို ဟောကြားတော်မူ၏။',
+      my_body: [
+        'တစ်ခါက မြတ်စွာဘုရားသည် ကောသလပြည်၌ လှည့်လည်ရင်း ကာလာမမင်းသားများ၏ နိဂုံးဖြစ်သော ကေသမုတ်နိဂုံးသို့ ရောက်တော်မူ၏။',
+        'ကာလာမတို့က "အသျှင်ဘုရား — များစွာသော ဆရာများ လာရောက်၍ တစ်ဦးက မိမိအယူဝါဒကိုသာ ချီးမြှင့်ကာ အခြားသူတို့ကို ကဲ့ရဲ့ကုန်၏။ ကျွန်တော်မျိုးတို့ တွေဝေနေရ၏ — ဘယ်သူ မှန်၊ ဘယ်သူ မှား သိလို" ဟု လျှောက်၏။',
+        'မြတ်စွာဘုရားက "ကာလာမတို့ — သင်တို့ တွေဝေခြင်းသည် သင့်တော်၏။ လာပါ။ ကာလာမတို့ — မယုံကြည်ကြပါနှင့် —',
+        '၁) အဆက်အဆက် ကြားဖူးသည်ဟူ၍ — မယုံနှင့်။',
+        '၂) ရိုးရာအားဖြင့် ဖြစ်လာသည်ဟူ၍ — မယုံနှင့်။',
+        '၃) စကားလုံးများ ပြောနေကြသည်ဟူ၍ — မယုံနှင့်။',
+        '၄) ကျမ်းစာတွင် ရေးထားသည်ဟူ၍ — မယုံနှင့်။',
+        '၅) ကျိုးကြောင်း ဆင်ခြင်တွက်ချက်၍ ရသည်ဟူ၍ — မယုံနှင့်။',
+        '၆) နိဂမန ဆွဲ၍ ရသည်ဟူ၍ — မယုံနှင့်။',
+        '၇) ပြင်ပ အသွင်အပြင်၍ ရသည်ဟူ၍ — မယုံနှင့်။',
+        '၈) မိမိအယူဝါဒနှင့် ကိုက်ညီသည်ဟူ၍ — မယုံနှင့်။',
+        '၉) ပြောသူ အသွင်ပြင် ကိုက်ညီသည်ဟူ၍ — မယုံနှင့်။',
+        '၁၀) "ငါတို့၏ ဆရာ ဖြစ်၏" ဟူ၍ — မယုံနှင့်။',
+        '"ကာလာမတို့ — မိမိကိုယ်တိုင် သိသောအခါ — ဤတရားများသည် အကုသိုလ်၊ ကဲ့ရဲ့ရာ၊ ပညာရှိတို့ ကဲ့ရဲ့ဖွယ်၊ ခံစားလျှင် ဆင်းရဲ၊ အနစ်နာ ဖြစ်စေ၏ ဟု သိသောအခါ ထိုတရားများကို စွန့်ပယ်လော့။',
+        '"ကာလာမတို့ — မိမိကိုယ်တိုင် သိသောအခါ — ဤတရားများသည် ကုသိုလ်၊ မကဲ့ရဲ့ဖွယ်၊ ပညာရှိတို့ ချီးမွမ်းဖွယ်၊ ခံစားလျှင် ချမ်းသာ၊ အနစ်နာ ဖြစ်စေ၏ ဟု သိသောအခါ ထိုတရားများကို လက်ခံ၍ ကျင့်ကြံပါ။"',
+      ],
+      pali_body: [
+        '"Etha tumhe, kālāmā, mā anussavena, mā paramparāya, mā itikirāya, mā piṭakasampadānena, mā takkahetu, mā nayahetu, mā ākāraparivitakkena, mā diṭṭhinijjhānakkhantiyā, mā bhabbarūpatāya, mā samaṇo no garūti."',
+        '"Yadā tumhe, kālāmā, attanāva jāneyyātha — ime dhammā akusalā, ime dhammā sāvajjā, ime dhammā viññugarahitā, ime dhammā samattā samādinnā ahitāya dukkhāya saṃvattantīti — atha tumhe, kālāmā, pajaheyyātha."',
+        '"Yadā tumhe, kālāmā, attanāva jāneyyātha — ime dhammā kusalā, ime dhammā anavajjā, ime dhammā viññuppasatthā, ime dhammā samattā samādinnā hitāya sukhāya saṃvattantīti — atha tumhe, kālāmā, upasampajja vihareyyātha."',
+      ],
+    },
+
+    'mn-satipatthana': {
+      my: 'သတိပဋ္ဌာနသုတ်',
+      pali: 'Satipaṭṭhāna Sutta',
+      source: 'မဇ္ဈိမနိကာယ် (Majjhima Nikāya 10) · မူလပဏ္ဏာသ',
+      context: 'သတိပဋ္ဌာန ၄ ပါး — ကာယ (ကိုယ်)၊ ဝေဒနာ (ခံစားမှု)၊ စိတ်၊ ဓမ္မ — တို့ကို လေ့လာအာရုံစိုက်၍ ဝိပဿနာ ကျင့်နည်းကို ဟောကြားတော်မူသော အလွန်ခေါင်းစဉ်ကြီးသော သုတ်တော်။ ဗုဒ္ဓစာသင်ခန်း၏ အခြေခံအရေးကြီးဆုံး သုတ်တစ်ခု။',
+      my_body: [
+        '"ရဟန်းတို့ — ဤသည်ကား သတ္တဝါတို့၏ သန့်စင်ခြင်း၊ ဆင်းရဲ ဒုက္ခကို လွန်မြောက်ခြင်း၊ ငိုကြွေးပူဆွေးခြင်း ငြိမ်းအေးခြင်း၊ တရားနှင့် နိဗ္ဗာန်ကို မျက်မှောက်ပြုခြင်း — အားလုံးအတွက် တစ်ခုတည်းသော လမ်း။ ဤသည်ကား သတိပဋ္ဌာန် ၄ ပါးတည်း။"',
+        '"ဘယ်တွေလဲ ဆိုသော် — ရဟန်းသည် ကာယ၌ ကာယကို ရှုမြင်၍ နေ၏။ ကြိုးစား၍ သတိထား၍ လောကတွင် လိုချင်တပ်မက်ခြင်း၊ ငြိုငြင်ခြင်း ကင်း၍ နေ၏။"',
+        '"ဝေဒနာ၌ ဝေဒနာကို ရှုမြင်၍ နေ၏။ စိတ်၌ စိတ်ကို ရှုမြင်၍ နေ၏။ ဓမ္မ၌ ဓမ္မကို ရှုမြင်၍ နေ၏။"',
+        '**ကာယာနုပဿနာ (ကိုယ်ကို ရှုခြင်း)** — အာနာပါနသတိ (ဝင်ထွက်လေ)၊ ဣရိယာပုထ်ပဗ္ဗ (နေအခြေအနေ)၊ သမ္ပဇညပဗ္ဗ (ကောင်းစွာ သိခြင်း)၊ ပဋိကူလ (ကိုယ်၏ မသန့်ရှင်းသော အစိတ်အပိုင်း ၃၂ မျိုးကို ရှုခြင်း)၊ ဓာတု (ဓာတ်ကြီး ၄ ပါး)၊ နဝ သိုးအိုးရုပ် (သုသန်၌ လူသေရုပ်ကို ရှုခြင်း)။',
+        '**ဝေဒနာနုပဿနာ (ခံစားမှုကို ရှုခြင်း)** — ချမ်းသာ၊ ဆင်းရဲ၊ ချမ်းသာ-ဆင်းရဲ မဟုတ်ခြင်း — ဤ ၃ မျိုးကို "ချမ်းသာသည်" "ဆင်းရဲသည်" "ဘယ်ဟာမှ မဟုတ်" ဟု ဟုတ်တိုင်း သိရ၏။',
+        '**စိတ္တာနုပဿနာ (စိတ်ကို ရှုခြင်း)** — ရာဂ ရှိ/မရှိ၊ ဒေါသ ရှိ/မရှိ၊ မောဟ ရှိ/မရှိ၊ တည်ကြည်/မတည်ကြည်၊ ကျယ်ပြန့်/မကျယ်ပြန့်၊ လွတ်လပ်/မလွတ်လပ် — အလုံးစုံကို ဟုတ်တိုင်း ရှုမြင်ရ၏။',
+        '**ဓမ္မာနုပဿနာ (တရားကို ရှုခြင်း)** — နီဝရဏ ၅ ပါး၊ ခန္ဓာ ၅ ပါး၊ အာယတန ၆ ပါး၊ ဗောဇ္ဈင် ၇ ပါး၊ အရိယာသစ္စာ ၄ ပါး — တို့ကို "ရှိ" "မရှိ" "ဖြစ်ခြင်း" "ချုပ်ခြင်း" — ဟုတ်တိုင်း သိရှုရ၏။',
+        '"ရဟန်းတို့ — ဤသတိပဋ္ဌာန်ကို ကျင့်ကြံသူသည် — ခုနစ်နှစ်တွင် ရသည်၊ ခုနစ်လတွင် ရသည်၊ ခုနစ်ရက်တွင် ရသည်၊ ဤဘဝ၌ပင် အနှစ်ဆုံး ဉာဏ်ကို ရနိုင်၏။ (အနာဂါမ် သို့မဟုတ် အရဟန်္တ)"',
+        '"ဤသည်ကား ငါ ဟော၏။ တစ်ခုတည်းသော လမ်း — သတ္တဝါတို့၏ သန့်စင်ခြင်း၊ တရားနှင့် နိဗ္ဗာန်ကို မျက်မှောက်ပြုခြင်း အတွက်။"',
+      ],
+      pali_body: [
+        '"Ekāyano ayaṃ, bhikkhave, maggo sattānaṃ visuddhiyā, sokaparidevānaṃ samatikkamāya, dukkhadomanassānaṃ atthaṅgamāya, ñāyassa adhigamāya, nibbānassa sacchikiriyāya — yadidaṃ cattāro satipaṭṭhānā."',
+        '"Katame cattāro? Idha, bhikkhave, bhikkhu kāye kāyānupassī viharati ātāpī sampajāno satimā, vineyya loke abhijjhādomanassaṃ. Vedanāsu vedanānupassī viharati... Citte cittānupassī viharati... Dhammesu dhammānupassī viharati ātāpī sampajāno satimā, vineyya loke abhijjhādomanassaṃ."',
+      ],
+    },
+  };
+
+  // ═══════════════════════════════════════════════════════════════
+  // State
+  // ═══════════════════════════════════════════════════════════════
+
+  let activePitaka = 'sutta';
+  let activeSutta = null;
+  let searchQuery = '';
+  let showFavsOnly = false;
+
+  function favSet() { try { return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch { return new Set(); } }
+  function saveFav(s) { localStorage.setItem(FAV_KEY, JSON.stringify([...s])); }
+
+  function applyTheme(t) {
+    if (!THEMES.includes(t)) t = 'parchment';
+    document.documentElement.dataset.theme = t;
+    localStorage.setItem(THEME_KEY, t);
+    $('themeBtn').textContent = t === 'parchment' ? '📜' : t === 'dark' ? '🌙' : '👑';
+  }
+  applyTheme(localStorage.getItem(THEME_KEY) || 'parchment');
+  $('themeBtn').onclick = () => {
+    const i = THEMES.indexOf(document.documentElement.dataset.theme || 'parchment');
+    applyTheme(THEMES[(i + 1) % THEMES.length]);
+  };
+
+  let toastTimer;
+  function toast(msg) {
+    $('toast').textContent = msg;
+    $('toast').classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => $('toast').classList.remove('show'), 1800);
+  }
+
+  function renderPitakaNav() {
+    const nav = $('pitakaNav');
+    nav.innerHTML = '';
+    PITAKAS.forEach(p => {
+      const b = document.createElement('button');
+      b.className = 'p-btn' + (p.id === activePitaka ? ' active' : '');
+      b.innerHTML = `<span class="p-my">${p.my}</span>${p.pali}`;
+      b.onclick = () => { activePitaka = p.id; activeSutta = null; renderPitakaNav(); renderContent(); };
+      nav.appendChild(b);
+    });
+  }
+
+  function renderContent() {
+    const c = $('content');
+    c.innerHTML = '';
+
+    // If a sutta is open, show that
+    if (activeSutta) {
+      c.appendChild(renderSuttaCard(activeSutta));
+      updateStats();
+      return;
+    }
+
+    // Otherwise render the current pitaka's books
+    const pitaka = PITAKAS.find(p => p.id === activePitaka);
+    const header = document.createElement('div');
+    header.innerHTML = `
+      <div class="section-title">${pitaka.my}</div>
+      <div class="section-sub">${pitaka.pali} — ${pitaka.en}</div>
+      <div class="section-intro">${pitaka.intro}</div>
+    `;
+    c.appendChild(header);
+
+    const list = document.createElement('div');
+    list.className = 'book-list';
+
+    pitaka.books.forEach((book, idx) => {
+      const card = document.createElement('div');
+      card.className = 'book-card';
+      card.innerHTML = `
+        <div class="b-head">
+          <div>
+            <span class="b-my">${book.my}</span>
+            <span class="b-name">· ${book.pali}</span>
+          </div>
+          <div>
+            ${book.suttaCount ? `<span class="b-count">${book.suttaCount} entries</span> ` : ''}
+            ${book.children?.length || SUTTAS[book.key] ? '<span class="b-chev">▶</span>' : ''}
+          </div>
+        </div>
+        <div class="b-desc">${book.desc || ''}</div>
+        <div class="b-children"></div>
+      `;
+      const children = card.querySelector('.b-children');
+      if (book.children?.length) {
+        book.children.forEach(ch => {
+          const row = document.createElement('div');
+          row.className = 'child-row' + (SUTTAS[ch.key] || ch.link ? ' has-content' : '');
+          const link = ch.link || (SUTTAS[ch.key] ? '#sutta:' + ch.key : null);
+          row.innerHTML = `
+            <span><span class="c-name">${ch.my}</span> <span class="c-pali">· ${ch.pali}</span></span>
+            <span class="c-pali">${ch.count} ${SUTTAS[ch.key] ? '· 📖 ဖတ်ရန်' : ch.link ? '· 🔗 ဖွင့်ရန်' : ''}</span>
+          `;
+          if (ch.link) row.onclick = () => location.href = ch.link;
+          else if (SUTTAS[ch.key]) row.onclick = (e) => { e.stopPropagation(); activeSutta = ch.key; renderContent(); };
+          children.appendChild(row);
+        });
+      }
+      // Whole card click toggles expand
+      card.querySelector('.b-head').onclick = () => card.classList.toggle('open');
+      list.appendChild(card);
+    });
+    c.appendChild(list);
+
+    // External resource links
+    const ext = document.createElement('div');
+    ext.className = 'external-links';
+    ext.innerHTML = `
+      <div class="el-title">🔗 ပြင်ပ အရင်းအမြစ်များ · External Sources</div>
+      <a href="https://tipitaka.org" target="_blank" rel="noopener">tipitaka.org — Chaṭṭha Saṅgāyana Pāḷi (official Myanmar edition)</a>
+      <a href="https://suttacentral.net/pitaka/sutta?lang=en" target="_blank" rel="noopener">SuttaCentral — English translations + Pāḷi</a>
+      <a href="https://www.dhammatalks.org/suttas/index.html" target="_blank" rel="noopener">Dhamma Talks — Ajahn Ṭhānissaro's translations</a>
+      <a href="https://www.myanmarttw.com" target="_blank" rel="noopener">Myanmar Tipiṭaka Translation — မြန်မာဘာသာပြန်</a>
+    `;
+    c.appendChild(ext);
+
+    updateStats();
+  }
+
+  function renderSuttaCard(key) {
+    const s = SUTTAS[key];
+    if (!s) return document.createTextNode('');
+    const favs = favSet();
+    const isFav = favs.has(key);
+
+    const wrap = document.createElement('div');
+    const close = document.createElement('button');
+    close.className = 'close-sutta';
+    close.textContent = '← ပြန်သွားရန်';
+    close.onclick = () => { activeSutta = null; renderContent(); };
+    wrap.appendChild(close);
+
+    const card = document.createElement('article');
+    card.className = 'sutta';
+    card.innerHTML = `
+      <div class="s-head">
+        <div>
+          <div class="s-my">${s.my}</div>
+          <div class="s-pali">${s.pali}</div>
+        </div>
+        <div class="s-source">${s.source}</div>
+      </div>
+      ${s.context ? `<div class="s-context">${s.context}</div>` : ''}
+      <div class="s-body">
+        <div class="lang my"><span class="lbl">မြန်မာ ဘာသာပြန်</span></div>
+        <div class="lang pali"><span class="lbl">Pāḷi</span></div>
+      </div>
+      <div class="s-actions">
+        <button class="mini-btn ${isFav ? 'active' : ''}" data-act="fav">${isFav ? '★ ကြိုက်နှစ်သက်' : '☆ ကြိုက်နှစ်သက်ရန်'}</button>
+        <button class="mini-btn" data-act="copy">📋 ကူးရန်</button>
+      </div>
+    `;
+    const bodies = card.querySelectorAll('.lang');
+    // Myanmar body — join with double line breaks for readability
+    bodies[0].appendChild(document.createTextNode('\n' + s.my_body.join('\n\n')));
+    bodies[1].appendChild(document.createTextNode('\n' + s.pali_body.join('\n\n')));
+
+    card.querySelector('[data-act="fav"]').onclick = () => {
+      const f = favSet();
+      f.has(key) ? f.delete(key) : f.add(key);
+      saveFav(f);
+      renderContent();
+      toast(f.has(key) ? '★ Favorited' : '☆ Removed');
+    };
+    card.querySelector('[data-act="copy"]').onclick = () => {
+      const txt = `${s.my} · ${s.pali}\n${s.source}\n\n${s.my_body.join('\n\n')}\n\n---\n\n${s.pali_body.join('\n\n')}`;
+      navigator.clipboard.writeText(txt).then(() => toast('📋 Copied'));
+    };
+    wrap.appendChild(card);
+    return wrap;
+  }
+
+  function updateStats() {
+    const favs = favSet();
+    const suttaCount = Object.keys(SUTTAS).length;
+    $('stats').textContent = `${suttaCount} suttas included · ${favs.size} favorited · Full Tipiṭaka structure indexed`;
+  }
+
+  // Search
+  $('searchInput').addEventListener('input', (e) => {
+    searchQuery = e.target.value.trim().toLowerCase();
+    if (!searchQuery) { renderContent(); return; }
+    // Simple search across sutta names + book names
+    const c = $('content');
+    c.innerHTML = '';
+    const header = document.createElement('div');
+    header.innerHTML = `<div class="section-title">Search results</div><div class="section-sub">for "${searchQuery}"</div>`;
+    c.appendChild(header);
+
+    const list = document.createElement('div');
+    list.className = 'book-list';
+    let hits = 0;
+
+    // Search suttas
+    Object.entries(SUTTAS).forEach(([key, s]) => {
+      const hay = (s.my + ' ' + s.pali + ' ' + s.source + ' ' + s.context + ' ' + s.my_body.join(' ') + ' ' + s.pali_body.join(' ')).toLowerCase();
+      if (hay.includes(searchQuery)) {
+        const row = document.createElement('div');
+        row.className = 'book-card';
+        row.innerHTML = `<div class="b-head"><div><span class="b-my">${s.my}</span> <span class="b-name">· ${s.pali}</span></div><div><span class="b-count">📖 open</span></div></div><div class="b-desc">${s.source}</div>`;
+        row.onclick = () => { activeSutta = key; searchQuery = ''; $('searchInput').value = ''; renderContent(); };
+        list.appendChild(row);
+        hits++;
+      }
+    });
+    // Search books
+    PITAKAS.forEach(p => {
+      p.books.forEach(b => {
+        const hay = (b.my + ' ' + b.pali + ' ' + (b.desc || '')).toLowerCase();
+        if (hay.includes(searchQuery)) {
+          const row = document.createElement('div');
+          row.className = 'book-card';
+          row.innerHTML = `<div class="b-head"><div><span class="b-my">${b.my}</span> <span class="b-name">· ${b.pali}</span></div><div><span class="b-count">${p.my}</span></div></div><div class="b-desc">${b.desc || ''}</div>`;
+          row.onclick = () => { activePitaka = p.id; searchQuery = ''; $('searchInput').value = ''; renderPitakaNav(); renderContent(); };
+          list.appendChild(row);
+          hits++;
+        }
+      });
+    });
+
+    if (!hits) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-mute);font-style:italic;">မတွေ့ပါ။ (No matches.)</div>';
+    c.appendChild(list);
+  });
+
+  $('favToggle').onclick = () => {
+    const favs = favSet();
+    if (!favs.size) { toast('No favorites yet'); return; }
+    const c = $('content');
+    c.innerHTML = '';
+    const header = document.createElement('div');
+    header.innerHTML = `<div class="section-title">⭐ ကြိုက်နှစ်သက်ရာ · Favorites</div><div class="section-sub">${favs.size} suttas</div>`;
+    c.appendChild(header);
+    const list = document.createElement('div'); list.className = 'book-list';
+    favs.forEach(key => {
+      const s = SUTTAS[key]; if (!s) return;
+      const row = document.createElement('div');
+      row.className = 'book-card';
+      row.innerHTML = `<div class="b-head"><div><span class="b-my">${s.my}</span> <span class="b-name">· ${s.pali}</span></div><div><span class="b-count">📖 open</span></div></div><div class="b-desc">${s.source}</div>`;
+      row.onclick = () => { activeSutta = key; renderContent(); };
+      list.appendChild(row);
+    });
+    c.appendChild(list);
+  };
+
+  // Init
+  renderPitakaNav();
+  renderContent();
+</script>
+</body>
+</html>

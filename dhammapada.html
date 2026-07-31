@@ -6629,8 +6629,8 @@ function verseCard(v, opts = {}) {
         <span class="verse-no">Verse ${v.no} · ${ch ? ch.myanmar : ''} ${opts.daily ? '<span class="daily-badge">Today</span>' : ''}</span>
         <button class="bookmark-btn ${bookmarked ? 'on' : ''}" data-no="${v.no}" title="Bookmark">${bookmarked ? '★' : '☆'}</button>
       </div>
-      <div class="pali"><span class="label">Pali</span>${escape(v.pali)}</div>
       <div class="mm"><span class="label">မြန်မာ</span>${escape(v.myanmar)}</div>
+      <div class="pali"><span class="label">Pāli</span>${escape(v.pali)}</div>
       <div class="en"><span class="label">English</span>${escape(v.english)}</div>
       ${storyBlock}
     </div>
@@ -6670,8 +6670,8 @@ function render() {
               <span class="verse-no">Verse ${v.no} · ${ch ? ch.myanmar : ''} <span class="daily-badge">Today</span></span>
               <button class="bookmark-btn ${state.bookmarks.has(v.no) ? 'on' : ''}" data-no="${v.no}" title="Bookmark">${state.bookmarks.has(v.no) ? '★' : '☆'}</button>
             </div>
-            <div class="pali"><span class="label">Pali</span>${escape(v.pali)}</div>
             <div class="mm"><span class="label">မြန်မာ</span>${escape(v.myanmar)}</div>
+            <div class="pali"><span class="label">Pāli</span>${escape(v.pali)}</div>
             <div class="en"><span class="label">English</span>${escape(v.en || v.english)}</div>
             <div class="verse-actions">
               <button class="action-btn" id="flip-to-story">📜 ဇာတ်လမ်း ပြရန် (Flip)</button>
@@ -6792,13 +6792,37 @@ function render() {
     return;
   } else if (state.query) {
     const q = state.query.toLowerCase();
-    const hits = state.data.verses.filter(v =>
-      v.pali.toLowerCase().includes(q) ||
-      v.myanmar.includes(state.query) ||
-      v.english.toLowerCase().includes(q) ||
-      String(v.no) === state.query
-    );
-    header.innerHTML = `<h2 class="chapter-title">Search</h2><p class="chapter-sub">${hits.length} result(s) for "${escape(state.query)}"</p>`;
+    const hits = state.data.verses.filter(v => {
+      const story = state.stories[v.no];
+      const inVerse =
+        v.pali.toLowerCase().includes(q) ||
+        v.myanmar.includes(state.query) ||
+        v.english.toLowerCase().includes(q) ||
+        String(v.no) === state.query;
+      const inStory = story && (
+        (story.title || '').toLowerCase().includes(q) ||
+        (story.title || '').includes(state.query) ||
+        (story.chars || '').toLowerCase().includes(q) ||
+        (story.chars || '').includes(state.query) ||
+        (story.text || '').toLowerCase().includes(q) ||
+        (story.text || '').includes(state.query) ||
+        (story.moral || '').toLowerCase().includes(q) ||
+        (story.moral || '').includes(state.query)
+      );
+      return inVerse || inStory;
+    });
+    // Count separately for clarity
+    const storyOnly = hits.filter(v => {
+      const story = state.stories[v.no]; if (!story) return false;
+      const inVerse =
+        v.pali.toLowerCase().includes(q) ||
+        v.myanmar.includes(state.query) ||
+        v.english.toLowerCase().includes(q) ||
+        String(v.no) === state.query;
+      return !inVerse;
+    }).length;
+    const storyNote = storyOnly ? ` <span style="color:var(--muted);font-size:12px;">(${storyOnly} matched inside stories)</span>` : '';
+    header.innerHTML = `<h2 class="chapter-title">Search</h2><p class="chapter-sub">${hits.length} result(s) for "${escape(state.query)}"${storyNote}</p>`;
     container.innerHTML = hits.length ? hits.map(v => verseCard(v)).join('') : `<div class="empty">မတွေ့ပါ။</div>`;
   } else {
     const ch = state.data.chapters.find(c => c.id === state.currentChapter);

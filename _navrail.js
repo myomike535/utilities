@@ -38,6 +38,7 @@
     { href: 'StudyRoom.html',                      icon: 'study',      label: 'Study Room',     color: '#f59e0b' },
     { href: 'dhammapada.html',                     icon: 'book',       label: 'Dhammapada',     color: '#c62d2d' },
     { href: 'jataka550.html',                      icon: 'scroll',     label: 'Jataka 550',     color: '#b8860b' },
+    { href: 'tipitaka.html',                       icon: 'book',       label: 'Tipiṭaka',       color: '#8b6f47' },
   ];
 
   // ---- Styles (scoped by .nr- prefix, so no collisions with host page) ----
