@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="parchment">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ပုတီးစိပ် · Mala Counter</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8b6f47">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  :root, [data-theme="parchment"] {
+    --bg-1: #f0d5a0; --bg-2: #e2c185;
+    --paper: #fbeed0; --paper-2: #f5e2b4; --paper-3: #eed99f;
+    --ink: #2d2115; --ink-dim: #6b5738; --ink-mute: #a08967;
+    --accent: #c62d2d; --accent-2: #8b6f47; --gold: #b8860b;
+    --border: #d4b075; --border-soft: #e2c58a;
+    --shadow: 0 8px 24px rgba(139,100,40,0.22);
+    --bead: #8b5a2b; --bead-lit: #c62d2d;
+    --serif: 'Georgia','Cambria','Times New Roman',serif;
+    --sans: 'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',system-ui,sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg-1: #1a1310; --bg-2: #2a1e18;
+    --paper: #2f231a; --paper-2: #3a2c22; --paper-3: #453629;
+    --ink: #f5e2b4; --ink-dim: #c9ac74; --ink-mute: #8a7654;
+    --accent: #e8a3a3; --accent-2: #d4b075; --gold: #ffd76a;
+    --border: #4a3a2a; --border-soft: #3a2c22;
+    --shadow: 0 8px 24px rgba(0,0,0,0.5);
+    --bead: #6b4522; --bead-lit: #e8a3a3;
+  }
+  [data-theme="royal"] {
+    --bg-1: #1a1830; --bg-2: #2d2650;
+    --paper: #241e42; --paper-2: #2d2650; --paper-3: #362e5d;
+    --ink: #f2d98a; --ink-dim: #d4b56a; --ink-mute: #9b8248;
+    --accent: #ffd76a; --accent-2: #b8860b; --gold: #ffd76a;
+    --border: #4a3d78; --border-soft: #362e58;
+    --shadow: 0 12px 32px rgba(0,0,0,0.55);
+    --bead: #4a3d78; --bead-lit: #ffd76a;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--sans); -webkit-tap-highlight-color: transparent; }
+  body {
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex; justify-content: center;
+    padding: 20px 14px;
+    user-select: none;
+  }
+  .app {
+    background: var(--paper);
+    max-width: 480px; width: 100%;
+    border-radius: 12px;
+    padding: 24px 26px 30px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    display: flex; flex-direction: column;
+    align-items: center;
+  }
+
+  header {
+    width: 100%;
+    display: flex; align-items: center; gap: 12px;
+    padding-bottom: 16px; margin-bottom: 8px;
+    border-bottom: 1.5px solid var(--border-soft);
+  }
+  header .title { flex: 1; }
+  header h1 {
+    font-family: var(--serif); font-style: italic;
+    color: var(--accent); font-size: 1.5rem; font-weight: 600;
+  }
+  header .sub { color: var(--ink-dim); font-size: 0.78rem; font-style: italic; font-family: var(--serif); margin-top: 2px; }
+  .icon-btn {
+    width: 34px; height: 34px; border-radius: 6px;
+    border: 1px solid var(--border); background: transparent;
+    color: var(--ink-dim); cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.95rem; text-decoration: none; transition: all 0.15s;
+  }
+  .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .header-actions { display: flex; gap: 6px; }
+
+  /* Mantra picker */
+  .mantra-row { width: 100%; margin: 14px 0 6px; }
+  .mantra-row select {
+    width: 100%; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--paper-2); color: var(--ink);
+    font-size: 0.95rem; font-family: var(--sans); outline: none; cursor: pointer;
+  }
+  .mantra-display {
+    font-family: var(--serif); font-style: italic;
+    color: var(--accent-2); font-size: 0.92rem;
+    text-align: center; margin: 8px 0 4px; min-height: 22px;
+    line-height: 1.5;
+  }
+
+  /* Ring of beads */
+  .ring-wrap { position: relative; width: 260px; height: 260px; margin: 12px 0; }
+  .bead-svg { width: 100%; height: 100%; }
+  .bead-svg circle.b { transition: fill 0.15s, r 0.15s; }
+  .center-count {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .center-count .num {
+    font-family: var(--serif); font-weight: 700;
+    color: var(--accent); font-size: 3.4rem; line-height: 1;
+    font-variant-numeric: tabular-nums;
+  }
+  .center-count .of { color: var(--ink-mute); font-size: 0.9rem; margin-top: 2px; }
+  .center-count .rounds { color: var(--gold); font-size: 0.82rem; margin-top: 6px; font-weight: 600; }
+
+  /* Big tap button */
+  .tap-btn {
+    width: 100%; max-width: 320px;
+    padding: 22px; margin-top: 8px;
+    border: none; border-radius: 16px;
+    background: linear-gradient(135deg, var(--accent), var(--accent-2));
+    color: #fff; font-size: 1.3rem; font-weight: 700;
+    cursor: pointer; font-family: var(--sans);
+    box-shadow: 0 6px 18px rgba(198,45,45,0.35);
+    transition: transform 0.08s;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+  }
+  .tap-btn:active { transform: scale(0.96); }
+  .tap-hint { color: var(--ink-mute); font-size: 0.75rem; font-style: italic; margin-top: 8px; text-align: center; }
+
+  /* Controls */
+  .controls { display: flex; gap: 8px; margin-top: 16px; width: 100%; }
+  .ctl-btn {
+    flex: 1; padding: 10px; border-radius: 8px;
+    border: 1px solid var(--border); background: var(--paper-2);
+    color: var(--ink); cursor: pointer; font-size: 0.85rem; font-family: var(--sans);
+    transition: all 0.15s;
+  }
+  .ctl-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .ctl-btn.danger:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Stats */
+  .stats {
+    display: flex; justify-content: space-around; width: 100%;
+    margin-top: 18px; padding-top: 16px;
+    border-top: 1px dashed var(--border-soft);
+  }
+  .stat { text-align: center; }
+  .stat .v { font-family: var(--serif); font-weight: 700; color: var(--accent); font-size: 1.5rem; }
+  .stat .l { color: var(--ink-mute); font-size: 0.72rem; margin-top: 2px; }
+
+  /* Goal */
+  .goal-row {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; margin-top: 14px;
+    font-size: 0.85rem; color: var(--ink-dim);
+  }
+  .goal-row input {
+    width: 64px; padding: 6px 8px; border: 1px solid var(--border);
+    border-radius: 6px; background: var(--paper-2); color: var(--ink);
+    text-align: center; font-family: var(--sans); outline: none;
+  }
+  .goal-bar { flex: 1; height: 6px; background: var(--paper-3); border-radius: 3px; overflow: hidden; }
+  .goal-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); transition: width 0.3s; }
+
+  .badge-complete {
+    margin-top: 12px; padding: 8px 16px;
+    background: var(--gold); color: #2d2115;
+    border-radius: 999px; font-weight: 700; font-size: 0.9rem;
+    animation: pop 0.4s cubic-bezier(.34,1.56,.64,1);
+  }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+
+  .toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--paper); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 16px; box-shadow: var(--shadow);
+    font-size: 0.85rem; opacity: 0; pointer-events: none;
+    transition: all 0.25s; z-index: 1000;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
+
+  .vue-badge {
+    font-size: 0.62rem; color: var(--ink-mute);
+    background: rgba(66,184,131,0.15); border: 1px solid rgba(66,184,131,0.4);
+    padding: 1px 6px; border-radius: 4px; margin-left: 6px;
+  }
+
+  @media (max-width: 480px) {
+    .app { padding: 18px 18px 24px; }
+    .ring-wrap { width: 230px; height: 230px; }
+    .center-count .num { font-size: 3rem; }
+  }
+</style>
+</head>
+<body>
+  <div id="app">
+    <div class="app">
+      <header>
+        <div class="title">
+          <h1>ပုတီးစိပ် <span class="vue-badge">Vue</span></h1>
+          <div class="sub">Mala Counter · 108 beads</div>
+        </div>
+        <div class="header-actions">
+          <a class="icon-btn" href="index.html" title="Home">🏠</a>
+          <button class="icon-btn" @click="cycleTheme" :title="'Theme: ' + theme">📜</button>
+        </div>
+      </header>
+
+      <div class="mantra-row">
+        <select v-model="mantraIdx">
+          <option v-for="(m, i) in mantras" :key="i" :value="i">{{ m.my }}</option>
+        </select>
+      </div>
+      <div class="mantra-display">{{ mantras[mantraIdx].text }}</div>
+
+      <!-- Bead ring -->
+      <div class="ring-wrap">
+        <svg class="bead-svg" viewBox="0 0 200 200">
+          <circle
+            v-for="(b, i) in beadPositions" :key="i"
+            class="b"
+            :cx="b.x" :cy="b.y"
+            :r="i < count ? 4.5 : 3.2"
+            :fill="i < count ? 'var(--bead-lit)' : 'var(--bead)'"
+            :opacity="i < count ? 1 : 0.45"
+          />
+        </svg>
+        <div class="center-count">
+          <div class="num">{{ count }}</div>
+          <div class="of">/ {{ beadsPerRound }}</div>
+          <div class="rounds" v-if="rounds > 0">🔵 {{ rounds }} ပတ်ပြီး</div>
+        </div>
+      </div>
+
+      <button class="tap-btn" @click="tap">
+        <span>📿</span> စိပ်မည် (Tap)
+      </button>
+      <div class="tap-hint">Spacebar သို့ tap နှိပ်၍ ရေတွက်ပါ · အသံ/တုန်ခါမှု ပေးသည်</div>
+
+      <div class="badge-complete" v-if="justCompleted">🎉 {{ beadsPerRound }} လုံး ပြည့်ပြီ — {{ rounds }} ပတ်!</div>
+
+      <div class="controls">
+        <button class="ctl-btn" @click="undo" :disabled="count === 0 && rounds === 0">↩ ပြန်ဖြုတ်</button>
+        <button class="ctl-btn" @click="toggleSound">{{ soundOn ? '🔔 အသံ ON' : '🔕 အသံ OFF' }}</button>
+        <button class="ctl-btn danger" @click="reset">🔄 အသစ်</button>
+      </div>
+
+      <!-- Daily goal -->
+      <div class="goal-row">
+        <span>ပန်းတိုင်:</span>
+        <input type="number" v-model.number="goalRounds" min="1" max="999">
+        <span>ပတ်</span>
+        <div class="goal-bar"><div class="goal-fill" :style="{ width: goalPct + '%' }"></div></div>
+        <span>{{ goalPct }}%</span>
+      </div>
+
+      <div class="stats">
+        <div class="stat"><div class="v">{{ totalBeads.toLocaleString() }}</div><div class="l">စုစုပေါင်း လုံး</div></div>
+        <div class="stat"><div class="v">{{ totalRounds }}</div><div class="l">စုစုပေါင်း ပတ်</div></div>
+        <div class="stat"><div class="v">{{ todayRounds }}</div><div class="l">ယနေ့ ပတ်</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script>
+  const { createApp, ref, computed, watch, onMounted, onUnmounted } = Vue;
+
+  createApp({
+    setup() {
+      const STORE = 'mala.counter.v1';
+      const THEME_KEY = 'tipitaka.theme'; // share Dhamma-tool theme
+      const THEMES = ['parchment', 'dark', 'royal'];
+
+      // ---- Persistent state ----
+      const load = () => { try { return JSON.parse(localStorage.getItem(STORE) || '{}'); } catch { return {}; } };
+      const saved = load();
+
+      const theme = ref(localStorage.getItem(THEME_KEY) || 'parchment');
+      const count = ref(saved.count || 0);
+      const rounds = ref(saved.rounds || 0);
+      const totalBeads = ref(saved.totalBeads || 0);
+      const totalRounds = ref(saved.totalRounds || 0);
+      const goalRounds = ref(saved.goalRounds || 3);
+      const soundOn = ref(saved.soundOn !== false);
+      const mantraIdx = ref(saved.mantraIdx || 0);
+      const beadsPerRound = ref(108);
+      const justCompleted = ref(false);
+
+      // Today's rounds — reset if date changed
+      const today = new Date().toDateString();
+      const todayRounds = ref(saved.todayDate === today ? (saved.todayRounds || 0) : 0);
+
+      const mantras = [
+        { my: 'ဗုဒ္ဓါနုဿတိ', text: 'အရဟံ သမ္မာသမ္ဗုဒ္ဓေါ · Buddho' },
+        { my: 'ဓမ္မာနုဿတိ', text: 'သွာက္ခာတော ဘဂဝတာ ဓမ္မော · Dhammo' },
+        { my: 'သံဃာနုဿတိ', text: 'သုပ္ပဋိပန္နော ဘဂဝတော သာဝကသံဃော · Saṅgho' },
+        { my: 'မေတ္တာ', text: 'သဗ္ဗေ သတ္တာ သုခိတာ ဟောန္တု · May all beings be happy' },
+        { my: 'အနိစ္စ', text: 'အနိစ္စာ ဝတ သင်္ခါရာ · All things are impermanent' },
+        { my: 'နမော (၃ ကြိမ်)', text: 'နမော တဿ ဘဂဝတော အရဟတော သမ္မာသမ္ဗုဒ္ဓဿ' },
+        { my: 'ဗုဒ္ဓံ သရဏံ', text: 'ဗုဒ္ဓံ သရဏံ ဂစ္ဆာမိ' },
+        { my: '(လွတ်လပ်)', text: 'ကိုယ်ပိုင် ဂါထာ / ရွတ်ဖတ်ချက်' },
+      ];
+
+      // ---- Bead ring positions (108 beads in a circle) ----
+      const beadPositions = computed(() => {
+        const n = beadsPerRound.value;
+        const cx = 100, cy = 100, r = 88;
+        return Array.from({ length: n }, (_, i) => {
+          const ang = (i / n) * 2 * Math.PI - Math.PI / 2;
+          return { x: cx + r * Math.cos(ang), y: cy + r * Math.sin(ang) };
+        });
+      });
+
+      const goalPct = computed(() => Math.min(100, Math.round((todayRounds.value / Math.max(1, goalRounds.value)) * 100)));
+
+      // ---- Persist reactively ----
+      function persist() {
+        localStorage.setItem(STORE, JSON.stringify({
+          count: count.value, rounds: rounds.value,
+          totalBeads: totalBeads.value, totalRounds: totalRounds.value,
+          goalRounds: goalRounds.value, soundOn: soundOn.value, mantraIdx: mantraIdx.value,
+          todayDate: today, todayRounds: todayRounds.value,
+        }));
+      }
+      watch([count, rounds, totalBeads, totalRounds, goalRounds, soundOn, mantraIdx, todayRounds], persist);
+
+      // ---- Sound + haptics ----
+      let audioCtx = null;
+      function ping(freq = 660, dur = 0.08) {
+        if (!soundOn.value) return;
+        try {
+          audioCtx = audioCtx || new (window.AudioContext || window.webkitAudioContext)();
+          const o = audioCtx.createOscillator(), g = audioCtx.createGain();
+          o.frequency.value = freq; o.type = 'sine';
+          g.gain.setValueAtTime(0.15, audioCtx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + dur);
+          o.connect(g); g.connect(audioCtx.destination);
+          o.start(); o.stop(audioCtx.currentTime + dur);
+        } catch {}
+      }
+      function haptic(ms = 15) { if (navigator.vibrate) navigator.vibrate(ms); }
+
+      // ---- Actions ----
+      function tap() {
+        count.value++;
+        totalBeads.value++;
+        justCompleted.value = false;
+        if (count.value >= beadsPerRound.value) {
+          // Round complete
+          count.value = 0;
+          rounds.value++;
+          totalRounds.value++;
+          todayRounds.value++;
+          justCompleted.value = true;
+          ping(880, 0.25); haptic([30, 40, 30]);
+          setTimeout(() => { justCompleted.value = false; }, 2500);
+          if (todayRounds.value === goalRounds.value) {
+            toast('🎯 ယနေ့ ပန်းတိုင် ပြည့်ပါပြီ! သာဓု!');
+            ping(1040, 0.4);
+          }
+        } else {
+          ping(); haptic();
+        }
+      }
+      function undo() {
+        if (count.value > 0) { count.value--; if (totalBeads.value > 0) totalBeads.value--; }
+        else if (rounds.value > 0) {
+          rounds.value--; count.value = beadsPerRound.value - 1;
+          if (totalRounds.value > 0) totalRounds.value--;
+          if (todayRounds.value > 0) todayRounds.value--;
+          if (totalBeads.value > 0) totalBeads.value--;
+        }
+      }
+      function reset() {
+        if (!confirm('လက်ရှိ ရေတွက်မှုကို အသစ်ပြန်စမလား? (စုစုပေါင်း မှတ်တမ်း မပျက်ပါ)')) return;
+        count.value = 0; rounds.value = 0;
+        toast('🔄 အသစ် ပြန်စပါပြီ');
+      }
+      function toggleSound() { soundOn.value = !soundOn.value; if (soundOn.value) ping(); }
+      function cycleTheme() {
+        const i = THEMES.indexOf(theme.value);
+        theme.value = THEMES[(i + 1) % THEMES.length];
+      }
+      watch(theme, t => { document.documentElement.dataset.theme = t; localStorage.setItem(THEME_KEY, t); });
+      document.documentElement.dataset.theme = theme.value;
+
+      // Toast helper
+      let toastTimer;
+      function toast(msg) {
+        const el = document.getElementById('toast');
+        el.textContent = msg; el.classList.add('show');
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => el.classList.remove('show'), 2400);
+      }
+
+      // Spacebar to tap
+      function onKey(e) {
+        if (e.code === 'Space' && document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'SELECT') {
+          e.preventDefault(); tap();
+        }
+      }
+      onMounted(() => window.addEventListener('keydown', onKey));
+      onUnmounted(() => window.removeEventListener('keydown', onKey));
+
+      return {
+        theme, count, rounds, totalBeads, totalRounds, goalRounds, soundOn, mantraIdx,
+        beadsPerRound, justCompleted, todayRounds, mantras, beadPositions, goalPct,
+        tap, undo, reset, toggleSound, cycleTheme,
+      };
+    },
+  }).mount('#app');
+</script>
+</body>
+</html>

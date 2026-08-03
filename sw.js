@@ -3,7 +3,7 @@
 // offline fallback for navigation to any cached tool.
 // Bump CACHE_VERSION to force clients to fetch fresh copies.
 
-const CACHE_VERSION = 'utilities-v22';
+const CACHE_VERSION = 'utilities-v23';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -23,6 +23,8 @@ const PRECACHE_URLS = [
   './dhammapada.html',
   './jataka550.html',
   './tipitaka.html',
+  './MalaCounter.html',
+  './vue.global.prod.js',
   './_palette.js',
   './_navrail.js',
   './_ui.js',
