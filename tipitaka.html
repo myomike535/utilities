@@ -241,6 +241,19 @@
     font-size: 0.88rem;
     line-height: 1.7;
   }
+  .book-card .b-dl {
+    background: transparent;
+    border: 1px solid var(--accent-2);
+    color: var(--accent-2);
+    border-radius: 6px;
+    padding: 2px 7px;
+    font-size: 0.68rem;
+    cursor: pointer;
+    font-family: var(--sans);
+    margin-left: 3px;
+    transition: all 0.15s;
+  }
+  .book-card .b-dl:hover { background: var(--accent-2); color: #fff; }
   .book-card .b-children {
     margin-top: 12px;
     padding-top: 10px;
@@ -1542,6 +1555,7 @@
             <span class="b-name">· ${book.pali}</span>
           </div>
           <div>
+            ${book._fetched ? `<button class="b-dl" data-dl="md" title="Markdown ဒေါင်းလုဒ်">⬇ MD</button><button class="b-dl" data-dl="json" title="JSON ဒေါင်းလုဒ်">⬇ JSON</button> ` : ''}
             ${book.suttaCount ? `<span class="b-count">${book.suttaCount} entries</span> ` : ''}
             ${book.children?.length || SUTTAS[book.key] ? '<span class="b-chev">▶</span>' : ''}
           </div>
@@ -1549,6 +1563,15 @@
         <div class="b-desc">${book.desc || ''}</div>
         <div class="b-children"></div>
       `;
+      // Wire download buttons on fetched groups
+      if (book._fetched) {
+        card.querySelectorAll('.b-dl').forEach(btn => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            downloadGroup(book, btn.dataset.dl);
+          };
+        });
+      }
       const children = card.querySelector('.b-children');
       if (book.children?.length) {
         book.children.forEach(ch => {
@@ -1966,23 +1989,99 @@
   });
 
   // Add fetched suttas as a virtual book at the bottom of Sutta Piṭaka
+  // Nikāya display names (Myanmar) keyed by SuttaCentral uid prefix
+  const NIKAYA_NAMES = {
+    dn:  'ဒီဃနိကာယ်',        mn:  'မဇ္ဈိမနိကာယ်',    sn:  'သံယုတ္တနိကာယ်',
+    an:  'အင်္ဂုတ္တရနိကာယ်',  kp:  'ခုဒ္ဒကပါဌ',       dhp: 'ဓမ္မပဒ',
+    snp: 'သုတ်နိပါတ်',       ud:  'ဥဒါန်',          iti: 'ဣတိဝုတ်',
+    thag:'ထေရဂါထာ',        thig:'ထေရီဂါထာ',       vv:  'ဝိမာနဝတ္ထု',
+    pv:  'ပေတဝတ္ထု',        ja:  'ဇာတ်',           bv:  'ဗုဒ္ဓဝင်',
+  };
+  function nikayaOf(uid) {
+    const m = uid.match(/^([a-z]+)/);
+    return m ? m[1] : 'other';
+  }
+  // Numeric-aware sort for uids like dn1, dn12, sn56.11
+  function uidNumKey(uid) {
+    return uid.replace(/[a-z]+/gi, '').split('.').map(n => parseInt(n, 10) || 0);
+  }
+
+  // Download a fetched nikāya group as Markdown or JSON
+  function downloadGroup(book, format) {
+    const keys = (book.children || []).map(ch => ch.key).filter(k => SUTTAS[k]);
+    if (!keys.length) { toast('ဒေါင်းလုဒ်ရန် data မရှိ'); return; }
+    const nkLabel = (book.pali || 'suttas').replace(/[^a-zA-Z0-9]+/g, '_');
+    let blob, fname;
+
+    if (format === 'json') {
+      const out = { meta: { source: 'SuttaCentral', group: book.my, exportedAt: new Date().toISOString(), count: keys.length }, suttas: {} };
+      keys.forEach(k => { out.suttas[k] = SUTTAS[k]; });
+      blob = new Blob([JSON.stringify(out, null, 2)], { type: 'application/json' });
+      fname = `tipitaka_${nkLabel}.json`;
+    } else {
+      // Markdown — readable Myanmar-first
+      const parts = [`# ${book.my}`, '', `_${keys.length} suttas · SuttaCentral · ${new Date().toLocaleDateString()}_`, '', '---', ''];
+      keys.forEach(k => {
+        const s = SUTTAS[k];
+        parts.push(`## ${s.my} · ${s.pali}`, '', `*${s.source}*`, '');
+        if (s.context) parts.push(`> ${s.context}`, '');
+        parts.push('### မြန်မာ', '', ...s.my_body, '');
+        if (s.pali_body?.length) parts.push('### Pāḷi', '', ...s.pali_body, '');
+        parts.push('', '---', '');
+      });
+      blob = new Blob([parts.join('\n')], { type: 'text/markdown;charset=utf-8' });
+      fname = `tipitaka_${nkLabel}.md`;
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url; a.download = fname; a.click();
+    URL.revokeObjectURL(url);
+    toast(`⬇ ${keys.length} suttas · ${format.toUpperCase()}`);
+  }
+
   function injectFetchedBook() {
     const keys = Object.keys(fetchedSuttas);
-    if (!keys.length) return;
     const sutta = PITAKAS.find(p => p.id === 'sutta');
-    // Remove any prior injected book
+    // Remove any prior injected books
     sutta.books = sutta.books.filter(b => !b._fetched);
-    sutta.books.push({
-      _fetched: true,
-      my: '🌐 SuttaCentral မှ ရယူထားသော သုတ်များ',
-      pali: 'Fetched Suttas',
-      desc: `${keys.length} suttas ရယူပြီး (offline သိမ်းထား)`,
-      children: keys.map(k => ({
-        my: fetchedSuttas[k].my,
-        pali: fetchedSuttas[k].pali,
-        count: '📖',
-        key: k,
-      })),
+    if (!keys.length) return;
+
+    // Group fetched suttas by nikāya
+    const groups = {};
+    keys.forEach(k => {
+      const uid = k.replace(/^sc-/, '');
+      const nk = nikayaOf(uid);
+      (groups[nk] = groups[nk] || []).push({ key: k, uid });
+    });
+
+    // Order groups by canonical sequence
+    const ORDER = ['dn','mn','sn','an','kp','dhp','ud','iti','snp','vv','pv','thag','thig','ja','bv','other'];
+    const orderedNks = Object.keys(groups).sort((a, b) => {
+      const ia = ORDER.indexOf(a), ib = ORDER.indexOf(b);
+      return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib);
+    });
+
+    orderedNks.forEach(nk => {
+      const items = groups[nk].sort((a, b) => {
+        const na = uidNumKey(a.uid), nb = uidNumKey(b.uid);
+        for (let i = 0; i < Math.max(na.length, nb.length); i++) {
+          if ((na[i] || 0) !== (nb[i] || 0)) return (na[i] || 0) - (nb[i] || 0);
+        }
+        return 0;
+      });
+      sutta.books.push({
+        _fetched: true,
+        my: `🌐 ${NIKAYA_NAMES[nk] || nk.toUpperCase()} — ရယူထားသော`,
+        pali: `Fetched · ${nk.toUpperCase()}`,
+        desc: `${items.length} suttas · offline သိမ်းထား`,
+        children: items.map(({ key, uid }) => ({
+          my: fetchedSuttas[key].my || uid,
+          pali: uid.toUpperCase(),
+          count: '📖',
+          key,
+        })),
+      });
     });
   }
 
