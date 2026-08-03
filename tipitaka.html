@@ -345,7 +345,52 @@
     color: var(--ink-mute);
     font-style: normal;
     font-weight: 600;
-    margin-bottom: 6px;
+    margin-bottom: 10px;
+  }
+
+  /* Smart paragraphs */
+  .sutta .lang .sp-para {
+    margin: 0 0 12px 0;
+    line-height: 1.95;
+  }
+  .sutta .lang .sp-para:last-child { margin-bottom: 0; }
+  .sutta .lang .sp-para strong {
+    color: var(--accent);
+    font-weight: 700;
+  }
+  .sutta .lang.pali .sp-para { line-height: 1.75; }
+  /* Heading paragraph — section marker */
+  .sutta .lang .sp-heading {
+    margin-top: 6px;
+    padding: 6px 0 4px;
+    border-bottom: 1px solid var(--line);
+    font-weight: 600;
+  }
+  .sutta .lang .sp-heading strong {
+    color: var(--accent);
+    font-size: 1.02em;
+  }
+  /* Numbered list item — hanging indent + gold marker feel */
+  .sutta .lang .sp-numbered {
+    padding-left: 14px;
+    border-left: 2px solid var(--gold);
+    margin-left: 2px;
+  }
+  /* Quoted speech (Buddha's words) — indented, distinct */
+  .sutta .lang.my .sp-quote {
+    padding: 8px 12px;
+    background: rgba(198,45,45,0.06);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 6px 6px 0;
+    font-weight: 500;
+  }
+  [data-theme="dark"] .sutta .lang.my .sp-quote { background: rgba(232,163,163,0.08); }
+  [data-theme="royal"] .sutta .lang.my .sp-quote { background: rgba(255,215,106,0.08); }
+  /* Editorial note — muted, smaller */
+  .sutta .lang .sp-note {
+    color: var(--ink-mute);
+    font-style: italic;
+    font-size: 0.9em;
   }
   .sutta .s-actions {
     display: flex; gap: 6px;
@@ -496,6 +541,9 @@
         <a class="icon-btn" href="index.html" title="Home">🏠</a>
         <button class="icon-btn" id="themeBtn" title="Theme">📜</button>
         <button class="icon-btn" id="favToggle" title="Favorites">⭐</button>
+        <button class="icon-btn" id="importBtn" title="ပိဋကတ် Data ထည့်သွင်းရန် · Import full Tipiṭaka data (JSON)">⬆</button>
+        <button class="icon-btn" id="dataBtn" title="Imported data status">💾</button>
+        <input type="file" id="importFile" accept="application/json,.json" style="display:none">
       </div>
     </header>
 
@@ -631,7 +679,7 @@
   // SELECTED FAMOUS SUTTAS — full text with Myanmar leading
   // ═══════════════════════════════════════════════════════════════
 
-  const SUTTAS = {
+  const EMBEDDED_SUTTAS = {
     'kp-mangala': {
       my: 'မင်္ဂလသုတ်',
       pali: 'Maṅgala Sutta',
@@ -932,6 +980,129 @@
       external: 'https://www.tipitaka.org/romn/',
     },
 
+    'sn-parabhava': {
+      my: 'ပရာဘဝသုတ် (ဆုတ်ယုတ်ခြင်း သုတ်)',
+      pali: 'Parābhava Sutta',
+      source: 'သုတ်နိပါတ် (Sutta Nipāta 1.6) · ခုဒ္ဒကနိကာယ်',
+      context: 'မင်္ဂလသုတ်၏ ဆန့်ကျင်ဘက်။ နတ်တစ်ဦးက "ဆုတ်ယုတ်စေတတ်သော အကြောင်းများ ဘယ်တွေလဲ" ဟု မေးရာ ဟော။ လူ့ဘဝ ကျဆင်းစေတတ်သော အကျင့်များကို ဖော်ပြသည်။',
+      my_body: [
+        'နတ်: "ဆုတ်ယုတ်နေသော သူ့အကြောင်းကို မေးပါရစေ။ ဘာကြောင့် ဆုတ်ယုတ်ရသနည်း?"',
+        'မြတ်စွာဘုရား: "တိုးတက်သူကို သိရ လွယ်၏။ ဆုတ်ယုတ်သူကိုလည်း သိရ လွယ်၏။ တရားကို ချစ်သူ တိုးတက်၏။ တရားကို မုန်းသူ ဆုတ်ယုတ်၏။"',
+        '"မကောင်းသူတို့ကို ချစ်ကြည်၍ ကောင်းသူတို့ကို မချစ်ခြင်း၊ မကောင်းသူတို့၏ တရားကို နှစ်သက်ခြင်း — ဤသည် ဆုတ်ယုတ်ခြင်း၏ အကြောင်းတည်း။"',
+        '"အိပ်ရာဝါသနာ ကြီးခြင်း၊ အပေါင်းအသင်း ဝါသနာ ကြီးခြင်း၊ မလုံ့လမရှိခြင်း၊ ပျင်းရိခြင်း၊ ဒေါသကြီးခြင်း — ဤသည် ဆုတ်ယုတ်ခြင်း၏ အကြောင်းတည်း။"',
+        '"ချမ်းသာစွာ နေနိုင်ပါလျက် အိုမင်းသော မိဘကို မလုပ်ကျွေးခြင်း — ဤသည် ဆုတ်ယုတ်ခြင်း၏ အကြောင်းတည်း။"',
+        '"ရဟန်း၊ ပုဏ္ဏား၊ တောင်းရမ်းသူတို့ကို မုသားဖြင့် လှည့်စားခြင်း — ဤသည် ဆုတ်ယုတ်ခြင်း၏ အကြောင်းတည်း။"',
+        '"ဥစ္စာ များစွာ ရှိပါလျက် တစ်ဦးတည်း စားခြင်း (မဝေမျှခြင်း) — ဤသည် ဆုတ်ယုတ်ခြင်း၏ အကြောင်းတည်း။"',
+        '"အမျိုးဇာတ်၊ ဥစ္စာ၊ အမျိုးအနွယ်ကို မာနတက်၍ မိမိဆွေမျိုးကို မထီမဲ့မြင်ပြုခြင်း — ဤသည် ဆုတ်ယုတ်ခြင်း၏ အကြောင်းတည်း။"',
+        '"မိန်းမ၊ အရက်၊ လောင်းကစား ဝါသနာ ကြီး၍ ရသမျှ ဥစ္စာကို ဖျက်ဆီးခြင်း — ဤသည် ဆုတ်ယုတ်ခြင်း၏ အကြောင်းတည်း။"',
+        '"မိမိဇနီးဖြင့် မရောင့်ရဲ၍ ပြည့်တန်ဆာ၊ သူ့ဇနီးထံ သွားလာခြင်း — ဤသည် ဆုတ်ယုတ်ခြင်း၏ အကြောင်းတည်း။"',
+        '"အသက်ကြီးပြီးမှ နုနယ်သော မိန်းမငယ်ကို ယူ၍ မနာလိုစိတ်ဖြင့် အိပ်မပျော်ခြင်း — ဤသည် ဆုတ်ယုတ်ခြင်း၏ အကြောင်းတည်း။"',
+        '"ဤအကြောင်းများကို ပညာရှိသည် ရှုစား၍ ရှောင်ကြဉ်ရ၏။ ထိုသူသည် ချမ်းသာသော လောကသို့ ရောက်၏။"',
+      ],
+      pali_body: [
+        'Suvijāno bhavaṃ hoti, suvijāno parābhavo;\nDhammakāmo bhavaṃ hoti, dhammadessī parābhavo.',
+        'Asantassa piyā honti, sante na kurute piyaṃ;\nAsataṃ dhammaṃ roceti, taṃ parābhavato mukhaṃ.',
+        'Niddāsīlī sabhāsīlī, anuṭṭhātā ca yo naro;\nAlaso kodhapaññāṇo, taṃ parābhavato mukhaṃ.',
+        'Yo mātaraṃ vā pitaraṃ vā, jiṇṇakaṃ gatayobbanaṃ;\nPahusanto na bharati, taṃ parābhavato mukhaṃ.',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
+    'an-girimananda': {
+      my: 'ဂိရိမာနန္ဒသုတ် (ဆာဏ ၁၀ ပါး)',
+      pali: 'Girimānanda Sutta',
+      source: 'အင်္ဂုတ္တရနိကာယ် (Aṅguttara Nikāya 10.60) · ဒသကနိပါတ်',
+      context: 'ဂိရိမာနန္ဒ ရဟန်း ပြင်းစွာ နာမကျန်းဖြစ်ရာ အာနန္ဒာအား ဆာဏ ၁၀ ပါး ရွတ်ပြရန် စေခိုင်းသည်။ ရဟန်း ကြားနာပြီး ရောဂါ ပျောက်၏။ နာမကျန်းသူများ ရွတ်ဖတ်ရိုးရှိသော သုတ်။',
+      my_body: [
+        'အာနန္ဒာ — ဂိရိမာနန္ဒ ရဟန်းထံ သွား၍ ဤဆာဏ ၁၀ ပါးကို ရွတ်ပြပါ။ ကြားနာလျှင် သူ့ရောဂါ ငြိမ်းကောင်း ငြိမ်းနိုင်၏။',
+        '၁) **အနိစ္စဆာဏ** — ခန္ဓာ ၅ ပါး (ရုပ်၊ ဝေဒနာ၊ သညာ၊ သင်္ခါရ၊ ဝိညာဏ်) သည် အမြဲမတည်ဟု ရှုခြင်း။',
+        '၂) **အနတ္တဆာဏ** — ဆဋ္ဌ အာယတန (မျက်စိ၊ နား၊ နှာ၊ လျှာ၊ ကိုယ်၊ စိတ်နှင့် အာရုံများ) သည် ငါ မဟုတ်ဟု ရှုခြင်း။',
+        '၃) **အသုဘဆာဏ** — ဤကိုယ်ခန္ဓာသည် အစိတ်အပိုင်း ၃၂ မျိုးဖြင့် ဖွဲ့စည်း၍ မသန့်ရှင်းဟု ရှုခြင်း။',
+        '၄) **အာဒီနဝဆာဏ** — ဤကိုယ်သည် ရောဂါ များစွာ၏ အိမ်ဖြစ်၍ အန္တရာယ်များဟု ရှုခြင်း။',
+        '၅) **ပဟာနဆာဏ** — ဖြစ်ပေါ်လာသော အကုသိုလ်အကြံများကို လက်မခံ၊ စွန့်ပယ်ခြင်း။',
+        '၆) **ဝိရာဂဆာဏ** — "ဤသည် ငြိမ်းအေး၏၊ မွန်မြတ်၏ — အလုံးစုံ စွန့်ခြင်း၊ တဏှာကုန်ခြင်း၊ ရာဂကင်းခြင်း၊ နိဗ္ဗာန်" ဟု ရှုခြင်း။',
+        '၇) **နိရောဓဆာဏ** — အထက်ကဲ့သို့ တဏှာ၏ ချုပ်ငြိမ်းရာ နိဗ္ဗာန်ကို ရှုခြင်း။',
+        '၈) **သဗ္ဗလောကေ အနဘိရတဆာဏ** — လောကတစ်ခုလုံး၌ တွယ်တာမှု၊ တပ်မက်မှုကို မထားခြင်း။',
+        '၉) **သဗ္ဗသင်္ခါရေသု အနိစ္ဆာဆာဏ** — သင်္ခါရ အားလုံး၌ ငြီးငွေ့၍ ဆန္ဒမထားခြင်း။',
+        '၁၀) **အာနာပါနသတိ** — ဝင်ထွက်လေ၌ သတိထား၍ ရှုမှတ်ခြင်း။',
+        'အာနန္ဒာသည် ဤ ၁၀ ပါးကို ဂိရိမာနန္ဒထံ ရွတ်ပြရာ — ကြားနာပြီးချင်း ဂိရိမာနန္ဒ၏ ပြင်းထန်သော ရောဂါသည် ချက်ချင်း ငြိမ်းအေးသွား၏။',
+      ],
+      pali_body: [
+        'Sace kho tvaṃ, ānanda, girimānandassa bhikkhuno dasa saññā bhāseyyāsi, ṭhānaṃ kho panetaṃ vijjati yaṃ girimānandassa bhikkhuno dasa saññā sutvā so ābādho ṭhānaso paṭippassambheyya.',
+        'Katamā dasa? Aniccasaññā, anattasaññā, asubhasaññā, ādīnavasaññā, pahānasaññā, virāgasaññā, nirodhasaññā, sabbaloke anabhiratasaññā, sabbasaṅkhāresu aniccasaññā (aniṭṭhasaññā), ānāpānassati.',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
+    'sn-dhajagga': {
+      my: 'ဓဇဂ္ဂသုတ် (အလံထိပ် သုတ်)',
+      pali: 'Dhajagga Sutta',
+      source: 'သံယုတ္တနိကာယ် (Saṃyutta Nikāya 11.3) · သဂါထာဝဂ်',
+      context: 'ကြောက်ရွံ့ခြင်း၊ ထိတ်လန့်ခြင်း ဖြစ်ပေါ်လာသောအခါ ဗုဒ္ဓ၊ ဓမ္မ၊ သံဃ၏ ဂုဏ်ကို အောက်မေ့လျှင် ကြောက်ရွံ့မှု ငြိမ်းစေကြောင်း ဟော။ ကာကွယ်ရာ ပရိတ်တစ်ခု။',
+      my_body: [
+        'တစ်ခါက နတ်နှင့် အသုရာ စစ်ဖြစ်ရာ သိကြားမင်းက နတ်တို့အား "စစ်ပွဲ၌ ကြောက်ရွံ့ခြင်း ဖြစ်လျှင် ငါ့ရထား၏ အလံထိပ်ကို ကြည့်ကြ။ ကြည့်လျှင် ကြောက်ရွံ့မှု ပျောက်လိမ့်မည်" ဟု ဆို၏။',
+        'မြတ်စွာဘုရားက "ရဟန်းတို့ — သိကြား၏ အလံကို ကြည့်၍ ကြောက်ရွံ့မှု ပျောက်ချင် ပျောက်၊ မပျောက်ချင်လည်း မပျောက်။ အကြောင်းကား သိကြားသည် ရာဂ၊ ဒေါသ၊ မောဟ မကုန်သေး၍ ကြောက်တတ်၏။"',
+        '"သို့ရာတွင် ရဟန်းတို့ — တောရ၊ သစ်ပင်ရင်း၊ ဟင်းလင်းအိမ်၌ နေစဉ် ကြောက်ရွံ့ခြင်း ဖြစ်လျှင် — **ဗုဒ္ဓ၏ ဂုဏ်ကို** အောက်မေ့ကြ —"',
+        '"‘ဣတိပိ သော ဘဂဝါ အရဟံ သမ္မာသမ္ဗုဒ္ဓော — ထိုမြတ်စွာဘုရားသည် ပူဇော်အထိုက်ဆုံး ဖြစ်တော်မူ၏။ ကိုယ်တိုင် မှန်ကန်စွာ သိတော်မူ၏။ ဝိဇ္ဇာ-စရဏ ပြည့်စုံတော်မူ၏။ ကောင်းသောစကား ဆိုတော်မူ၏။ လောကကို သိတော်မူ၏။ ဆုံးမထိုက်သူတို့ကို ဆုံးမတော်မူ၏။ နတ်လူတို့၏ ဆရာ ဖြစ်တော်မူ၏။ ဘုရားရှင် ဖြစ်တော်မူ၏။’ ဟု အောက်မေ့လျှင် ကြောက်ရွံ့မှု ပျောက်၏။"',
+        '"ဗုဒ္ဓကို မအောက်မေ့နိုင်လျှင် **ဓမ္မ၏ ဂုဏ်ကို** အောက်မေ့ကြ — ‘တရားတော်သည် ကောင်းစွာ ဟောကြားထားသည်။ ကိုယ်တိုင် မြင်ရသည်။ အချိန်မရွေး အသီးအပွင့် ရသည်။ လာ၍ ကြည့်ထိုက်သည်။ ဆောင်ကြဉ်းထိုက်သည်။ ပညာရှိတို့ ကိုယ်တိုင် သိမြင်ထိုက်သည်။’"',
+        '"ဓမ္မကို မအောက်မေ့နိုင်လျှင် **သံဃ၏ ဂုဏ်ကို** အောက်မေ့ကြ — ‘မြတ်စွာဘုရား၏ တပည့်သံဃာသည် ကောင်းစွာ ကျင့်၏။ ဖြောင့်မတ်စွာ ကျင့်၏။ မှန်ကန်စွာ ကျင့်၏။ လျောက်ပတ်စွာ ကျင့်၏။ ... လောက၏ အနှိုင်းမဲ့ ကုသိုလ်မြေ ဖြစ်၏။’"',
+        '"အကြောင်းကား တထာဂတ (ဘုရား)၊ ဓမ္မ၊ သံဃသည် ရာဂ၊ ဒေါသ၊ မောဟ ကင်းစင်၍ ကြောက်ရွံ့ခြင်း မရှိသောကြောင့်တည်း။"',
+      ],
+      pali_body: [
+        'Itipi so bhagavā arahaṃ sammāsambuddho vijjācaraṇasampanno sugato lokavidū anuttaro purisadammasārathi satthā devamanussānaṃ buddho bhagavāti.',
+        'Svākkhāto bhagavatā dhammo sandiṭṭhiko akāliko ehipassiko opaneyyiko paccattaṃ veditabbo viññūhīti.',
+        'Suppaṭipanno bhagavato sāvakasaṅgho, ujuppaṭipanno bhagavato sāvakasaṅgho, ñāyappaṭipanno bhagavato sāvakasaṅgho, sāmīcippaṭipanno bhagavato sāvakasaṅgho... anuttaraṃ puññakkhettaṃ lokassāti.',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
+    'kp-tirokudda': {
+      my: 'တိရောကုဍ္ဍသုတ် (ပြိတ္တာ ဝေမျှခြင်း)',
+      pali: 'Tirokuḍḍa Sutta',
+      source: 'ခုဒ္ဒကပါဌ (Khuddakapāṭha 7) · ပေတဝတ္ထုတွင်လည်း',
+      context: 'သေဆုံးသွားသော ဆွေမျိုးများ (ပြိတ္တာ) အား အလှူ ပြု၍ အမျှဝေခြင်း၏ အကျိုးကို ဟော။ ဗိမ္ဗိသာရမင်း၏ ဆွေမျိုးပြိတ္တာများ အကြောင်းနှင့် ဆက်စပ်။ အမျှဝေ ရိုးရာ၏ အခြေခံ။',
+      my_body: [
+        'သေဆုံးသွားသော ဆွေမျိုးတို့သည် အိမ်၏ အပြင်၊ နံရံအနား၊ လမ်းဆုံ၊ တံခါးဝတို့၌ လာရောက် ရပ်နေကြ၏။',
+        'များစွာသော ထမင်း၊ ဟင်း၊ အဖျော်ယမကာ ချထားသော်လည်း သူတို့၏ ကံကြောင့် တစ်ဦးမျှ သတိမရ (မမြင်ကြ)။',
+        'သနားတတ်သူတို့သည် မိမိဆွေမျိုးများအတွက် သန့်ရှင်း၍ မြတ်သော အစားအစာ၊ အဖျော်ကို အချိန်တန် လှူဒါန်း၍ —',
+        '"ဤအလှူသည် ငါ့ဆွေမျိုးများထံ ရောက်ပါစေ။ ငါ့ဆွေမျိုးများ ချမ်းသာစွာ ရှိကြပါစေ" ဟု အမျှပေးဝေရ၏။',
+        'ထိုနေရာသို့ လာရောက်ရှိသော ပြိတ္တာ ဆွေမျိုးများသည် များစွာသော အစားအစာ၊ အဖျော်အတွက် —',
+        '"ဤသည် ငါတို့ဆွေမျိုးကြောင့် ရရှိ၏။ သူတို့ ရှည်စွာ အသက်ရှင်ပါစေ" ဟု ကျေးဇူးတင်ကြ၏။ (ထိုအမျှကို လက်ခံရရှိ၍ ချမ်းသာကြ၏)',
+        'ပြိတ္တာဘုံ၌ လယ်ယာ မရှိ။ နွားထိန်း မရှိ။ ကုန်ကူးခြင်း၊ ရွှေဖြင့် ဝယ်ယူခြင်း မရှိ။ ဤလောကမှ ပေးဝေသော အလှူဖြင့်သာ ပြိတ္တာတို့ အသက်ရှင်ကြ၏။',
+        'မြင့်ရာအရပ်၌ ရွာသော မိုးရေသည် နိမ့်ရာသို့ စီးဆင်းသကဲ့သို့ — ဤလောကမှ ပေးဝေသော အလှူသည် ပြိတ္တာတို့ထံ ရောက်၏။',
+        'ထို့ကြောင့် မိမိဆွေမျိုးများကို အောက်မေ့၍ သန့်ရှင်းမြတ်သော အလှူကို အချိန်တန် လှူဒါန်းကြ။ ဤသည်ကား သေဆုံးသူများအား ပြုနိုင်သော အကျိုးရှိဆုံး ကုသိုလ်တည်း။',
+      ],
+      pali_body: [
+        'Tirokuḍḍesu tiṭṭhanti, sandhisiṅghāṭakesu ca;\nDvārabāhāsu tiṭṭhanti, āgantvāna sakaṃ gharaṃ.',
+        'Pahūte annapānamhi, khajjabhojje upaṭṭhite;\nNa tesaṃ koci sarati, sattānaṃ kammapaccayā.',
+        'Evaṃ dadanti ñātīnaṃ, ye honti anukampakā;\nSuciṃ paṇītaṃ kālena, kappiyaṃ pānabhojanaṃ.',
+        'Yathā vārivahā pūrā, paripūrenti sāgaraṃ;\nEvameva ito dinnaṃ, petānaṃ upakappati.',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
+    'kp-mettabhavana-ovada': {
+      my: 'ဩဝါဒပါတိမောက္ခ (တရားချုပ်)',
+      pali: 'Ovāda Pātimokkha',
+      source: 'ဓမ္မပဒ ၁၈၃-၁၈၅ · ဒီဃနိကာယ် မဟာပဒါန',
+      context: 'မာဃပူဇာနေ့ (တပို့တွဲလပြည့်) ၌ ရဟန္တာ ၁၂၅၀ ဆီ အလိုအလျောက် စုဝေးရာ မြတ်စွာဘုရားရှင် ဟောကြားတော်မူသော ဗုဒ္ဓ အားလုံး၏ တရားတော် အနှစ်ချုပ်။ သာသနာ၏ အခြေခံ သုံးချက်။',
+      my_body: [
+        'အားလုံးသော ဗုဒ္ဓများ၏ အဆုံးအမ (ဩဝါဒ) အနှစ်ချုပ် သုံးချက် —',
+        '၁) **သဗ္ဗပါပဿ အကရဏံ** — အကုသိုလ်အားလုံးကို မပြုခြင်း။',
+        '၂) **ကုသလဿ ဥပသမ္ပဒါ** — ကုသိုလ်ကို ပြည့်စုံစွာ ပြုခြင်း။',
+        '၃) **သစိတ္တ ပရိယောဒပနံ** — မိမိစိတ်ကို ဖြူစင် သန့်ရှင်းစေခြင်း။',
+        '"ဤသည်ပင် ဗုဒ္ဓ အားလုံး၏ အဆုံးအမတည်း။" (ဓမ္မပဒ ၁၈၃)',
+        '**သည်းခံခြင်းသည် အမြင့်ဆုံး အကျင့်။** သည်းခံခြင်း (ခန္တီ) သည် အမြင့်ဆုံး တပ။ "နိဗ္ဗာန်သည် အမြင့်ဆုံး" ဟု ဗုဒ္ဓများ ဆိုကြ၏။ သူတစ်ပါးကို ညှင်းဆဲသူသည် ရဟန်း မဟုတ်။ သူတစ်ပါးကို နှိပ်စက်သူသည် သမဏ မဟုတ်။ (ဓမ္မပဒ ၁၈၄)',
+        '**မကဲ့ရဲ့ခြင်း၊ မညှင်းဆဲခြင်း၊ ပါတိမောက္ခ (ဝိနယ) ၌ စောင့်စည်းခြင်း၊ အစားအစာ၌ အတိုင်းအရှည် သိခြင်း၊ ဆိတ်ငြိမ်ရာ၌ နေခြင်း၊ မြင့်မြတ်သော စိတ်၌ အားထုတ်ခြင်း** — ဤသည်ကား ဗုဒ္ဓ အားလုံး၏ အဆုံးအမတည်း။ (ဓမ္မပဒ ၁၈၅)',
+      ],
+      pali_body: [
+        'Sabbapāpassa akaraṇaṃ, kusalassa upasampadā;\nSacittapariyodapanaṃ, etaṃ buddhāna sāsanaṃ. (Dhp 183)',
+        'Khantī paramaṃ tapo titikkhā, nibbānaṃ paramaṃ vadanti buddhā;\nNa hi pabbajito parūpaghātī, na samaṇo hoti paraṃ viheṭhayanto. (Dhp 184)',
+        'Anūpavādo anūpaghāto, pātimokkhe ca saṃvaro;\nMattaññutā ca bhattasmiṃ, pantañca sayanāsanaṃ;\nAdhicitte ca āyogo, etaṃ buddhāna sāsanaṃ. (Dhp 185)',
+      ],
+      external: 'https://www.tipitaka.org/romn/',
+    },
+
     'mn-satipatthana': {
       my: 'သတိပဋ္ဌာနသုတ်',
       pali: 'Satipaṭṭhāna Sutta',
@@ -954,6 +1125,102 @@
       ],
     },
   };
+
+  // ═══════════════════════════════════════════════════════════════
+  // Data merge — embedded suttas + optionally imported full data (IndexedDB)
+  // ═══════════════════════════════════════════════════════════════
+
+  // SUTTAS = embedded (bundled, always available) merged with imported data.
+  // Imported data wins on key collision so official text overrides samples.
+  let SUTTAS = { ...EMBEDDED_SUTTAS };
+  let IMPORTED_STRUCTURE = null; // optional override of PITAKAS from imported data
+  let importedMeta = null;
+
+  // ---- IndexedDB (handles large data — localStorage caps at ~5MB) ----
+  const DB_NAME = 'tipitaka-db';
+  const DB_STORE = 'data';
+  const DB_KEY = 'full-tipitaka';
+
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      const req = indexedDB.open(DB_NAME, 1);
+      req.onupgradeneeded = () => {
+        const db = req.result;
+        if (!db.objectStoreNames.contains(DB_STORE)) db.createObjectStore(DB_STORE);
+      };
+      req.onsuccess = () => resolve(req.result);
+      req.onerror = () => reject(req.error);
+    });
+  }
+  async function dbPut(value) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      tx.objectStore(DB_STORE).put(value, DB_KEY);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function dbGet() {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, 'readonly');
+      const r = tx.objectStore(DB_STORE).get(DB_KEY);
+      r.onsuccess = () => resolve(r.result || null);
+      r.onerror = () => reject(r.error);
+    });
+  }
+  async function dbClear() {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      tx.objectStore(DB_STORE).delete(DB_KEY);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+
+  // Apply an imported data blob into the live SUTTAS/structure
+  function applyImported(blob) {
+    if (!blob || typeof blob !== 'object') return 0;
+    let added = 0;
+    // Accept { suttas: {...} } OR a flat map of suttas
+    const suttas = blob.suttas || (blob.meta ? {} : blob);
+    if (suttas && typeof suttas === 'object') {
+      Object.entries(suttas).forEach(([k, v]) => {
+        if (v && (v.my_body || v.myanmar || v.my)) {
+          // Normalize to internal shape
+          SUTTAS[k] = {
+            my: v.my || v.title_my || k,
+            pali: v.pali || v.title_pali || '',
+            source: v.source || v.ref || '',
+            context: v.context || '',
+            my_body: Array.isArray(v.my_body) ? v.my_body : (v.myanmar ? String(v.myanmar).split('\n\n') : []),
+            pali_body: Array.isArray(v.pali_body) ? v.pali_body : (v.pali_text ? String(v.pali_text).split('\n\n') : []),
+            external: v.external || null,
+          };
+          added++;
+        }
+      });
+    }
+    if (Array.isArray(blob.structure)) IMPORTED_STRUCTURE = blob.structure;
+    importedMeta = blob.meta || { importedAt: Date.now() };
+    return added;
+  }
+
+  // On load, hydrate from IndexedDB if the user imported data before
+  async function hydrateImported() {
+    try {
+      const blob = await dbGet();
+      if (blob) {
+        const n = applyImported(blob);
+        if (n) { renderPitakaNav(); renderContent(); }
+        updateDataBtn();
+      }
+    } catch (e) { console.warn('hydrate failed', e); }
+  }
+
+  function activePitakas() { return IMPORTED_STRUCTURE || PITAKAS; }
 
   // ═══════════════════════════════════════════════════════════════
   // State
@@ -990,7 +1257,7 @@
   function renderPitakaNav() {
     const nav = $('pitakaNav');
     nav.innerHTML = '';
-    PITAKAS.forEach(p => {
+    activePitakas().forEach(p => {
       const b = document.createElement('button');
       b.className = 'p-btn' + (p.id === activePitaka ? ' active' : '');
       b.innerHTML = `<span class="p-my">${p.my}</span>${p.pali}`;
@@ -1011,7 +1278,7 @@
     }
 
     // Otherwise render the current pitaka's books
-    const pitaka = PITAKAS.find(p => p.id === activePitaka);
+    const pitaka = activePitakas().find(p => p.id === activePitaka);
     const header = document.createElement('div');
     header.innerHTML = `
       <div class="section-title">${pitaka.my}</div>
@@ -1101,6 +1368,49 @@
     updateStats();
   }
 
+  // Smart paragraph renderer — turns a body array into styled blocks.
+  // Detects: **bold**, headings (line ending with colon or all-bold),
+  // numbered items (၁) ၂) 1) 2)), and quoted speech (leading ").
+  function renderSmartParagraphs(container, lines, lang) {
+    if (!Array.isArray(lines)) return;
+    lines.forEach(raw => {
+      const line = String(raw || '');
+      const p = document.createElement('p');
+      p.className = 'sp-para';
+
+      // Classify the paragraph
+      const trimmed = line.trim();
+      const isHeading = /^\*\*.+\*\*/.test(trimmed) && trimmed.replace(/\*\*/g, '').length < 60;
+      // Myanmar or arabic numbered list item
+      const numMatch = trimmed.match(/^([၀-၉]+|\d+)\s*[\)\.]/);
+      const isQuote = /^["“]/.test(trimmed);
+      const isNote = /^\(/.test(trimmed) && /\)$/.test(trimmed);
+
+      if (isHeading) p.classList.add('sp-heading');
+      else if (numMatch) p.classList.add('sp-numbered');
+      else if (isQuote) p.classList.add('sp-quote');
+      else if (isNote) p.classList.add('sp-note');
+
+      // Render inline **bold** safely (build DOM, no innerHTML with data)
+      appendInlineBold(p, line);
+      container.appendChild(p);
+    });
+  }
+
+  function appendInlineBold(el, text) {
+    // Split on **...** and render matched parts as <strong>
+    const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
+    parts.forEach(part => {
+      if (/^\*\*[^*]+\*\*$/.test(part)) {
+        const strong = document.createElement('strong');
+        strong.textContent = part.slice(2, -2);
+        el.appendChild(strong);
+      } else if (part) {
+        el.appendChild(document.createTextNode(part));
+      }
+    });
+  }
+
   function renderSuttaCard(key) {
     const s = SUTTAS[key];
     if (!s) return document.createTextNode('');
@@ -1136,9 +1446,9 @@
       </div>
     `;
     const bodies = card.querySelectorAll('.lang');
-    // Myanmar body — join with double line breaks for readability
-    bodies[0].appendChild(document.createTextNode('\n' + s.my_body.join('\n\n')));
-    bodies[1].appendChild(document.createTextNode('\n' + s.pali_body.join('\n\n')));
+    // Smart paragraphs — each array item becomes its own styled block
+    renderSmartParagraphs(bodies[0], s.my_body, 'my');
+    renderSmartParagraphs(bodies[1], s.pali_body, 'pali');
 
     card.querySelector('[data-act="fav"]').onclick = () => {
       const f = favSet();
@@ -1189,7 +1499,7 @@
       }
     });
     // Search books
-    PITAKAS.forEach(p => {
+    activePitakas().forEach(p => {
       p.books.forEach(b => {
         const hay = (b.my + ' ' + b.pali + ' ' + (b.desc || '')).toLowerCase();
         if (hay.includes(searchQuery)) {
@@ -1228,8 +1538,80 @@
   };
 
   // Init
+  // ---- Import / Data buttons ----
+  $('importBtn').onclick = () => $('importFile').click();
+  $('importFile').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      let blob;
+      try { blob = JSON.parse(ev.target.result); }
+      catch { toast('⚠ JSON မှား — Invalid JSON'); return; }
+      const n = applyImported(blob);
+      if (!n) { toast('⚠ သုတ် data မတွေ့ပါ (no suttas found)'); return; }
+      try {
+        await dbPut(blob); // persist to IndexedDB for offline
+        renderPitakaNav(); renderContent(); updateDataBtn();
+        toast(`✅ ${n} သုတ် ထည့်သွင်းပြီး — offline သိမ်းထားပြီ`);
+      } catch (err) {
+        // Even if persist fails, data is live for this session
+        renderPitakaNav(); renderContent(); updateDataBtn();
+        toast(`✅ ${n} သုတ် (session only — persist failed: ${err.message})`);
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  });
+
+  function updateDataBtn() {
+    const total = Object.keys(SUTTAS).length;
+    const imported = total - Object.keys(EMBEDDED_SUTTAS).length;
+    $('dataBtn').title = imported > 0
+      ? `${total} suttas (${imported} imported + ${Object.keys(EMBEDDED_SUTTAS).length} bundled) — click to manage`
+      : `${total} bundled suttas — no imported data yet. Click for import guide.`;
+    $('dataBtn').style.color = imported > 0 ? 'var(--accent)' : '';
+  }
+
+  $('dataBtn').onclick = async () => {
+    const total = Object.keys(SUTTAS).length;
+    const embeddedN = Object.keys(EMBEDDED_SUTTAS).length;
+    const imported = total - embeddedN;
+    if (imported > 0) {
+      if (confirm(
+        `📊 Data status:\n` +
+        `• ${embeddedN} bundled suttas (always available)\n` +
+        `• ${imported} imported suttas (offline in IndexedDB)\n` +
+        `• ${total} total\n\n` +
+        `Imported data ကို ဖျက်မလား? (Clear imported data?)`
+      )) {
+        await dbClear();
+        SUTTAS = { ...EMBEDDED_SUTTAS };
+        IMPORTED_STRUCTURE = null;
+        importedMeta = null;
+        renderPitakaNav(); renderContent(); updateDataBtn();
+        toast('Imported data ဖျက်ပြီး');
+      }
+    } else {
+      alert(
+        `📥 ပိဋကတ်သုံးပုံ Full Data ထည့်သွင်းနည်း\n` +
+        `How to import full Tipiṭaka data:\n\n` +
+        `၁) tipitaka.org သို့မဟုတ် SuttaCentral မှ JSON data ရယူပါ\n` +
+        `၂) ⬆ button ကို နှိပ်၍ ဖိုင်ကို ရွေးပါ\n` +
+        `၃) Import ပြီးလျှင် offline သိမ်းထား၍ app ထဲမှာ အပြည့်အစုံ ဖတ်နိုင်ပါမည်\n\n` +
+        `JSON format:\n` +
+        `{ "meta": {...}, "suttas": { "key": { "my":"...", "pali":"...", "source":"...", "my_body":["..."], "pali_body":["..."] } } }\n\n` +
+        `Current: ${embeddedN} bundled suttas ready to read now.`
+      );
+    }
+  };
+
+  // ---- Init ----
   renderPitakaNav();
   renderContent();
+  updateDataBtn();
+  // Hydrate any previously-imported full data from IndexedDB
+  hydrateImported();
 </script>
 </body>
 </html>
