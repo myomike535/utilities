@@ -541,6 +541,7 @@
         <a class="icon-btn" href="index.html" title="Home">🏠</a>
         <button class="icon-btn" id="themeBtn" title="Theme">📜</button>
         <button class="icon-btn" id="favToggle" title="Favorites">⭐</button>
+        <button class="icon-btn" id="fetchBtn" title="SuttaCentral မှ သုတ် ရယူရန် · Fetch real suttas (Myanmar + Pāḷi)">🌐</button>
         <button class="icon-btn" id="importBtn" title="ပိဋကတ် Data ထည့်သွင်းရန် · Import full Tipiṭaka data (JSON)">⬆</button>
         <button class="icon-btn" id="dataBtn" title="Imported data status">💾</button>
         <input type="file" id="importFile" accept="application/json,.json" style="display:none">
@@ -558,7 +559,52 @@
     <div class="stats" id="stats"></div>
   </div>
 
+  <div class="fetch-backdrop" id="fetchModal">
+    <div class="fetch-panel">
+      <div class="fetch-head">
+        <h2>🌐 SuttaCentral မှ သုတ် ရယူရန်</h2>
+        <button class="fetch-close" id="fetchClose">✕</button>
+      </div>
+      <p class="fetch-sub">Sutta ID ထည့်၍ တကယ့် မြန်မာဘာသာပြန် (Pitaka Myanmar Translation) + Pāḷi ကို ရယူပါ။ Offline သိမ်းထားပါမည်။</p>
+      <div class="fetch-row">
+        <input type="text" id="fetchInput" placeholder="e.g. dn31 · mn10 · sn56.11 · an3.65 · dhp1">
+        <button class="fetch-go" id="fetchGo">ရယူမည်</button>
+      </div>
+      <div class="fetch-quick" id="fetchQuick"></div>
+      <div class="fetch-status" id="fetchStatus"></div>
+      <p class="fetch-note">💡 ID format: နိကာယ်အတိုကောက် + နံပါတ် (dn=ဒီဃ, mn=မဇ္ဈိမ, sn=သံယုတ္တ, an=အင်္ဂုတ္တရ, dhp=ဓမ္မပဒ)။ ရယူပြီးသော သုတ်များ Sutta Piṭaka ၏ အောက်ဆုံးတွင် ပေါ်ပါမည်။</p>
+    </div>
+  </div>
+
   <div class="toast" id="toast"></div>
+
+<style>
+  .fetch-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: flex-start; justify-content: center; padding: 8vh 16px; z-index: 950; }
+  .fetch-backdrop.show { display: flex; }
+  .fetch-panel { background: var(--paper); color: var(--ink); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; max-width: 520px; width: 100%; box-shadow: var(--shadow); }
+  .fetch-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .fetch-head h2 { font-family: var(--serif); font-style: italic; color: var(--accent); font-size: 1.15rem; }
+  .fetch-close { background: transparent; border: none; color: var(--ink-mute); cursor: pointer; font-size: 1.2rem; }
+  .fetch-close:hover { color: var(--accent); }
+  .fetch-sub { color: var(--ink-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 14px; }
+  .fetch-row { display: flex; gap: 8px; margin-bottom: 14px; }
+  .fetch-row input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--paper-2); color: var(--ink); font-size: 0.95rem; outline: none; font-family: 'Consolas', monospace; }
+  .fetch-row input:focus { border-color: var(--accent); }
+  .fetch-go { padding: 10px 18px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; font-family: var(--sans); }
+  .fetch-go:hover { filter: brightness(1.08); }
+  .fetch-go:disabled { opacity: 0.5; cursor: wait; }
+  .fetch-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  .fetch-chip { padding: 5px 10px; border: 1px solid var(--border-soft); border-radius: 999px; background: var(--paper-2); color: var(--ink-dim); font-size: 0.78rem; cursor: pointer; font-family: var(--sans); transition: all 0.15s; }
+  .fetch-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .fetch-status { font-size: 0.85rem; color: var(--ink-dim); min-height: 22px; margin-bottom: 8px; }
+  .fetch-status.err { color: var(--accent); }
+  .fetch-status.ok { color: var(--success); }
+  .fetch-note { font-size: 0.75rem; color: var(--ink-mute); line-height: 1.6; font-style: italic; }
+  @media (max-width: 640px) {
+    .fetch-panel { padding: 18px; }
+    .fetch-row { flex-direction: column; }
+  }
+</style>
 
 <script defer src="_palette.js"></script>
 <script defer src="_navrail.js"></script>
@@ -1223,6 +1269,148 @@
   function activePitakas() { return IMPORTED_STRUCTURE || PITAKAS; }
 
   // ═══════════════════════════════════════════════════════════════
+  // SuttaCentral fetcher — pulls REAL Myanmar (pmt) + Pāḷi text on demand,
+  // accumulates into IndexedDB so it stays offline afterward.
+  // ═══════════════════════════════════════════════════════════════
+
+  const FETCHED_DB_KEY = 'sc-fetched-suttas';
+  let fetchedSuttas = {}; // accumulates across sessions
+
+  async function dbPutFetched() {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, 'readwrite');
+      tx.objectStore(DB_STORE).put(fetchedSuttas, FETCHED_DB_KEY);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => reject(tx.error);
+    });
+  }
+  async function dbGetFetched() {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(DB_STORE, 'readonly');
+      const r = tx.objectStore(DB_STORE).get(FETCHED_DB_KEY);
+      r.onsuccess = () => resolve(r.result || {});
+      r.onerror = () => reject(r.error);
+    });
+  }
+
+  // Strip HTML → array of clean paragraphs for smart-paragraph rendering
+  function htmlToParagraphs(html) {
+    if (!html) return [];
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const paras = [];
+    // Prefer block elements as paragraph boundaries
+    doc.querySelectorAll('p, h1, h2, h3, h4, blockquote, li').forEach(el => {
+      const t = el.textContent.replace(/\s+/g, ' ').trim();
+      if (t) {
+        // Mark headings so smart renderer bolds them
+        if (/^H[1-4]$/.test(el.tagName)) paras.push('**' + t + '**');
+        else paras.push(t);
+      }
+    });
+    // Fallback: whole text split on double newlines
+    if (!paras.length) {
+      const t = doc.body.textContent.trim();
+      return t.split(/\n\s*\n/).map(s => s.replace(/\s+/g, ' ').trim()).filter(Boolean);
+    }
+    return paras;
+  }
+
+  // Combine segmented bilara text (root_text map keyed dn31:1.1 …) in order
+  function segmentsToParagraphs(map) {
+    if (!map || typeof map !== 'object') return [];
+    const keys = Object.keys(map).sort((a, b) => {
+      // Numeric-aware sort on the "1.2.3" part after the colon
+      const pa = (a.split(':')[1] || '').split('.').map(Number);
+      const pb = (b.split(':')[1] || '').split('.').map(Number);
+      for (let i = 0; i < Math.max(pa.length, pb.length); i++) {
+        if ((pa[i] || 0) !== (pb[i] || 0)) return (pa[i] || 0) - (pb[i] || 0);
+      }
+      return 0;
+    });
+    // Join into readable paragraphs — group by the major segment number
+    const out = [];
+    let cur = '', curMajor = null;
+    keys.forEach(k => {
+      const major = (k.split(':')[1] || '').split('.')[0];
+      if (curMajor !== null && major !== curMajor) { if (cur.trim()) out.push(cur.trim()); cur = ''; }
+      cur += map[k] + ' ';
+      curMajor = major;
+    });
+    if (cur.trim()) out.push(cur.trim());
+    return out;
+  }
+
+  const SC_API = 'https://suttacentral.net/api';
+
+  async function fetchFromSC(uid) {
+    uid = uid.trim().toLowerCase().replace(/\s+/g, '');
+    if (!uid) throw new Error('Sutta ID မထည့်ရသေးပါ');
+
+    // 1) Myanmar (legacy pmt) — has `translation` (Myanmar HTML) + root_text (Pāḷi)
+    let myParas = [], paliParas = [], title = uid, pali = '';
+    let gotMyanmar = false;
+    try {
+      const res = await fetch(`${SC_API}/suttas/${encodeURIComponent(uid)}/pmt?lang=my`);
+      if (res.ok) {
+        const d = await res.json();
+        const myHtml = d.translation?.text || d.translation || '';
+        if (myHtml) { myParas = htmlToParagraphs(typeof myHtml === 'string' ? myHtml : ''); gotMyanmar = myParas.length > 0; }
+        // Pāḷi from same payload
+        const paliHtml = d.root_text?.text || d.bilara_root_text || '';
+        if (paliHtml && typeof paliHtml === 'string') paliParas = htmlToParagraphs(paliHtml);
+        // Title
+        title = d.suttaplex?.original_title || d.suttaplex?.translated_title || uid;
+      }
+    } catch (e) { /* try next */ }
+
+    // 2) Pāḷi from bilara if we didn't get it
+    if (!paliParas.length) {
+      try {
+        const res = await fetch(`${SC_API}/bilarasuttas/${encodeURIComponent(uid)}/sujato?lang=en`);
+        if (res.ok) {
+          const d = await res.json();
+          paliParas = segmentsToParagraphs(d.root_text);
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    // 3) English fallback (always available via sujato) if no Myanmar
+    let enParas = [];
+    if (!gotMyanmar) {
+      try {
+        const res = await fetch(`${SC_API}/bilarasuttas/${encodeURIComponent(uid)}/sujato?lang=en`);
+        if (res.ok) {
+          const d = await res.json();
+          enParas = segmentsToParagraphs(d.translation_text);
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    if (!myParas.length && !paliParas.length && !enParas.length) {
+      throw new Error(`"${uid}" — data မတွေ့ပါ။ ID စစ်ဆေးပါ (e.g. dn31, mn10, sn56.11)`);
+    }
+
+    // Build sutta record — Myanmar-first; if no Myanmar, show English body under Myanmar slot with note
+    const rec = {
+      my: title,
+      pali: uid.toUpperCase(),
+      source: `SuttaCentral · ${uid}${gotMyanmar ? ' · မြန်မာပြန် (pmt)' : ' · Pāḷi + English'}`,
+      context: gotMyanmar ? 'Pitaka Myanmar Translation (pmt) မှ ရယူထားသည်။' : 'Myanmar translation မရှိသေး၍ Pāḷi + English ပြသထားသည်။',
+      my_body: gotMyanmar ? myParas : (enParas.length ? enParas : ['(Myanmar/English translation not available for this sutta)']),
+      pali_body: paliParas,
+      external: `https://suttacentral.net/${uid}`,
+      _fetched: true,
+    };
+    const key = 'sc-' + uid;
+    SUTTAS[key] = rec;
+    fetchedSuttas[key] = rec;
+    await dbPutFetched();
+    return key;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
   // State
   // ═══════════════════════════════════════════════════════════════
 
@@ -1606,12 +1794,111 @@
     }
   };
 
+  // ---- SuttaCentral fetch panel ----
+  const FAMOUS_IDS = [
+    { id: 'dn31', label: 'သိင်္ဂါလောဝါဒ' },
+    { id: 'dn16', label: 'မဟာပရိနိဗ္ဗာန်' },
+    { id: 'dn22', label: 'မဟာသတိပဋ္ဌာန' },
+    { id: 'mn10', label: 'သတိပဋ္ဌာန' },
+    { id: 'mn118', label: 'အာနာပါနသတိ' },
+    { id: 'sn56.11', label: 'ဓမ္မစကြာ' },
+    { id: 'sn35.28', label: 'အာဒိတ္တ (မီး)' },
+    { id: 'an3.65', label: 'ကာလာမ' },
+    { id: 'an10.60', label: 'ဂိရိမာနန္ဒ' },
+    { id: 'snp1.8', label: 'မေတ္တာ' },
+    { id: 'kp5', label: 'မင်္ဂလ' },
+    { id: 'dhp1', label: 'ဓမ္မပဒ ၁' },
+  ];
+  function openFetch() { $('fetchModal').classList.add('show'); setTimeout(() => $('fetchInput').focus(), 50); renderFetchQuick(); $('fetchStatus').textContent = ''; }
+  function closeFetch() { $('fetchModal').classList.remove('show'); }
+  $('fetchBtn').onclick = openFetch;
+  $('fetchClose').onclick = closeFetch;
+  $('fetchModal').addEventListener('click', e => { if (e.target === $('fetchModal')) closeFetch(); });
+
+  function renderFetchQuick() {
+    const q = $('fetchQuick'); q.innerHTML = '';
+    FAMOUS_IDS.forEach(f => {
+      const c = document.createElement('button');
+      c.className = 'fetch-chip';
+      c.textContent = `${f.label} (${f.id})`;
+      c.onclick = () => { $('fetchInput').value = f.id; doFetch(); };
+      q.appendChild(c);
+    });
+  }
+
+  async function doFetch() {
+    const uid = $('fetchInput').value.trim();
+    if (!uid) { $('fetchInput').focus(); return; }
+    const st = $('fetchStatus');
+    st.className = 'fetch-status';
+    st.textContent = `⏳ ${uid} ရယူနေသည်...`;
+    $('fetchGo').disabled = true;
+    try {
+      const key = await fetchFromSC(uid);
+      st.className = 'fetch-status ok';
+      st.textContent = `✅ ရရှိပြီး — ဖတ်ရန် ဖွင့်နေသည်...`;
+      injectFetchedBook();
+      activePitaka = 'sutta';
+      activeSutta = key;
+      renderPitakaNav(); renderContent(); updateDataBtn();
+      setTimeout(() => { closeFetch(); window.scrollTo({ top: 0, behavior: 'smooth' }); }, 500);
+    } catch (e) {
+      st.className = 'fetch-status err';
+      // CORS or network hint
+      const msg = /Failed to fetch|NetworkError|CORS/i.test(e.message)
+        ? 'ကွန်ရက် သို့ CORS ပြဿနာ — internet ရှိမရှိ စစ်ပါ။ (Some browsers block cross-site fetch on file://; use the hosted GitHub Pages version.)'
+        : e.message;
+      st.textContent = '⚠ ' + msg;
+    } finally {
+      $('fetchGo').disabled = false;
+    }
+  }
+  $('fetchGo').onclick = doFetch;
+  $('fetchInput').addEventListener('keypress', e => { if (e.key === 'Enter') doFetch(); });
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && $('fetchModal').classList.contains('show')) closeFetch();
+  });
+
+  // Add fetched suttas as a virtual book at the bottom of Sutta Piṭaka
+  function injectFetchedBook() {
+    const keys = Object.keys(fetchedSuttas);
+    if (!keys.length) return;
+    const sutta = PITAKAS.find(p => p.id === 'sutta');
+    // Remove any prior injected book
+    sutta.books = sutta.books.filter(b => !b._fetched);
+    sutta.books.push({
+      _fetched: true,
+      my: '🌐 SuttaCentral မှ ရယူထားသော သုတ်များ',
+      pali: 'Fetched Suttas',
+      desc: `${keys.length} suttas ရယူပြီး (offline သိမ်းထား)`,
+      children: keys.map(k => ({
+        my: fetchedSuttas[k].my,
+        pali: fetchedSuttas[k].pali,
+        count: '📖',
+        key: k,
+      })),
+    });
+  }
+
   // ---- Init ----
   renderPitakaNav();
   renderContent();
   updateDataBtn();
   // Hydrate any previously-imported full data from IndexedDB
   hydrateImported();
+  // Hydrate previously-fetched suttas
+  (async () => {
+    try {
+      fetchedSuttas = await dbGetFetched();
+      const n = Object.keys(fetchedSuttas).length;
+      if (n) {
+        Object.assign(SUTTAS, fetchedSuttas);
+        injectFetchedBook();
+        renderPitakaNav(); renderContent(); updateDataBtn();
+      }
+    } catch (e) { console.warn('fetched hydrate failed', e); }
+  })();
 </script>
 </body>
 </html>
