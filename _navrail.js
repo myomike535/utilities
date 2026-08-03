@@ -23,6 +23,7 @@
     book:       '<svg viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
     scroll:     '<svg viewBox="0 0 24 24"><path d="M8 21h12a2 2 0 0 0 2-2v-2H10v2a2 2 0 1 1-4 0V5a2 2 0 1 0-4 0v3h4"/><path d="M19 17V5a2 2 0 0 0-2-2H4"/></svg>',
     mala:       '<svg viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><circle cx="18.5" cy="6.5" r="1.6"/><circle cx="20.5" cy="12" r="1.6"/><circle cx="18.5" cy="17.5" r="1.6"/><circle cx="12" cy="20" r="1.6"/><circle cx="5.5" cy="17.5" r="1.6"/><circle cx="3.5" cy="12" r="1.6"/><circle cx="5.5" cy="6.5" r="1.6"/></svg>',
+    bookmark:   '<svg viewBox="0 0 24 24"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>',
     study:      '<svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>',
   };
 
@@ -36,6 +37,7 @@
     { href: 'SqlFormatter.html',                   icon: 'braces',     label: 'SQL Formatter',  color: '#ec4899' },
     { href: 'SqlDeploy.html',                      icon: 'rocket',     label: 'SQL Deploy',     color: '#38bdf8' },
     { href: 'GithubTrending.html',                 icon: 'trending',   label: 'GH Trending',    color: '#58a6ff' },
+    { href: 'BookmarkManager.html',                icon: 'bookmark',   label: 'Bookmarks',      color: '#6366f1' },
     { href: 'StudyRoom.html',                      icon: 'study',      label: 'Study Room',     color: '#f59e0b' },
     { href: 'dhammapada.html',                     icon: 'book',       label: 'Dhammapada',     color: '#c62d2d' },
     { href: 'jataka550.html',                      icon: 'scroll',     label: 'Jataka 550',     color: '#b8860b' },

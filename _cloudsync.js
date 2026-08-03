@@ -19,6 +19,8 @@
     'ainotes.lang', 'ainotes.translate.target',
     'pm-vault-v2',
     'recap.history.v1',
+    'bookmarks.v1',
+    'mala.counter.v1',
   ];
 
   // Local sync bookkeeping (never synced themselves)

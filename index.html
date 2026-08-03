@@ -944,6 +944,14 @@
         <span class="spotlight"></span>
       </a>
 
+      <a class="tool-card" href="BookmarkManager.html" style="--tool-color:#6366f1">
+        <span class="ico"><svg viewBox="0 0 24 24"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+        <span class="title">Bookmarks · အသုံးဝင် Link</span>
+        <span class="desc">Save & organize URLs with tags, search, pin, visit tracking. Import browser bookmarks. Cloud-syncs across devices. Built with Vue.js.</span>
+        <div class="stats" id="bmStats"><span>—</span></div>
+        <span class="spotlight"></span>
+      </a>
+
       <a class="tool-card" href="MalaCounter.html" style="--tool-color:#c62d2d">
         <span class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="4" r="2"/><circle cx="18.5" cy="6.5" r="1.6"/><circle cx="20.5" cy="12" r="1.6"/><circle cx="18.5" cy="17.5" r="1.6"/><circle cx="12" cy="20" r="1.6"/><circle cx="5.5" cy="17.5" r="1.6"/><circle cx="3.5" cy="12" r="1.6"/><circle cx="5.5" cy="6.5" r="1.6"/></svg></span>
         <span class="title">ပုတီးစိပ် · Mala Counter</span>
@@ -1131,6 +1139,19 @@
     el.innerHTML = parts.join('');
   }
   renderTaskStats();
+
+  // ---- Stats: Bookmarks ----
+  (function bmStats() {
+    const el = document.getElementById('bmStats');
+    if (!el) return;
+    try {
+      const bm = JSON.parse(localStorage.getItem('bookmarks.v1') || '[]');
+      if (Array.isArray(bm) && bm.length) {
+        const tags = new Set(); bm.forEach(b => (b.tags||[]).forEach(t => tags.add(t)));
+        el.innerHTML = `<span><b>${bm.length}</b> links · <b>${tags.size}</b> tags</span>`;
+      } else el.innerHTML = '<span class="qs-empty" style="font-style:italic">No bookmarks yet</span>';
+    } catch { el.innerHTML = '<span>—</span>'; }
+  })();
 
   // ---- Stats: AI Note Taker (ainotes.v1) ----
   function noteStats() {

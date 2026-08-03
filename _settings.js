@@ -507,6 +507,8 @@
       'ainotes.v1', 'ainotes.v11.enterprise',
       'pm-vault-v2',
       'recap.history.v1',
+      'bookmarks.v1',
+      'mala.counter.v1',
       'prompts.custom.v1',
     ];
     exportKeys.forEach(k => {
@@ -541,6 +543,8 @@
         'ainotes.v1', 'ainotes.v11.enterprise',
         'pm-vault-v2',
         'recap.history.v1',
+        'bookmarks.v1',
+        'mala.counter.v1',
         'prompts.custom.v1',
       ];
       // Count what would be restored
@@ -577,6 +581,8 @@
       'ainotes.v11.enterprise': 'AI Note Taker (Enterprise) sessions',
       'pm-vault-v2': 'Password Manager vault',
       'recap.history.v1': 'Recap Audio history',
+      'bookmarks.v1': 'Bookmarks',
+      'mala.counter.v1': 'Mala Counter stats',
       'prompts.custom.v1': 'Custom prompt library',
     };
     return map[k] || k;
