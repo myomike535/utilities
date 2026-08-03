@@ -571,6 +571,22 @@
         <button class="fetch-go" id="fetchGo">ရယူမည်</button>
       </div>
       <div class="fetch-quick" id="fetchQuick"></div>
+
+      <div class="fetch-batch">
+        <div class="fetch-batch-title">📥 တစ်နိကာယ်လုံး ရယူရန် · Batch fetch a whole Nikāya</div>
+        <div class="fetch-batch-btns">
+          <button class="fetch-batch-btn" data-nikaya="dn">ဒီဃနိကာယ် (34)</button>
+          <button class="fetch-batch-btn" data-nikaya="mn">မဇ္ဈိမနိကာယ် (152)</button>
+          <button class="fetch-batch-btn" data-nikaya="kp">ခုဒ္ဒကပါဌ (9)</button>
+        </div>
+        <div class="fetch-progress" id="fetchProgress" style="display:none">
+          <div class="fp-bar"><div class="fp-fill" id="fpFill"></div></div>
+          <div class="fp-label" id="fpLabel"></div>
+          <button class="fetch-cancel" id="fetchCancel">ရပ်မည်</button>
+        </div>
+        <p class="fetch-note" style="margin-top:6px;">⚠ SN (၇၇၆၂) နှင့် AN (၉၅၅၇) သည် သုတ်များ များလွန်း၍ တစ်ခုချင်း ရယူပါ (batch မရ)။</p>
+      </div>
+
       <div class="fetch-status" id="fetchStatus"></div>
       <p class="fetch-note">💡 ID format: နိကာယ်အတိုကောက် + နံပါတ် (dn=ဒီဃ, mn=မဇ္ဈိမ, sn=သံယုတ္တ, an=အင်္ဂုတ္တရ, dhp=ဓမ္မပဒ)။ ရယူပြီးသော သုတ်များ Sutta Piṭaka ၏ အောက်ဆုံးတွင် ပေါ်ပါမည်။</p>
     </div>
@@ -596,6 +612,17 @@
   .fetch-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
   .fetch-chip { padding: 5px 10px; border: 1px solid var(--border-soft); border-radius: 999px; background: var(--paper-2); color: var(--ink-dim); font-size: 0.78rem; cursor: pointer; font-family: var(--sans); transition: all 0.15s; }
   .fetch-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .fetch-batch { border-top: 1px dashed var(--border); padding-top: 12px; margin-bottom: 12px; }
+  .fetch-batch-title { font-size: 0.82rem; color: var(--ink-dim); font-weight: 600; margin-bottom: 8px; }
+  .fetch-batch-btns { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fetch-batch-btn { padding: 8px 12px; border: 1px solid var(--accent-2); border-radius: 8px; background: var(--paper-2); color: var(--ink); font-size: 0.82rem; cursor: pointer; font-family: var(--sans); transition: all 0.15s; }
+  .fetch-batch-btn:hover { background: var(--accent-2); color: #fff; }
+  .fetch-batch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .fetch-progress { margin-top: 10px; }
+  .fp-bar { height: 8px; background: var(--paper-2); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+  .fp-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); width: 0%; transition: width 0.2s; }
+  .fp-label { font-size: 0.78rem; color: var(--ink-dim); font-family: 'Consolas', monospace; }
+  .fetch-cancel { margin-top: 6px; padding: 4px 12px; border: 1px solid var(--accent); border-radius: 6px; background: transparent; color: var(--accent); font-size: 0.78rem; cursor: pointer; font-family: var(--sans); }
   .fetch-status { font-size: 0.85rem; color: var(--ink-dim); min-height: 22px; margin-bottom: 8px; }
   .fetch-status.err { color: var(--accent); }
   .fetch-status.ok { color: var(--success); }
@@ -870,7 +897,7 @@
         '"ငြိမ်းအေးခြင်း၊ ရာဂကင်းခြင်း၊ အသေမရှိခြင်း၊ မြတ်ခြင်း — ဤသည်တို့ကို သာကျမင်းသည် ဈာန်ဖြင့် ရရှိတော်မူသည်။ ထိုတရားနှင့် တူသော အရာမရှိ။ ဤသည်ကား ဓမ္မရတနာ၌ရှိသော အထူးဂုဏ်။ ဤသစ္စာဖြင့် ဘေးအန္တရာယ်များ ငြိမ်းစေပါ။"',
         '"ပညာရှိတို့က ချီးမြှင့်ကုန်သော ပုဂ္ဂိုလ်ရှစ်ဦး၊ တွဲ့လျှင် တွဲ့စုံ လေးတွဲ — သောတာပန်၊ သကဒါဂါမ်၊ အနာဂါမ်၊ အရဟန်္တ — ဤသည်တို့သည် ဒါန၏ အသီးအပွင့်ကို ဖြစ်စေတတ်ကုန်၏။ ဤသည်ကား သံဃရတနာ၌ရှိသော အထူးဂုဏ်။ ဤသစ္စာဖြင့် ဘေးအန္တရာယ်များ ငြိမ်းစေပါ။"',
         '"ကာမတွယ်တာမှုကို ဖျက်ဆီး၍ မြတ်ဗုဒ္ဓ၏ တရားတော်၌ တည်ကြည်စွာ ကြိုးစားကုန်သော ရဟန္တာတို့သည် — အသေမရှိ နိဗ္ဗာန်၌ ပျော်မွေ့စွာ နေထိုင်ကုန်၏။ ဤသည်ကား သံဃရတနာ၌ရှိသော အထူးဂုဏ်။ ဤသစ္စာဖြင့် ဘေးအန္တရာယ်များ ငြိမ်းစေပါ။"',
-        '(ဂါထာ ၁၇ ဂါထာ ရှိသည်။ ကျန်ဂါထာများနှင့် အပြည့်အစုံကို tipitaka.org ၌ ဖတ်နိုင်ပါသည်။)',
+        '(ဂါထာ ၁၇ ဂါထာ ရှိသည်။ ကျန်ဂါထာများနှင့် အပြည့်အစုံကို "🌐 SuttaCentral မှ အပြည့် ရယူ" ခလုတ်ဖြင့် app ထဲသို့ ရယူနိုင်ပါသည်။)',
       ],
       pali_body: [
         'Yānīdha bhūtāni samāgatāni, bhummāni vā yāni va antalikkhe;\nSabbeva bhūtā sumanā bhavantu, athopi sakkacca suṇantu bhāsitaṃ.',
@@ -878,7 +905,7 @@
         'Khayaṃ virāgaṃ amataṃ paṇītaṃ, yadajjhagā sakyamunī samāhito;\nNa tena dhammena samatthi kiñci, idampi dhamme ratanaṃ paṇītaṃ;\nEtena saccena suvatthi hotu.',
         'Ye puggalā aṭṭha sataṃ pasatthā, cattāri etāni yugāni honti;\nTe dakkhiṇeyyā sugatassa sāvakā, etesu dinnāni mahapphalāni;\nIdampi saṅghe ratanaṃ paṇītaṃ, etena saccena suvatthi hotu.',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'dn-sigalovada': {
@@ -902,7 +929,7 @@
         'Yato kho, gahapatiputta, ariyasāvakassa cattāro kammakilesā pahīnā honti, catūhi ca ṭhānehi pāpakammaṃ na karoti, chahi ca bhogānaṃ apāyamukhāni na sevati, so evaṃ cuddasa pāpakāpagato chaddisāpaṭicchādī ubholokavijayāya paṭipanno hoti.',
         'Puratthimā disā mātāpitaro veditabbā, dakkhiṇā disā ācariyā veditabbā, pacchimā disā puttadārā veditabbā, uttarā disā mittāmaccā veditabbā, heṭṭhimā disā dāsakammakarā veditabbā, uparimā disā samaṇabrāhmaṇā veditabbā.',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'sn-anatta': {
@@ -925,7 +952,7 @@
         'Taṃ kiṃ maññatha, bhikkhave, rūpaṃ niccaṃ vā aniccaṃ vāti? Aniccaṃ, bhante. Yaṃ panāniccaṃ dukkhaṃ vā taṃ sukhaṃ vāti? Dukkhaṃ, bhante.',
         'Tasmātiha, bhikkhave, yaṃ kiñci rūpaṃ atītānāgatapaccuppannaṃ... sabbaṃ rūpaṃ ‘netaṃ mama, nesohamasmi, na meso attā’ti evametaṃ yathābhūtaṃ sammappaññāya daṭṭhabbaṃ.',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'sn-aditta': {
@@ -948,7 +975,7 @@
         'Kena ādittaṃ? Rāgagginā dosagginā mohagginā ādittaṃ; jātiyā jarāya maraṇena sokehi paridevehi dukkhehi domanassehi upāyāsehi ādittanti vadāmi.',
         'Evaṃ passaṃ, bhikkhave, sutavā ariyasāvako cakkhusmimpi nibbindati... Nibbindaṃ virajjati; virāgā vimuccati; vimuttasmiṃ vimuttamiti ñāṇaṃ hoti.',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'mn-anapanasati': {
@@ -975,7 +1002,7 @@
         'Rassaṃ vā assasanto ‘rassaṃ assasāmī’ti pajānāti...',
         '‘Sabbakāyapaṭisaṃvedī assasissāmī’ti sikkhati; ‘passambhayaṃ kāyasaṅkhāraṃ assasissāmī’ti sikkhati.',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'mn-rahulovada': {
@@ -997,7 +1024,7 @@
         'Passasi no tvaṃ, rāhula, imasmiṃ udakadhāne parittaṃ udakaṃ ṭhitanti? Evaṃ, bhante. Evameva kho, rāhula, parittakaṃ tesaṃ sāmaññaṃ, yesaṃ natthi sampajānamusāvāde lajjāti.',
         'Ādāsaṃ, rāhula, kimatthiyanti? Paccavekkhaṇattho, bhanteti. Evameva kho, rāhula, paccavekkhitvā paccavekkhitvā kāyena kammaṃ kattabbaṃ, paccavekkhitvā paccavekkhitvā vācāya kammaṃ kattabbaṃ, paccavekkhitvā paccavekkhitvā manasā kammaṃ kattabbaṃ.',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'an-vyagghapajja': {
@@ -1023,7 +1050,7 @@
         'Cattārome, byagghapajja, dhammā kulaputtassa diṭṭhadhammahitāya saṃvattanti diṭṭhadhammasukhāya. Katame cattāro? Uṭṭhānasampadā, ārakkhasampadā, kalyāṇamittatā, samajīvitā.',
         'Cattārome, byagghapajja, dhammā kulaputtassa samparāyahitāya saṃvattanti samparāyasukhāya. Katame cattāro? Saddhāsampadā, sīlasampadā, cāgasampadā, paññāsampadā.',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'sn-parabhava': {
@@ -1051,7 +1078,7 @@
         'Niddāsīlī sabhāsīlī, anuṭṭhātā ca yo naro;\nAlaso kodhapaññāṇo, taṃ parābhavato mukhaṃ.',
         'Yo mātaraṃ vā pitaraṃ vā, jiṇṇakaṃ gatayobbanaṃ;\nPahusanto na bharati, taṃ parābhavato mukhaṃ.',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'an-girimananda': {
@@ -1077,7 +1104,7 @@
         'Sace kho tvaṃ, ānanda, girimānandassa bhikkhuno dasa saññā bhāseyyāsi, ṭhānaṃ kho panetaṃ vijjati yaṃ girimānandassa bhikkhuno dasa saññā sutvā so ābādho ṭhānaso paṭippassambheyya.',
         'Katamā dasa? Aniccasaññā, anattasaññā, asubhasaññā, ādīnavasaññā, pahānasaññā, virāgasaññā, nirodhasaññā, sabbaloke anabhiratasaññā, sabbasaṅkhāresu aniccasaññā (aniṭṭhasaññā), ānāpānassati.',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'sn-dhajagga': {
@@ -1099,7 +1126,7 @@
         'Svākkhāto bhagavatā dhammo sandiṭṭhiko akāliko ehipassiko opaneyyiko paccattaṃ veditabbo viññūhīti.',
         'Suppaṭipanno bhagavato sāvakasaṅgho, ujuppaṭipanno bhagavato sāvakasaṅgho, ñāyappaṭipanno bhagavato sāvakasaṅgho, sāmīcippaṭipanno bhagavato sāvakasaṅgho... anuttaraṃ puññakkhettaṃ lokassāti.',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'kp-tirokudda': {
@@ -1124,7 +1151,7 @@
         'Evaṃ dadanti ñātīnaṃ, ye honti anukampakā;\nSuciṃ paṇītaṃ kālena, kappiyaṃ pānabhojanaṃ.',
         'Yathā vārivahā pūrā, paripūrenti sāgaraṃ;\nEvameva ito dinnaṃ, petānaṃ upakappati.',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'kp-mettabhavana-ovada': {
@@ -1146,7 +1173,7 @@
         'Khantī paramaṃ tapo titikkhā, nibbānaṃ paramaṃ vadanti buddhā;\nNa hi pabbajito parūpaghātī, na samaṇo hoti paraṃ viheṭhayanto. (Dhp 184)',
         'Anūpavādo anūpaghāto, pātimokkhe ca saṃvaro;\nMattaññutā ca bhattasmiṃ, pantañca sayanāsanaṃ;\nAdhicitte ca āyogo, etaṃ buddhāna sāsanaṃ. (Dhp 185)',
       ],
-      external: 'https://www.tipitaka.org/romn/',
+
     },
 
     'mn-satipatthana': {
@@ -1181,6 +1208,15 @@
   let SUTTAS = { ...EMBEDDED_SUTTAS };
   let IMPORTED_STRUCTURE = null; // optional override of PITAKAS from imported data
   let importedMeta = null;
+
+  // Map embedded sutta keys → SuttaCentral UIDs so "fetch full" pulls the complete canonical text in-app
+  const SC_UID_MAP = {
+    'kp-mangala': 'kp5', 'sn-metta': 'snp1.8', 'sn-dhammacakka': 'sn56.11',
+    'an-kalama': 'an3.65', 'mn-satipatthana': 'mn10', 'kp-ratana': 'kp6',
+    'dn-sigalovada': 'dn31', 'sn-anatta': 'sn22.59', 'sn-aditta': 'sn35.28',
+    'mn-anapanasati': 'mn118', 'mn-rahulovada': 'mn61', 'an-vyagghapajja': 'an8.54',
+  };
+  Object.entries(SC_UID_MAP).forEach(([k, uid]) => { if (SUTTAS[k]) SUTTAS[k].scUid = uid; });
 
   // ---- IndexedDB (handles large data — localStorage caps at ~5MB) ----
   const DB_NAME = 'tipitaka-db';
@@ -1519,19 +1555,20 @@
           const hasSutta = !!SUTTAS[ch.key];
           const hasTool = !!ch.link;
           const row = document.createElement('div');
-          // Every row is now actionable — embedded sutta, linked tool, or external tipitaka.org
+          // Every row is actionable — embedded sutta, linked tool, or in-app fetch
           row.className = 'child-row has-content';
           let badge;
           if (hasSutta) badge = '· 📖 ဖတ်ရန်';
           else if (hasTool) badge = '· 🔗 ဖွင့်ရန်';
-          else badge = '· 🌐 tipitaka.org';
+          else badge = '· 🌐 ရယူရန်';
           row.innerHTML = `
             <span><span class="c-name">${ch.my}</span> <span class="c-pali">· ${ch.pali}</span></span>
             <span class="c-pali">${ch.count} ${badge}</span>
           `;
           if (hasSutta) row.onclick = (e) => { e.stopPropagation(); activeSutta = ch.key; renderContent(); window.scrollTo({top:0,behavior:'smooth'}); };
           else if (hasTool) row.onclick = () => location.href = ch.link;
-          else row.onclick = (e) => { e.stopPropagation(); window.open('https://www.tipitaka.org/romn/', '_blank'); };
+          // No embedded data → open the in-app SuttaCentral fetch panel (pulls Myanmar + Pāḷi INTO the app)
+          else row.onclick = (e) => { e.stopPropagation(); openFetch(); if (ch.scUid) { $('fetchInput').value = ch.scUid; } };
           children.appendChild(row);
         });
       }
@@ -1545,13 +1582,17 @@
     const ext = document.createElement('div');
     ext.className = 'external-links';
     ext.innerHTML = `
-      <div class="el-title">🔗 ပြင်ပ အရင်းအမြစ်များ · External Sources</div>
-      <a href="https://tipitaka.org" target="_blank" rel="noopener">tipitaka.org — Chaṭṭha Saṅgāyana Pāḷi (official Myanmar edition)</a>
-      <a href="https://suttacentral.net/pitaka/sutta?lang=en" target="_blank" rel="noopener">SuttaCentral — English translations + Pāḷi</a>
-      <a href="https://www.dhammatalks.org/suttas/index.html" target="_blank" rel="noopener">Dhamma Talks — Ajahn Ṭhānissaro's translations</a>
-      <a href="https://www.myanmarttw.com" target="_blank" rel="noopener">Myanmar Tipiṭaka Translation — မြန်မာဘာသာပြန်</a>
+      <div class="el-title">🌐 အပြည့်အစုံ ဖတ်လိုပါက</div>
+      <p style="color:var(--ink-dim);font-size:0.85rem;line-height:1.7;margin:0;">
+        အထက်က ဗန်းဒလ်လုပ်ထားသော သုတ်များအပြင် — <b>🌐 button</b> ကို နှိပ်၍ Sutta ID (dn31၊ mn10၊ sn56.11…) ထည့်လျှင်
+        <b>Pitaka Myanmar Translation (တကယ့် မြန်မာဘာသာပြန်)</b> နှင့် Pāḷi ကို app ထဲသို့ တိုက်ရိုက် ရယူ၍ offline သိမ်းနိုင်ပါသည်။
+        ရယူပြီးသော သုတ်များ ဤ Sutta Piṭaka အောက်ဆုံးတွင် ပေါ်ပါမည်။
+      </p>
+      <button class="mini-btn" id="extFetchBtn" style="margin-top:10px;">🌐 SuttaCentral မှ ရယူရန်</button>
     `;
     c.appendChild(ext);
+    const efb = ext.querySelector('#extFetchBtn');
+    if (efb) efb.onclick = () => openFetch();
 
     updateStats();
   }
@@ -1630,7 +1671,7 @@
       <div class="s-actions">
         <button class="mini-btn ${isFav ? 'active' : ''}" data-act="fav">${isFav ? '★ ကြိုက်နှစ်သက်' : '☆ ကြိုက်နှစ်သက်ရန်'}</button>
         <button class="mini-btn" data-act="copy">📋 ကူးရန်</button>
-        ${s.external ? `<a class="mini-btn" href="${s.external}" target="_blank" rel="noopener" style="text-decoration:none">🔗 tipitaka.org ၌ အပြည့်အစုံ</a>` : ''}
+        ${s.scUid && !s._fetched ? `<button class="mini-btn" data-act="fetchfull">🌐 SuttaCentral မှ အပြည့် ရယူ</button>` : ''}
       </div>
     `;
     const bodies = card.querySelectorAll('.lang');
@@ -1648,6 +1689,21 @@
     card.querySelector('[data-act="copy"]').onclick = () => {
       const txt = `${s.my} · ${s.pali}\n${s.source}\n\n${s.my_body.join('\n\n')}\n\n---\n\n${s.pali_body.join('\n\n')}`;
       navigator.clipboard.writeText(txt).then(() => toast('📋 Copied'));
+    };
+    const ff = card.querySelector('[data-act="fetchfull"]');
+    if (ff) ff.onclick = async () => {
+      ff.disabled = true; ff.textContent = '⏳ ရယူနေသည်...';
+      try {
+        const fk = await fetchFromSC(s.scUid);
+        injectFetchedBook();
+        activeSutta = fk;
+        renderPitakaNav(); renderContent(); updateDataBtn();
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        toast('✅ အပြည့်အစုံ ရရှိပြီး');
+      } catch (e) {
+        ff.disabled = false; ff.textContent = '🌐 SuttaCentral မှ အပြည့် ရယူ';
+        toast('⚠ ' + e.message);
+      }
     };
     wrap.appendChild(card);
     return wrap;
@@ -1782,14 +1838,14 @@
       }
     } else {
       alert(
-        `📥 ပိဋကတ်သုံးပုံ Full Data ထည့်သွင်းနည်း\n` +
-        `How to import full Tipiṭaka data:\n\n` +
-        `၁) tipitaka.org သို့မဟုတ် SuttaCentral မှ JSON data ရယူပါ\n` +
-        `၂) ⬆ button ကို နှိပ်၍ ဖိုင်ကို ရွေးပါ\n` +
-        `၃) Import ပြီးလျှင် offline သိမ်းထား၍ app ထဲမှာ အပြည့်အစုံ ဖတ်နိုင်ပါမည်\n\n` +
-        `JSON format:\n` +
-        `{ "meta": {...}, "suttas": { "key": { "my":"...", "pali":"...", "source":"...", "my_body":["..."], "pali_body":["..."] } } }\n\n` +
-        `Current: ${embeddedN} bundled suttas ready to read now.`
+        `📥 ပိဋကတ်သုံးပုံ Full Data\n\n` +
+        `နည်း ၂ မျိုးဖြင့် app ထဲသို့ တကယ့် data ထည့်နိုင်သည်:\n\n` +
+        `🌐 နည်း ၁ (အလွယ်ဆုံး): 🌐 button ကို နှိပ်၍ Sutta ID ထည့်ပါ။\n` +
+        `   SuttaCentral မှ တကယ့် မြန်မာဘာသာပြန် (pmt) + Pāḷi ကို\n` +
+        `   app ထဲသို့ တိုက်ရိုက် ရယူ၍ offline သိမ်းပါမည်။\n\n` +
+        `⬆ နည်း ၂ (JSON file): ⬆ button ဖြင့် JSON ဖိုင် import လုပ်ပါ။\n` +
+        `   Format: { "meta":{...}, "suttas":{ "key":{ "my":"...", "pali":"...", "my_body":["..."], "pali_body":["..."] } } }\n\n` +
+        `ယခု: ${embeddedN} bundled suttas ချက်ချင်း ဖတ်နိုင်သည်။`
       );
     }
   };
@@ -1855,6 +1911,55 @@
   }
   $('fetchGo').onclick = doFetch;
   $('fetchInput').addEventListener('keypress', e => { if (e.key === 'Enter') doFetch(); });
+
+  // ---- Batch fetch a whole nikāya ----
+  let batchCancel = false;
+  const NIKAYA_UIDS = {
+    dn: { count: 34, uid: i => 'dn' + i },
+    mn: { count: 152, uid: i => 'mn' + i },
+    kp: { count: 9, uid: i => 'kp' + i },
+  };
+  async function batchFetch(nikaya) {
+    const spec = NIKAYA_UIDS[nikaya];
+    if (!spec) return;
+    batchCancel = false;
+    const uids = Array.from({ length: spec.count }, (_, i) => spec.uid(i + 1));
+    const prog = $('fetchProgress'), fill = $('fpFill'), label = $('fpLabel');
+    prog.style.display = 'block';
+    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = true);
+    $('fetchStatus').textContent = '';
+    let done = 0, ok = 0, fail = 0;
+    for (const uid of uids) {
+      if (batchCancel) break;
+      label.textContent = `${uid} ရယူနေသည်... (${done}/${uids.length} · ✓${ok} ✗${fail})`;
+      try {
+        await fetchFromSC(uid);
+        ok++;
+      } catch (e) { fail++; }
+      done++;
+      fill.style.width = Math.round((done / uids.length) * 100) + '%';
+      // Polite delay to avoid hammering the API
+      await new Promise(r => setTimeout(r, 350));
+    }
+    injectFetchedBook();
+    renderPitakaNav(); renderContent(); updateDataBtn();
+    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = false);
+    label.textContent = batchCancel
+      ? `⏹ ရပ်လိုက်သည် — ${ok} suttas ရရှိပြီး (offline သိမ်းထား)`
+      : `✅ ပြီးပြီ — ${ok} suttas ရရှိ · ${fail} မရ (offline သိမ်းထား)`;
+    $('fetchStatus').className = 'fetch-status ok';
+    $('fetchStatus').textContent = `${ok} suttas ကို app ထဲ သိမ်းပြီး။ Sutta Piṭaka အောက်ဆုံးတွင် ကြည့်ပါ။`;
+  }
+  document.querySelectorAll('.fetch-batch-btn').forEach(btn => {
+    btn.onclick = () => {
+      const n = btn.dataset.nikaya;
+      const cnt = NIKAYA_UIDS[n].count;
+      if (confirm(`${cnt} suttas ကို SuttaCentral မှ ရယူမည်။ (~${Math.ceil(cnt * 0.7 / 60)} မိနစ်ခန့် ကြာနိုင်သည်)\n\nဆက်လုပ်မလား?`)) {
+        batchFetch(n);
+      }
+    };
+  });
+  $('fetchCancel').onclick = () => { batchCancel = true; };
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && $('fetchModal').classList.contains('show')) closeFetch();
