@@ -354,15 +354,38 @@
       }
       function blobToBase64(blob){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onloadend=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(blob); }); }
 
+      // Normalize the stored Gemini model — old/preview/decommissioned names cause 400s
+      const VALID_MODELS = ['gemini-2.5-flash','gemini-2.5-pro','gemini-2.0-flash','gemini-2.0-flash-lite'];
+      function geminiModel(){
+        let m = localStorage.getItem(GMODEL) || 'gemini-2.5-flash';
+        // Any stale preview/dated/unknown model → snap to a known-good one
+        if (!VALID_MODELS.includes(m) || /preview|exp|\d{4}/.test(m)) {
+          m = 'gemini-2.5-flash';
+          localStorage.setItem(GMODEL, m); // heal it
+        }
+        return m;
+      }
+      // Extract the human-readable reason from a Gemini error body
+      function geminiErr(status, body){
+        let reason = '';
+        try { reason = JSON.parse(body)?.error?.message || ''; } catch { reason = body.slice(0,140); }
+        let hint = '';
+        if (status===429) hint=' — quota ကုန်ပြီ (Settings မှ gemini-2.0-flash သို့ ပြောင်းပါ)';
+        else if (/API key not valid|API_KEY_INVALID/i.test(reason)) hint=' — API key မှားနေသည် (🔑 ပြန်ထည့်ပါ)';
+        else if (/not found|not supported|does not exist/i.test(reason)) hint=' — model မှား (🔑 → gemini-2.5-flash ပြန်ရွေးပါ)';
+        else if (/quota|billing/i.test(reason)) hint=' — quota/billing ပြဿနာ';
+        return `Gemini ${status}: ${reason}${hint}`;
+      }
+
       const MM_PROMPT='Transcribe this audio verbatim. The speaker most likely speaks Myanmar (Burmese) — output in Myanmar script (မြန်မာ). Keep English parts in English. Preserve pauses as line breaks. Return ONLY the transcribed text.';
       async function geminiTranscribe(b64, mime='audio/wav'){
         const key=localStorage.getItem(GKEY); if(!key) throw new Error('No Gemini key');
-        const model=localStorage.getItem(GMODEL)||'gemini-2.5-flash';
+        const model=geminiModel();
         const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,{
           method:'POST',headers:{'Content-Type':'application/json'},
           body:JSON.stringify({contents:[{role:'user',parts:[{text:MM_PROMPT},{inlineData:{mimeType:mime,data:b64}}]}]})
         });
-        if(!res.ok){ const b=await res.text(); let h=res.status===429?' quota ကုန်ပြီ (gemini-2.0-flash သို့ ပြောင်း)':''; throw new Error('Gemini '+res.status+h); }
+        if(!res.ok){ throw new Error(geminiErr(res.status, await res.text())); }
         const d=await res.json(); return d.candidates?.[0]?.content?.parts?.[0]?.text||'';
       }
 
@@ -370,7 +393,7 @@
       async function callAI(prompt){
         const prov = localStorage.getItem('ainotes.provider') || 'gemini';
         const gk=localStorage.getItem(GKEY), qk=localStorage.getItem(QKEY);
-        async function gemini(){ const model=localStorage.getItem(GMODEL)||'gemini-2.5-flash'; const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(gk)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}]})}); if(!r.ok){const e=new Error('Gemini '+r.status);e.status=r.status;e.retry=r.status===429;throw e;} const d=await r.json(); return d.candidates?.[0]?.content?.parts?.[0]?.text||''; }
+        async function gemini(){ const model=geminiModel(); const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(gk)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}]})}); if(!r.ok){const e=new Error(geminiErr(r.status, await r.text()));e.status=r.status;e.retry=r.status===429;throw e;} const d=await r.json(); return d.candidates?.[0]?.content?.parts?.[0]?.text||''; }
         async function groq(){ const model=localStorage.getItem(QMODEL)||'llama-3.3-70b-versatile'; const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+qk},body:JSON.stringify({model,messages:[{role:'user',content:prompt}],max_tokens:1500})}); if(!r.ok){const e=new Error('Groq '+r.status);e.status=r.status;throw e;} const d=await r.json(); return d.choices?.[0]?.message?.content||''; }
         const order = prov==='groq' && qk ? [groq, gk&&gemini] : [gk&&gemini, qk&&groq];
         let lastErr;
