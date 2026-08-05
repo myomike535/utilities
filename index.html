@@ -1184,10 +1184,10 @@
   }
   renderNoteStats();
 
-  // ---- Stats: Password Manager (pm-vault-v2) ----
+  // ---- Stats: Password Manager (pmvault.v2) ----
   function pwStats() {
     try {
-      const raw = localStorage.getItem('pm-vault-v2');
+      const raw = localStorage.getItem('pmvault.v2');
       if (!raw) return { text: 'Vault not initialized yet.' };
       const vault = JSON.parse(raw);
       // Encrypted vault — we can only know if it's encrypted or count entries if plaintext
@@ -1290,7 +1290,7 @@
     // AI Note Taker
     'ainotes.v1', 'ainotes.provider',
     // Password Manager (encrypted vault)
-    'pm-vault-v2',
+    'pmvault.v2',
     // SQL Deploy prefs
     'sqldeploy.v1',
     // GitHub Trending

@@ -505,7 +505,7 @@
     const exportKeys = [
       'tasks.v3', 'tasks.sort', 'tasks.view',
       'ainotes.v1', 'ainotes.v11.enterprise',
-      'pm-vault-v2',
+      'pmvault.v2',
       'recap.history.v1',
       'bookmarks.v1',
       'mala.counter.v1',
@@ -541,7 +541,7 @@
       const IMPORT_KEYS = [
         'tasks.v3', 'tasks.sort', 'tasks.view',
         'ainotes.v1', 'ainotes.v11.enterprise',
-        'pm-vault-v2',
+        'pmvault.v2',
         'recap.history.v1',
         'bookmarks.v1',
         'mala.counter.v1',
@@ -579,7 +579,7 @@
       'tasks.view': 'Task view (list/kanban)',
       'ainotes.v1': 'AI Note Taker (Classic) sessions',
       'ainotes.v11.enterprise': 'AI Note Taker (Enterprise) sessions',
-      'pm-vault-v2': 'Password Manager vault',
+      'pmvault.v2': 'Password Manager vault',
       'recap.history.v1': 'Recap Audio history',
       'bookmarks.v1': 'Bookmarks',
       'mala.counter.v1': 'Mala Counter stats',

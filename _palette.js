@@ -100,7 +100,7 @@
   }
   function readVault() {
     try {
-      const raw = JSON.parse(localStorage.getItem('pm-vault-v2') || '{}');
+      const raw = JSON.parse(localStorage.getItem('pmvault.v2') || '{}');
       if (raw.enc) return [{
         section: 'Vault',
         ico: '🔒',

@@ -17,7 +17,7 @@
     'ainotes.v1', 'ainotes.v11.enterprise',
     'ainotes.current', 'ainotes.current.enterprise',
     'ainotes.lang', 'ainotes.translate.target',
-    'pm-vault-v2',
+    'pmvault.v2',
     'recap.history.v1',
     'bookmarks.v1',
     'mala.counter.v1',
