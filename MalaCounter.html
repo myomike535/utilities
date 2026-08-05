@@ -105,13 +105,36 @@
 
   /* Ring of beads */
   .ring-wrap { position: relative; width: 260px; height: 260px; margin: 12px 0; }
+  .buddha-art {
+    position: absolute; left: 50%; top: 52%;
+    transform: translate(-50%, -50%);
+    width: 44%; height: 44%;
+    color: var(--accent-2);
+    opacity: 0.5;
+    z-index: 0; pointer-events: none;
+  }
+  [data-theme="royal"] .buddha-art { color: var(--gold); opacity: 0.42; }
+  .buddha-halo {
+    position: absolute; inset: 0;
+    color: var(--gold);
+    pointer-events: none; z-index: 0;
+    animation: haloGlow 4s ease-in-out infinite;
+  }
+  @keyframes haloGlow { 0%,100%{opacity:0.6;} 50%{opacity:1;} }
+  .lotus-art {
+    width: 90px; height: 34px;
+    color: var(--accent);
+    opacity: 0.55;
+    margin: 2px 0 4px;
+  }
   .bead-svg { width: 100%; height: 100%; }
   .bead-svg circle.b { transition: fill 0.15s, r 0.15s; }
   .center-count {
     position: absolute; inset: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    pointer-events: none;
+    pointer-events: none; z-index: 2;
   }
+  .bead-svg { position: relative; z-index: 1; }
   .center-count .num {
     font-family: var(--serif); font-weight: 700;
     color: var(--accent); font-size: 3.4rem; line-height: 1;
@@ -173,6 +196,27 @@
   .goal-bar { flex: 1; height: 6px; background: var(--paper-3); border-radius: 3px; overflow: hidden; }
   .goal-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); transition: width 0.3s; }
 
+  /* Bead options + session */
+  .opts-row{display:flex;justify-content:space-between;align-items:center;width:100%;margin-top:12px;gap:8px;flex-wrap:wrap;}
+  .bead-opts{display:flex;gap:4px;}
+  .bo{padding:4px 9px;border:1px solid var(--border);border-radius:6px;background:transparent;color:var(--ink-dim);font-size:0.78rem;cursor:pointer;font-family:var(--sans);}
+  .bo.on{background:var(--accent);color:#fff;border-color:var(--accent);font-weight:600;}
+  .sess{display:flex;align-items:center;gap:6px;font-family:'Consolas',monospace;font-size:0.9rem;color:var(--ink-mute);}
+  .sess.live{color:var(--accent);}
+  .sess-x{background:transparent;border:1px solid var(--border);color:var(--ink-mute);width:22px;height:22px;border-radius:5px;cursor:pointer;font-size:0.6rem;}
+  .sess-x:hover{color:var(--accent);border-color:var(--accent);}
+
+  /* Streak + calendar */
+  .streak-row{width:100%;margin-top:16px;padding-top:14px;border-top:1px dashed var(--border-soft);}
+  .streak-badge{font-size:0.9rem;font-weight:600;color:var(--accent);margin-bottom:8px;}
+  .cal{display:grid;grid-template-columns:repeat(14,1fr);gap:3px;}
+  .cal-cell{aspect-ratio:1;border-radius:2px;background:rgba(139,100,40,0.1);}
+  .cal-cell[data-level="1"]{background:rgba(198,45,45,0.3);}
+  .cal-cell[data-level="2"]{background:rgba(198,45,45,0.5);}
+  .cal-cell[data-level="3"]{background:rgba(198,45,45,0.75);}
+  .cal-cell[data-level="4"]{background:var(--accent);}
+  .cal-cell.today{outline:1.5px solid var(--gold);outline-offset:1px;}
+
   .badge-complete {
     margin-top: 12px; padding: 8px 16px;
     background: var(--gold); color: #2d2115;
@@ -226,8 +270,39 @@
       </div>
       <div class="mantra-display">{{ mantras[mantraIdx].text }}</div>
 
+      <!-- Bead count + session timer -->
+      <div class="opts-row">
+        <div class="bead-opts">
+          <button v-for="n in beadOptions" :key="n" class="bo" :class="{on: beadsPerRound===n}" @click="setBeads(n)">{{ n }}</button>
+        </div>
+        <div class="sess" :class="{live: sessionActive}">
+          <span>⏱ {{ sessionTime }}</span>
+          <button class="sess-x" v-if="sessionActive" @click="endSession" title="Session ရပ်">■</button>
+        </div>
+      </div>
+
       <!-- Bead ring -->
       <div class="ring-wrap">
+        <!-- Seated Buddha watermark (inline SVG, offline) -->
+        <svg class="buddha-art" viewBox="0 0 120 130" aria-hidden="true">
+          <g fill="currentColor">
+            <!-- ushnisha / flame -->
+            <path d="M60 6 q3 6 0 11 q-3 -5 0 -11 z"/>
+            <!-- head -->
+            <circle cx="60" cy="26" r="11"/>
+            <!-- neck + shoulders/robe -->
+            <path d="M52 35 q8 6 16 0 l6 6 q10 8 12 24 q1 10 -2 20 l-4 14 q-24 8 -48 0 l-4 -14 q-3 -10 -2 -20 q2 -16 12 -24 z"/>
+            <!-- lap / crossed legs -->
+            <path d="M28 92 q32 16 64 0 q4 8 2 16 q-34 12 -68 0 q-2 -8 2 -16 z"/>
+            <!-- hands in lap (dhyana mudra) -->
+            <ellipse cx="60" cy="96" rx="12" ry="5" opacity="0.55"/>
+          </g>
+        </svg>
+        <!-- Halo behind head -->
+        <svg class="buddha-halo" viewBox="0 0 200 200" aria-hidden="true">
+          <circle cx="100" cy="52" r="26" fill="none" stroke="currentColor" stroke-width="1.2" opacity="0.5"/>
+          <circle cx="100" cy="52" r="20" fill="none" stroke="currentColor" stroke-width="0.8" opacity="0.35"/>
+        </svg>
         <svg class="bead-svg" viewBox="0 0 200 200">
           <circle
             v-for="(b, i) in beadPositions" :key="i"
@@ -245,6 +320,18 @@
         </div>
       </div>
 
+      <!-- Lotus divider -->
+      <svg class="lotus-art" viewBox="0 0 100 40" aria-hidden="true">
+        <g fill="currentColor">
+          <path d="M50 34 q-3 -18 0 -24 q3 6 0 24 z"/>
+          <path d="M50 34 q-10 -14 -12 -20 q8 2 12 20 z"/>
+          <path d="M50 34 q10 -14 12 -20 q-8 2 -12 20 z"/>
+          <path d="M50 34 q-18 -8 -24 -10 q10 -1 24 10 z"/>
+          <path d="M50 34 q18 -8 24 -10 q-10 -1 -24 10 z"/>
+          <ellipse cx="50" cy="35" rx="26" ry="3" opacity="0.4"/>
+        </g>
+      </svg>
+
       <button class="tap-btn" @click="tap">
         <span>📿</span> စိပ်မည် (Tap)
       </button>
@@ -254,8 +341,19 @@
 
       <div class="controls">
         <button class="ctl-btn" @click="undo" :disabled="count === 0 && rounds === 0">↩ ပြန်ဖြုတ်</button>
-        <button class="ctl-btn" @click="toggleSound">{{ soundOn ? '🔔 အသံ ON' : '🔕 အသံ OFF' }}</button>
+        <button class="ctl-btn" @click="toggleSound">{{ soundOn ? '🔔 အသံ' : '🔕 အသံ' }}</button>
+        <button class="ctl-btn" @click="toggleWake">{{ wakeLockOn ? '📱 Screen ON' : '📱 Screen' }}</button>
+        <button class="ctl-btn" @click="addMantra">➕ ဂါထာ</button>
         <button class="ctl-btn danger" @click="reset">🔄 အသစ်</button>
+      </div>
+
+      <!-- Streak + practice calendar -->
+      <div class="streak-row">
+        <div class="streak-badge">🔥 {{ streak }} ရက် ဆက်တိုက်</div>
+        <div class="cal">
+          <div v-for="c in calendar" :key="c.date" class="cal-cell" :data-level="c.level" :class="{today: c.today}"
+               :title="c.date + ' — ' + c.rounds + ' ပတ်'"></div>
+        </div>
       </div>
 
       <!-- Daily goal -->
@@ -311,14 +409,26 @@
       const goalRounds = ref(saved.goalRounds || 3);
       const soundOn = ref(saved.soundOn !== false);
       const mantraIdx = ref(saved.mantraIdx || 0);
-      const beadsPerRound = ref(108);
+      const beadsPerRound = ref(saved.beadsPerRound || 108);
       const justCompleted = ref(false);
+      const beadOptions = [108, 54, 27, 21, 18, 9];
+      const wakeLockOn = ref(saved.wakeLockOn || false);
+
+      // Practice history: { 'Mon Jan 01 2026': roundsThatDay }
+      const history = ref(saved.history || {});
+
+      // Session timer
+      const sessionSecs = ref(0);
+      const sessionActive = ref(false);
 
       // Today's rounds — reset if date changed
       const today = new Date().toDateString();
-      const todayRounds = ref(saved.todayDate === today ? (saved.todayRounds || 0) : 0);
+      const todayRounds = ref(saved.todayDate === today ? (saved.todayRounds || 0) : (history.value[today] || 0));
 
-      const mantras = [
+      // Custom mantras appended to presets
+      const customMantras = ref(saved.customMantras || []);
+      const presetMantras = [
+        { my: 'ဘုရားဂုဏ်တော် ၉ ပါး (နဝဂုဏ်)', text: 'အရဟံ · သမ္မာသမ္ဗုဒ္ဓော · ဝိဇ္ဇာစရဏသမ္ပန္နော · သုဂတော · လောကဝိဒူ · အနုတ္တရော ပုရိသဒမ္မသာရထိ · သတ္ထာ ဒေဝမနုဿာနံ · ဗုဒ္ဓေါ · ဘဂဝါ' },
         { my: 'ဗုဒ္ဓါနုဿတိ', text: 'အရဟံ သမ္မာသမ္ဗုဒ္ဓေါ · Buddho' },
         { my: 'ဓမ္မာနုဿတိ', text: 'သွာက္ခာတော ဘဂဝတာ ဓမ္မော · Dhammo' },
         { my: 'သံဃာနုဿတိ', text: 'သုပ္ပဋိပန္နော ဘဂဝတော သာဝကသံဃော · Saṅgho' },
@@ -328,6 +438,30 @@
         { my: 'ဗုဒ္ဓံ သရဏံ', text: 'ဗုဒ္ဓံ သရဏံ ဂစ္ဆာမိ' },
         { my: '(လွတ်လပ်)', text: 'ကိုယ်ပိုင် ဂါထာ / ရွတ်ဖတ်ချက်' },
       ];
+      const mantras = computed(() => [...presetMantras, ...customMantras.value]);
+
+      // Merit dedication verse (shown on reaching daily goal)
+      const DEDICATION = 'ဣဒံ မေ ပုည္ဉံ သဗ္ဗသတ္တာနံ · ဤကုသိုလ်ကို သတ္တဝါအားလုံးအား ဝေမျှပါ၏ · သာဓု သာဓု သာဓု';
+
+      // ---- Streak (consecutive days with ≥1 round, ending today or yesterday) ----
+      const streak = computed(() => {
+        let s = 0; const d = new Date(); d.setHours(0,0,0,0);
+        // allow today to be 0 if yesterday had practice (streak still "alive")
+        if (!history.value[d.toDateString()]) d.setDate(d.getDate()-1);
+        while (history.value[d.toDateString()] > 0) { s++; d.setDate(d.getDate()-1); }
+        return s;
+      });
+      // Last 28 days for the mini calendar
+      const calendar = computed(() => {
+        const out = []; const now = new Date(); now.setHours(0,0,0,0);
+        for (let i = 27; i >= 0; i--) {
+          const d = new Date(now); d.setDate(now.getDate()-i);
+          const r = history.value[d.toDateString()] || 0;
+          out.push({ date: d.toDateString(), rounds: r, today: i===0,
+            level: r===0?0 : r>=goalRounds.value?4 : r>=Math.ceil(goalRounds.value*0.66)?3 : r>=Math.ceil(goalRounds.value*0.33)?2 : 1 });
+        }
+        return out;
+      });
 
       // ---- Bead ring positions (108 beads in a circle) ----
       const beadPositions = computed(() => {
@@ -347,10 +481,12 @@
           count: count.value, rounds: rounds.value,
           totalBeads: totalBeads.value, totalRounds: totalRounds.value,
           goalRounds: goalRounds.value, soundOn: soundOn.value, mantraIdx: mantraIdx.value,
+          beadsPerRound: beadsPerRound.value, wakeLockOn: wakeLockOn.value,
           todayDate: today, todayRounds: todayRounds.value,
+          history: history.value, customMantras: customMantras.value,
         }));
       }
-      watch([count, rounds, totalBeads, totalRounds, goalRounds, soundOn, mantraIdx, todayRounds], persist);
+      watch([count, rounds, totalBeads, totalRounds, goalRounds, soundOn, mantraIdx, todayRounds, beadsPerRound, wakeLockOn, history, customMantras], persist, { deep: true });
 
       // ---- Sound + haptics ----
       let audioCtx = null;
@@ -370,6 +506,7 @@
 
       // ---- Actions ----
       function tap() {
+        startSession();
         count.value++;
         totalBeads.value++;
         justCompleted.value = false;
@@ -379,16 +516,54 @@
           rounds.value++;
           totalRounds.value++;
           todayRounds.value++;
+          history.value = { ...history.value, [today]: todayRounds.value }; // record for streak/calendar
           justCompleted.value = true;
           ping(880, 0.25); haptic([30, 40, 30]);
           setTimeout(() => { justCompleted.value = false; }, 2500);
           if (todayRounds.value === goalRounds.value) {
-            toast('🎯 ယနေ့ ပန်းတိုင် ပြည့်ပါပြီ! သာဓု!');
-            ping(1040, 0.4);
+            toast('🎯 ယနေ့ ပန်းတိုင် ပြည့်ပါပြီ! ' + DEDICATION);
+            ping(1040, 0.4); haptic([50, 60, 50, 60, 80]);
           }
         } else {
           ping(); haptic();
         }
+      }
+
+      // ---- Session timer + wake lock ----
+      let sessTimer = null, wakeLock = null;
+      function startSession() {
+        if (sessionActive.value) return;
+        sessionActive.value = true;
+        sessTimer = setInterval(() => sessionSecs.value++, 1000);
+        requestWake();
+      }
+      function endSession() {
+        sessionActive.value = false;
+        if (sessTimer) { clearInterval(sessTimer); sessTimer = null; }
+        releaseWake();
+      }
+      const sessionTime = computed(() => {
+        const m = Math.floor(sessionSecs.value/60), s = sessionSecs.value%60;
+        return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+      });
+      async function requestWake() {
+        if (!wakeLockOn.value) return;
+        try { if ('wakeLock' in navigator) wakeLock = await navigator.wakeLock.request('screen'); } catch {}
+      }
+      function releaseWake() { try { wakeLock && wakeLock.release(); wakeLock = null; } catch {} }
+      async function toggleWake() {
+        wakeLockOn.value = !wakeLockOn.value;
+        if (wakeLockOn.value && sessionActive.value) await requestWake();
+        else releaseWake();
+        toast(wakeLockOn.value ? '📱 Screen ON ထားမည်' : '📱 Screen wake ပိတ်');
+      }
+      function setBeads(n) { beadsPerRound.value = n; count.value = 0; toast(`📿 ${n} လုံး`); }
+      function addMantra() {
+        const my = prompt('ဂါထာ အမည်:'); if (my===null) return;
+        const text = prompt('ဂါထာ စာသား (ရွတ်ဖတ်ရန်):'); if (text===null) return;
+        customMantras.value = [...customMantras.value, { my: my.trim()||'(custom)', text: text.trim() }];
+        mantraIdx.value = mantras.value.length - 1;
+        toast('➕ ဂါထာ ထည့်ပြီး');
       }
       function undo() {
         if (count.value > 0) { count.value--; if (totalBeads.value > 0) totalBeads.value--; }
@@ -433,7 +608,9 @@
       return {
         theme, count, rounds, totalBeads, totalRounds, goalRounds, soundOn, mantraIdx,
         beadsPerRound, justCompleted, todayRounds, mantras, beadPositions, goalPct,
+        beadOptions, wakeLockOn, sessionTime, sessionActive, streak, calendar,
         tap, undo, reset, toggleSound, cycleTheme,
+        setBeads, toggleWake, addMantra, endSession,
       };
     },
   }).mount('#app');
