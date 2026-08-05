@@ -597,6 +597,15 @@
           <button class="fetch-batch-btn" data-nikaya="iti">ဣတိဝုတ် (112)</button>
           <button class="fetch-batch-btn" data-nikaya="snp">သုတ်နိပါတ် (71)</button>
         </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+          <div class="fetch-batch-title">🔢 အပိုင်းတစ်ခုလုံး ရယူရန် · Fetch any section by prefix</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <input type="text" id="sectionInput" placeholder="e.g. sn12 · an5 · thag1 · vv · pv" style="flex:1;min-width:140px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--paper-2);color:var(--ink);font-family:'Consolas',monospace;font-size:0.85rem;outline:none;">
+            <button class="fetch-batch-btn" id="sectionGo">ရယူမည်</button>
+          </div>
+          <p class="fetch-note" style="margin-top:4px;">Prefix ထည့်လျှင် {prefix}.1, {prefix}.2 … ကို ဆက်တိုက် ရယူ၍ အဆုံးထိ (consecutive miss ၅ ကြိမ်တွင် ရပ်)။ Section list: sn1-56, an1-11, thag/thig, ja (jātaka), vv, pv, bv, cp.</p>
+        </div>
+
         <div class="fetch-progress" id="fetchProgress" style="display:none">
           <div class="fp-bar"><div class="fp-fill" id="fpFill"></div></div>
           <div class="fp-label" id="fpLabel"></div>
@@ -1997,6 +2006,46 @@
     };
   });
   $('fetchCancel').onclick = () => { batchCancel = true; };
+
+  // ---- Section fetch: {prefix}.1, {prefix}.2 … until N consecutive misses ----
+  async function sectionFetch(prefix) {
+    prefix = prefix.trim().toLowerCase().replace(/[.\s]+$/, '');
+    if (!prefix) return;
+    batchCancel = false;
+    const prog = $('fetchProgress'), fill = $('fpFill'), label = $('fpLabel');
+    prog.style.display = 'block';
+    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = true);
+    $('sectionGo').disabled = true;
+    $('fetchStatus').textContent = '';
+    // If prefix has no number-dot, some books are flat (dn1, ud1). Detect: if prefix ends in a letter, use "prefix{n}"; else "prefix.{n}"
+    const dotted = /[a-z]+\d+$/.test(prefix) ? false : true; // e.g. "sn12" → dotted (sn12.1); "ud" → try ud1
+    const mk = dotted ? (n) => `${prefix}.${n}` : (n) => `${prefix}${n}`;
+    let n = 1, miss = 0, ok = 0, done = 0;
+    const MAX = 500, MAX_MISS = 5;
+    while (n <= MAX && miss < MAX_MISS && !batchCancel) {
+      const uid = mk(n);
+      label.textContent = `${uid} ... (✓${ok} · ${done} tried)`;
+      try { await fetchFromSC(uid); ok++; miss = 0; }
+      catch (e) { miss++; }
+      done++; n++;
+      fill.style.width = Math.min(100, Math.round((ok / Math.max(ok + miss, 10)) * 100)) + '%';
+      await new Promise(r => setTimeout(r, 320));
+    }
+    injectFetchedBook();
+    renderPitakaNav(); renderContent(); updateDataBtn();
+    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = false);
+    $('sectionGo').disabled = false;
+    fill.style.width = '100%';
+    label.textContent = batchCancel ? `⏹ ရပ် — ${ok} ရရှိ` : `✅ ${ok} suttas ရရှိ (${prefix} section)`;
+    $('fetchStatus').className = 'fetch-status ok';
+    $('fetchStatus').textContent = ok ? `${ok} suttas app ထဲ သိမ်းပြီး။` : `"${prefix}" — data မတွေ့ပါ။ prefix စစ်ပါ။`;
+  }
+  $('sectionGo').onclick = () => {
+    const p = $('sectionInput').value.trim();
+    if (!p) { $('sectionInput').focus(); return; }
+    if (confirm(`"${p}" section အားလုံး ရယူမည်။ (အဆုံးထိ auto — ကြာနိုင်သည်)\n\nဆက်လုပ်မလား?`)) sectionFetch(p);
+  };
+  $('sectionInput').addEventListener('keypress', e => { if (e.key === 'Enter') $('sectionGo').click(); });
 
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape' && $('fetchModal').classList.contains('show')) closeFetch();
