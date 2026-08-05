@@ -31,6 +31,7 @@
     { href: 'index.html',                          icon: 'dashboard',  label: 'Dashboard',      color: '#8b5cf6' },
     { href: 'ToDo.html',                           icon: 'tasks',      label: 'Task Manager',   color: '#6366f1' },
     { href: 'AINoteTaker.html',                    icon: 'mic',        label: 'AI Note Taker',  color: '#a78bfa' },
+    { href: 'NoteTakerVue.html',                   icon: 'mic',        label: 'Note Taker (Vue)', color: '#42b883' },
     { href: 'ai_note_taker_enterprise_suite.html', icon: 'sparkles',   label: 'Enterprise',     color: '#cba6f7' },
     { href: 'RecapAudioMaker.html',                icon: 'headphones', label: 'Recap Audio',    color: '#f472b6' },
     { href: 'PasswordManager.html',                icon: 'shield',     label: 'Passwords',      color: '#22c55e' },

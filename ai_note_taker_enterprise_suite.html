@@ -1684,10 +1684,15 @@ ${c.transcript}`
         micStatus.textContent = '⏳ AI ဖြင့် စာသားပြောင်းနေပါသည်...';
         const blob = new Blob(audioChunks, { type: mimeType });
         const c = current(); if (c) { c.audioUrl = URL.createObjectURL(blob); save(); renderCurrent(); }
-        const r = new FileReader(); r.readAsDataURL(blob);
-        r.onloadend = async () => {
-          await processMediaWithGemini(r.result.split(',')[1], mimeType, "Transcribe this audio into text clearly.");
-        };
+        try {
+          // Gemini can't read webm/mp4 audio — convert to WAV (a format it accepts) first
+          const wavBlob = await blobToWav(blob);
+          const b64 = await blobToBase64(wavBlob);
+          await processMediaWithGemini(b64, 'audio/wav', MYANMAR_TRANSCRIBE_PROMPT);
+        } catch (err) {
+          showToast('⚠ Audio convert failed: ' + err.message);
+          micStatus.textContent = '⚠ Audio ပြောင်း၍ မရပါ';
+        }
       };
       mediaRecorder.start(); isAiRecording = true;
       aiRecBtn.classList.add('recording'); aiRecBtn.textContent = '⏹ ရပ်မည်';
@@ -1703,14 +1708,21 @@ ${c.transcript}`
 
   // Audio & OCR Upload
   $('audioUploadBtn').onclick = () => $('audioFileInput').click();
-  $('audioFileInput').onchange = e => {
+  $('audioFileInput').onchange = async e => {
     const file = e.target.files[0]; if (!file) return;
     const c = current(); if (c) { c.audioUrl = URL.createObjectURL(file); save(); renderCurrent(); }
-    const r = new FileReader(); r.readAsDataURL(file);
-    r.onloadend = async () => {
-      micStatus.textContent = '⏳ Audio စာသားပြောင်းနေပါသည်...';
-      await processMediaWithGemini(r.result.split(',')[1], file.type || 'audio/mp3', "Transcribe this audio verbatim into text. If Myanmar, output Myanmar script. Preserve pauses as line breaks.");
-    };
+    micStatus.textContent = '⏳ Audio စာသားပြောင်းနေပါသည်...';
+    try {
+      // Gemini supports wav/mp3/ogg/flac/aac directly; convert anything else (incl. webm/m4a) to wav
+      const okType = /audio\/(wav|x-wav|mp3|mpeg|ogg|flac|aac)/i.test(file.type);
+      let b64, mime;
+      if (okType) { b64 = await blobToBase64(file); mime = file.type; }
+      else { const wav = await blobToWav(file); b64 = await blobToBase64(wav); mime = 'audio/wav'; }
+      await processMediaWithGemini(b64, mime, MYANMAR_TRANSCRIBE_PROMPT);
+    } catch (err) {
+      showToast('⚠ ' + err.message); micStatus.textContent = '⚠ Audio ပြောင်း၍ မရပါ';
+    }
+    e.target.value = '';
   };
 
   $('ocrBtn').onclick = () => $('ocrFileInput').click();
@@ -1723,6 +1735,62 @@ ${c.transcript}`
     };
   };
 
+  // Myanmar-first transcription instruction — tells Gemini to output Burmese script
+  const MYANMAR_TRANSCRIBE_PROMPT =
+    'Transcribe this audio verbatim. The speaker most likely speaks Myanmar (Burmese) — ' +
+    'output the transcription in Myanmar script (မြန်မာ). If parts are in English, keep those in English. ' +
+    'Preserve pauses as line breaks. Return ONLY the transcribed text, no commentary.';
+
+  // Convert any audio Blob (webm/mp4/m4a/etc.) → WAV that Gemini can read.
+  async function blobToWav(blob) {
+    const arrayBuf = await blob.arrayBuffer();
+    const AC = window.AudioContext || window.webkitAudioContext;
+    const ctx = new AC();
+    let audioBuf;
+    try { audioBuf = await ctx.decodeAudioData(arrayBuf); }
+    finally { /* keep ctx for potential reuse */ }
+    // Downmix to mono 16kHz for smaller payload (speech is fine at 16k)
+    const targetRate = 16000;
+    const length = Math.ceil(audioBuf.duration * targetRate);
+    const offline = new OfflineAudioContext(1, length, targetRate);
+    const src = offline.createBufferSource();
+    src.buffer = audioBuf;
+    src.connect(offline.destination);
+    src.start();
+    const rendered = await offline.startRendering();
+    ctx.close();
+    return audioBufferToWavBlob(rendered);
+  }
+
+  function audioBufferToWavBlob(buffer) {
+    const numCh = 1, sampleRate = buffer.sampleRate, bitDepth = 16;
+    const samples = buffer.getChannelData(0);
+    const dataLen = samples.length * 2;
+    const ab = new ArrayBuffer(44 + dataLen);
+    const view = new DataView(ab);
+    const w = (o, s) => { for (let i = 0; i < s.length; i++) view.setUint8(o + i, s.charCodeAt(i)); };
+    w(0, 'RIFF'); view.setUint32(4, 36 + dataLen, true); w(8, 'WAVE'); w(12, 'fmt ');
+    view.setUint32(16, 16, true); view.setUint16(20, 1, true); view.setUint16(22, numCh, true);
+    view.setUint32(24, sampleRate, true); view.setUint32(28, sampleRate * numCh * 2, true);
+    view.setUint16(32, numCh * 2, true); view.setUint16(34, bitDepth, true);
+    w(36, 'data'); view.setUint32(40, dataLen, true);
+    let off = 44;
+    for (let i = 0; i < samples.length; i++) {
+      const s = Math.max(-1, Math.min(1, samples[i]));
+      view.setInt16(off, s < 0 ? s * 0x8000 : s * 0x7fff, true); off += 2;
+    }
+    return new Blob([ab], { type: 'audio/wav' });
+  }
+
+  function blobToBase64(blob) {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onloadend = () => resolve(r.result.split(',')[1]);
+      r.onerror = reject;
+      r.readAsDataURL(blob);
+    });
+  }
+
   async function processMediaWithGemini(base64Data, mimeType, promptText) {
     if (!requireKey()) return;
     try {
@@ -1731,7 +1799,13 @@ ${c.transcript}`
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ role: "user", parts: [{ text: promptText }, { inlineData: { mimeType, data: base64Data } }] }] })
       });
-      if (!res.ok) throw new Error(`Gemini ${res.status}: ${(await res.text()).slice(0, 160)}`);
+      if (!res.ok) {
+        const body = await res.text();
+        let hint = '';
+        if (res.status === 429) hint = ' — Gemini quota ကုန်ပြီ (gemini-2.0-flash သို့ Settings မှ ပြောင်းပါ)';
+        else if (res.status === 400 && /audio|mime|unsupported/i.test(body)) hint = ' — audio format ပြဿနာ';
+        throw new Error(`Gemini ${res.status}${hint}`);
+      }
       const data = await res.json();
       const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
       if (text) {

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Note Taker · Vue</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#a78bfa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  :root {
+    --bg-1:#1e1e2f; --bg-2:#2d2d44; --app-bg:#27273a; --card-bg:#1e1e2f; --card-2:#23233a;
+    --border:#3a3a52; --border-soft:#2f2f47;
+    --text:#e4e4e7; --text-dim:#9a9ab0; --text-mute:#6b6b82;
+    --accent:#a78bfa; --accent-2:#6366f1; --accent-hover:#9370e5;
+    --success:#22c55e; --warn:#f59e0b; --danger:#ef4444;
+    --shadow:0 20px 50px rgba(0,0,0,0.4);
+    --sans:'Segoe UI','Pyidaungsu','Padauk','Myanmar Text',system-ui,sans-serif;
+  }
+  [data-theme="light"] {
+    --bg-1:#f4ecd8; --bg-2:#e6d7b8; --app-bg:#faf4e6; --card-bg:#f0e2c8; --card-2:#ede0be;
+    --border:#d3c0a3; --border-soft:#e2d2b9;
+    --text:#2d241e; --text-dim:#6e5c4d; --text-mute:#998573;
+    --accent:#7c3aed; --accent-2:#6366f1; --accent-hover:#5b21b6;
+    --success:#16a085; --warn:#d97706; --danger:#b91c1c;
+    --shadow:0 8px 28px rgba(139,100,40,0.18);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;font-family:var(--sans);}
+  body{background:linear-gradient(135deg,var(--bg-1),var(--bg-2));color:var(--text);min-height:100vh;padding:20px 14px;transition:background 0.3s;}
+  [v-cloak]{display:none !important;}
+  .wrap{max-width:1080px;margin:0 auto;display:flex;gap:14px;align-items:flex-start;}
+  @media(max-width:820px){.wrap{flex-direction:column;}}
+
+  /* Sessions sidebar */
+  .sidebar{width:240px;flex-shrink:0;background:var(--app-bg);border:1px solid var(--border-soft);border-radius:14px;padding:14px;box-shadow:var(--shadow);}
+  @media(max-width:820px){.sidebar{width:100%;max-height:200px;overflow:auto;}}
+  .sb-new{width:100%;padding:10px;border:1px dashed var(--border);border-radius:8px;background:transparent;color:var(--text-dim);cursor:pointer;margin-bottom:10px;font-family:inherit;font-size:0.85rem;transition:all 0.15s;}
+  .sb-new:hover{border-color:var(--accent);color:var(--accent);}
+  .sb-h{font-size:0.68rem;color:var(--text-mute);text-transform:uppercase;letter-spacing:0.08em;font-weight:600;margin-bottom:6px;}
+  .sb-item{padding:9px 10px;border-radius:8px;cursor:pointer;margin-bottom:4px;border:1px solid transparent;transition:background 0.1s;}
+  .sb-item:hover{background:var(--card-bg);}
+  .sb-item.active{background:rgba(167,139,250,0.15);border-color:rgba(167,139,250,0.35);}
+  .sb-item .t{font-size:0.86rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .sb-item .m{font-size:0.68rem;color:var(--text-mute);margin-top:1px;}
+
+  /* Main */
+  .main{flex:1;min-width:0;background:var(--app-bg);border:1px solid var(--border-soft);border-radius:14px;padding:18px 22px 24px;box-shadow:var(--shadow);}
+  header{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid var(--border-soft);margin-bottom:12px;}
+  header .title{flex:1;min-width:0;}
+  header input.title-in{width:100%;background:transparent;border:1px solid transparent;color:var(--text);font-size:1.25rem;font-weight:600;padding:4px 8px;border-radius:6px;outline:none;}
+  header input.title-in:hover{background:var(--card-bg);}
+  header input.title-in:focus{border-color:var(--accent);}
+  .vue-badge{font-size:0.6rem;color:var(--text-mute);background:rgba(66,184,131,0.15);border:1px solid rgba(66,184,131,0.4);padding:1px 5px;border-radius:4px;}
+  .header-actions{display:flex;gap:6px;flex-wrap:wrap;}
+  .icon-btn{width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:transparent;color:var(--text-dim);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:0.95rem;text-decoration:none;transition:all 0.15s;}
+  .icon-btn:hover{color:var(--accent);border-color:var(--accent);}
+  .icon-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);}
+
+  .mic-bar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:10px;}
+  .mic-btn{padding:8px 14px;border:none;border-radius:10px;background:var(--accent-2);color:#fff;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:6px;font-family:inherit;font-size:0.86rem;}
+  .mic-btn:hover{filter:brightness(1.1);}
+  .mic-btn.green{background:var(--success);}
+  .mic-btn.recording{background:var(--danger);animation:pulse 1.4s infinite;}
+  @keyframes pulse{50%{box-shadow:0 0 0 8px rgba(239,68,68,0);}0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.5);}}
+  .mic-bar select{padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);font-size:0.82rem;outline:none;}
+  .mic-status{color:var(--text-dim);font-size:0.8rem;flex:1;text-align:right;min-width:120px;}
+  .rec-dot{display:inline-block;width:8px;height:8px;background:var(--danger);border-radius:50%;margin-right:5px;animation:blink 1s infinite;}
+  @keyframes blink{50%{opacity:0.3;}}
+
+  .transcript{min-height:220px;max-height:44vh;overflow:auto;padding:12px;border:1px solid var(--border-soft);border-radius:10px;background:var(--card-bg);color:var(--text);font-size:1.02rem;line-height:1.7;outline:none;white-space:pre-wrap;word-break:break-word;}
+  .transcript:empty::before{content:'🎤 စကားပြော၍ အသံဖမ်းပါ သို့မဟုတ် ဤနေရာတွင် စာရိုက်ပါ...';color:var(--text-mute);}
+  .transcript .interim{color:var(--text-mute);font-style:italic;}
+
+  .actions{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0;padding:10px 0;border-top:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);align-items:center;}
+  .act-btn{padding:7px 12px;border:1px solid var(--accent);border-radius:8px;background:transparent;color:var(--accent);font-size:0.82rem;cursor:pointer;font-family:inherit;transition:all 0.15s;}
+  .act-btn:hover{background:var(--accent);color:#fff;}
+  .act-btn:disabled{opacity:0.5;cursor:wait;}
+  .act-btn.plain{border-color:var(--border);color:var(--text);}
+  .act-btn.plain:hover{border-color:var(--accent);color:var(--accent);background:transparent;}
+  .trans-group{display:flex;gap:0;border:1px solid var(--accent);border-radius:8px;overflow:hidden;}
+  .trans-group .act-btn{border:none;border-radius:0;}
+  .trans-group select{border:none;border-left:1px solid var(--accent);background:var(--card-bg);color:var(--text);font-size:0.8rem;padding:0 6px;outline:none;}
+
+  .insights{display:flex;flex-direction:column;gap:12px;}
+  .insight{background:var(--card-bg);border:1px solid var(--border-soft);border-radius:10px;padding:12px 16px;}
+  .insight h3{font-size:0.74rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:8px;font-weight:600;display:flex;justify-content:space-between;}
+  .insight .body{font-size:0.94rem;line-height:1.6;white-space:pre-wrap;word-break:break-word;}
+  .insight .empty{color:var(--text-mute);font-style:italic;font-size:0.85rem;}
+  .kw{display:inline-block;background:rgba(167,139,250,0.15);color:var(--accent);padding:2px 10px;border-radius:999px;font-size:0.78rem;margin:2px;}
+  .act-item{padding:3px 0;display:flex;gap:6px;}
+  .act-item::before{content:'☐';color:var(--warn);}
+  .send-tasks{margin-top:8px;width:100%;padding:6px;font-size:0.78rem;}
+
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--app-bg);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 16px;box-shadow:var(--shadow);font-size:0.85rem;opacity:0;pointer-events:none;transition:all 0.25s;z-index:1000;}
+  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  input[type=file]{display:none;}
+</style>
+</head>
+<body>
+  <div id="vue-loading" style="text-align:center;padding:60px;color:#9a9ab0;">🎙 ဖွင့်နေသည်...</div>
+  <div id="app" v-cloak>
+    <div class="wrap">
+      <!-- Sessions -->
+      <aside class="sidebar">
+        <button class="sb-new" @click="newSession">＋ မှတ်စု အသစ်</button>
+        <div class="sb-h">Recent</div>
+        <div v-for="s in sessions" :key="s.id" class="sb-item" :class="{active: s.id===currentId}" @click="select(s.id)">
+          <div class="t">{{ s.title || '(untitled)' }}</div>
+          <div class="m">{{ wordCount(s.transcript) }} words · {{ dateStr(s.updatedAt) }}</div>
+        </div>
+      </aside>
+
+      <!-- Main -->
+      <main class="main" v-if="cur">
+        <header>
+          <div class="title"><input class="title-in" v-model="cur.title" placeholder="ခေါင်းစဉ်မရှိ (Untitled)"></div>
+          <div class="header-actions">
+            <span class="vue-badge">Vue</span>
+            <a class="icon-btn" href="index.html" title="Home">🏠</a>
+            <button class="icon-btn" :class="{active: hasKey}" @click="openKey" title="API key">🔑</button>
+            <button class="icon-btn" @click="exportMd" title="Export Markdown">⬇</button>
+            <button class="icon-btn" @click="cycleTheme" title="Theme">🌙</button>
+            <button class="icon-btn" @click="delSession" title="Delete" style="color:var(--danger)">🗑</button>
+          </div>
+        </header>
+
+        <div class="mic-bar">
+          <button class="mic-btn" :class="{recording: listening}" @click="toggleMic">
+            <span v-if="listening"><span class="rec-dot"></span>⏹ ရပ်</span>
+            <span v-else>🎤 Voice</span>
+          </button>
+          <button class="mic-btn green" :class="{recording: aiRecording}" @click="toggleAiRec" title="AI Voice — records then Gemini transcribes to Myanmar">
+            {{ aiRecording ? '⏹ ရပ်' : '🎙 AI Voice' }}
+          </button>
+          <button class="mic-btn" style="background:#2980b9" @click="$refs.audioFile.click()">📁 Audio</button>
+          <input type="file" ref="audioFile" accept="audio/*" @change="onAudioFile">
+          <select v-model="lang">
+            <option value="my-MM">🇲🇲 မြန်မာ</option>
+            <option value="en-US">🇺🇸 English</option>
+            <option value="zh-CN">🇨🇳 中文</option>
+            <option value="th-TH">🇹🇭 ไทย</option>
+          </select>
+          <span class="mic-status" v-html="status"></span>
+        </div>
+
+        <div class="transcript" contenteditable="true" ref="transcriptEl" @input="onTranscriptInput">{{ cur.transcript }}</div>
+
+        <div class="actions">
+          <button class="act-btn" @click="run('summary')" :disabled="busy">✨ အနှစ်ချုပ်</button>
+          <button class="act-btn" @click="run('actions')" :disabled="busy">📌 Actions</button>
+          <button class="act-btn" @click="run('keywords')" :disabled="busy">🏷 Keywords</button>
+          <div class="trans-group">
+            <button class="act-btn" @click="run('translate')" :disabled="busy">🌐 ဘာသာပြန်</button>
+            <select v-model="transTarget">
+              <option value="Myanmar (Burmese)">မြန်မာ</option>
+              <option value="English">English</option>
+              <option value="Chinese">中文</option>
+              <option value="Thai">ไทย</option>
+            </select>
+          </div>
+          <button class="act-btn plain" @click="clearText">🗑 ရှင်း</button>
+        </div>
+
+        <div class="insights">
+          <div class="insight">
+            <h3>✨ Summary</h3>
+            <div class="body" v-if="cur.summary">{{ cur.summary }}</div>
+            <div class="empty" v-else>"အနှစ်ချုပ်" ကို နှိပ်ပါ</div>
+          </div>
+          <div class="insight">
+            <h3>📌 Action Items</h3>
+            <div class="body" v-if="cur.actions && cur.actions.length">
+              <div v-for="(a,i) in cur.actions" :key="i" class="act-item">{{ a }}</div>
+              <button class="act-btn send-tasks" @click="sendTasks">📤 Task Manager သို့ ပို့ ({{ cur.actions.length }})</button>
+            </div>
+            <div class="empty" v-else>"Actions" ကို နှိပ်ပါ</div>
+          </div>
+          <div class="insight">
+            <h3>🏷 Keywords</h3>
+            <div class="body" v-if="cur.keywords && cur.keywords.length">
+              <span v-for="(k,i) in cur.keywords" :key="i" class="kw">{{ k }}</span>
+            </div>
+            <div class="empty" v-else>"Keywords" ကို နှိပ်ပါ</div>
+          </div>
+          <div class="insight" v-if="cur.translation">
+            <h3>🌐 Translation — {{ cur.translationTarget }}</h3>
+            <div class="body">{{ cur.translation }}</div>
+          </div>
+        </div>
+      </main>
+    </div>
+
+    <!-- API key modal -->
+    <div v-if="keyModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:flex-start;justify-content:center;padding:8vh 16px;z-index:900;" @click.self="keyModal=false">
+      <div style="background:var(--app-bg);border:1px solid var(--border);border-radius:14px;padding:22px 24px;max-width:480px;width:100%;box-shadow:var(--shadow);">
+        <h2 style="font-size:1.1rem;margin-bottom:10px;">🔑 AI Provider</h2>
+        <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:12px;">Gemini (audio + all) သို့ Groq (text သာ) — free key ရယူ၍ ထည့်ပါ။</p>
+        <label style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;">Provider</label>
+        <select v-model="provider" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);margin:4px 0 10px;">
+          <option value="gemini">🟢 Google Gemini (audio + text)</option>
+          <option value="groq">🚀 Groq (text only, fast)</option>
+        </select>
+        <label style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;">API Key</label>
+        <input v-model="keyInput" type="password" :placeholder="provider==='gemini'?'AIza...':'gsk_...'" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);font-family:monospace;margin:4px 0;">
+        <p style="font-size:0.72rem;color:var(--text-mute);font-style:italic;margin-top:6px;">Free key: <a :href="provider==='gemini'?'https://aistudio.google.com/apikey':'https://console.groq.com/keys'" target="_blank" style="color:var(--accent);">{{ provider==='gemini'?'aistudio.google.com':'console.groq.com' }}</a> · audio transcribe needs Gemini</p>
+        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
+          <button @click="keyModal=false" style="padding:9px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;">Cancel</button>
+          <button @click="saveKey" style="padding:9px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script src="vue.global.prod.js"></script>
+<script>
+  if (typeof Vue === 'undefined') { document.getElementById('vue-loading').textContent='⚠ Vue load failed — refresh'; throw new Error('no vue'); }
+  const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+
+  createApp({
+    setup() {
+      const STORE = 'ainotes.vue.v1';
+      const THEME_KEY = 'ainotes.theme';
+      // Reuse the same key storage as the other AI tools
+      const GKEY = 'ainotes.enterprise.gemini.key', GMODEL = 'ainotes.enterprise.gemini.model';
+      const QKEY = 'ainotes.apikey.groq', QMODEL = 'ainotes.model.groq';
+
+      const load = () => { try { return JSON.parse(localStorage.getItem(STORE) || 'null'); } catch { return null; } };
+      const sessions = ref(load() || []);
+      const currentId = ref(localStorage.getItem('ainotes.vue.current') || null);
+      const lang = ref(localStorage.getItem('ainotes.lang') || 'my-MM');
+      const transTarget = ref('Myanmar (Burmese)');
+      const theme = ref(localStorage.getItem(THEME_KEY) || 'dark');
+      const busy = ref(false);
+      const status = ref('🎤 အသံဖမ်းရန် သို့ စာရိုက်ပါ');
+      const listening = ref(false);
+      const aiRecording = ref(false);
+      const keyModal = ref(false);
+      const keyInput = ref('');
+      const provider = ref(localStorage.getItem('ainotes.provider') || 'gemini');
+
+      function blank() { return { id: Date.now()+'.'+Math.random().toString(36).slice(2,7), title:'', transcript:'', summary:'', actions:[], keywords:[], translation:'', translationTarget:'', updatedAt: Date.now() }; }
+      if (!sessions.value.length) sessions.value.push(blank());
+      if (!sessions.value.find(s=>s.id===currentId.value)) currentId.value = sessions.value[0].id;
+
+      const cur = computed(() => sessions.value.find(s=>s.id===currentId.value));
+      const hasKey = computed(() => !!(localStorage.getItem(GKEY) || localStorage.getItem(QKEY)));
+
+      function persist(){ localStorage.setItem(STORE, JSON.stringify(sessions.value)); localStorage.setItem('ainotes.vue.current', currentId.value); }
+      watch(sessions, persist, { deep:true });
+      watch(currentId, persist);
+      watch(lang, l => localStorage.setItem('ainotes.lang', l));
+      watch(theme, t => { document.documentElement.dataset.theme=t; localStorage.setItem(THEME_KEY,t); });
+      document.documentElement.dataset.theme = theme.value;
+
+      function touch(){ if(cur.value) cur.value.updatedAt = Date.now(); }
+      function wordCount(t){ return (t||'').trim() ? (t.trim().split(/\s+/).length) : 0; }
+      function dateStr(ts){ return new Date(ts).toLocaleDateString(); }
+
+      // ---- Sessions ----
+      function newSession(){ const b=blank(); sessions.value.unshift(b); currentId.value=b.id; syncTranscriptEl(); }
+      function select(id){ if(listening.value) stopMic(); currentId.value=id; syncTranscriptEl(); }
+      function delSession(){ if(!confirm('ဤမှတ်စုကို ဖျက်မလား?')) return; sessions.value=sessions.value.filter(s=>s.id!==currentId.value); if(!sessions.value.length) sessions.value.push(blank()); currentId.value=sessions.value[0].id; syncTranscriptEl(); }
+
+      const transcriptEl = ref(null);
+      function syncTranscriptEl(){ nextTick(()=>{ if(transcriptEl.value && cur.value) transcriptEl.value.textContent = cur.value.transcript || ''; }); }
+      function onTranscriptInput(){ if(cur.value){ cur.value.transcript = transcriptEl.value.innerText; touch(); } }
+
+      // ---- Theme ----
+      function cycleTheme(){ theme.value = theme.value==='dark'?'light':'dark'; }
+
+      // ---- Web Speech (browser, my-MM) ----
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let recog = null, interimNode = null;
+      function toggleMic(){ listening.value ? stopMic() : startMic(); }
+      function startMic(){
+        if(!SR){ status.value='⚠ Browser speech မရ (Chrome/Edge သုံးပါ)'; return; }
+        recog = new SR(); recog.continuous=true; recog.interimResults=true; recog.lang=lang.value;
+        recog.onstart=()=>{ status.value='<span class="rec-dot"></span>နားထောင်နေသည်...'; };
+        recog.onerror=e=>{ if(e.error!=='no-speech'){ status.value='⚠ '+e.error; } if(['not-allowed','service-not-allowed','audio-capture'].includes(e.error)) stopMic(); };
+        recog.onend=()=>{ if(listening.value){ try{recog.start();}catch{} } };
+        recog.onresult=e=>{ let f=''; for(let i=e.resultIndex;i<e.results.length;i++){ if(e.results[i].isFinal) f+=e.results[i][0].transcript; } if(f) appendText(f); };
+        try{ recog.start(); listening.value=true; }catch(err){ status.value='⚠ '+err.message; }
+      }
+      function stopMic(){ listening.value=false; try{recog&&recog.stop();}catch{} status.value='ရပ်လိုက်ပါပြီ'; }
+      function appendText(t){ const c=cur.value; if(!c) return; const cut=t.trim(); if(!cut) return; c.transcript=(c.transcript||'')+(c.transcript?' ':'')+cut; touch(); if(transcriptEl.value){ transcriptEl.value.textContent=c.transcript; transcriptEl.value.scrollTop=transcriptEl.value.scrollHeight; } }
+
+      // ---- AI Voice (record → WAV → Gemini) ----
+      let mediaRec=null, chunks=[];
+      async function toggleAiRec(){ aiRecording.value ? stopAiRec() : startAiRec(); }
+      async function startAiRec(){
+        if(!localStorage.getItem(GKEY)){ status.value='🔑 Gemini key လိုသည် (audio)'; openKey(); return; }
+        try{
+          const stream = await navigator.mediaDevices.getUserMedia({audio:true});
+          chunks=[];
+          const mime = MediaRecorder.isTypeSupported('audio/webm')?'audio/webm':'audio/mp4';
+          mediaRec = new MediaRecorder(stream,{mimeType:mime});
+          mediaRec.ondataavailable=e=>{ if(e.data.size>0) chunks.push(e.data); };
+          mediaRec.onstop=async()=>{
+            stream.getTracks().forEach(t=>t.stop());
+            status.value='⏳ Gemini ဖြင့် စာသားပြောင်းနေသည်...';
+            try{
+              const blob=new Blob(chunks,{type:mime});
+              const wav=await blobToWav(blob);
+              const b64=await blobToBase64(wav);
+              const text=await geminiTranscribe(b64);
+              if(text){ appendText('\n'+text.trim()); status.value='✅ စာသား ရရှိပြီ'; toast('✨ ရရှိပြီ'); }
+              else status.value='⚠ စာသား မရ';
+            }catch(err){ status.value='⚠ '+err.message; toast('⚠ '+err.message); }
+          };
+          mediaRec.start(); aiRecording.value=true; status.value='<span class="rec-dot"></span>AI Voice recording...';
+        }catch(e){ status.value='⚠ Mic မရ'; }
+      }
+      function stopAiRec(){ if(mediaRec && aiRecording.value){ aiRecording.value=false; mediaRec.stop(); } }
+
+      async function onAudioFile(e){
+        const file=e.target.files[0]; if(!file) return;
+        if(!localStorage.getItem(GKEY)){ status.value='🔑 Gemini key လိုသည်'; openKey(); return; }
+        status.value='⏳ Audio စာသားပြောင်းနေသည်...';
+        try{
+          const ok=/audio\/(wav|x-wav|mp3|mpeg|ogg|flac|aac)/i.test(file.type);
+          let b64,mime;
+          if(ok){ b64=await blobToBase64(file); mime=file.type; }
+          else { const wav=await blobToWav(file); b64=await blobToBase64(wav); mime='audio/wav'; }
+          const text=await geminiTranscribe(b64,mime);
+          if(text){ appendText('\n'+text.trim()); status.value='✅ ရရှိပြီ'; toast('✨ ရရှိပြီ'); }
+          else status.value='⚠ စာသား မရ';
+        }catch(err){ status.value='⚠ '+err.message; toast('⚠ '+err.message); }
+        e.target.value='';
+      }
+
+      // ---- WAV conversion (Gemini can't read webm/mp4) ----
+      async function blobToWav(blob){
+        const buf=await blob.arrayBuffer();
+        const AC=window.AudioContext||window.webkitAudioContext;
+        const ctx=new AC();
+        const audio=await ctx.decodeAudioData(buf);
+        const rate=16000, len=Math.ceil(audio.duration*rate);
+        const off=new OfflineAudioContext(1,len,rate);
+        const src=off.createBufferSource(); src.buffer=audio; src.connect(off.destination); src.start();
+        const rendered=await off.startRendering(); ctx.close();
+        const s=rendered.getChannelData(0), dl=s.length*2, ab=new ArrayBuffer(44+dl), v=new DataView(ab);
+        const w=(o,str)=>{for(let i=0;i<str.length;i++)v.setUint8(o+i,str.charCodeAt(i));};
+        w(0,'RIFF');v.setUint32(4,36+dl,true);w(8,'WAVE');w(12,'fmt ');v.setUint32(16,16,true);v.setUint16(20,1,true);v.setUint16(22,1,true);v.setUint32(24,rate,true);v.setUint32(28,rate*2,true);v.setUint16(32,2,true);v.setUint16(34,16,true);w(36,'data');v.setUint32(40,dl,true);
+        let o=44; for(let i=0;i<s.length;i++){ const x=Math.max(-1,Math.min(1,s[i])); v.setInt16(o,x<0?x*0x8000:x*0x7fff,true); o+=2; }
+        return new Blob([ab],{type:'audio/wav'});
+      }
+      function blobToBase64(blob){ return new Promise((res,rej)=>{ const r=new FileReader(); r.onloadend=()=>res(r.result.split(',')[1]); r.onerror=rej; r.readAsDataURL(blob); }); }
+
+      const MM_PROMPT='Transcribe this audio verbatim. The speaker most likely speaks Myanmar (Burmese) — output in Myanmar script (မြန်မာ). Keep English parts in English. Preserve pauses as line breaks. Return ONLY the transcribed text.';
+      async function geminiTranscribe(b64, mime='audio/wav'){
+        const key=localStorage.getItem(GKEY); if(!key) throw new Error('No Gemini key');
+        const model=localStorage.getItem(GMODEL)||'gemini-2.5-flash';
+        const res=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(key)}`,{
+          method:'POST',headers:{'Content-Type':'application/json'},
+          body:JSON.stringify({contents:[{role:'user',parts:[{text:MM_PROMPT},{inlineData:{mimeType:mime,data:b64}}]}]})
+        });
+        if(!res.ok){ const b=await res.text(); let h=res.status===429?' quota ကုန်ပြီ (gemini-2.0-flash သို့ ပြောင်း)':''; throw new Error('Gemini '+res.status+h); }
+        const d=await res.json(); return d.candidates?.[0]?.content?.parts?.[0]?.text||'';
+      }
+
+      // ---- AI text actions (Gemini or Groq, auto-fallback, Myanmar-first) ----
+      async function callAI(prompt){
+        const prov = localStorage.getItem('ainotes.provider') || 'gemini';
+        const gk=localStorage.getItem(GKEY), qk=localStorage.getItem(QKEY);
+        async function gemini(){ const model=localStorage.getItem(GMODEL)||'gemini-2.5-flash'; const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${encodeURIComponent(gk)}`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}]})}); if(!r.ok){const e=new Error('Gemini '+r.status);e.status=r.status;e.retry=r.status===429;throw e;} const d=await r.json(); return d.candidates?.[0]?.content?.parts?.[0]?.text||''; }
+        async function groq(){ const model=localStorage.getItem(QMODEL)||'llama-3.3-70b-versatile'; const r=await fetch('https://api.groq.com/openai/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+qk},body:JSON.stringify({model,messages:[{role:'user',content:prompt}],max_tokens:1500})}); if(!r.ok){const e=new Error('Groq '+r.status);e.status=r.status;throw e;} const d=await r.json(); return d.choices?.[0]?.message?.content||''; }
+        const order = prov==='groq' && qk ? [groq, gk&&gemini] : [gk&&gemini, qk&&groq];
+        let lastErr;
+        for(const fn of order.filter(Boolean)){ try{ return await fn(); }catch(e){ lastErr=e; if(!e.retry) throw e; } }
+        throw lastErr || new Error('No AI provider — 🔑 key ထည့်ပါ');
+      }
+
+      const PROMPTS = {
+        summary: t=>`အောက်ပါစာသားကို မြန်မာလို ဝါကျ ၃-၆ ကြောင်း အနှစ်ချုပ်ပါ။ နည်းပညာ အင်္ဂလိပ်စကားလုံးများ မဘာသာပြန်ဘဲ ထားပါ။ အနှစ်ချုပ်ကိုသာ ဖြေပါ။\n\n${t}`,
+        actions: t=>`မှတ်စုထဲမှ လုပ်ဆောင်ရမည့် action items များကို မြန်မာလို ထုတ်ယူပါ။ တစ်ကြောင်းလျှင် တစ်ခု။ Bullet/number မလို။ မရှိပါက NONE။\n\n${t}`,
+        keywords: t=>`အဓိက keyword ၅-၁၀ ခုကို ကော်မာခြား၍ ပေးပါ။ ရှင်းလင်းချက် မလို။\n\n${t}`,
+        translate: t=>`Translate the following into ${transTarget.value}. Preserve technical terms. Return only the translation.\n\n${t}`,
+      };
+
+      async function run(kind){
+        const c=cur.value; if(!c || !c.transcript.trim()){ toast('စာသား မရှိပါ'); return; }
+        if(!hasKey.value){ openKey(); return; }
+        busy.value=true; status.value='⏳ AI...';
+        try{
+          const out = await callAI(PROMPTS[kind](c.transcript));
+          if(kind==='summary') c.summary = out.trim();
+          else if(kind==='actions') c.actions = /^\s*NONE\s*$/i.test(out) ? [] : out.split('\n').map(l=>l.replace(/^[-*\d.\s]+/,'').trim()).filter(Boolean).slice(0,15);
+          else if(kind==='keywords') c.keywords = out.split(',').map(k=>k.trim()).filter(Boolean).slice(0,12);
+          else if(kind==='translate'){ c.translation=out.trim(); c.translationTarget=transTarget.value; }
+          touch(); status.value='✅ ပြီး'; toast('✅ ရရှိပြီ');
+        }catch(e){ status.value='⚠ '+e.message; toast('⚠ '+e.message); }
+        finally{ busy.value=false; }
+      }
+
+      function clearText(){ if(!confirm('စာသား ရှင်းမလား?')) return; cur.value.transcript=''; if(transcriptEl.value) transcriptEl.value.textContent=''; touch(); }
+
+      // ---- Export ----
+      function exportMd(){
+        const c=cur.value; const p=[`# ${c.title||'Untitled'}`,'',`_${new Date().toLocaleString()}_`,''];
+        if(c.summary) p.push('## Summary','',c.summary,'');
+        if(c.actions&&c.actions.length){ p.push('## Action items',''); c.actions.forEach(a=>p.push(`- [ ] ${a}`)); p.push(''); }
+        if(c.keywords&&c.keywords.length) p.push('## Keywords','',c.keywords.join(', '),'');
+        if(c.translation) p.push(`## Translation (${c.translationTarget})`,'',c.translation,'');
+        p.push('## Transcript','',c.transcript||'');
+        const blob=new Blob([p.join('\n')],{type:'text/markdown'}); const url=URL.createObjectURL(blob);
+        const a=document.createElement('a'); a.href=url; a.download=(c.title||'note').replace(/[^\p{L}\p{N}]+/gu,'_')+'.md'; a.click(); URL.revokeObjectURL(url);
+        toast('⬇ Exported');
+      }
+
+      // ---- Send to Task Manager ----
+      function sendTasks(){
+        const c=cur.value; if(!c.actions||!c.actions.length) return;
+        const payload={source:'AI Note Taker (Vue)',sourceTitle:c.title||'Untitled',at:Date.now(),tasks:c.actions.map(text=>({text:String(text),priority:'med',status:'todo',note:`From note: ${c.title||'Untitled'}`}))};
+        const enc=btoa(unescape(encodeURIComponent(JSON.stringify(payload))));
+        window.open('ToDo.html#import-tasks='+enc,'_blank');
+        toast(`📤 ${c.actions.length} ပို့ပြီ`);
+      }
+
+      // ---- Key modal ----
+      function openKey(){ provider.value=localStorage.getItem('ainotes.provider')||'gemini'; keyInput.value=localStorage.getItem(provider.value==='gemini'?GKEY:QKEY)||''; keyModal.value=true; }
+      watch(provider, p=>{ keyInput.value=localStorage.getItem(p==='gemini'?GKEY:QKEY)||''; });
+      function saveKey(){ const k=keyInput.value.trim(); if(provider.value==='gemini'){ k?localStorage.setItem(GKEY,k):localStorage.removeItem(GKEY); } else { k?localStorage.setItem(QKEY,k):localStorage.removeItem(QKEY); } localStorage.setItem('ainotes.provider',provider.value); keyModal.value=false; toast(k?'🔑 Saved':'Cleared'); }
+
+      // ---- Toast ----
+      let tt; function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('show'),2200); }
+
+      onMounted(()=>{ syncTranscriptEl(); if(!hasKey.value) setTimeout(()=>{ status.value='🔑 API key ထည့်ရန် 🔑 နှိပ်ပါ'; },600); });
+
+      return { sessions, currentId, cur, lang, transTarget, theme, busy, status, listening, aiRecording, keyModal, keyInput, provider, hasKey,
+        transcriptEl, wordCount, dateStr, newSession, select, delSession, onTranscriptInput, cycleTheme,
+        toggleMic, toggleAiRec, onAudioFile, run, clearText, exportMd, sendTasks, openKey, saveKey };
+    },
+  }).mount('#app');
+  const le=document.getElementById('vue-loading'); if(le) le.remove();
+</script>
+</body>
+</html>

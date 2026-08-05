@@ -7,6 +7,10 @@ secrets.json
 apikey.*
 _local.*
 
+# Local-only internal MecWise/WSDE tools (never push to public repo)
+lowCodeValidator.html
+*.local.html
+
 # OS clutter
 Thumbs.db
 Desktop.ini
