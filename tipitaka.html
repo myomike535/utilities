@@ -590,7 +590,12 @@
         <div class="fetch-batch-btns">
           <button class="fetch-batch-btn" data-nikaya="dn">ဒီဃနိကာယ် (34)</button>
           <button class="fetch-batch-btn" data-nikaya="mn">မဇ္ဈိမနိကာယ် (152)</button>
+          <button class="fetch-batch-btn" data-nikaya="snMajor">သံယုတ္တ ⭐ (21)</button>
+          <button class="fetch-batch-btn" data-nikaya="anMajor">အင်္ဂုတ္တရ ⭐ (17)</button>
           <button class="fetch-batch-btn" data-nikaya="kp">ခုဒ္ဒကပါဌ (9)</button>
+          <button class="fetch-batch-btn" data-nikaya="ud">ဥဒါန် (80)</button>
+          <button class="fetch-batch-btn" data-nikaya="iti">ဣတိဝုတ် (112)</button>
+          <button class="fetch-batch-btn" data-nikaya="snp">သုတ်နိပါတ် (71)</button>
         </div>
         <div class="fetch-progress" id="fetchProgress" style="display:none">
           <div class="fp-bar"><div class="fp-fill" id="fpFill"></div></div>
@@ -1935,18 +1940,26 @@
   $('fetchGo').onclick = doFetch;
   $('fetchInput').addEventListener('keypress', e => { if (e.key === 'Enter') doFetch(); });
 
-  // ---- Batch fetch a whole nikāya ----
+  // ---- Batch fetch a whole nikāya / curated set ----
   let batchCancel = false;
+  // Curated "major suttas" for the huge nikāyas (SN 7762, AN 9557 — can't fetch all)
+  const SN_MAJOR = ['sn1.1','sn2.26','sn3.8','sn6.1','sn11.3','sn12.2','sn12.15','sn12.23','sn15.3','sn22.59','sn22.86','sn35.28','sn35.197','sn36.6','sn45.8','sn46.51','sn47.19','sn48.10','sn54.1','sn55.21','sn56.11'];
+  const AN_MAJOR = ['an1.21','an2.19','an3.65','an3.66','an4.10','an4.55','an5.57','an5.177','an6.19','an7.6','an8.6','an8.53','an8.54','an9.20','an10.60','an10.61','an11.1'];
   const NIKAYA_UIDS = {
-    dn: { count: 34, uid: i => 'dn' + i },
-    mn: { count: 152, uid: i => 'mn' + i },
-    kp: { count: 9, uid: i => 'kp' + i },
+    dn:  { count: 34,  uid: i => 'dn' + i },
+    mn:  { count: 152, uid: i => 'mn' + i },
+    kp:  { count: 9,   uid: i => 'kp' + i },
+    ud:  { count: 80,  uid: i => 'ud' + i },       // Udāna
+    iti: { count: 112, uid: i => 'iti' + i },      // Itivuttaka
+    snp: { count: 71,  uid: i => 'snp' + i },      // Sutta Nipāta (flat count approx)
+    snMajor: { list: SN_MAJOR },                    // curated SN
+    anMajor: { list: AN_MAJOR },                    // curated AN
   };
   async function batchFetch(nikaya) {
     const spec = NIKAYA_UIDS[nikaya];
     if (!spec) return;
     batchCancel = false;
-    const uids = Array.from({ length: spec.count }, (_, i) => spec.uid(i + 1));
+    const uids = spec.list ? spec.list.slice() : Array.from({ length: spec.count }, (_, i) => spec.uid(i + 1));
     const prog = $('fetchProgress'), fill = $('fpFill'), label = $('fpLabel');
     prog.style.display = 'block';
     document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = true);
@@ -1976,7 +1989,8 @@
   document.querySelectorAll('.fetch-batch-btn').forEach(btn => {
     btn.onclick = () => {
       const n = btn.dataset.nikaya;
-      const cnt = NIKAYA_UIDS[n].count;
+      const spec = NIKAYA_UIDS[n];
+      const cnt = spec.list ? spec.list.length : spec.count;
       if (confirm(`${cnt} suttas ကို SuttaCentral မှ ရယူမည်။ (~${Math.ceil(cnt * 0.7 / 60)} မိနစ်ခန့် ကြာနိုင်သည်)\n\nဆက်လုပ်မလား?`)) {
         batchFetch(n);
       }
