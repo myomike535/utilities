@@ -94,24 +94,21 @@
     .da-watermark.right { right: -6vmin; top: 10vmin; transform: scaleX(-1); }
     .da-watermark svg { width: 100%; height: auto; display: block; }
 
+    /* Header ornament: fixed-size, sits inline beside the title — never stretches/pushes text */
     .da-header-ornament {
-      display: block; margin: 0 auto 10px;
-      width: 54px; height: 54px;
+      width: 38px; height: 38px; flex: 0 0 38px;
       color: var(--accent, #c62d2d);
-      opacity: 0.9;
-      animation: daSpin 60s linear infinite;
+      opacity: 0.85;
+      align-self: center;
+      margin-right: 4px;
     }
-    .da-header-ornament.no-spin { animation: none; }
+    .da-header-ornament svg { width: 100%; height: 100%; display: block; }
+    .da-header-ornament.spin svg { animation: daSpin 60s linear infinite; }
     @keyframes daSpin { to { transform: rotate(360deg); } }
+    @media (max-width: 640px) { .da-header-ornament { width: 30px; height: 30px; flex-basis: 30px; } }
 
-    .da-kanote {
-      display: block; width: 220px; max-width: 70%; height: 30px;
-      margin: 4px auto 0; color: var(--accent-2, #8b6f47); opacity: 0.6;
-    }
-    .da-kanote svg { width: 100%; height: 100%; }
-
-    /* Keep page content above watermarks */
-    .app, .wrap, header, .content, .pitaka-nav, .verses, .book-list { position: relative; z-index: 1; }
+    /* Keep page content above watermarks (watermarks are z-index 0) */
+    .app { position: relative; z-index: 1; }
   `;
   document.head.appendChild(style);
 
@@ -127,27 +124,15 @@
     mk(cfg.left, 'left');
     mk(cfg.right, 'right');
 
-    // Header ornament — insert at top of the app's <header> if present
+    // Header ornament — sits as the FIRST child of the header row (beside the title),
+    // fixed size, so it never stretches or pushes the title text.
     const hdr = document.querySelector('.app header, header');
-    if (hdr) {
+    if (hdr && getComputedStyle(hdr).display.includes('flex')) {
       const orn = document.createElement('span');
-      orn.className = 'da-header-ornament' + (cfg.header === 'wheel' ? '' : ' no-spin');
+      orn.className = 'da-header-ornament' + (cfg.header === 'wheel' ? ' spin' : '');
       orn.setAttribute('aria-hidden', 'true');
       orn.innerHTML = ART[cfg.header] || '';
-      // place as a leading element inside the title area if possible
-      const titleBox = hdr.querySelector('.title') || hdr;
-      titleBox.insertBefore(orn, titleBox.firstChild);
-    }
-
-    // Kanote scroll divider under the header
-    const app = document.querySelector('.app');
-    const headerEl = document.querySelector('.app header');
-    if (app && headerEl) {
-      const k = document.createElement('div');
-      k.className = 'da-kanote';
-      k.setAttribute('aria-hidden', 'true');
-      k.innerHTML = ART.kanote;
-      headerEl.insertAdjacentElement('afterend', k);
+      hdr.insertBefore(orn, hdr.firstChild);
     }
   }
 
