@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="parchment">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ဥပုသ်ပြက္ခဒိန် · Uposatha Calendar</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8b6f47">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  :root, [data-theme="parchment"] {
+    --bg-1: #f0d5a0; --bg-2: #e2c185;
+    --paper: #fbeed0; --paper-2: #f5e2b4; --paper-3: #eed99f;
+    --ink: #2d2115; --ink-dim: #6b5738; --ink-mute: #a08967;
+    --accent: #c62d2d; --accent-2: #8b6f47; --gold: #b8860b;
+    --border: #d4b075; --border-soft: #e2c58a;
+    --shadow: 0 8px 24px rgba(139,100,40,0.22);
+    --serif: 'Georgia','Cambria','Times New Roman',serif;
+    --sans: 'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',system-ui,sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg-1: #1a1310; --bg-2: #2a1e18;
+    --paper: #2f231a; --paper-2: #3a2c22; --paper-3: #453629;
+    --ink: #f5e2b4; --ink-dim: #c9ac74; --ink-mute: #8a7654;
+    --accent: #e8a3a3; --accent-2: #d4b075; --gold: #ffd76a;
+    --border: #4a3a2a; --border-soft: #3a2c22;
+    --shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  [data-theme="royal"] {
+    --bg-1: #1a1830; --bg-2: #2d2650;
+    --paper: #241e42; --paper-2: #2d2650; --paper-3: #362e5d;
+    --ink: #f2d98a; --ink-dim: #d4b56a; --ink-mute: #9b8248;
+    --accent: #ffd76a; --accent-2: #b8860b; --gold: #ffd76a;
+    --border: #4a3d78; --border-soft: #362e58;
+    --shadow: 0 12px 32px rgba(0,0,0,0.55);
+  }
+  [v-cloak] { display:none !important; }
+  #vue-loading { display:flex; align-items:center; justify-content:center; min-height:60vh; color:var(--ink-mute); font-family:var(--serif); font-style:italic; }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:var(--sans); -webkit-tap-highlight-color:transparent; }
+  body {
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    color:var(--ink); min-height:100vh;
+    display:flex; justify-content:center; padding:20px 14px;
+  }
+  .app {
+    background:var(--paper); max-width:560px; width:100%;
+    border-radius:14px; padding:26px 22px 30px;
+    box-shadow:var(--shadow); border:1px solid var(--border);
+    height:fit-content;
+  }
+  header { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
+  header .title { flex:1; }
+  header h1 { font-size:1.25rem; color:var(--accent); }
+  header .sub { font-family:var(--serif); font-style:italic; color:var(--ink-mute); font-size:0.78rem; }
+  .hbtn { background:transparent; border:1px solid var(--border); color:var(--ink-dim); width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1rem; }
+
+  .today-card {
+    background:linear-gradient(135deg, rgba(255,215,106,0.12), transparent 60%), var(--paper-2);
+    border:1px solid var(--gold); border-radius:12px;
+    padding:14px 18px; margin-bottom:14px;
+  }
+  .today-card .tc-greg { font-size:0.78rem; color:var(--ink-mute); margin-bottom:4px; }
+  .today-card .tc-mm { font-weight:700; font-size:1.05rem; color:var(--ink); line-height:1.7; }
+  .today-card .tc-era { font-size:0.78rem; color:var(--ink-dim); margin-top:4px; }
+  .today-card .tc-upo {
+    margin-top:8px; font-weight:700; color:var(--accent); font-size:0.92rem;
+  }
+
+  .next-upo {
+    display:flex; align-items:center; gap:12px;
+    background:var(--paper-2); border:1.5px solid var(--accent);
+    border-radius:12px; padding:12px 16px; margin-bottom:16px;
+  }
+  .next-upo .nu-ic { font-size:1.6rem; }
+  .next-upo .nu-txt { flex:1; }
+  .next-upo .nu-lbl { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-mute); }
+  .next-upo .nu-day { font-weight:700; color:var(--ink); font-size:0.95rem; }
+  .next-upo .nu-count { font-size:1.4rem; font-weight:700; color:var(--accent); }
+  .next-upo .nu-count small { font-size:0.7rem; color:var(--ink-mute); font-weight:400; }
+
+  .cal-nav { display:flex; align-items:center; justify-content:center; gap:12px; margin-bottom:10px; }
+  .cal-nav button { background:var(--paper-2); border:1px solid var(--border); border-radius:8px; width:34px; height:34px; cursor:pointer; color:var(--ink); }
+  .cal-nav .cur { font-weight:700; min-width:150px; text-align:center; }
+  .cal-nav .cur small { display:block; font-weight:400; font-size:0.72rem; color:var(--ink-mute); }
+
+  .grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; }
+  .dow { text-align:center; font-size:0.68rem; color:var(--ink-mute); font-weight:700; padding:4px 0; }
+  .cell {
+    aspect-ratio:0.9; border-radius:8px; background:var(--paper-2);
+    border:1px solid transparent; padding:3px 2px;
+    display:flex; flex-direction:column; align-items:center; justify-content:flex-start;
+    font-size:0.85rem; position:relative; cursor:default;
+  }
+  .cell.blank { background:transparent; }
+  .cell .g { font-weight:600; line-height:1.3; }
+  .cell .m { font-size:0.85rem; line-height:1; margin-top:1px; }
+  .cell.upo { background:color-mix(in srgb, var(--accent) 14%, var(--paper-2)); border-color:var(--accent); }
+  .cell.full { background:color-mix(in srgb, var(--gold) 22%, var(--paper-2)); border-color:var(--gold); }
+  .cell.today { outline:2px solid var(--accent); outline-offset:1px; }
+  .cell.holiday::after { content:""; position:absolute; top:3px; right:4px; width:6px; height:6px; border-radius:50%; background:var(--accent); }
+
+  .legend { display:flex; gap:12px; flex-wrap:wrap; margin-top:10px; font-size:0.72rem; color:var(--ink-dim); justify-content:center; }
+  .legend span { display:inline-flex; align-items:center; gap:4px; }
+  .lg { width:12px; height:12px; border-radius:3px; display:inline-block; }
+  .lg.upo { background:color-mix(in srgb, var(--accent) 14%, var(--paper-2)); border:1px solid var(--accent); }
+  .lg.full { background:color-mix(in srgb, var(--gold) 22%, var(--paper-2)); border:1px solid var(--gold); }
+
+  .sect { margin-top:18px; padding-top:12px; border-top:1px dashed var(--border); }
+  .sect-title { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-mute); margin-bottom:8px; font-weight:700; }
+  .upo-list { display:flex; flex-direction:column; gap:6px; }
+  .upo-row {
+    display:flex; align-items:center; gap:10px;
+    background:var(--paper-2); border-radius:8px; padding:8px 12px; font-size:0.86rem;
+  }
+  .upo-row.past { opacity:0.5; }
+  .upo-row .ur-ic { width:24px; text-align:center; }
+  .upo-row .ur-d { min-width:70px; font-weight:600; }
+  .upo-row .ur-mm { flex:1; color:var(--ink-dim); }
+  .upo-row .ur-tag { font-size:0.72rem; color:var(--accent); font-weight:700; }
+  footer { margin-top:16px; text-align:center; font-size:0.72rem; color:var(--ink-mute); font-style:italic; line-height:1.8; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>☸ ဥပုသ်ပြက္ခဒိန်</h1>
+        <div class="sub">Uposatha · Myanmar Buddhist Calendar</div>
+      </div>
+      <button class="hbtn" @click="cycleTheme">{{ themeIcon }}</button>
+    </header>
+
+    <!-- Today -->
+    <div class="today-card">
+      <div class="tc-greg">{{ todayGreg }}</div>
+      <div class="tc-mm">{{ todayMm }}</div>
+      <div class="tc-era">သာသနာနှစ် {{ sasanaYear }} · မြန်မာနှစ် {{ myYear }}</div>
+      <div class="tc-upo" v-if="todayUpo">☸ ယနေ့သည် {{ todayUpo }} ဖြစ်ပါသည် — ဥပုသ်စောင့်ထိန်းရန် နေ့ကောင်းပါ 🙏</div>
+    </div>
+
+    <!-- Next uposatha -->
+    <div class="next-upo" v-if="nextUpo">
+      <span class="nu-ic">{{ nextUpo.icon }}</span>
+      <span class="nu-txt">
+        <span class="nu-lbl">နောက်လာမည့် ဥပုသ်နေ့</span><br>
+        <span class="nu-day">{{ nextUpo.label }} — {{ nextUpo.greg }}</span>
+      </span>
+      <span class="nu-count">{{ nextUpo.days }}<small> ရက်</small></span>
+    </div>
+
+    <!-- Month grid -->
+    <div class="cal-nav">
+      <button @click="shiftMonth(-1)">‹</button>
+      <div class="cur">{{ monthLabel }}<small>{{ mmMonthLabel }}</small></div>
+      <button @click="shiftMonth(1)">›</button>
+    </div>
+    <div class="grid">
+      <div class="dow" v-for="d in ['တနင်္ဂနွေ','တနင်္လာ','အင်္ဂါ','ဗုဒ္ဓဟူး','ကြာသပတေး','သောကြာ','စနေ']">{{ d.slice(0,4) }}</div>
+      <div v-for="(c,i) in cells" :key="i" class="cell"
+        :class="[c.blank?'blank':'', c.upo&&!c.full?'upo':'', c.full?'full':'', c.today?'today':'', c.holiday?'holiday':'']"
+        :title="c.tip || ''">
+        <template v-if="!c.blank">
+          <span class="g">{{ c.g }}</span>
+          <span class="m">{{ c.icon }}</span>
+        </template>
+      </div>
+    </div>
+    <div class="legend">
+      <span><i class="lg full"></i> လပြည့် / လကွယ်</span>
+      <span><i class="lg upo"></i> လဆန်း/လဆုတ် ၈ ရက် ဥပုသ်</span>
+      <span>🔴 ပွဲတော်နေ့</span>
+    </div>
+
+    <!-- This month's uposatha days -->
+    <div class="sect">
+      <div class="sect-title">☸ ဤလ၏ ဥပုသ်နေ့များ</div>
+      <div class="upo-list">
+        <div v-for="u in monthUpos" :key="u.greg" class="upo-row" :class="{past:u.past}">
+          <span class="ur-ic">{{ u.icon }}</span>
+          <span class="ur-d">{{ u.gregShort }}</span>
+          <span class="ur-mm">{{ u.label }}</span>
+          <span class="ur-tag" v-if="u.holiday">{{ u.holiday }}</span>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      တွက်ချက်မှုသည် မြန်မာပြက္ခဒိန် သင်္ချာနည်းအရ ဖြစ်၍ တရားဝင် ပြက္ခဒိန်နှင့် တစ်ရက် ကွာနိုင်ပါသည်။<br>
+      Algorithm: Myanmar lunisolar calendar (3rd era, ME ≥ 1312)
+    </footer>
+  </div>
+</div>
+<div id="vue-loading">⏳ ဖွင့်နေသည်...</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script>
+if (typeof Vue === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue မရရှိပါ — page ကို refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted } = Vue;
+const THEME_KEY = 'tipitaka.theme';
+
+// ═══════════ Myanmar calendar core (lunisolar, 3rd era ME ≥ 1312 / CE 1950+) ═══════════
+// Based on the public Myanmar calendar algorithm (yan9a/mmcal formulation).
+const SY = 1577917828 / 4320000;      // mean solar year (days)
+const LM = 1577917828 / 53433336;     // mean lunar month (days)
+const MO = 1954168.050623;            // Julian day of Myanmar era start
+
+function g2jdn(y, m, d) {             // Gregorian → Julian Day Number (integer, noon-based)
+  const a = Math.floor((14 - m) / 12), yy = y + 4800 - a, mm = m + 12 * a - 3;
+  return d + Math.floor((153 * mm + 2) / 5) + 365 * yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) - 32045;
+}
+function calWatat(my) {               // does year have an intercalary month / day?
+  let NM, WO;
+  if (my >= 1312) { NM = 8; WO = -0.5; }
+  else { NM = 4; WO = -1; }           // 2nd era fallback (1217–1311)
+  const TA = (SY / 12 - LM) * (12 - NM);
+  let ed = (SY * (my + 3739)) % LM;
+  if (ed < TA) ed += LM;
+  const fm = Math.round(SY * my + MO - ed + 4.5 * LM + WO);
+  const TW = LM - (SY / 12 - LM) * NM;
+  return { fm, watat: ed >= TW ? 1 : 0 };
+}
+function calMy(my) {                  // year type + epoch (1st Tagu)
+  let yd = 0, y1, werr = 0, fm = 0;
+  const y2 = calWatat(my);
+  let myt = y2.watat;
+  do { yd++; y1 = calWatat(my - yd); } while (!y1.watat && yd < 3);
+  if (y2.watat) {
+    const nd = (y2.fm - y1.fm) % 354;
+    myt = Math.floor(nd / 31) + 1;    // 1 = little watat, 2 = big watat
+    fm = y2.fm;
+    if (nd !== 30 && nd !== 31) werr = 1;
+  } else fm = y1.fm + 354 * yd;
+  const tg1 = y1.fm + 354 * yd - 102;
+  return { myt, tg1, fm, werr };
+}
+function j2m(jdn) {                   // JDN → Myanmar date
+  jdn = Math.round(jdn);
+  let my = Math.floor((jdn - 0.5 - MO) / SY);
+  let yo = calMy(my);
+  let dd = jdn - yo.tg1 + 1;
+  const b = Math.floor(yo.myt / 2), c = yo.myt === 0 ? 1 : 0;
+  const myl = 354 + (1 - c) * 30 + b;
+  const mmt = Math.floor((dd - 1) / myl);
+  dd -= mmt * myl;
+  const a = Math.floor((dd + 423) / 512);
+  let mm = Math.floor((dd - b * a + c * a * 30 + 29.26) / 29.544);
+  const e = Math.floor((mm + 12) / 16), f = Math.floor((mm + 11) / 16);
+  let md = dd - Math.floor(29.544 * mm - 29.26) - b * e + c * f * 30;
+  mm += f * 3 - e * 4 + 12 * mmt;
+  const mml = 30 - mm % 2 + (mm === 3 ? b : 0);            // month length
+  const mp = Math.floor((md + 1) / 16) + Math.floor(md / 16) + Math.floor(md / mml); // 0 wax,1 full,2 wane,3 new
+  const fd = md - 15 * Math.floor(md / 16);                // fortnight day
+  return { my, mm, md, mml, mp, fd, myt: yo.myt };
+}
+
+const MONTHS = ['ပထမ ဝါဆို', 'တန်ခူး', 'ကဆုန်', 'နယုန်', 'ဝါဆို', 'ဝါခေါင်', 'တော်သလင်း', 'သီတင်းကျွတ်',
+  'တန်ဆောင်မုန်း', 'နတ်တော်', 'ပြာသို', 'တပို့တွဲ', 'တပေါင်း', 'နှောင်းတန်ခူး', 'နှောင်းကဆုန်'];
+const PHASES = ['လဆန်း', 'လပြည့်', 'လဆုတ်', 'လကွယ်'];
+const MYNUM = ['၀','၁','၂','၃','၄','၅','၆','၇','၈','၉'];
+const mnum = n => String(n).split('').map(d => MYNUM[+d] || d).join('');
+
+function monthName(m, myt) {
+  if (m === 4 && myt > 0) return 'ဒုတိယ ဝါဆို';
+  return MONTHS[m] || '';
+}
+// Full-moon festival names by Myanmar month
+const HOLIDAYS = {
+  2: 'ဗုဒ္ဓနေ့ (ကဆုန်လပြည့်)', 3: 'မဟာသမယနေ့', 4: 'ဓမ္မစကြာနေ့ (ဝါဆိုလပြည့်)',
+  6: 'ဂရုဓမ္မ ပွားများရာနေ့', 7: 'အဘိဓမ္မာနေ့ (သီတင်းကျွတ်)', 8: 'တန်ဆောင်တိုင်',
+  10: 'ကထိန်ပွဲကာလကုန်', 12: 'တပေါင်းပွဲနေ့',
+};
+function mmInfo(date) {
+  const m = j2m(g2jdn(date.getFullYear(), date.getMonth() + 1, date.getDate()));
+  const isFull = m.mp === 1, isNew = m.mp === 3;
+  const isU8 = (m.mp === 0 && m.fd === 8) || (m.mp === 2 && m.fd === 8);
+  const upo = isFull || isNew || isU8;
+  const phaseStr = m.mp === 1 ? 'လပြည့်' : m.mp === 3 ? 'လကွယ်' : `${PHASES[m.mp]} ${mnum(m.fd)} ရက်`;
+  const holiday = isFull ? HOLIDAYS[m.mm] || '' : '';
+  return { ...m, isFull, isNew, isU8, upo, phaseStr, holiday,
+    label: `${monthName(m.mm, m.myt)} ${phaseStr}` };
+}
+
+createApp({
+  setup() {
+    const theme = ref(localStorage.getItem(THEME_KEY) || 'parchment');
+    const view = ref(new Date());     // month being viewed
+    const now = new Date();
+
+    // ---- today ----
+    const t = mmInfo(now);
+    const todayGreg = now.toLocaleDateString('my-MM', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+    const todayMm = `${monthName(t.mm, t.myt)} ${t.phaseStr}`;
+    const myYear = mnum(t.my);
+    const sasanaYear = mnum(t.my + 1182);
+    const todayUpo = t.upo ? (t.isFull ? 'လပြည့် ဥပုသ်နေ့' : t.isNew ? 'လကွယ် ဥပုသ်နေ့' : `${PHASES[t.mp]} ၈ ရက် ဥပုသ်နေ့`) : '';
+
+    // ---- next uposatha ----
+    const nextUpo = computed(() => {
+      for (let i = t.upo ? 1 : 0; i <= 16; i++) {
+        const d = new Date(now); d.setDate(d.getDate() + i);
+        const m = mmInfo(d);
+        if (m.upo) {
+          if (i === 0) return null;
+          return {
+            days: mnum(i),
+            icon: m.isFull ? '🌕' : m.isNew ? '🌑' : '☸',
+            label: m.label,
+            greg: d.toLocaleDateString('my-MM', { month: 'short', day: 'numeric', weekday: 'short' }),
+          };
+        }
+      }
+      return null;
+    });
+
+    // ---- month grid ----
+    function shiftMonth(d) { const v = new Date(view.value); v.setMonth(v.getMonth() + d); view.value = v; }
+    const monthLabel = computed(() => view.value.toLocaleDateString('my-MM', { year: 'numeric', month: 'long' }));
+    const mmMonthLabel = computed(() => {
+      const y = view.value.getFullYear(), mo = view.value.getMonth();
+      const a = mmInfo(new Date(y, mo, 1)), b = mmInfo(new Date(y, mo + 1, 0));
+      const n1 = monthName(a.mm, a.myt), n2 = monthName(b.mm, b.myt);
+      return n1 === n2 ? n1 : `${n1} / ${n2}`;
+    });
+    const cells = computed(() => {
+      const y = view.value.getFullYear(), mo = view.value.getMonth();
+      const first = new Date(y, mo, 1);
+      const days = new Date(y, mo + 1, 0).getDate();
+      const out = [];
+      for (let i = 0; i < first.getDay(); i++) out.push({ blank: true });
+      const todayStr = now.toDateString();
+      for (let d = 1; d <= days; d++) {
+        const date = new Date(y, mo, d);
+        const m = mmInfo(date);
+        out.push({
+          g: d,
+          icon: m.isFull ? '🌕' : m.isNew ? '🌑' : m.isU8 ? '☸' : '',
+          upo: m.upo, full: m.isFull || m.isNew,
+          today: date.toDateString() === todayStr,
+          holiday: !!m.holiday,
+          tip: `${m.label}${m.holiday ? ' · ' + m.holiday : ''}`,
+        });
+      }
+      return out;
+    });
+    const monthUpos = computed(() => {
+      const y = view.value.getFullYear(), mo = view.value.getMonth();
+      const days = new Date(y, mo + 1, 0).getDate();
+      const out = [];
+      for (let d = 1; d <= days; d++) {
+        const date = new Date(y, mo, d);
+        const m = mmInfo(date);
+        if (m.upo) out.push({
+          greg: date.toISOString(),
+          gregShort: date.toLocaleDateString('my-MM', { month: 'short', day: 'numeric' }),
+          icon: m.isFull ? '🌕' : m.isNew ? '🌑' : '☸',
+          label: m.label,
+          holiday: m.holiday,
+          past: date < now && date.toDateString() !== now.toDateString(),
+        });
+      }
+      return out;
+    });
+
+    // ---- theme ----
+    const THEMES = ['parchment', 'dark', 'royal'];
+    function cycleTheme() {
+      const i = THEMES.indexOf(theme.value);
+      theme.value = THEMES[(i + 1) % THEMES.length];
+      document.documentElement.dataset.theme = theme.value;
+      localStorage.setItem(THEME_KEY, theme.value);
+    }
+    const themeIcon = computed(() => theme.value === 'parchment' ? '📜' : theme.value === 'dark' ? '🌙' : '👑');
+
+    onMounted(() => {
+      document.documentElement.dataset.theme = theme.value;
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+
+    return {
+      todayGreg, todayMm, myYear, sasanaYear, todayUpo,
+      nextUpo, cells, monthUpos, monthLabel, mmMonthLabel,
+      shiftMonth, cycleTheme, themeIcon,
+    };
+  }
+}).mount('#app');
+}
+</script>
+</body>
+</html>

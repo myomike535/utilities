@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="parchment">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ကမ္မဋ္ဌာန်း · Meditation Timer</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8b6f47">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  :root, [data-theme="parchment"] {
+    --bg-1: #f0d5a0; --bg-2: #e2c185;
+    --paper: #fbeed0; --paper-2: #f5e2b4; --paper-3: #eed99f;
+    --ink: #2d2115; --ink-dim: #6b5738; --ink-mute: #a08967;
+    --accent: #c62d2d; --accent-2: #8b6f47; --gold: #b8860b;
+    --border: #d4b075; --border-soft: #e2c58a;
+    --shadow: 0 8px 24px rgba(139,100,40,0.22);
+    --serif: 'Georgia','Cambria','Times New Roman',serif;
+    --sans: 'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',system-ui,sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg-1: #1a1310; --bg-2: #2a1e18;
+    --paper: #2f231a; --paper-2: #3a2c22; --paper-3: #453629;
+    --ink: #f5e2b4; --ink-dim: #c9ac74; --ink-mute: #8a7654;
+    --accent: #e8a3a3; --accent-2: #d4b075; --gold: #ffd76a;
+    --border: #4a3a2a; --border-soft: #3a2c22;
+    --shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  [data-theme="royal"] {
+    --bg-1: #1a1830; --bg-2: #2d2650;
+    --paper: #241e42; --paper-2: #2d2650; --paper-3: #362e5d;
+    --ink: #f2d98a; --ink-dim: #d4b56a; --ink-mute: #9b8248;
+    --accent: #ffd76a; --accent-2: #b8860b; --gold: #ffd76a;
+    --border: #4a3d78; --border-soft: #362e58;
+    --shadow: 0 12px 32px rgba(0,0,0,0.55);
+  }
+  [v-cloak] { display: none !important; }
+  #vue-loading { display:flex; align-items:center; justify-content:center; min-height:60vh; color:var(--ink-mute); font-family:var(--serif); font-style:italic; }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:var(--sans); -webkit-tap-highlight-color:transparent; }
+  body {
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    color: var(--ink); min-height: 100vh;
+    display: flex; justify-content: center; padding: 20px 14px;
+    user-select: none;
+  }
+  .app {
+    background: var(--paper); max-width: 480px; width: 100%;
+    border-radius: 14px; padding: 26px 22px 30px;
+    box-shadow: var(--shadow); border: 1px solid var(--border);
+    height: fit-content;
+  }
+  header { display:flex; align-items:center; gap:10px; margin-bottom:4px; }
+  header .title { flex:1; }
+  header h1 { font-size:1.25rem; color:var(--accent); }
+  header .sub { font-family:var(--serif); font-style:italic; color:var(--ink-mute); font-size:0.78rem; }
+  .hbtn { background:transparent; border:1px solid var(--border); color:var(--ink-dim); width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1rem; }
+  .hbtn:hover { border-color:var(--accent); }
+  .hbtn.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  /* Timer circle */
+  .circle-wrap { position:relative; width:240px; height:240px; margin:18px auto 8px; }
+  .circle-wrap svg { transform: rotate(-90deg); }
+  .ring-bg { fill:none; stroke:var(--paper-3); stroke-width:10; }
+  .ring-fg { fill:none; stroke:var(--accent); stroke-width:10; stroke-linecap:round; transition: stroke-dashoffset 1s linear; }
+  .circle-inner {
+    position:absolute; inset:0; display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:4px;
+  }
+  .time-big { font-size:3rem; font-weight:700; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .phase-lbl { font-size:0.85rem; color:var(--ink-mute); }
+  .preset-lbl { font-size:0.8rem; color:var(--accent-2); font-weight:600; }
+
+  .row { display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin:12px 0; }
+  .chip {
+    padding: 7px 14px; border:1px solid var(--border); border-radius:999px;
+    background:var(--paper-2); color:var(--ink-dim); cursor:pointer; font-size:0.85rem;
+    transition:all 0.15s;
+  }
+  .chip:hover { border-color:var(--accent); }
+  .chip.on { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
+
+  .main-btns { display:flex; gap:10px; justify-content:center; margin:16px 0 6px; }
+  .big-btn {
+    padding: 13px 34px; border:none; border-radius:999px; font-size:1.05rem; font-weight:700;
+    cursor:pointer; background:var(--accent); color:#fff; box-shadow:0 4px 14px rgba(0,0,0,0.2);
+    transition: transform 0.12s;
+  }
+  .big-btn:active { transform: scale(0.96); }
+  .big-btn.alt { background:var(--paper-2); color:var(--ink); border:1px solid var(--border); }
+
+  .sect { margin-top:20px; padding-top:14px; border-top:1px dashed var(--border); }
+  .sect-title { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-mute); margin-bottom:10px; font-weight:700; }
+
+  /* heatmap */
+  .heat { display:grid; grid-template-columns:repeat(14,1fr); gap:4px; }
+  .heat .d { aspect-ratio:1; border-radius:4px; background:var(--paper-3); position:relative; }
+  .heat .d.l1 { background:color-mix(in srgb, var(--accent) 30%, var(--paper-3)); }
+  .heat .d.l2 { background:color-mix(in srgb, var(--accent) 60%, var(--paper-3)); }
+  .heat .d.l3 { background:var(--accent); }
+  .heat .d.today { outline:2px solid var(--gold); outline-offset:1px; }
+  .stat-row { display:flex; gap:14px; justify-content:center; margin-top:10px; font-size:0.85rem; color:var(--ink-dim); }
+  .stat-row b { color:var(--accent); }
+
+  .guide {
+    background:var(--paper-2); border-left:3px solid var(--accent-2);
+    padding:10px 14px; border-radius:0 8px 8px 0; margin-top:10px;
+    font-size:0.88rem; line-height:1.9; color:var(--ink-dim);
+  }
+  .toast {
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:var(--ink); color:var(--paper); padding:9px 20px; border-radius:999px;
+    font-size:0.85rem; opacity:0; transition:all 0.3s; z-index:99; pointer-events:none;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+  @media (max-width:420px){ .circle-wrap{width:200px;height:200px;} .time-big{font-size:2.4rem;} }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>🧘 ကမ္မဋ္ဌာန်း Timer</h1>
+        <div class="sub">Meditation · တရားထိုင်ချိန် မှတ်တမ်း</div>
+      </div>
+      <button class="hbtn" :class="{on:wakeOn}" @click="toggleWake" :title="wakeOn?'မျက်နှာပြင် ပွင့်နေမည်':'မျက်နှာပြင် အလိုအလျောက်ပိတ်မည်'">☀</button>
+      <button class="hbtn" @click="cycleTheme" title="Theme">{{ themeIcon }}</button>
+    </header>
+
+    <!-- Timer ring -->
+    <div class="circle-wrap">
+      <svg width="100%" height="100%" viewBox="0 0 240 240">
+        <circle class="ring-bg" cx="120" cy="120" r="110"/>
+        <circle class="ring-fg" cx="120" cy="120" r="110"
+          :stroke-dasharray="circ" :stroke-dashoffset="dashOffset"/>
+      </svg>
+      <div class="circle-inner">
+        <div class="preset-lbl">{{ activePreset.my }}</div>
+        <div class="time-big">{{ display }}</div>
+        <div class="phase-lbl">{{ phaseLabel }}</div>
+      </div>
+    </div>
+
+    <!-- Duration -->
+    <div class="row" v-if="state==='idle'">
+      <button v-for="m in [5,10,15,20,30,45,60]" :key="m" class="chip" :class="{on:minutes===m}" @click="minutes=m">{{ m }} မိနစ်</button>
+    </div>
+    <!-- Interval bell -->
+    <div class="row" v-if="state==='idle'">
+      <button v-for="iv in intervalOptions" :key="iv.v" class="chip" :class="{on:intervalMin===iv.v}" @click="intervalMin=iv.v">🔔 {{ iv.t }}</button>
+    </div>
+    <!-- Preset -->
+    <div class="row" v-if="state==='idle'">
+      <button v-for="(p,i) in presets" :key="i" class="chip" :class="{on:presetIdx===i}" @click="presetIdx=i">{{ p.my }}</button>
+    </div>
+
+    <div class="main-btns">
+      <button v-if="state==='idle'" class="big-btn" @click="start">▶ စတင်မည်</button>
+      <button v-if="state==='running'" class="big-btn alt" @click="pause">⏸ ခဏရပ်</button>
+      <button v-if="state==='paused'" class="big-btn" @click="resume">▶ ဆက်လုပ်</button>
+      <button v-if="state!=='idle'" class="big-btn alt" @click="stop(true)">⏹ ရပ်မည်</button>
+    </div>
+
+    <div class="guide" v-if="state==='idle'">{{ activePreset.guide }}</div>
+
+    <!-- Streak / history -->
+    <div class="sect">
+      <div class="sect-title">📅 ၂၈ ရက် မှတ်တမ်း · Streak <b style="color:var(--accent)">{{ streak }}</b> ရက်</div>
+      <div class="heat">
+        <div v-for="(d,i) in calendar" :key="i" class="d" :class="[d.lvl?'l'+d.lvl:'', d.today?'today':'']" :title="d.tip"></div>
+      </div>
+      <div class="stat-row">
+        <span>ယနေ့ <b>{{ todayMins }}</b> မိနစ်</span>
+        <span>စုစုပေါင်း <b>{{ totalHours }}</b> နာရီ</span>
+        <span>ထိုင်ခဲ့ <b>{{ sessions.length }}</b> ကြိမ်</span>
+      </div>
+    </div>
+  </div>
+  <div class="toast" :class="{show:toastMsg}">{{ toastMsg }}</div>
+</div>
+<div id="vue-loading">⏳ ဖွင့်နေသည်...</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script>
+if (typeof Vue === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue မရရှိပါ — page ကို refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+const STORE = 'medi.timer.v1';
+const THEME_KEY = 'tipitaka.theme';
+
+createApp({
+  setup() {
+    const minutes = ref(15);
+    const intervalMin = ref(0);
+    const presetIdx = ref(0);
+    const state = ref('idle');            // idle | prep | running | paused
+    const remaining = ref(0);             // seconds
+    const total = ref(0);
+    const sessions = ref([]);
+    const toastMsg = ref('');
+    const wakeOn = ref(false);
+    const theme = ref(localStorage.getItem(THEME_KEY) || 'parchment');
+
+    const presets = [
+      { my: 'အာနာပါန', guide: 'ထွက်သက် ဝင်သက်ကို သတိဖြင့် ရှုမှတ်ပါ။ နှာသီးဖျားတွင် ထိသိမှုကို အာရုံပြုပါ။ စိတ်လွင့်လျှင် ညင်သာစွာ ပြန်ခေါ်ပါ။' },
+      { my: 'မေတ္တာ', guide: 'မိမိကိုယ်ကို ဦးစွာ မေတ္တာပို့ပါ — "ချမ်းသာပါစေ၊ ဘေးရန်ကင်းပါစေ"။ ထို့နောက် ချစ်သူ၊ ကြားနေသူ၊ မုန်းသူ၊ သတ္တဝါအားလုံးသို့ တဖြည်းဖြည်း ချဲ့ပါ။' },
+      { my: 'ဝိပဿနာ', guide: 'ဖြစ်ပေါ်လာသမျှ ရုပ်နာမ်တို့ကို ဖြစ်ပျက်အတိုင်း ရှုမှတ်ပါ။ ကောင်း/မကောင်း မဝေဖန်ဘဲ သတိတရားဖြင့် စောင့်ကြည့်ပါ။' },
+      { my: 'ဗုဒ္ဓါနုဿတိ', guide: 'ဘုရားဂုဏ်တော် ၉ ပါး — အရဟံ … ဘဂဝါ — ကို အာရုံပြု၍ စိတ်တည်ငြိမ်စွာ ပွားများပါ။' },
+    ];
+    const intervalOptions = [
+      { v: 0, t: 'မရှိ' }, { v: 5, t: '၅ မိနစ်တိုင်း' }, { v: 10, t: '၁၀ မိနစ်တိုင်း' }, { v: 15, t: '၁၅ မိနစ်တိုင်း' },
+    ];
+    const activePreset = computed(() => presets[presetIdx.value]);
+
+    // ---- persistence ----
+    function load() {
+      try { const d = JSON.parse(localStorage.getItem(STORE) || '{}');
+        sessions.value = d.sessions || [];
+        minutes.value = d.minutes || 15;
+        intervalMin.value = d.intervalMin || 0;
+        presetIdx.value = d.presetIdx || 0;
+      } catch (e) {}
+    }
+    function save() {
+      localStorage.setItem(STORE, JSON.stringify({
+        sessions: sessions.value, minutes: minutes.value,
+        intervalMin: intervalMin.value, presetIdx: presetIdx.value,
+      }));
+    }
+
+    // ---- bell (synthesized — no audio files) ----
+    let ac = null;
+    function bell(times = 1) {
+      try {
+        ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+        for (let i = 0; i < times; i++) {
+          const t0 = ac.currentTime + i * 1.6;
+          [523.25, 659.25, 783.99].forEach((f, j) => {
+            const o = ac.createOscillator(), g = ac.createGain();
+            o.frequency.value = f; o.type = 'sine';
+            g.gain.setValueAtTime(0.0001, t0);
+            g.gain.exponentialRampToValueAtTime(0.24 / (j + 1), t0 + 0.02);
+            g.gain.exponentialRampToValueAtTime(0.0001, t0 + 2.4);
+            o.connect(g).connect(ac.destination);
+            o.start(t0); o.stop(t0 + 2.5);
+          });
+        }
+        if (navigator.vibrate) navigator.vibrate(200);
+      } catch (e) {}
+    }
+
+    // ---- wake lock ----
+    let wakeLock = null;
+    async function requestWake() {
+      try { wakeLock = await navigator.wakeLock?.request('screen'); wakeOn.value = !!wakeLock;
+        wakeLock?.addEventListener('release', () => { wakeOn.value = false; });
+      } catch (e) { wakeOn.value = false; }
+    }
+    function releaseWake() { wakeLock?.release(); wakeLock = null; wakeOn.value = false; }
+    function toggleWake() { wakeOn.value ? releaseWake() : requestWake(); }
+
+    // ---- timer ----
+    let timer = null, lastBellAt = 0;
+    function tick() {
+      remaining.value--;
+      if (intervalMin.value > 0 && state.value === 'running') {
+        const elapsed = total.value - remaining.value;
+        if (elapsed > 0 && elapsed % (intervalMin.value * 60) === 0 && elapsed !== lastBellAt && remaining.value > 2) {
+          lastBellAt = elapsed; bell(1);
+        }
+      }
+      if (remaining.value <= 0) finish();
+    }
+    function start() {
+      total.value = minutes.value * 60;
+      remaining.value = total.value;
+      lastBellAt = 0;
+      state.value = 'running';
+      bell(1);
+      requestWake();
+      timer = setInterval(tick, 1000);
+      save();
+    }
+    function pause() { clearInterval(timer); state.value = 'paused'; }
+    function resume() { state.value = 'running'; timer = setInterval(tick, 1000); }
+    function stop(logPartial) {
+      clearInterval(timer); timer = null;
+      const doneMins = Math.round((total.value - remaining.value) / 60);
+      if (logPartial && doneMins >= 1) logSession(doneMins);
+      state.value = 'idle'; remaining.value = 0;
+      releaseWake();
+    }
+    function finish() {
+      clearInterval(timer); timer = null;
+      bell(3);
+      logSession(Math.round(total.value / 60));
+      state.value = 'idle';
+      releaseWake();
+      toast('🙏 သာဓု သာဓု သာဓု — ' + minutes.value + ' မိနစ် ပြီးမြောက်ပါပြီ');
+    }
+    function logSession(mins) {
+      sessions.value.push({ d: new Date().toDateString(), m: mins, p: presetIdx.value, t: Date.now() });
+      save();
+    }
+
+    // ---- display ----
+    const display = computed(() => {
+      const s = state.value === 'idle' ? minutes.value * 60 : remaining.value;
+      return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+    });
+    const circ = 2 * Math.PI * 110;
+    const dashOffset = computed(() => {
+      if (state.value === 'idle' || !total.value) return 0;
+      return circ * (1 - remaining.value / total.value);
+    });
+    const phaseLabel = computed(() =>
+      state.value === 'running' ? 'ရှုမှတ်နေသည်…' :
+      state.value === 'paused' ? '⏸ ခဏရပ်ထား' : 'အသင့်');
+
+    // ---- stats ----
+    const todayMins = computed(() => {
+      const t = new Date().toDateString();
+      return sessions.value.filter(s => s.d === t).reduce((a, s) => a + s.m, 0);
+    });
+    const totalHours = computed(() => (sessions.value.reduce((a, s) => a + s.m, 0) / 60).toFixed(1));
+    const byDay = computed(() => {
+      const m = {};
+      sessions.value.forEach(s => { m[s.d] = (m[s.d] || 0) + s.m; });
+      return m;
+    });
+    const streak = computed(() => {
+      let n = 0; const d = new Date();
+      if (!byDay.value[d.toDateString()]) d.setDate(d.getDate() - 1);
+      while (byDay.value[d.toDateString()]) { n++; d.setDate(d.getDate() - 1); }
+      return n;
+    });
+    const calendar = computed(() => {
+      const out = []; const today = new Date().toDateString();
+      for (let i = 27; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const key = d.toDateString(); const mins = byDay.value[key] || 0;
+        out.push({
+          lvl: mins >= 30 ? 3 : mins >= 15 ? 2 : mins > 0 ? 1 : 0,
+          today: key === today,
+          tip: d.toLocaleDateString() + ' — ' + mins + ' min',
+        });
+      }
+      return out;
+    });
+
+    // ---- theme ----
+    const THEMES = ['parchment', 'dark', 'royal'];
+    function cycleTheme() {
+      const i = THEMES.indexOf(theme.value);
+      theme.value = THEMES[(i + 1) % THEMES.length];
+      document.documentElement.dataset.theme = theme.value;
+      localStorage.setItem(THEME_KEY, theme.value);
+    }
+    const themeIcon = computed(() => theme.value === 'parchment' ? '📜' : theme.value === 'dark' ? '🌙' : '👑');
+
+    let toastTimer = null;
+    function toast(m) { toastMsg.value = m; clearTimeout(toastTimer); toastTimer = setTimeout(() => toastMsg.value = '', 3500); }
+
+    onMounted(() => {
+      load();
+      document.documentElement.dataset.theme = theme.value;
+      document.getElementById('vue-loading').style.display = 'none';
+      document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible' && state.value === 'running' && wakeOn.value) requestWake();
+      });
+    });
+    onUnmounted(() => { clearInterval(timer); releaseWake(); });
+
+    return {
+      minutes, intervalMin, presetIdx, state, sessions, toastMsg, wakeOn,
+      presets, intervalOptions, activePreset,
+      display, circ, dashOffset, phaseLabel,
+      todayMins, totalHours, streak, calendar,
+      start, pause, resume, stop, toggleWake, cycleTheme, themeIcon,
+    };
+  }
+}).mount('#app');
+}
+</script>
+</body>
+</html>

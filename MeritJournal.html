@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="parchment">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>ကုသိုလ်မှတ်တမ်း · Merit Journal</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8b6f47">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  :root, [data-theme="parchment"] {
+    --bg-1: #f0d5a0; --bg-2: #e2c185;
+    --paper: #fbeed0; --paper-2: #f5e2b4; --paper-3: #eed99f;
+    --ink: #2d2115; --ink-dim: #6b5738; --ink-mute: #a08967;
+    --accent: #c62d2d; --accent-2: #8b6f47; --gold: #b8860b;
+    --border: #d4b075; --border-soft: #e2c58a;
+    --shadow: 0 8px 24px rgba(139,100,40,0.22);
+    --serif: 'Georgia','Cambria','Times New Roman',serif;
+    --sans: 'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',system-ui,sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg-1: #1a1310; --bg-2: #2a1e18;
+    --paper: #2f231a; --paper-2: #3a2c22; --paper-3: #453629;
+    --ink: #f5e2b4; --ink-dim: #c9ac74; --ink-mute: #8a7654;
+    --accent: #e8a3a3; --accent-2: #d4b075; --gold: #ffd76a;
+    --border: #4a3a2a; --border-soft: #3a2c22;
+    --shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  [data-theme="royal"] {
+    --bg-1: #1a1830; --bg-2: #2d2650;
+    --paper: #241e42; --paper-2: #2d2650; --paper-3: #362e5d;
+    --ink: #f2d98a; --ink-dim: #d4b56a; --ink-mute: #9b8248;
+    --accent: #ffd76a; --accent-2: #b8860b; --gold: #ffd76a;
+    --border: #4a3d78; --border-soft: #362e58;
+    --shadow: 0 12px 32px rgba(0,0,0,0.55);
+  }
+  [v-cloak] { display:none !important; }
+  #vue-loading { display:flex; align-items:center; justify-content:center; min-height:60vh; color:var(--ink-mute); font-family:var(--serif); font-style:italic; }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:var(--sans); -webkit-tap-highlight-color:transparent; }
+  body {
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    color:var(--ink); min-height:100vh;
+    display:flex; justify-content:center; padding:20px 14px;
+  }
+  .app {
+    background:var(--paper); max-width:520px; width:100%;
+    border-radius:14px; padding:26px 22px 30px;
+    box-shadow:var(--shadow); border:1px solid var(--border);
+    height:fit-content;
+  }
+  header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  header .title { flex:1; }
+  header h1 { font-size:1.25rem; color:var(--accent); }
+  header .sub { font-family:var(--serif); font-style:italic; color:var(--ink-mute); font-size:0.78rem; }
+  .hbtn { background:transparent; border:1px solid var(--border); color:var(--ink-dim); width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1rem; }
+  .hbtn:hover { border-color:var(--accent); }
+
+  .date-nav { display:flex; align-items:center; gap:10px; justify-content:center; margin-bottom:14px; }
+  .date-nav button { background:var(--paper-2); border:1px solid var(--border); border-radius:8px; width:34px; height:34px; cursor:pointer; color:var(--ink); }
+  .date-nav .cur { font-weight:700; color:var(--ink); min-width:170px; text-align:center; }
+  .date-nav .cur small { display:block; font-weight:400; color:var(--ink-mute); font-size:0.72rem; }
+
+  .merit-list { display:flex; flex-direction:column; gap:8px; }
+  .merit-item {
+    display:flex; align-items:center; gap:12px;
+    background:var(--paper-2); border:1px solid var(--border-soft);
+    border-radius:10px; padding:11px 14px; cursor:pointer;
+    transition:all 0.15s;
+  }
+  .merit-item:hover { border-color:var(--border); }
+  .merit-item.done { border-color:var(--accent-2); background:color-mix(in srgb, var(--gold) 12%, var(--paper-2)); }
+  .merit-item .ic { font-size:1.3rem; width:34px; text-align:center; }
+  .merit-item .txt { flex:1; }
+  .merit-item .nm { font-weight:600; font-size:0.95rem; }
+  .merit-item .pl { font-family:var(--serif); font-style:italic; font-size:0.75rem; color:var(--ink-mute); }
+  .merit-item .chk {
+    width:26px; height:26px; border-radius:50%; border:2px solid var(--border);
+    display:grid; place-items:center; color:transparent; font-size:0.8rem; transition:all 0.15s;
+  }
+  .merit-item.done .chk { background:var(--accent); border-color:var(--accent); color:#fff; }
+
+  textarea.note {
+    width:100%; margin-top:12px; background:var(--paper-2); border:1px solid var(--border-soft);
+    border-radius:10px; padding:11px 14px; color:var(--ink); font-size:0.9rem; line-height:1.8;
+    resize:vertical; min-height:70px; outline:none; font-family:var(--sans);
+  }
+  textarea.note:focus { border-color:var(--accent); }
+
+  .sect { margin-top:20px; padding-top:14px; border-top:1px dashed var(--border); }
+  .sect-title { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-mute); margin-bottom:10px; font-weight:700; }
+  .heat { display:grid; grid-template-columns:repeat(14,1fr); gap:4px; }
+  .heat .d { aspect-ratio:1; border-radius:4px; background:var(--paper-3); cursor:pointer; }
+  .heat .d.l1 { background:color-mix(in srgb, var(--accent) 25%, var(--paper-3)); }
+  .heat .d.l2 { background:color-mix(in srgb, var(--accent) 50%, var(--paper-3)); }
+  .heat .d.l3 { background:color-mix(in srgb, var(--accent) 75%, var(--paper-3)); }
+  .heat .d.l4 { background:var(--accent); }
+  .heat .d.today { outline:2px solid var(--gold); outline-offset:1px; }
+  .stat-row { display:flex; gap:14px; justify-content:center; margin-top:10px; font-size:0.85rem; color:var(--ink-dim); flex-wrap:wrap; }
+  .stat-row b { color:var(--accent); }
+  .dedic {
+    margin-top:16px; text-align:center; font-family:var(--serif); font-style:italic;
+    color:var(--ink-mute); font-size:0.82rem; line-height:1.9;
+  }
+  .toast {
+    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:var(--ink); color:var(--paper); padding:9px 20px; border-radius:999px;
+    font-size:0.85rem; opacity:0; transition:all 0.3s; z-index:99; pointer-events:none;
+  }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>📿 ကုသိုလ်မှတ်တမ်း</h1>
+        <div class="sub">Merit Journal · နေ့စဉ် ဒါန သီလ ဘာဝနာ</div>
+      </div>
+      <button class="hbtn" @click="cycleTheme">{{ themeIcon }}</button>
+    </header>
+
+    <div class="date-nav">
+      <button @click="shiftDay(-1)">‹</button>
+      <div class="cur">{{ dateLabel }}<small v-if="!isToday">({{ daysAgo }} ရက်အလို — ပြင်နိုင်သည်)</small><small v-else>ယနေ့</small></div>
+      <button @click="shiftDay(1)" :disabled="isToday">›</button>
+    </div>
+
+    <div class="merit-list">
+      <div v-for="m in MERITS" :key="m.k" class="merit-item" :class="{done:entry.acts.includes(m.k)}" @click="toggle(m.k)">
+        <span class="ic">{{ m.ic }}</span>
+        <span class="txt"><span class="nm">{{ m.my }}</span><br><span class="pl">{{ m.pali }}</span></span>
+        <span class="chk">✓</span>
+      </div>
+    </div>
+
+    <textarea class="note" v-model="entry.note" @change="save" placeholder="မှတ်စု — ယနေ့ ပြုခဲ့သော ကုသိုလ်များ… (ဥပမာ - ဆွမ်းလောင်း၊ တရားနာ၊ လှူဒါန်း)"></textarea>
+
+    <div class="sect">
+      <div class="sect-title">📅 ၂၈ ရက် · Streak <b style="color:var(--accent)">{{ streak }}</b> ရက်</div>
+      <div class="heat">
+        <div v-for="(d,i) in calendar" :key="i" class="d" :class="[d.lvl?'l'+d.lvl:'', d.today?'today':'']" :title="d.tip" @click="jumpTo(d.off)"></div>
+      </div>
+      <div class="stat-row">
+        <span>ယနေ့ <b>{{ entryFor(todayKey).acts.length }}</b>/၆ ပါး</span>
+        <span>ဤလ <b>{{ monthDays }}</b> ရက် ကုသိုလ်ပြု</span>
+      </div>
+    </div>
+
+    <div class="dedic">ဣဒံ မေ ပုညံ အာသဝက္ခယာဝဟံ ဟောတု<br>ဤကောင်းမှုသည် အာသဝေါကုန်ခြင်း၏ အကြောင်းဖြစ်ပါစေ 🙏</div>
+  </div>
+  <div class="toast" :class="{show:toastMsg}">{{ toastMsg }}</div>
+</div>
+<div id="vue-loading">⏳ ဖွင့်နေသည်...</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script>
+if (typeof Vue === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue မရရှိပါ — page ကို refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted } = Vue;
+const STORE = 'merit.journal.v1';
+const THEME_KEY = 'tipitaka.theme';
+
+createApp({
+  setup() {
+    const MERITS = [
+      { k: 'dana',   ic: '🤲', my: 'ဒါန — ပေးလှူခြင်း',            pali: 'Dāna' },
+      { k: 'sila',   ic: '🕊', my: 'သီလ — ငါးပါးသီလ စောင့်ထိန်း',   pali: 'Sīla' },
+      { k: 'bhav',   ic: '🧘', my: 'ဘာဝနာ — တရားထိုင်ခြင်း',        pali: 'Bhāvanā' },
+      { k: 'study',  ic: '📖', my: 'ဓမ္မ — တရားနာ / ဖတ်ခြင်း',       pali: 'Dhamma-savana' },
+      { k: 'metta',  ic: '💛', my: 'မေတ္တာ — မေတ္တာပွားခြင်း',       pali: 'Mettā' },
+      { k: 'serve',  ic: '🤝', my: 'ဝေယျာဝစ္စ — ကူညီစောင့်ရှောက်',   pali: 'Veyyāvacca' },
+    ];
+    const data = ref({});           // { 'YYYY-MM-DD': {acts:[], note:''} }
+    const offset = ref(0);          // 0 = today, -1 = yesterday …
+    const toastMsg = ref('');
+    const theme = ref(localStorage.getItem(THEME_KEY) || 'parchment');
+
+    function keyOf(off) {
+      const d = new Date(); d.setDate(d.getDate() + off);
+      return d.toISOString().slice(0, 10);
+    }
+    const todayKey = computed(() => keyOf(0));
+    const curKey = computed(() => keyOf(offset.value));
+    function entryFor(k) { return data.value[k] || { acts: [], note: '' }; }
+    const entry = computed(() => {
+      if (!data.value[curKey.value]) data.value[curKey.value] = { acts: [], note: '' };
+      return data.value[curKey.value];
+    });
+
+    function load() { try { data.value = JSON.parse(localStorage.getItem(STORE) || '{}'); } catch (e) { data.value = {}; } }
+    function save() {
+      // Drop empty entries so storage stays lean
+      Object.keys(data.value).forEach(k => {
+        const e = data.value[k];
+        if (!e.acts.length && !e.note.trim()) delete data.value[k];
+      });
+      localStorage.setItem(STORE, JSON.stringify(data.value));
+    }
+    function toggle(k) {
+      const a = entry.value.acts;
+      const i = a.indexOf(k);
+      i >= 0 ? a.splice(i, 1) : a.push(k);
+      save();
+      if (i < 0 && a.length === MERITS.length) toast('🙏 သာဓု — ယနေ့ ကုသိုလ် ၆ ပါး ပြည့်ပါပြီ');
+    }
+    function shiftDay(d) { const n = offset.value + d; if (n <= 0 && n >= -60) offset.value = n; }
+    function jumpTo(off) { offset.value = off; }
+
+    const dateLabel = computed(() => {
+      const d = new Date(); d.setDate(d.getDate() + offset.value);
+      return d.toLocaleDateString('my-MM', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' });
+    });
+    const isToday = computed(() => offset.value === 0);
+    const daysAgo = computed(() => -offset.value);
+
+    const streak = computed(() => {
+      let n = 0, off = 0;
+      if (!entryFor(keyOf(0)).acts.length) off = -1;
+      while (entryFor(keyOf(off)).acts.length) { n++; off--; }
+      return n;
+    });
+    const calendar = computed(() => {
+      const out = [];
+      for (let i = 27; i >= 0; i--) {
+        const k = keyOf(-i); const cnt = entryFor(k).acts.length;
+        out.push({
+          lvl: cnt >= 6 ? 4 : cnt >= 4 ? 3 : cnt >= 2 ? 2 : cnt > 0 ? 1 : 0,
+          today: i === 0, off: -i,
+          tip: k + ' — ' + cnt + ' ပါး',
+        });
+      }
+      return out;
+    });
+    const monthDays = computed(() => {
+      const pre = new Date().toISOString().slice(0, 7);
+      return Object.keys(data.value).filter(k => k.startsWith(pre) && data.value[k].acts.length).length;
+    });
+
+    const THEMES = ['parchment', 'dark', 'royal'];
+    function cycleTheme() {
+      const i = THEMES.indexOf(theme.value);
+      theme.value = THEMES[(i + 1) % THEMES.length];
+      document.documentElement.dataset.theme = theme.value;
+      localStorage.setItem(THEME_KEY, theme.value);
+    }
+    const themeIcon = computed(() => theme.value === 'parchment' ? '📜' : theme.value === 'dark' ? '🌙' : '👑');
+
+    let toastTimer = null;
+    function toast(m) { toastMsg.value = m; clearTimeout(toastTimer); toastTimer = setTimeout(() => toastMsg.value = '', 3000); }
+
+    onMounted(() => {
+      load();
+      document.documentElement.dataset.theme = theme.value;
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+
+    return {
+      MERITS, entry, entryFor, todayKey, toastMsg,
+      offset, dateLabel, isToday, daysAgo,
+      streak, calendar, monthDays,
+      toggle, save, shiftDay, jumpTo, cycleTheme, themeIcon,
+    };
+  }
+}).mount('#app');
+}
+</script>
+</body>
+</html>

@@ -44,6 +44,10 @@
     { href: 'jataka550.html',                      icon: 'scroll',     label: 'Jataka 550',     color: '#b8860b' },
     { href: 'tipitaka.html',                       icon: 'book',       label: 'Tipiṭaka',       color: '#8b6f47' },
     { href: 'MalaCounter.html',                    icon: 'mala',       label: 'ပုတီးစိပ်',       color: '#c62d2d' },
+    { href: 'MeditationTimer.html',                icon: 'study',      label: 'ကမ္မဋ္ဌာန်း',      color: '#8b6f47' },
+    { href: 'Chanting.html',                       icon: 'book',       label: 'ဘုရားရှိခိုး',     color: '#b8860b' },
+    { href: 'MeritJournal.html',                   icon: 'tasks',      label: 'ကုသိုလ်မှတ်တမ်း',  color: '#c62d2d' },
+    { href: 'UposathaCalendar.html',               icon: 'scroll',     label: 'ဥပုသ်ပြက္ခဒိန်',   color: '#8b6f47' },
   ];
 
   // ---- Styles (scoped by .nr- prefix, so no collisions with host page) ----

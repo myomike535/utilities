@@ -22,6 +22,8 @@
     'bookmarks.v1',
     'mala.counter.v1',
     'ainotes.vue.v1',
+    'medi.timer.v1',
+    'merit.journal.v1',
   ];
 
   // Local sync bookkeeping (never synced themselves)

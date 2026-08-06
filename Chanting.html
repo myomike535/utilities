@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="parchment">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ဘုရားရှိခိုး · Chanting</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#8b6f47">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<style>
+  :root, [data-theme="parchment"] {
+    --bg-1: #f0d5a0; --bg-2: #e2c185;
+    --paper: #fbeed0; --paper-2: #f5e2b4; --paper-3: #eed99f;
+    --ink: #2d2115; --ink-dim: #6b5738; --ink-mute: #a08967;
+    --accent: #c62d2d; --accent-2: #8b6f47; --gold: #b8860b;
+    --border: #d4b075; --border-soft: #e2c58a;
+    --shadow: 0 8px 24px rgba(139,100,40,0.22);
+    --serif: 'Georgia','Cambria','Times New Roman',serif;
+    --sans: 'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',system-ui,sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg-1: #1a1310; --bg-2: #2a1e18;
+    --paper: #2f231a; --paper-2: #3a2c22; --paper-3: #453629;
+    --ink: #f5e2b4; --ink-dim: #c9ac74; --ink-mute: #8a7654;
+    --accent: #e8a3a3; --accent-2: #d4b075; --gold: #ffd76a;
+    --border: #4a3a2a; --border-soft: #3a2c22;
+    --shadow: 0 8px 24px rgba(0,0,0,0.5);
+  }
+  [data-theme="royal"] {
+    --bg-1: #1a1830; --bg-2: #2d2650;
+    --paper: #241e42; --paper-2: #2d2650; --paper-3: #362e5d;
+    --ink: #f2d98a; --ink-dim: #d4b56a; --ink-mute: #9b8248;
+    --accent: #ffd76a; --accent-2: #b8860b; --gold: #ffd76a;
+    --border: #4a3d78; --border-soft: #362e58;
+    --shadow: 0 12px 32px rgba(0,0,0,0.55);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:var(--sans); -webkit-tap-highlight-color:transparent; }
+  body {
+    background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
+    color:var(--ink); min-height:100vh;
+    display:flex; justify-content:center; padding:20px 14px;
+  }
+  .app {
+    background:var(--paper); max-width:640px; width:100%;
+    border-radius:14px; padding:26px 24px 34px;
+    box-shadow:var(--shadow); border:1px solid var(--border);
+    height:fit-content;
+  }
+  header { display:flex; align-items:center; gap:10px; margin-bottom:14px; }
+  header .title { flex:1; }
+  header h1 { font-size:1.25rem; color:var(--accent); }
+  header .sub { font-family:var(--serif); font-style:italic; color:var(--ink-mute); font-size:0.78rem; }
+  .hbtn { background:transparent; border:1px solid var(--border); color:var(--ink-dim); width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:0.95rem; flex:none; }
+  .hbtn:hover { border-color:var(--accent); }
+  .hbtn.on { background:var(--accent); color:#fff; border-color:var(--accent); }
+
+  .toc { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:18px; padding-bottom:14px; border-bottom:1px dashed var(--border); }
+  .toc button {
+    padding:6px 12px; border:1px solid var(--border-soft); border-radius:999px;
+    background:var(--paper-2); color:var(--ink-dim); font-size:0.8rem; cursor:pointer; transition:all 0.15s;
+  }
+  .toc button:hover { border-color:var(--accent); color:var(--accent); }
+
+  .chant { margin-bottom:26px; scroll-margin-top:12px; }
+  .chant h2 {
+    font-size:1.05rem; color:var(--accent); margin-bottom:2px;
+    display:flex; align-items:baseline; gap:8px; flex-wrap:wrap;
+  }
+  .chant h2 .pali-t { font-family:var(--serif); font-style:italic; font-weight:400; font-size:0.85rem; color:var(--ink-mute); }
+  .chant .body { margin-top:10px; display:flex; flex-direction:column; gap:10px; }
+  .verse {
+    background:var(--paper-2); border-left:3px solid var(--accent-2);
+    border-radius:0 8px 8px 0; padding:12px 16px;
+  }
+  .verse .pali {
+    font-family:var(--serif); font-style:italic; color:var(--accent);
+    line-height:1.9; font-size:calc(0.98rem * var(--cs,1)); margin-bottom:8px;
+  }
+  .verse .mm { color:var(--ink); line-height:2; font-size:calc(0.95rem * var(--cs,1)); }
+  .verse.rep { border-left-color:var(--gold); }
+  .rep-note { font-size:0.72rem; color:var(--gold); font-weight:700; margin-bottom:6px; }
+  [data-theme="parchment"] .rep-note { color:#a07d1c; }
+  .chant .note { font-size:0.8rem; color:var(--ink-mute); font-style:italic; margin-top:8px; line-height:1.7; }
+  .chant .note a { color:var(--accent); }
+
+  .fs-bar { display:flex; align-items:center; gap:8px; margin-bottom:14px; }
+  .fs-bar span { font-size:0.7rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-mute); }
+  .fs-bar button {
+    min-width:32px; height:30px; border:1px solid var(--border); background:var(--paper-2);
+    color:var(--ink); border-radius:8px; cursor:pointer;
+  }
+  .fs-bar button:hover { border-color:var(--accent); color:var(--accent); }
+  footer { text-align:center; font-family:var(--serif); font-style:italic; color:var(--ink-mute); font-size:0.8rem; margin-top:10px; line-height:1.9; }
+</style>
+</head>
+<body>
+<div class="app">
+  <header>
+    <div class="title">
+      <h1>🙏 ဘုရားရှိခိုး · ဝတ်ရွတ်စဉ်</h1>
+      <div class="sub">Daily Chanting · Pāḷi + မြန်မာ</div>
+    </div>
+    <button class="hbtn" id="wakeBtn" title="မျက်နှာပြင် ပွင့်နေစေရန်">☀</button>
+    <button class="hbtn" id="themeBtn">📜</button>
+  </header>
+
+  <div class="fs-bar">
+    <span>စာလုံးအရွယ်</span>
+    <button id="fsDown">A−</button><button id="fsReset" style="font-size:0.72rem">↺</button><button id="fsUp">A+</button>
+  </div>
+
+  <div class="toc" id="toc"></div>
+  <div id="chants"></div>
+
+  <footer>သာဓု ... သာဓု ... သာဓု 🙏</footer>
+</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script>
+(function () {
+  'use strict';
+  const THEME_KEY = 'tipitaka.theme';
+  const FS_KEY = 'chant.fontscale';
+
+  // v: [pali, myanmar] — standard liturgical texts (Pāḷi + established Myanmar rendering)
+  const CHANTS = [
+    {
+      id: 'namo', my: 'နမော်', pali: 'Namakkāra',
+      verses: [
+        { rep: '၃ ကြိမ်', pali: 'Namo tassa bhagavato arahato sammāsambuddhassa.',
+          mm: 'ဘုန်းတော်ကြီးတော်မူသော၊ ပူဇော်အထူးကို ခံယူတော်မူထိုက်သော၊ အလုံးစုံသော တရားတို့ကို ကိုယ်တိုင်မှန်စွာ သိတော်မူသော မြတ်စွာဘုရားအား ရှိခိုးပါ၏။' },
+      ],
+    },
+    {
+      id: 'sarana', my: 'သရဏဂုံ', pali: 'Tisaraṇa',
+      verses: [
+        { pali: 'Buddhaṃ saraṇaṃ gacchāmi.\nDhammaṃ saraṇaṃ gacchāmi.\nSaṅghaṃ saraṇaṃ gacchāmi.',
+          mm: 'ဘုရားကို ကိုးကွယ်ရာဟူ၍ ဆည်းကပ်ပါ၏။\nတရားကို ကိုးကွယ်ရာဟူ၍ ဆည်းကပ်ပါ၏။\nသံဃာကို ကိုးကွယ်ရာဟူ၍ ဆည်းကပ်ပါ၏။' },
+        { pali: 'Dutiyampi buddhaṃ saraṇaṃ gacchāmi. Dutiyampi dhammaṃ saraṇaṃ gacchāmi. Dutiyampi saṅghaṃ saraṇaṃ gacchāmi.',
+          mm: 'နှစ်ကြိမ်မြောက်လည်း ဘုရား၊ တရား၊ သံဃာကို ဆည်းကပ်ပါ၏။' },
+        { pali: 'Tatiyampi buddhaṃ saraṇaṃ gacchāmi. Tatiyampi dhammaṃ saraṇaṃ gacchāmi. Tatiyampi saṅghaṃ saraṇaṃ gacchāmi.',
+          mm: 'သုံးကြိမ်မြောက်လည်း ဘုရား၊ တရား၊ သံဃာကို ဆည်းကပ်ပါ၏။' },
+      ],
+    },
+    {
+      id: 'sila5', my: 'ငါးပါးသီလ', pali: 'Pañca-sīla',
+      verses: [
+        { pali: 'Pāṇātipātā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'သူ့အသက်သတ်ခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+        { pali: 'Adinnādānā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'သူတစ်ပါးဥစ္စာ ခိုးယူခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+        { pali: 'Kāmesumicchācārā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'ကာမဂုဏ်တို့၌ မှားယွင်းစွာ ကျင့်ခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+        { pali: 'Musāvādā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'မဟုတ်မမှန် ပြောဆိုခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+        { pali: 'Surāmeraya-majjappamādaṭṭhānā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'မူးယစ်မေ့လျော့ကြောင်းဖြစ်သော သေရည်သေရက် သောက်စားခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+      ],
+    },
+    {
+      id: 'sila8', my: 'ရှစ်ပါးသီလ', pali: 'Aṭṭhaṅga-sīla',
+      verses: [
+        { pali: 'Pāṇātipātā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'သူ့အသက်သတ်ခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+        { pali: 'Adinnādānā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'သူတစ်ပါးဥစ္စာ ခိုးယူခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+        { pali: 'Abrahmacariyā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'မမြတ်သောအကျင့်မှ ရှောင်ကြဉ်ပါ၏။' },
+        { pali: 'Musāvādā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'မဟုတ်မမှန် ပြောဆိုခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+        { pali: 'Surāmeraya-majjappamādaṭṭhānā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'မူးယစ်မေ့လျော့ကြောင်းဖြစ်သော သေရည်သေရက် သောက်စားခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+        { pali: 'Vikālabhojanā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'နေ့လွဲညစာ စားခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+        { pali: 'Nacca-gīta-vādita-visūkadassana mālā-gandha-vilepana-dhāraṇa-maṇḍana-vibhūsanaṭṭhānā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'ကခြင်း သီဆိုခြင်း တီးမှုတ်ခြင်း ကြည့်ရှုခြင်းနှင့် ပန်းနံ့သာ လိမ်းကျံ တန်ဆာဆင်ခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+        { pali: 'Uccāsayana-mahāsayanā veramaṇi-sikkhāpadaṃ samādiyāmi.', mm: 'မြင့်သောနေရာ မြတ်သောနေရာ၌ နေထိုင်ခြင်းမှ ရှောင်ကြဉ်ပါ၏။' },
+      ],
+    },
+    {
+      id: 'buddhaguna', my: 'ဘုရားဂုဏ်တော် ၉ ပါး', pali: 'Buddha-guṇa',
+      verses: [
+        { pali: 'Itipi so bhagavā arahaṃ, sammāsambuddho, vijjācaraṇasampanno, sugato, lokavidū, anuttaro purisadammasārathi, satthā devamanussānaṃ, buddho, bhagavā.',
+          mm: 'ထိုမြတ်စွာဘုရားသည် — ပူဇော်အထူးကို ခံယူထိုက်တော်မူသော အရဟံ၊ အလုံးစုံသော တရားတို့ကို ကိုယ်တိုင်မှန်စွာ သိတော်မူသော သမ္မာသမ္ဗုဒ္ဓေါ၊ အသိဉာဏ် အကျင့်နှင့် ပြည့်စုံတော်မူသော ဝိဇ္ဇာစရဏသမ္ပန္နော၊ ကောင်းသောစကားကို ဆိုတော်မူသော သုဂတော၊ လောကကို သိတော်မူသော လောကဝိဒူ၊ ဆုံးမထိုက်သူတို့ကို ဆုံးမရာ၌ အတုမရှိ မြတ်တော်မူသော အနုတ္တရော ပုရိသဒမ္မသာရထိ၊ နတ်လူတို့၏ ဆရာဖြစ်တော်မူသော သတ္ထာ ဒေဝမနုဿာနံ၊ သစ္စာလေးပါးကို သိတော်မူသော ဗုဒ္ဓေါ၊ ဘုန်းတော်ခြောက်ပါးနှင့် ပြည့်စုံတော်မူသော ဘဂဝါ — ဖြစ်တော်မူပါပေသည်။' },
+      ],
+    },
+    {
+      id: 'dhammaguna', my: 'တရားဂုဏ်တော် ၆ ပါး', pali: 'Dhamma-guṇa',
+      verses: [
+        { pali: 'Svākkhāto bhagavatā dhammo, sandiṭṭhiko, akāliko, ehipassiko, opaneyyiko, paccattaṃ veditabbo viññūhi.',
+          mm: 'မြတ်စွာဘုရား ကောင်းစွာ ဟောကြားတော်မူအပ်သော တရားတော်သည် — ကိုယ်တိုင် မျက်မှောက်ပြုနိုင်သော၊ အချိန်မလင့် အကျိုးပေးသော၊ လာလော့ ကြည့်လော့ဟု ဖိတ်ခေါ်ထိုက်သော၊ မိမိသန္တာန်၌ ဆောင်ယူထိုက်သော၊ ပညာရှိတို့ ကိုယ်စီကိုယ်ငှ သိအပ်သော တရားတော် ဖြစ်ပါပေသည်။' },
+      ],
+    },
+    {
+      id: 'sanghaguna', my: 'သံဃာဂုဏ်တော် ၉ ပါး', pali: 'Saṅgha-guṇa',
+      verses: [
+        { pali: 'Suppaṭipanno bhagavato sāvakasaṅgho, ujuppaṭipanno bhagavato sāvakasaṅgho, ñāyappaṭipanno bhagavato sāvakasaṅgho, sāmīcippaṭipanno bhagavato sāvakasaṅgho — yadidaṃ cattāri purisayugāni aṭṭha purisapuggalā — esa bhagavato sāvakasaṅgho, āhuneyyo, pāhuneyyo, dakkhiṇeyyo, añjalikaraṇīyo, anuttaraṃ puññakkhettaṃ lokassa.',
+          mm: 'မြတ်စွာဘုရား၏ တပည့်သားသံဃာတော်သည် — ကောင်းစွာ ကျင့်တော်မူသော၊ ဖြောင့်မတ်စွာ ကျင့်တော်မူသော၊ နိဗ္ဗာန်အကျိုးငှာ ကျင့်တော်မူသော၊ လျောက်ပတ်စွာ ကျင့်တော်မူသော — အစုံလေးစုံ ပုဂ္ဂိုလ်ရှစ်ယောက် ဖြစ်တော်မူကုန်သော ဤသံဃာတော်သည် အဝေးမှဆောင်လာ၍ လှူထိုက်သော၊ ဧည့်သည်အလို့ငှာ လှူထိုက်သော၊ မြတ်သောအလှူကို ခံထိုက်သော၊ လက်အုပ်ချီ ရှိခိုးထိုက်သော၊ လောက၏ အတုမရှိ ကောင်းမှုကြဲရာ လယ်မြေ ဖြစ်တော်မူပါပေသည်။' },
+      ],
+    },
+    {
+      id: 'metta', my: 'မေတ္တာပွားခြင်း', pali: 'Mettā-bhāvanā',
+      verses: [
+        { pali: 'Ahaṃ avero homi, abyāpajjo homi, anīgho homi, sukhī attānaṃ pariharāmi.',
+          mm: 'ကျွန်ုပ်သည် ရန်မရှိပါစေသတည်း၊ စိတ်ဆင်းရဲခြင်း မရှိပါစေသတည်း၊ ကိုယ်ဆင်းရဲခြင်း မရှိပါစေသတည်း၊ ချမ်းသာစွာ မိမိကိုယ်ကို ဆောင်ရွက်နိုင်ပါစေသတည်း။' },
+        { pali: 'Sabbe sattā averā hontu, abyāpajjā hontu, anīghā hontu, sukhī attānaṃ pariharantu.',
+          mm: 'သတ္တဝါအားလုံးတို့သည် ရန်မရှိကြပါစေသတည်း၊ စိတ်ဆင်းရဲခြင်း မရှိကြပါစေသတည်း၊ ကိုယ်ဆင်းရဲခြင်း မရှိကြပါစေသတည်း၊ ချမ်းသာစွာ မိမိကိုယ်ကို ဆောင်ရွက်နိုင်ကြပါစေသတည်း။' },
+      ],
+    },
+    {
+      id: 'dedication', my: 'အမျှဝေခြင်း', pali: 'Puñña-anumodana',
+      verses: [
+        { pali: 'Idaṃ me puññaṃ āsavakkhayāvahaṃ hotu.\nIdaṃ me puññaṃ nibbānassa paccayo hotu.',
+          mm: 'ဤကောင်းမှုသည် အာသဝေါတရား ကုန်ခန်းခြင်း၏ အကြောင်းဖြစ်ပါစေ။\nဤကောင်းမှုသည် နိဗ္ဗာန်၏ အထောက်အပံ့ ဖြစ်ပါစေ။' },
+        { rep: '၃ ကြိမ်', pali: 'Sabbe sattā imaṃ puññaṃ anumodantu.',
+          mm: 'ပြုပြီးသမျှ ကုသိုလ်ကောင်းမှုတို့ကို သတ္တဝါအားလုံး အမျှ … အမျှ … အမျှ ယူတော်မူကြပါကုန်လော့။' },
+      ],
+    },
+    {
+      id: 'paritta', my: 'ပရိတ်ကြီးများ', pali: 'Paritta',
+      verses: [],
+      note: 'မင်္ဂလသုတ်၊ ရတနသုတ်၊ မေတ္တသုတ် — အပြည့်အစုံကို <a href="tipitaka.html">Tipiṭaka app</a> တွင် မြန်မာပြန်နှင့်တကွ ဖတ်ရှုနိုင်ပါသည်။ ကျန် ပရိတ်များကိုလည်း Tipiṭaka app ၏ 🌐 ရယူရန် စနစ်ဖြင့် ရယူနိုင်ပါသည်။',
+    },
+  ];
+
+  const $ = id => document.getElementById(id);
+
+  // ---- render ----
+  const toc = $('toc'), host = $('chants');
+  CHANTS.forEach(ch => {
+    const b = document.createElement('button');
+    b.textContent = ch.my;
+    b.onclick = () => document.getElementById('c-' + ch.id)?.scrollIntoView({ behavior: 'smooth' });
+    toc.appendChild(b);
+
+    const sec = document.createElement('section');
+    sec.className = 'chant'; sec.id = 'c-' + ch.id;
+    sec.innerHTML = `<h2>${ch.my} <span class="pali-t">· ${ch.pali}</span></h2>`;
+    const body = document.createElement('div'); body.className = 'body';
+    ch.verses.forEach(v => {
+      const d = document.createElement('div');
+      d.className = 'verse' + (v.rep ? ' rep' : '');
+      d.innerHTML =
+        (v.rep ? `<div class="rep-note">🔁 ${v.rep} ရွတ်ပါ</div>` : '') +
+        `<div class="pali">${v.pali.replace(/\n/g, '<br>')}</div>` +
+        `<div class="mm">${v.mm.replace(/\n/g, '<br>')}</div>`;
+      body.appendChild(d);
+    });
+    sec.appendChild(body);
+    if (ch.note) {
+      const n = document.createElement('div'); n.className = 'note'; n.innerHTML = ch.note;
+      sec.appendChild(n);
+    }
+    host.appendChild(sec);
+  });
+
+  // ---- font scale ----
+  function setFs(v) {
+    v = Math.min(1.6, Math.max(0.85, Math.round(v * 100) / 100));
+    localStorage.setItem(FS_KEY, String(v));
+    document.documentElement.style.setProperty('--cs', v);
+  }
+  const getFs = () => parseFloat(localStorage.getItem(FS_KEY)) || 1;
+  setFs(getFs());
+  $('fsDown').onclick = () => setFs(getFs() - 0.1);
+  $('fsUp').onclick = () => setFs(getFs() + 0.1);
+  $('fsReset').onclick = () => setFs(1);
+
+  // ---- theme ----
+  const THEMES = ['parchment', 'dark', 'royal'];
+  const THEME_ICONS = { parchment: '📜', dark: '🌙', royal: '👑' };
+  function applyTheme(t) {
+    if (!THEMES.includes(t)) t = 'parchment';
+    document.documentElement.dataset.theme = t;
+    localStorage.setItem(THEME_KEY, t);
+    $('themeBtn').textContent = THEME_ICONS[t];
+  }
+  applyTheme(localStorage.getItem(THEME_KEY) || 'parchment');
+  $('themeBtn').onclick = () => {
+    const i = THEMES.indexOf(document.documentElement.dataset.theme);
+    applyTheme(THEMES[(i + 1) % THEMES.length]);
+  };
+
+  // ---- wake lock (keep screen on while chanting) ----
+  let wakeLock = null;
+  $('wakeBtn').onclick = async () => {
+    if (wakeLock) { wakeLock.release(); wakeLock = null; $('wakeBtn').classList.remove('on'); return; }
+    try {
+      wakeLock = await navigator.wakeLock?.request('screen');
+      if (wakeLock) {
+        $('wakeBtn').classList.add('on');
+        wakeLock.addEventListener('release', () => { wakeLock = null; $('wakeBtn').classList.remove('on'); });
+      }
+    } catch (e) {}
+  };
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible' && $('wakeBtn').classList.contains('on') && !wakeLock) {
+      try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (e) {}
+    }
+  });
+})();
+</script>
+</body>
+</html>
