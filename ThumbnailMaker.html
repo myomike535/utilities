@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Thumbnail Maker · Cover Generator</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ec4899">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#ec4899; --accent-2:#a78bfa;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:var(--sans); }
+  body {
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(236,72,153,.15), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(167,139,250,.13), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  .wrap { max-width:1080px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:20px; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(236,72,153,.4); }
+  header h1 { font-size:1.25rem; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+
+  .cols { display:grid; grid-template-columns:320px 1fr; gap:16px; align-items:start; }
+  @media(max-width:880px){ .cols{grid-template-columns:1fr} }
+  .card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px; margin-bottom:14px; }
+  .card h3 { font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:10px; }
+  label.fl { display:block; font-size:.72rem; color:var(--muted); margin:9px 0 4px; font-weight:600; }
+  input[type=text], select {
+    width:100%; background:var(--field); border:1px solid var(--field-border); color:var(--text);
+    border-radius:9px; padding:8px 11px; font-size:.88rem; outline:none;
+  }
+  input:focus, select:focus { border-color:var(--accent); }
+  input[type=range] { width:100%; accent-color:var(--accent); }
+  input[type=color] { width:100%; height:34px; border:1px solid var(--field-border); border-radius:8px; background:var(--field); cursor:pointer; padding:2px; }
+  .r2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .r3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+  .chips { display:flex; flex-wrap:wrap; gap:5px; }
+  .chip { padding:5px 10px; border:1px solid var(--field-border); border-radius:999px; background:var(--field);
+    color:var(--muted); font-size:.74rem; cursor:pointer; }
+  .chip:hover { border-color:var(--accent); color:var(--text); }
+  .chip.on { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+  .toggle { display:flex; align-items:center; gap:8px; font-size:.8rem; color:var(--muted); margin-top:8px; cursor:pointer; }
+  .toggle input { accent-color:var(--accent); }
+
+  .preview-box { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px; position:sticky; top:14px; }
+  canvas { width:100%; height:auto; border-radius:10px; display:block; background:#000; box-shadow:0 10px 34px rgba(0,0,0,.5); }
+  .dl-row { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .dl-btn { flex:1; padding:11px 16px; border:none; border-radius:11px; font-size:.9rem; font-weight:700; cursor:pointer;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; min-width:140px; }
+  .dl-btn.ghost { background:var(--field); color:var(--muted); border:1px solid var(--field-border); }
+  .dim { font-size:.72rem; color:var(--faint); text-align:center; margin-top:8px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🖼</div>
+    <div>
+      <h1>Thumbnail Maker</h1>
+      <div class="sub">Offline cover generator — FB · YT · IG · မြန်မာစာ ပံ့ပိုး</div>
+    </div>
+  </header>
+
+  <div class="cols">
+    <div>
+      <div class="card">
+        <h3>📐 Size</h3>
+        <div class="chips" id="sizeChips"></div>
+      </div>
+      <div class="card">
+        <h3>🎨 Background</h3>
+        <div class="chips" id="gradChips"></div>
+        <div class="r2" style="margin-top:8px">
+          <div><label class="fl">Color 1</label><input type="color" id="c1" value="#6366f1"></div>
+          <div><label class="fl">Color 2</label><input type="color" id="c2" value="#ec4899"></div>
+        </div>
+        <label class="fl">Direction</label>
+        <select id="dir">
+          <option value="135">↘ Diagonal</option>
+          <option value="90">→ Horizontal</option>
+          <option value="180">↓ Vertical</option>
+          <option value="45">↗ Diagonal up</option>
+        </select>
+        <label class="toggle"><input type="checkbox" id="pattern" checked> Dot pattern overlay</label>
+        <label class="fl">📷 Background photo (optional)</label>
+        <input type="file" id="bgImg" accept="image/*" style="font-size:.75rem;color:var(--muted)">
+        <label class="toggle"><input type="checkbox" id="dimBg" checked> Dim photo (text readability)</label>
+      </div>
+      <div class="card">
+        <h3>✍️ Text</h3>
+        <label class="fl">Title</label>
+        <input type="text" id="title" value="CSS Grid လွယ်လွယ်လေ့လာမယ်" maxlength="80">
+        <label class="fl">Title size</label>
+        <input type="range" id="titleSize" min="4" max="14" value="9" step="0.5">
+        <label class="fl">Subtitle</label>
+        <input type="text" id="subtitle" value="Myo's Learing Lab · Web Dev Series" maxlength="80">
+        <label class="fl">Badge (top pill)</label>
+        <input type="text" id="badge" value="NEW TUTORIAL" maxlength="24">
+        <div class="r2" style="margin-top:6px">
+          <div><label class="fl">Text color</label><input type="color" id="tc" value="#ffffff"></div>
+          <div><label class="fl">Badge color</label><input type="color" id="bc" value="#fbbf24"></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="shadow" checked> Text shadow</label>
+        <label class="fl">Align</label>
+        <div class="chips">
+          <button class="chip on" data-align="center">Center</button>
+          <button class="chip" data-align="left">Left</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-box">
+      <canvas id="cv"></canvas>
+      <div class="dl-row">
+        <button class="dl-btn" id="dl">⬇ Download PNG</button>
+        <button class="dl-btn ghost" id="cp">📋 Copy to clipboard</button>
+      </div>
+      <div class="dim" id="dimLabel"></div>
+    </div>
+  </div>
+</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script>
+(function () {
+  'use strict';
+  const STORE = 'thumbmaker.v1';
+  const $ = id => document.getElementById(id);
+
+  const SIZES = [
+    { k: 'yt',    label: 'YouTube 1280×720', w: 1280, h: 720 },
+    { k: 'fb',    label: 'FB Post 1200×630', w: 1200, h: 630 },
+    { k: 'igsq',  label: 'IG Square 1080', w: 1080, h: 1080 },
+    { k: 'igst',  label: 'IG Story 1080×1920', w: 1080, h: 1920 },
+    { k: 'fbcov', label: 'FB Cover 820×312', w: 820, h: 312 },
+  ];
+  const GRADS = [
+    { n: 'Indigo', a: '#6366f1', b: '#ec4899' },
+    { n: 'Ocean',  a: '#0ea5e9', b: '#22c55e' },
+    { n: 'Sunset', a: '#f97316', b: '#e11d48' },
+    { n: 'Night',  a: '#1e293b', b: '#6d28d9' },
+    { n: 'Gold',   a: '#b8860b', b: '#78350f' },
+    { n: 'Mint',   a: '#10b981', b: '#0f766e' },
+  ];
+  let size = SIZES[0], align = 'center', bgImage = null;
+
+  // ---- build chips ----
+  SIZES.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.className = 'chip' + (i === 0 ? ' on' : ''); b.textContent = s.label;
+    b.onclick = () => { size = s; document.querySelectorAll('#sizeChips .chip').forEach(x => x.classList.remove('on')); b.classList.add('on'); draw(); saveState(); };
+    $('sizeChips').appendChild(b);
+  });
+  GRADS.forEach(g => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.textContent = g.n;
+    b.style.background = `linear-gradient(135deg, ${g.a}, ${g.b})`; b.style.color = '#fff'; b.style.border = 'none';
+    b.onclick = () => { $('c1').value = g.a; $('c2').value = g.b; draw(); saveState(); };
+    $('gradChips').appendChild(b);
+  });
+  document.querySelectorAll('[data-align]').forEach(b => {
+    b.onclick = () => { align = b.dataset.align; document.querySelectorAll('[data-align]').forEach(x => x.classList.remove('on')); b.classList.add('on'); draw(); };
+  });
+
+  // ---- render ----
+  const cv = $('cv'), ctx = cv.getContext('2d');
+  function draw() {
+    cv.width = size.w; cv.height = size.h;
+    const W = size.w, H = size.h;
+
+    // bg gradient
+    const rad = (+$('dir').value) * Math.PI / 180;
+    const x = Math.cos(rad), y = Math.sin(rad);
+    const g = ctx.createLinearGradient(W / 2 - x * W / 2, H / 2 - y * H / 2, W / 2 + x * W / 2, H / 2 + y * H / 2);
+    g.addColorStop(0, $('c1').value); g.addColorStop(1, $('c2').value);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+    // photo
+    if (bgImage) {
+      const s = Math.max(W / bgImage.width, H / bgImage.height);
+      const iw = bgImage.width * s, ih = bgImage.height * s;
+      ctx.drawImage(bgImage, (W - iw) / 2, (H - ih) / 2, iw, ih);
+      if ($('dimBg').checked) { ctx.fillStyle = 'rgba(10,12,20,0.55)'; ctx.fillRect(0, 0, W, H); }
+    }
+
+    // dot pattern
+    if ($('pattern').checked && !bgImage) {
+      ctx.fillStyle = 'rgba(255,255,255,0.07)';
+      const step = Math.max(28, W / 40);
+      for (let px = step / 2; px < W; px += step)
+        for (let py = step / 2; py < H; py += step) {
+          ctx.beginPath(); ctx.arc(px, py, W / 640 + 1, 0, Math.PI * 2); ctx.fill();
+        }
+      // corner accent circle
+      ctx.fillStyle = 'rgba(255,255,255,0.06)';
+      ctx.beginPath(); ctx.arc(W * 0.92, H * 0.1, W * 0.18, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(W * 0.06, H * 0.92, W * 0.12, 0, Math.PI * 2); ctx.fill();
+    }
+
+    const cx = align === 'center' ? W / 2 : W * 0.07;
+    ctx.textAlign = align === 'center' ? 'center' : 'left';
+    const fontStack = `'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',sans-serif`;
+
+    // badge pill
+    const badge = $('badge').value.trim();
+    let topY = H * 0.30;
+    if (badge) {
+      const bh = H * 0.085, bfs = bh * 0.5;
+      ctx.font = `700 ${bfs}px ${fontStack}`;
+      const bw = ctx.measureText(badge).width + bh * 1.2;
+      const bx = align === 'center' ? W / 2 - bw / 2 : W * 0.07;
+      const by = H * 0.14;
+      ctx.fillStyle = $('bc').value;
+      ctx.beginPath(); ctx.roundRect(bx, by, bw, bh, bh / 2); ctx.fill();
+      ctx.fillStyle = '#111';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(badge, align === 'center' ? W / 2 : bx + bh * 0.6, by + bh / 2 + bfs * 0.06);
+      topY = by + bh + H * 0.08;
+    }
+
+    // title (wraps)
+    const tSize = W * (+$('titleSize').value) / 100;
+    ctx.font = `800 ${tSize}px ${fontStack}`;
+    ctx.fillStyle = $('tc').value;
+    ctx.textBaseline = 'alphabetic';
+    if ($('shadow').checked) { ctx.shadowColor = 'rgba(0,0,0,0.45)'; ctx.shadowBlur = tSize * 0.18; ctx.shadowOffsetY = tSize * 0.06; }
+    const maxW = W * 0.86;
+    const words = $('title').value.split(/\s+/).filter(Boolean);
+    const lines = [];
+    let line = '';
+    words.forEach(w => {
+      const test = line ? line + ' ' + w : w;
+      if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+      else line = test;
+    });
+    if (line) lines.push(line);
+    const lh = tSize * 1.35;
+    let ty = topY + tSize;
+    lines.forEach(l => { ctx.fillText(l, cx, ty); ty += lh; });
+    ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0;
+
+    // subtitle
+    const sub = $('subtitle').value.trim();
+    if (sub) {
+      const sSize = tSize * 0.42;
+      ctx.font = `600 ${sSize}px ${fontStack}`;
+      ctx.fillStyle = 'rgba(255,255,255,0.82)';
+      ctx.fillText(sub, cx, ty + sSize * 0.4);
+    }
+
+    $('dimLabel').textContent = `${size.label} — PNG export`;
+  }
+
+  // ---- inputs ----
+  ['c1','c2','dir','pattern','dimBg','title','titleSize','subtitle','badge','tc','bc','shadow'].forEach(id => {
+    $(id).addEventListener('input', () => { draw(); saveState(); });
+  });
+  $('bgImg').addEventListener('change', e => {
+    const f = e.target.files[0];
+    if (!f) { bgImage = null; draw(); return; }
+    const img = new Image();
+    img.onload = () => { bgImage = img; draw(); };
+    img.src = URL.createObjectURL(f);
+  });
+
+  // ---- export ----
+  $('dl').onclick = () => {
+    cv.toBlob(b => {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = `thumb-${size.k}-${Date.now()}.png`;
+      a.click();
+    }, 'image/png');
+  };
+  $('cp').onclick = () => {
+    cv.toBlob(async b => {
+      try { await navigator.clipboard.write([new ClipboardItem({ 'image/png': b })]); $('cp').textContent = '✅ Copied!'; }
+      catch (e) { $('cp').textContent = '⚠ Not supported'; }
+      setTimeout(() => $('cp').textContent = '📋 Copy to clipboard', 2000);
+    }, 'image/png');
+  };
+
+  // ---- persist last settings (text/colors only) ----
+  function saveState() {
+    localStorage.setItem(STORE, JSON.stringify({
+      c1: $('c1').value, c2: $('c2').value, dir: $('dir').value,
+      title: $('title').value, subtitle: $('subtitle').value, badge: $('badge').value,
+      tc: $('tc').value, bc: $('bc').value, sizeK: size.k, titleSize: $('titleSize').value,
+    }));
+  }
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE) || 'null');
+    if (s) {
+      ['c1','c2','dir','title','subtitle','badge','tc','bc','titleSize'].forEach(k => { if (s[k] != null && $(k)) $(k).value = s[k]; });
+      const found = SIZES.findIndex(z => z.k === s.sizeK);
+      if (found >= 0) { size = SIZES[found];
+        document.querySelectorAll('#sizeChips .chip').forEach((c, i) => c.classList.toggle('on', i === found)); }
+    }
+  } catch (e) {}
+
+  draw();
+})();
+</script>
+</body>
+</html>

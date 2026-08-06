@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Script + Teleprompter</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#22c55e">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#22c55e; --accent-2:#0ea5e9;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:var(--sans); }
+  body {
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(34,197,94,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(14,165,233,.13), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:900px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:20px; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(34,197,94,.35); }
+  header h1 { font-size:1.25rem; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; }
+  .hbtn { background:var(--card); border:1px solid var(--field-border); color:var(--muted); padding:8px 14px; border-radius:10px; cursor:pointer; font-size:.85rem; }
+  .hbtn:hover { color:var(--text); border-color:var(--accent); }
+
+  .card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:18px; margin-bottom:14px; }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
+  input[type=text], textarea, select {
+    width:100%; background:var(--field); border:1px solid var(--field-border); color:var(--text);
+    border-radius:10px; padding:10px 12px; font-size:.92rem; outline:none;
+  }
+  input:focus, textarea:focus { border-color:var(--accent); }
+  textarea { resize:vertical; line-height:1.9; }
+  .r3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; }
+  @media(max-width:640px){ .r3{grid-template-columns:1fr} }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { padding:6px 12px; border:1px solid var(--field-border); border-radius:999px; background:var(--field);
+    color:var(--muted); font-size:.8rem; cursor:pointer; }
+  .chip.on { background:var(--accent); border-color:var(--accent); color:#052e12; font-weight:700; }
+  .ai-btn { padding:10px 18px; border:none; border-radius:11px; font-size:.9rem; font-weight:700; cursor:pointer;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#052e12; margin-top:12px; }
+  .ai-btn.ghost { background:var(--field); color:var(--muted); border:1px solid var(--field-border); }
+  .ai-btn:disabled { opacity:.5; cursor:wait; }
+  .btn-row { display:flex; gap:8px; flex-wrap:wrap; }
+
+  .hist { display:flex; flex-direction:column; gap:6px; }
+  .hist-item { background:var(--field); border-radius:8px; padding:9px 12px; cursor:pointer; display:flex; align-items:center; gap:8px; border:1px solid transparent; }
+  .hist-item:hover { border-color:var(--field-border); }
+  .hist-item .ht { flex:1; font-size:.85rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hist-item .hd { font-size:.68rem; color:var(--faint); }
+  .mini { background:none; border:none; color:var(--faint); cursor:pointer; font-size:.85rem; }
+  .mini:hover { color:var(--text); }
+
+  /* Teleprompter overlay */
+  .tp { position:fixed; inset:0; background:#000; z-index:100; display:none; flex-direction:column; }
+  .tp.show { display:flex; }
+  .tp-bar { display:flex; align-items:center; gap:10px; padding:10px 16px; background:rgba(20,24,32,.9); flex-wrap:wrap; }
+  .tp-bar button { background:var(--field); border:1px solid var(--field-border); color:var(--text); padding:7px 14px; border-radius:9px; cursor:pointer; font-size:.85rem; }
+  .tp-bar button.primary { background:var(--accent); color:#052e12; border-color:var(--accent); font-weight:700; }
+  .tp-bar label { font-size:.72rem; color:var(--muted); display:flex; align-items:center; gap:6px; }
+  .tp-bar input[type=range] { width:110px; accent-color:var(--accent); }
+  .tp-scroll { flex:1; overflow-y:auto; scroll-behavior:auto; }
+  .tp-text {
+    max-width:820px; margin:0 auto; padding:45vh 26px 55vh;
+    font-size:var(--tp-fs, 2.4rem); line-height:1.9; font-weight:600; color:#fff;
+    white-space:pre-wrap;
+  }
+  .tp.mirror .tp-text { transform:scaleX(-1); }
+  .tp-mid { position:fixed; left:0; right:0; top:44%; height:2px; background:rgba(34,197,94,.35); pointer-events:none; }
+
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:var(--card); border:1px solid var(--field-border); color:var(--text); padding:10px 20px;
+    border-radius:999px; font-size:.85rem; opacity:0; transition:all .3s; z-index:200; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🎬</div>
+    <div class="title">
+      <h1>Script + Teleprompter</h1>
+      <div class="sub">AI video script (Myanmar-first) + auto-scroll prompter</div>
+    </div>
+    <button class="hbtn" @click="newScript">＋ New</button>
+    <button class="hbtn" @click="keyModal">🔑</button>
+  </header>
+
+  <div class="card">
+    <label class="fl">💡 Video topic</label>
+    <input type="text" v-model="cur.topic" placeholder="e.g. JavaScript array methods ၅ ခု — beginner များအတွက်">
+    <div class="r3">
+      <div>
+        <label class="fl">⏱ Length</label>
+        <select v-model="cur.dur">
+          <option value="30s">30 စက္ကန့် (Reel/Short)</option>
+          <option value="1min">1 မိနစ်</option>
+          <option value="3min">3 မိနစ်</option>
+          <option value="5min">5 မိနစ်</option>
+        </select>
+      </div>
+      <div>
+        <label class="fl">🗣 Language</label>
+        <select v-model="cur.lang">
+          <option value="mm">မြန်မာ</option>
+          <option value="mixed">မြန်မာ + English terms</option>
+          <option value="en">English</option>
+        </select>
+      </div>
+      <div>
+        <label class="fl">🎭 Style</label>
+        <select v-model="cur.style">
+          <option value="edu">📚 Educational</option>
+          <option value="energetic">⚡ Energetic</option>
+          <option value="story">📖 Storytelling</option>
+        </select>
+      </div>
+    </div>
+    <button class="ai-btn" @click="aiScript" :disabled="busy">{{ busy ? '⏳ ရေးနေသည်…' : '✨ AI Script ရေးပေး' }}</button>
+  </div>
+
+  <div class="card">
+    <label class="fl">📝 Script (Hook → Body → CTA) — ပြင်ဆင်နိုင်သည်</label>
+    <textarea v-model="cur.text" rows="14" placeholder="Script ဒီမှာ ရေးပါ သို့မဟုတ် AI ကို ရေးခိုင်းပါ…"></textarea>
+    <div style="margin-top:6px;font-size:.72rem;color:var(--faint)">
+      {{ wordInfo }}
+    </div>
+    <div class="btn-row">
+      <button class="ai-btn" @click="openPrompter" :disabled="!cur.text.trim()">▶ Teleprompter ဖွင့်မည်</button>
+      <button class="ai-btn ghost" @click="saveCur">💾 Save</button>
+      <button class="ai-btn ghost" @click="copyText">📋 Copy</button>
+    </div>
+  </div>
+
+  <div class="card" v-if="scripts.length">
+    <label class="fl">🗂 Saved scripts ({{ scripts.length }})</label>
+    <div class="hist">
+      <div v-for="s in scriptsSorted" :key="s.id" class="hist-item" @click="loadScript(s)">
+        <span class="ht">{{ s.topic || s.text.slice(0,40) }}</span>
+        <span class="hd">{{ new Date(s.t).toLocaleDateString() }}</span>
+        <button class="mini" @click.stop="delScript(s.id)">🗑</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Teleprompter -->
+<div class="tp" :class="{show:tpShow, mirror:tpMirror}">
+  <div class="tp-bar">
+    <button class="primary" @click="tpToggle">{{ tpPlaying ? '⏸ Pause (Space)' : '▶ Play (Space)' }}</button>
+    <button @click="tpRestart">⏮ Restart</button>
+    <label>Speed <input type="range" min="0.3" max="4" step="0.1" v-model.number="tpSpeed"> {{ tpSpeed.toFixed(1) }}×</label>
+    <label>Size <input type="range" min="1.4" max="4.5" step="0.1" v-model.number="tpFs" @input="applyFs"></label>
+    <button @click="tpMirror=!tpMirror">🪞 Mirror</button>
+    <button @click="closePrompter" style="margin-left:auto">✕ Close (Esc)</button>
+  </div>
+  <div class="tp-scroll" ref="tpScroll"><div class="tp-text">{{ cur.text }}</div></div>
+  <div class="tp-mid"></div>
+</div>
+
+<div class="toast" :class="{show:toastMsg}">{{ toastMsg }}</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script>
+if (typeof Vue === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+const STORE = 'scripts.v1';
+const GKEY = 'ainotes.enterprise.gemini.key';
+const GMODEL = 'ainotes.enterprise.gemini.model';
+const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
+
+createApp({
+  setup() {
+    const blank = () => ({ id: Date.now(), topic: '', dur: '1min', lang: 'mixed', style: 'edu', text: '', t: Date.now() });
+    const cur = ref(blank());
+    const scripts = ref([]);
+    const busy = ref(false); const toastMsg = ref('');
+
+    // teleprompter state
+    const tpShow = ref(false), tpPlaying = ref(false), tpMirror = ref(false);
+    const tpSpeed = ref(1.0), tpFs = ref(2.4);
+    const tpScroll = ref(null);
+    let rafId = null, wakeLock = null;
+
+    function load() { try { scripts.value = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (e) {} }
+    function save() { localStorage.setItem(STORE, JSON.stringify(scripts.value)); }
+    const scriptsSorted = computed(() => [...scripts.value].sort((a, b) => b.t - a.t));
+    function newScript() { cur.value = blank(); }
+    function saveCur() {
+      cur.value.t = Date.now();
+      const i = scripts.value.findIndex(s => s.id === cur.value.id);
+      if (i >= 0) scripts.value[i] = { ...cur.value }; else scripts.value.push({ ...cur.value });
+      save(); toast('💾 သိမ်းပြီး');
+    }
+    function loadScript(s) { cur.value = { ...s }; }
+    function delScript(id) { scripts.value = scripts.value.filter(s => s.id !== id); save(); }
+    function copyText() { navigator.clipboard.writeText(cur.value.text).then(() => toast('📋 Copied')); }
+
+    const wordInfo = computed(() => {
+      const w = cur.value.text.trim().split(/\s+/).filter(Boolean).length;
+      // ~110 spoken words/min for mixed MM narration (rough)
+      const mins = w ? (w / 110).toFixed(1) : 0;
+      return `${w} words · ပြောကြာချိန် ခန့်မှန်း ~${mins} မိနစ်`;
+    });
+
+    // ---- Gemini ----
+    function geminiModel() {
+      const m = localStorage.getItem(GMODEL);
+      if (m && VALID_MODELS.includes(m)) return m;
+      if (m) localStorage.setItem(GMODEL, 'gemini-2.5-flash');
+      return 'gemini-2.5-flash';
+    }
+    function keyModal() {
+      const k = prompt('Gemini API key (aistudio.google.com/apikey):', localStorage.getItem(GKEY) || '');
+      if (k !== null) { k.trim() ? localStorage.setItem(GKEY, k.trim()) : localStorage.removeItem(GKEY); }
+    }
+    async function aiScript() {
+      if (!cur.value.topic.trim()) { toast('Topic အရင်ရေးပါ'); return; }
+      const key = localStorage.getItem(GKEY);
+      if (!key) { keyModal(); return; }
+      busy.value = true;
+      const langTxt = { mm: 'Myanmar (Burmese) only', mixed: 'Myanmar (Burmese) with English technical terms kept in English', en: 'English' }[cur.value.lang];
+      const styleTxt = { edu: 'clear educational teaching tone', energetic: 'high-energy engaging tone', story: 'storytelling tone with a relatable scenario' }[cur.value.style];
+      try {
+        const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel()}:generateContent?key=${encodeURIComponent(key)}`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text:
+`Write a ${cur.value.dur} video script in ${langTxt}, ${styleTxt}, for "Myo's Learing Lab and WebDev Academy" (teaches web development to Myanmar learners).
+Topic: ${cur.value.topic}
+
+Structure (label each section):
+🪝 HOOK — attention-grabbing first 3 seconds
+📚 BODY — the main content, short spoken sentences, natural pauses as new lines
+✅ CTA — like/follow/comment prompt
+
+Write for SPEAKING (short sentences, natural rhythm). Return only the script.` }] }] }),
+        });
+        if (!res.ok) {
+          let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
+          throw new Error(`Gemini ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
+        }
+        const d = await res.json();
+        const txt = d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+        if (txt) { cur.value.text = txt.trim(); toast('✨ Script ရပြီ — စိစစ်ပြီး ပြင်ပါ'); }
+      } catch (e) { toast('⚠ ' + e.message); }
+      busy.value = false;
+    }
+
+    // ---- teleprompter ----
+    function applyFs() { document.documentElement.style.setProperty('--tp-fs', tpFs.value + 'rem'); }
+    async function openPrompter() {
+      tpShow.value = true; applyFs();
+      setTimeout(() => { if (tpScroll.value) tpScroll.value.scrollTop = 0; }, 50);
+      try { wakeLock = await navigator.wakeLock?.request('screen'); } catch (e) {}
+    }
+    function closePrompter() { tpPlaying.value = false; tpShow.value = false; cancelAnimationFrame(rafId); wakeLock?.release(); wakeLock = null; }
+    function tpToggle() { tpPlaying.value ? tpPause() : tpPlay(); }
+    function tpPlay() {
+      tpPlaying.value = true;
+      let last = performance.now();
+      const step = (now) => {
+        if (!tpPlaying.value) return;
+        const dt = now - last; last = now;
+        if (tpScroll.value) {
+          tpScroll.value.scrollTop += (dt / 1000) * 40 * tpSpeed.value;
+          const max = tpScroll.value.scrollHeight - tpScroll.value.clientHeight;
+          if (tpScroll.value.scrollTop >= max - 2) { tpPause(); }
+        }
+        rafId = requestAnimationFrame(step);
+      };
+      rafId = requestAnimationFrame(step);
+    }
+    function tpPause() { tpPlaying.value = false; cancelAnimationFrame(rafId); }
+    function tpRestart() { if (tpScroll.value) tpScroll.value.scrollTop = 0; }
+
+    function onKey(e) {
+      if (!tpShow.value) return;
+      if (e.code === 'Space') { e.preventDefault(); tpToggle(); }
+      else if (e.key === 'Escape') closePrompter();
+      else if (e.key === 'ArrowUp') tpSpeed.value = Math.min(4, tpSpeed.value + 0.1);
+      else if (e.key === 'ArrowDown') tpSpeed.value = Math.max(0.3, tpSpeed.value - 0.1);
+    }
+
+    let tt = null;
+    function toast(m) { toastMsg.value = m; clearTimeout(tt); tt = setTimeout(() => toastMsg.value = '', 3200); }
+
+    onMounted(() => {
+      load();
+      document.getElementById('vue-loading').style.display = 'none';
+      document.addEventListener('keydown', onKey);
+    });
+    onUnmounted(() => { document.removeEventListener('keydown', onKey); closePrompter(); });
+
+    return {
+      cur, scripts, scriptsSorted, busy, toastMsg, wordInfo,
+      newScript, saveCur, loadScript, delScript, copyText, keyModal, aiScript,
+      tpShow, tpPlaying, tpMirror, tpSpeed, tpFs, tpScroll,
+      openPrompter, closePrompter, tpToggle, tpRestart, applyFs,
+    };
+  }
+}).mount('#app');
+}
+</script>
+</body>
+</html>

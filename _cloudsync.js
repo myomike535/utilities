@@ -24,6 +24,8 @@
     'ainotes.vue.v1',
     'medi.timer.v1',
     'merit.journal.v1',
+    'poststudio.v1',
+    'scripts.v1',
   ];
 
   // Local sync bookkeeping (never synced themselves)

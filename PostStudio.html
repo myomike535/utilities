@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Post Studio · EN+MM Composer</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#6366f1">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#6366f1; --accent-2:#a78bfa; --ok:#42d392; --warn:#fbbf24; --danger:#ff6b6b;
+    --radius:14px;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; font-family:var(--sans); }
+  body {
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(99,102,241,.18), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(167,139,250,.14), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1040px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:20px; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(99,102,241,.4); }
+  header h1 { font-size:1.25rem; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; }
+  .hbtn { background:var(--card); border:1px solid var(--field-border); color:var(--muted); padding:8px 14px; border-radius:10px; cursor:pointer; font-size:.85rem; }
+  .hbtn:hover { color:var(--text); border-color:var(--accent); }
+
+  .cols { display:grid; grid-template-columns:1fr 300px; gap:16px; }
+  @media(max-width:860px){ .cols{grid-template-columns:1fr} }
+
+  .card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:var(--radius); padding:18px; margin-bottom:14px; }
+  .card h3 { font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:12px; }
+
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
+  input[type=text], textarea, select {
+    width:100%; background:var(--field); border:1px solid var(--field-border); color:var(--text);
+    border-radius:10px; padding:10px 12px; font-size:.92rem; outline:none; transition:border .15s;
+  }
+  input:focus, textarea:focus { border-color:var(--accent); }
+  textarea { resize:vertical; line-height:1.8; }
+  .chips { display:flex; flex-wrap:wrap; gap:6px; }
+  .chip { padding:6px 12px; border:1px solid var(--field-border); border-radius:999px; background:var(--field);
+    color:var(--muted); font-size:.8rem; cursor:pointer; transition:all .15s; }
+  .chip:hover { border-color:var(--accent); color:var(--text); }
+  .chip.on { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
+
+  .duo { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media(max-width:680px){ .duo{grid-template-columns:1fr} }
+  .pane-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; }
+  .pane-head .t { font-size:.78rem; font-weight:700; color:var(--accent-2); }
+  .cnt { font-size:.7rem; color:var(--faint); }
+  .cnt.over { color:var(--danger); font-weight:700; }
+  .mini { background:transparent; border:1px solid var(--field-border); color:var(--muted); padding:4px 10px;
+    border-radius:8px; font-size:.72rem; cursor:pointer; }
+  .mini:hover { color:var(--text); border-color:var(--accent); }
+
+  .ai-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
+  .ai-btn { padding:8px 14px; border:none; border-radius:10px; font-size:.82rem; font-weight:600; cursor:pointer;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; }
+  .ai-btn.ghost { background:var(--field); color:var(--muted); border:1px solid var(--field-border); }
+  .ai-btn.ghost:hover { color:var(--text); border-color:var(--accent); }
+  .ai-btn:disabled { opacity:.5; cursor:wait; }
+
+  .tagset { display:flex; align-items:center; gap:6px; background:var(--field); border-radius:8px; padding:6px 10px; margin-bottom:6px; font-size:.8rem; }
+  .tagset .n { font-weight:700; color:var(--accent-2); }
+  .tagset .t { flex:1; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tagset button { background:none; border:none; color:var(--faint); cursor:pointer; font-size:.8rem; }
+  .tagset button:hover { color:var(--text); }
+
+  .hist { display:flex; flex-direction:column; gap:6px; max-height:400px; overflow-y:auto; }
+  .hist-item { background:var(--field); border-radius:8px; padding:8px 12px; cursor:pointer; border:1px solid transparent; }
+  .hist-item:hover { border-color:var(--field-border); }
+  .hist-item .ht { font-size:.84rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hist-item .hd { font-size:.68rem; color:var(--faint); display:flex; gap:8px; margin-top:2px; }
+  .badge { font-size:.65rem; padding:1px 8px; border-radius:99px; font-weight:700; }
+  .badge.draft { background:rgba(251,191,36,.15); color:var(--warn); }
+  .badge.posted { background:rgba(66,211,146,.15); color:var(--ok); }
+
+  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
+    background:var(--card2); border:1px solid var(--field-border); color:var(--text); padding:10px 20px;
+    border-radius:999px; font-size:.85rem; opacity:0; transition:all .3s; z-index:99; }
+  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">📝</div>
+    <div class="title">
+      <h1>Post Studio</h1>
+      <div class="sub">EN + မြန်မာ bilingual composer — Myo's Learing Lab and WebDev Academy</div>
+    </div>
+    <button class="hbtn" @click="newPost">＋ New</button>
+    <button class="hbtn" @click="keyModal" :title="hasKey?'Gemini key set':'Set Gemini key'">🔑</button>
+  </header>
+
+  <div class="cols">
+    <div>
+      <!-- Composer -->
+      <div class="card">
+        <label class="fl">💡 Topic / အကြောင်းအရာ</label>
+        <input type="text" v-model="cur.topic" placeholder="e.g. CSS Grid vs Flexbox — ဘယ်အချိန် ဘာသုံးမလဲ">
+        <label class="fl">🎭 Style</label>
+        <div class="chips">
+          <button v-for="t in TEMPLATES" :key="t.k" class="chip" :class="{on:cur.template===t.k}" @click="cur.template=t.k">{{ t.label }}</button>
+        </div>
+        <div class="ai-row">
+          <button class="ai-btn" @click="aiGenerate" :disabled="busy">{{ busy==='gen' ? '⏳ ရေးနေသည်…' : '✨ AI ဖြင့် EN+MM ရေးပေး' }}</button>
+          <button class="ai-btn ghost" @click="aiHashtags" :disabled="busy">{{ busy==='tag' ? '⏳' : '# Hashtags အကြံပြု' }}</button>
+        </div>
+      </div>
+
+      <!-- EN + MM panes -->
+      <div class="card">
+        <div class="duo">
+          <div>
+            <div class="pane-head">
+              <span class="t">🇬🇧 English</span>
+              <span>
+                <button class="mini" @click="aiTranslate('en2mm')" :disabled="busy">→ MM</button>
+                <button class="mini" @click="aiImprove('en')" :disabled="busy">✨ Improve</button>
+                <button class="mini" @click="copy(cur.en)">📋</button>
+              </span>
+            </div>
+            <textarea v-model="cur.en" rows="10" placeholder="English version…"></textarea>
+            <div style="margin-top:4px">
+              <span class="cnt" :class="{over:cur.en.length>280}">X/Twitter: {{ cur.en.length }}/280</span> ·
+              <span class="cnt" :class="{over:cur.en.length>2200}">IG: {{ cur.en.length }}/2200</span>
+            </div>
+          </div>
+          <div>
+            <div class="pane-head">
+              <span class="t">🇲🇲 မြန်မာ</span>
+              <span>
+                <button class="mini" @click="aiTranslate('mm2en')" :disabled="busy">→ EN</button>
+                <button class="mini" @click="aiImprove('mm')" :disabled="busy">✨ ပိုကောင်းအောင်</button>
+                <button class="mini" @click="copy(cur.mm)">📋</button>
+              </span>
+            </div>
+            <textarea v-model="cur.mm" rows="10" placeholder="မြန်မာ ဗားရှင်း…"></textarea>
+            <div style="margin-top:4px"><span class="cnt">{{ cur.mm.length }} chars</span></div>
+          </div>
+        </div>
+        <label class="fl"># Hashtags</label>
+        <input type="text" v-model="cur.tags" placeholder="#webdev #coding #myanmar">
+        <div class="ai-row">
+          <button class="ai-btn ghost" @click="copyAll">📋 Copy: EN + MM + tags</button>
+          <button class="ai-btn ghost" @click="copyMmFirst">📋 Copy: MM + EN + tags</button>
+          <button class="ai-btn ghost" @click="saveCur('draft')">💾 Draft</button>
+          <button class="ai-btn" @click="saveCur('posted')">✅ Posted မှတ်မည်</button>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <!-- Hashtag bank -->
+      <div class="card">
+        <h3># Hashtag Bank</h3>
+        <div v-for="(s,i) in tagSets" :key="i" class="tagset">
+          <span class="n">{{ s.name }}</span>
+          <span class="t">{{ s.tags }}</span>
+          <button @click="appendTags(s.tags)" title="Append">＋</button>
+          <button @click="tagSets.splice(i,1); save()" title="Delete">✕</button>
+        </div>
+        <div style="display:flex; gap:6px; margin-top:8px">
+          <input type="text" v-model="newSetName" placeholder="Name" style="flex:0 0 84px">
+          <input type="text" v-model="newSetTags" placeholder="#tags…">
+          <button class="mini" @click="addTagSet">＋</button>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="card">
+        <h3>🗂 History ({{ posts.length }})</h3>
+        <div class="hist">
+          <div v-for="p in postsSorted" :key="p.id" class="hist-item" @click="loadPost(p)">
+            <div class="ht">{{ p.topic || p.en.slice(0,40) || p.mm.slice(0,40) || '(untitled)' }}</div>
+            <div class="hd">
+              <span class="badge" :class="p.status">{{ p.status }}</span>
+              <span>{{ new Date(p.t).toLocaleDateString() }}</span>
+              <button class="mini" @click.stop="delPost(p.id)" style="margin-left:auto">🗑</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast" :class="{show:toastMsg}">{{ toastMsg }}</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script>
+if (typeof Vue === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted } = Vue;
+const STORE = 'poststudio.v1';
+// Shared with the AI Note Taker tools — one Gemini key across the suite
+const GKEY = 'ainotes.enterprise.gemini.key';
+const GMODEL = 'ainotes.enterprise.gemini.model';
+const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
+
+createApp({
+  setup() {
+    const TEMPLATES = [
+      { k: 'tip',      label: '💡 Tip' },
+      { k: 'tutorial', label: '📚 Tutorial' },
+      { k: 'announce', label: '📣 Announcement' },
+      { k: 'question', label: '❓ Question' },
+      { k: 'motivate', label: '🔥 Motivation' },
+    ];
+    const TEMPLATE_HINTS = {
+      tip: 'a short practical tip post with a strong hook line, 3-5 punchy lines, and a call-to-action to follow the page',
+      tutorial: 'a mini-tutorial post with a hook, numbered steps (3-6), and a closing line inviting comments',
+      announce: 'an announcement post — exciting opening, what/when/why details, clear call-to-action',
+      question: 'an engagement question post — a relatable setup then an open question inviting comments',
+      motivate: 'a motivational post for learners — empathetic hook, encouragement, one actionable step',
+    };
+    const blank = () => ({ id: Date.now(), topic: '', template: 'tip', en: '', mm: '', tags: '', status: 'draft', t: Date.now() });
+    const cur = ref(blank());
+    const posts = ref([]);
+    const tagSets = ref([]);
+    const newSetName = ref(''); const newSetTags = ref('');
+    const busy = ref(''); const toastMsg = ref('');
+    const hasKey = computed(() => !!localStorage.getItem(GKEY));
+
+    function load() {
+      try {
+        const d = JSON.parse(localStorage.getItem(STORE) || '{}');
+        posts.value = d.posts || [];
+        tagSets.value = d.tagSets || [
+          { name: 'WebDev', tags: '#webdev #coding #programming #html #css #javascript' },
+          { name: 'MM', tags: '#myanmar #မြန်မာ #learnwithme #webdevmyanmar' },
+        ];
+      } catch (e) {}
+    }
+    function save() { localStorage.setItem(STORE, JSON.stringify({ posts: posts.value, tagSets: tagSets.value })); }
+
+    const postsSorted = computed(() => [...posts.value].sort((a, b) => b.t - a.t));
+    function newPost() { cur.value = blank(); }
+    function saveCur(status) {
+      cur.value.status = status; cur.value.t = Date.now();
+      const i = posts.value.findIndex(p => p.id === cur.value.id);
+      if (i >= 0) posts.value[i] = { ...cur.value }; else posts.value.push({ ...cur.value });
+      save(); toast(status === 'posted' ? '✅ Posted အဖြစ် မှတ်ပြီး' : '💾 Draft သိမ်းပြီး');
+    }
+    function loadPost(p) { cur.value = { ...p }; }
+    function delPost(id) { posts.value = posts.value.filter(p => p.id !== id); save(); }
+    function addTagSet() {
+      if (!newSetTags.value.trim()) return;
+      tagSets.value.push({ name: newSetName.value.trim() || 'Set', tags: newSetTags.value.trim() });
+      newSetName.value = ''; newSetTags.value = ''; save();
+    }
+    function appendTags(t) { cur.value.tags = (cur.value.tags + ' ' + t).trim(); }
+
+    // ---- clipboard ----
+    function copy(t) { if (t) navigator.clipboard.writeText(t).then(() => toast('📋 Copied')); }
+    function copyAll() { copy([cur.value.en, cur.value.mm, cur.value.tags].filter(Boolean).join('\n\n')); }
+    function copyMmFirst() { copy([cur.value.mm, cur.value.en, cur.value.tags].filter(Boolean).join('\n\n')); }
+
+    // ---- Gemini ----
+    function geminiModel() {
+      const m = localStorage.getItem(GMODEL);
+      if (m && VALID_MODELS.includes(m)) return m;
+      if (m) localStorage.setItem(GMODEL, 'gemini-2.5-flash');
+      return 'gemini-2.5-flash';
+    }
+    function keyModal() {
+      const k = prompt('Gemini API key (aistudio.google.com/apikey မှ အခမဲ့ရနိုင်):', localStorage.getItem(GKEY) || '');
+      if (k !== null) { k.trim() ? localStorage.setItem(GKEY, k.trim()) : localStorage.removeItem(GKEY); }
+    }
+    async function gemini(prompt) {
+      const key = localStorage.getItem(GKEY);
+      if (!key) { keyModal(); throw new Error('API key လိုအပ်ပါသည်'); }
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel()}:generateContent?key=${encodeURIComponent(key)}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
+      });
+      if (!res.ok) {
+        let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
+        throw new Error(`Gemini ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
+      }
+      const d = await res.json();
+      return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+
+    async function aiGenerate() {
+      if (!cur.value.topic.trim()) { toast('Topic အရင်ရေးပါ'); return; }
+      busy.value = 'gen';
+      try {
+        const txt = await gemini(
+`You write social posts for "Myo's Learing Lab and WebDev Academy", a Facebook page teaching web development to Myanmar learners.
+Write ${TEMPLATE_HINTS[cur.value.template]} about: ${cur.value.topic}
+
+Return EXACTLY this format (no extra commentary):
+===EN===
+<English version>
+===MM===
+<Myanmar version — natural Burmese, not literal translation>`);
+        const en = txt.match(/===EN===([\s\S]*?)===MM===/)?.[1]?.trim();
+        const mm = txt.match(/===MM===([\s\S]*)$/)?.[1]?.trim();
+        if (en) cur.value.en = en;
+        if (mm) cur.value.mm = mm;
+        if (!en && !mm) cur.value.en = txt.trim();
+        toast('✨ ရေးပြီးပါပြီ — စိစစ်ပြီး ပြင်ဆင်ပါ');
+      } catch (e) { toast('⚠ ' + e.message); }
+      busy.value = '';
+    }
+    async function aiTranslate(dir) {
+      const src = dir === 'en2mm' ? cur.value.en : cur.value.mm;
+      if (!src.trim()) return;
+      busy.value = 'tr';
+      try {
+        const out = await gemini(dir === 'en2mm'
+          ? `Translate this social post to natural Myanmar (Burmese) suitable for a Facebook audience. Keep hashtags/emojis. Return only the translation:\n\n${src}`
+          : `Translate this social post to natural English suitable for a Facebook audience. Keep hashtags/emojis. Return only the translation:\n\n${src}`);
+        if (dir === 'en2mm') cur.value.mm = out.trim(); else cur.value.en = out.trim();
+      } catch (e) { toast('⚠ ' + e.message); }
+      busy.value = '';
+    }
+    async function aiImprove(lang) {
+      const src = lang === 'en' ? cur.value.en : cur.value.mm;
+      if (!src.trim()) return;
+      busy.value = 'imp';
+      try {
+        const out = await gemini(`Improve this ${lang === 'en' ? 'English' : 'Myanmar (Burmese)'} social media post: stronger hook, better flow, keep the same meaning and language. Return only the improved post:\n\n${src}`);
+        if (lang === 'en') cur.value.en = out.trim(); else cur.value.mm = out.trim();
+      } catch (e) { toast('⚠ ' + e.message); }
+      busy.value = '';
+    }
+    async function aiHashtags() {
+      const base = cur.value.topic || cur.value.en || cur.value.mm;
+      if (!base.trim()) return;
+      busy.value = 'tag';
+      try {
+        const out = await gemini(`Suggest 8-12 relevant hashtags for this web-development/education social post (mix of popular + niche, include 1-2 Myanmar ones). Return only hashtags space-separated:\n\n${base}`);
+        cur.value.tags = out.trim().replace(/\n+/g, ' ');
+      } catch (e) { toast('⚠ ' + e.message); }
+      busy.value = '';
+    }
+
+    let tt = null;
+    function toast(m) { toastMsg.value = m; clearTimeout(tt); tt = setTimeout(() => toastMsg.value = '', 3200); }
+
+    onMounted(() => { load(); document.getElementById('vue-loading').style.display = 'none'; });
+
+    return {
+      TEMPLATES, cur, posts, postsSorted, tagSets, newSetName, newSetTags, busy, toastMsg, hasKey,
+      newPost, saveCur, loadPost, delPost, addTagSet, appendTags,
+      copy, copyAll, copyMmFirst, keyModal,
+      aiGenerate, aiTranslate, aiImprove, aiHashtags,
+    };
+  }
+}).mount('#app');
+}
+</script>
+</body>
+</html>
