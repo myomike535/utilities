@@ -807,7 +807,16 @@
   const API_KEY_STORE = 'ainotes.enterprise.gemini.key';
   const MODEL_STORE = 'ainotes.enterprise.gemini.model';
   const getApiKey = () => localStorage.getItem(API_KEY_STORE) || '';
-  const getTextModel = () => localStorage.getItem(MODEL_STORE) || 'gemini-2.5-flash';
+  // Models Gemini currently serves on v1beta generateContent. Anything else (old previews,
+  // dated snapshots, decommissioned 1.5/1.0) 400/404s — so we auto-heal to the recommended one.
+  const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
+  function getTextModel() {
+    const stored = localStorage.getItem(MODEL_STORE);
+    if (stored && VALID_MODELS.includes(stored)) return stored;
+    // Heal a stale/preview/dated/legacy value back to a working model, and persist the fix
+    if (stored) localStorage.setItem(MODEL_STORE, 'gemini-2.5-flash');
+    return 'gemini-2.5-flash';
+  }
   // TTS uses a dedicated preview model (Gemini native audio output)
   const GEMINI_TTS_MODEL = "gemini-2.5-flash-preview-tts";
 
@@ -1801,9 +1810,13 @@ ${c.transcript}`
       });
       if (!res.ok) {
         const body = await res.text();
+        let reason = '';
+        try { reason = JSON.parse(body)?.error?.message || ''; } catch (_) {}
         let hint = '';
         if (res.status === 429) hint = ' — Gemini quota ကုန်ပြီ (gemini-2.0-flash သို့ Settings မှ ပြောင်းပါ)';
+        else if (res.status === 404 || /not found|not supported|is not found/i.test(reason)) hint = ` — model "${getTextModel()}" မရှိတော့ပါ (🔑 → model ပြန်ရွေးပါ)`;
         else if (res.status === 400 && /audio|mime|unsupported/i.test(body)) hint = ' — audio format ပြဿနာ';
+        else if (reason) hint = ' — ' + reason.slice(0, 120);
         throw new Error(`Gemini ${res.status}${hint}`);
       }
       const data = await res.json();
