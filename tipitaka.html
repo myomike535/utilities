@@ -286,8 +286,9 @@
     background: var(--paper);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 22px 26px;
-    margin-top: 20px;
+    padding: 26px 30px 30px;
+    margin: 8px auto 20px;
+    max-width: 760px;                 /* comfortable reading measure */
     animation: sutFade 0.4s ease;
   }
   @keyframes sutFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
@@ -328,12 +329,12 @@
     gap: 14px;
   }
   .sutta .lang {
-    padding: 12px 16px;
+    padding: 16px 20px;
     background: var(--paper-2);
     border-left: 3px solid var(--accent-2);
     border-radius: 4px;
-    font-size: 1rem;
-    line-height: 1.9;
+    font-size: calc(1.02rem * var(--rsc, 1));   /* scales with reader font control */
+    line-height: 2;
   }
   .sutta .lang.my {
     font-family: var(--sans);
@@ -427,16 +428,59 @@
   .sutta .mini-btn:hover { color: var(--accent); border-color: var(--accent); }
   .sutta .mini-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+  /* Group/jump menu — quick nav between books (nikāyas) in a pitaka */
+  .book-jump {
+    display: flex; flex-wrap: wrap; gap: 6px;
+    margin: 0 0 18px; padding-bottom: 14px;
+    border-bottom: 1px dashed var(--line);
+  }
+  .book-jump .bj-lbl {
+    width: 100%; font-family: var(--sans); font-size: 0.7rem; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--ink-mute); margin-bottom: 2px;
+  }
+  .book-jump .bj-chip {
+    padding: 6px 12px; border: 1px solid var(--border-soft); border-radius: 999px;
+    background: var(--paper-2); color: var(--ink-dim); font-size: 0.82rem;
+    font-family: var(--sans); cursor: pointer; transition: all 0.15s;
+    display: inline-flex; align-items: center; gap: 6px;
+  }
+  .book-jump .bj-chip:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  .book-jump .bj-chip.fetched { border-color: var(--accent-2); }
+  .book-jump .bj-chip .bj-n {
+    color: var(--ink-mute); font-size: 0.7rem; font-family: var(--serif); font-style: italic;
+  }
+
+  /* Reader font-size toolbar */
+  .reader-toolbar {
+    display: flex; align-items: center; gap: 8px;
+    margin: 4px auto 0; max-width: 760px;
+  }
+  .reader-toolbar .rt-label {
+    font-size: 0.7rem; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em;
+    font-family: var(--sans);
+  }
+  .reader-toolbar button {
+    min-width: 32px; height: 30px; padding: 0 8px;
+    border: 1px solid var(--border); background: var(--paper-2);
+    color: var(--ink); border-radius: 8px; cursor: pointer;
+    font-family: var(--sans); transition: all 0.15s; display: grid; place-items: center;
+  }
+  .reader-toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+  .reader-toolbar .rt-a-sm { font-size: 0.78rem; }
+  .reader-toolbar .rt-a-lg { font-size: 1.05rem; font-weight: 700; }
+
   .close-sutta {
-    background: transparent;
+    position: sticky; top: 10px; z-index: 5;   /* reachable even deep in a long sutta */
+    background: var(--paper-2);
     border: 1px solid var(--border);
     color: var(--ink-dim);
     padding: 6px 14px;
-    border-radius: 6px;
+    border-radius: 999px;
     font-family: var(--sans);
     font-size: 0.85rem;
     cursor: pointer;
     margin-bottom: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
   }
   .close-sutta:hover { color: var(--accent); border-color: var(--accent); }
 
@@ -1492,6 +1536,16 @@
   function favSet() { try { return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch { return new Set(); } }
   function saveFav(s) { localStorage.setItem(FAV_KEY, JSON.stringify([...s])); }
 
+  // ---- Reader font-size (read-mode content scale) ----
+  const READER_SCALE_KEY = 'tipitaka.reader.scale';
+  function getReaderScale() { return parseFloat(localStorage.getItem(READER_SCALE_KEY)) || 1; }
+  function setReaderScale(v) {
+    v = Math.min(1.6, Math.max(0.85, Math.round(v * 100) / 100));
+    localStorage.setItem(READER_SCALE_KEY, String(v));
+    document.documentElement.style.setProperty('--rsc', v);
+  }
+  setReaderScale(getReaderScale()); // apply on load
+
   function applyTheme(t) {
     if (!THEMES.includes(t)) t = 'parchment';
     document.documentElement.dataset.theme = t;
@@ -1563,12 +1617,33 @@
       c.appendChild(famous);
     }
 
+    // Group jump menu — one chip per book; click scrolls to + opens that book
+    if (pitaka.books.length > 3) {
+      const jump = document.createElement('div');
+      jump.className = 'book-jump';
+      jump.innerHTML = `<span class="bj-lbl">📚 အုပ်စုများ — နှိပ်၍ သွားရန်</span>`;
+      pitaka.books.forEach((book, idx) => {
+        const chip = document.createElement('button');
+        chip.className = 'bj-chip' + (book._fetched ? ' fetched' : '');
+        chip.innerHTML = `${book._fetched ? '🌐 ' : ''}${book.my}${book.suttaCount ? ` <span class="bj-n">${book.suttaCount}</span>` : ''}`;
+        chip.onclick = () => {
+          const target = document.getElementById('book-' + idx);
+          if (!target) return;
+          target.classList.add('open');
+          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        };
+        jump.appendChild(chip);
+      });
+      c.appendChild(jump);
+    }
+
     const list = document.createElement('div');
     list.className = 'book-list';
 
     pitaka.books.forEach((book, idx) => {
       const card = document.createElement('div');
       card.className = 'book-card';
+      card.id = 'book-' + idx;
       card.innerHTML = `
         <div class="b-head">
           <div>
@@ -1696,6 +1771,20 @@
     close.textContent = '← ပြန်သွားရန်';
     close.onclick = () => { activeSutta = null; renderContent(); };
     wrap.appendChild(close);
+
+    // Reader font-size control (scales Myanmar + Pāḷi body text; persists)
+    const toolbar = document.createElement('div');
+    toolbar.className = 'reader-toolbar';
+    toolbar.innerHTML = `
+      <span class="rt-label">စာလုံးအရွယ်</span>
+      <button class="rt-a-sm" data-rt="down" title="ချုံ့ရန်">A−</button>
+      <button data-rt="reset" title="မူလ" style="font-size:0.72rem">↺</button>
+      <button class="rt-a-lg" data-rt="up" title="ချဲ့ရန်">A+</button>
+    `;
+    toolbar.querySelector('[data-rt="down"]').onclick = () => setReaderScale(getReaderScale() - 0.1);
+    toolbar.querySelector('[data-rt="up"]').onclick = () => setReaderScale(getReaderScale() + 0.1);
+    toolbar.querySelector('[data-rt="reset"]').onclick = () => setReaderScale(1);
+    wrap.appendChild(toolbar);
 
     const card = document.createElement('article');
     card.className = 'sutta';

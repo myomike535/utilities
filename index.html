@@ -1897,5 +1897,157 @@
     });
   })();
 </script>
+
+<!-- ================= Command Palette (Ctrl/Cmd+K) ================= -->
+<style>
+  .cmdk-backdrop {
+    position: fixed; inset: 0; z-index: 2000; display: none;
+    background: rgba(6,8,12,.62); backdrop-filter: blur(4px);
+    align-items: flex-start; justify-content: center; padding: 12vh 16px 16px;
+  }
+  .cmdk-backdrop.show { display: flex; }
+  .cmdk {
+    width: 100%; max-width: 600px; border-radius: 16px; overflow: hidden;
+    background: var(--card, #161a22); border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 24px 70px rgba(0,0,0,.6);
+    animation: cmdkIn .16s cubic-bezier(.34,1.4,.6,1);
+  }
+  [data-theme="light"] .cmdk { background: #fff; border-color: rgba(0,0,0,.08); }
+  @keyframes cmdkIn { from { opacity:0; transform: translateY(-10px) scale(.98) } to { opacity:1; transform:none } }
+  .cmdk-input-row { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid rgba(255,255,255,.08); }
+  [data-theme="light"] .cmdk-input-row { border-color: rgba(0,0,0,.07); }
+  .cmdk-input-row svg { width: 18px; height: 18px; stroke: var(--text-mute, #8a93a0); fill: none; stroke-width: 2; flex: none; }
+  .cmdk-input { flex: 1; background: transparent; border: none; outline: none; color: var(--text, #eef1f5); font-size: 16px; font-family: inherit; }
+  .cmdk-input::placeholder { color: var(--text-mute, #6b7280); }
+  .cmdk-hint { font-size: 11px; color: var(--text-mute, #6b7280); border: 1px solid rgba(255,255,255,.14); border-radius: 6px; padding: 1px 6px; }
+  [data-theme="light"] .cmdk-hint { border-color: rgba(0,0,0,.14); }
+  .cmdk-list { max-height: 52vh; overflow-y: auto; padding: 8px; }
+  .cmdk-group { font-size: 10.5px; text-transform: uppercase; letter-spacing: .06em; color: var(--text-mute, #6b7280); padding: 8px 10px 4px; font-weight: 700; }
+  .cmdk-item { display: flex; align-items: center; gap: 12px; padding: 9px 10px; border-radius: 10px; cursor: pointer; }
+  .cmdk-item .ic { width: 30px; height: 30px; border-radius: 8px; display: grid; place-items: center; flex: none; background: color-mix(in srgb, var(--ci, #6366f1) 22%, transparent); }
+  .cmdk-item .ic svg { width: 16px; height: 16px; stroke: var(--ci, #6366f1); fill: none; stroke-width: 2; }
+  .cmdk-item .txt { min-width: 0; flex: 1; }
+  .cmdk-item .t { font-size: 14px; color: var(--text, #eef1f5); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cmdk-item .d { font-size: 11.5px; color: var(--text-mute, #8a93a0); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cmdk-item.sel, .cmdk-item:hover { background: color-mix(in srgb, var(--ci, #6366f1) 16%, transparent); }
+  .cmdk-empty { padding: 26px; text-align: center; color: var(--text-mute, #6b7280); font-size: 13px; }
+</style>
+<div class="cmdk-backdrop" id="cmdkBackdrop">
+  <div class="cmdk" role="dialog" aria-label="Command palette">
+    <div class="cmdk-input-row">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input class="cmdk-input" id="cmdkInput" placeholder="Tool ရှာရန် / notes / bookmarks / tasks…" autocomplete="off" spellcheck="false">
+      <span class="cmdk-hint">Esc</span>
+    </div>
+    <div class="cmdk-list" id="cmdkList"></div>
+  </div>
+</div>
+<script>
+(function () {
+  'use strict';
+  const backdrop = document.getElementById('cmdkBackdrop');
+  const input = document.getElementById('cmdkInput');
+  const list = document.getElementById('cmdkList');
+  let items = [], filtered = [], sel = 0;
+
+  // ---- Build the index: tool cards (scraped) + localStorage entities ----
+  function buildIndex() {
+    const out = [];
+    document.querySelectorAll('.tool-card').forEach(card => {
+      out.push({
+        group: 'Tools', title: card.querySelector('.title')?.textContent.trim() || '',
+        desc: card.querySelector('.desc')?.textContent.trim() || '',
+        href: card.getAttribute('href'),
+        color: card.style.getPropertyValue('--tool-color') || '#6366f1',
+        icon: card.querySelector('.ico svg')?.outerHTML || ''
+      });
+    });
+    const safe = (k, f) => { try { return f(JSON.parse(localStorage.getItem(k) || 'null')); } catch (_) { return []; } };
+    // Bookmarks
+    out.push(...safe('bookmarks.v1', d => (Array.isArray(d) ? d : []).map(b => ({
+      group: 'Bookmarks', title: b.title || b.url || 'Bookmark', desc: b.url || '',
+      href: b.url, external: true, color: '#6366f1', icon: '<svg viewBox="0 0 24 24"><path d="m19 21-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>'
+    }))));
+    // Tasks
+    out.push(...safe('tasks.v3', d => (Array.isArray(d) ? d : []).filter(t => t && t.title).slice(0, 60).map(t => ({
+      group: 'Tasks', title: t.title, desc: (t.status || '') + (t.notes ? ' · ' + t.notes : ''),
+      href: 'ToDo.html', color: '#6366f1', icon: '<svg viewBox="0 0 24 24"><path d="m3 17 2 2 4-4"/><path d="M13 6h8"/><path d="M13 12h8"/><path d="M13 18h8"/></svg>'
+    }))));
+    // Notes (Vue + enterprise) — titles only
+    ['ainotes.vue.v1', 'ainotes.v11.enterprise', 'ainotes.v1'].forEach(key => {
+      const dest = key.includes('vue') ? 'NoteTakerVue.html' : key.includes('enterprise') ? 'ai_note_taker_enterprise_suite.html' : 'AINoteTaker.html';
+      out.push(...safe(key, d => {
+        const arr = Array.isArray(d) ? d : (d && Array.isArray(d.sessions) ? d.sessions : []);
+        return arr.filter(n => n && (n.title || n.name)).slice(0, 40).map(n => ({
+          group: 'Notes', title: n.title || n.name, desc: (n.transcript || n.text || '').replace(/<[^>]*>/g, '').slice(0, 60),
+          href: dest, color: '#a78bfa', icon: '<svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>'
+        }));
+      }));
+    });
+    return out;
+  }
+
+  function score(q, it) {
+    const t = (it.title + ' ' + it.desc).toLowerCase();
+    q = q.toLowerCase();
+    if (!q) return it.group === 'Tools' ? 1 : 0.5;
+    if (it.title.toLowerCase().startsWith(q)) return 100;
+    if (it.title.toLowerCase().includes(q)) return 50;
+    if (t.includes(q)) return 20;
+    // subsequence (fuzzy)
+    let i = 0; for (const c of t) if (c === q[i]) i++;
+    return i === q.length ? 5 : -1;
+  }
+
+  function render() {
+    const q = input.value.trim();
+    filtered = items.map(it => ({ it, s: score(q, it) })).filter(x => x.s >= 0)
+      .sort((a, b) => b.s - a.s).map(x => x.it);
+    if (!q) filtered = filtered.filter(it => it.group === 'Tools');
+    filtered = filtered.slice(0, 40);
+    sel = 0;
+    if (!filtered.length) { list.innerHTML = '<div class="cmdk-empty">ဘာမှ မတွေ့ပါ</div>'; return; }
+    let html = '', lastGroup = '';
+    filtered.forEach((it, i) => {
+      if (it.group !== lastGroup) { html += `<div class="cmdk-group">${it.group}</div>`; lastGroup = it.group; }
+      html += `<div class="cmdk-item${i === 0 ? ' sel' : ''}" data-i="${i}" style="--ci:${it.color}">
+        <span class="ic">${it.icon}</span>
+        <span class="txt"><span class="t">${esc(it.title)}</span>${it.desc ? `<span class="d">${esc(it.desc)}</span>` : ''}</span>
+      </div>`;
+    });
+    list.innerHTML = html;
+  }
+  function esc(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+
+  function go(it) {
+    if (!it || !it.href) return;
+    close();
+    if (it.external) window.open(it.href, '_blank', 'noopener');
+    else window.location.href = it.href;
+  }
+  function moveSel(delta) {
+    const els = list.querySelectorAll('.cmdk-item');
+    if (!els.length) return;
+    els[sel]?.classList.remove('sel');
+    sel = (sel + delta + els.length) % els.length;
+    els[sel].classList.add('sel');
+    els[sel].scrollIntoView({ block: 'nearest' });
+  }
+  function open() { items = buildIndex(); input.value = ''; render(); backdrop.classList.add('show'); setTimeout(() => input.focus(), 30); }
+  function close() { backdrop.classList.remove('show'); }
+
+  input.addEventListener('input', render);
+  list.addEventListener('click', e => { const it = e.target.closest('.cmdk-item'); if (it) go(filtered[+it.dataset.i]); });
+  document.addEventListener('keydown', e => {
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'k') { e.preventDefault(); backdrop.classList.contains('show') ? close() : open(); return; }
+    if (!backdrop.classList.contains('show')) return;
+    if (e.key === 'Escape') { e.preventDefault(); close(); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); moveSel(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); moveSel(-1); }
+    else if (e.key === 'Enter') { e.preventDefault(); go(filtered[sel]); }
+  });
+  backdrop.addEventListener('click', e => { if (e.target === backdrop) close(); });
+})();
+</script>
 </body>
 </html>
