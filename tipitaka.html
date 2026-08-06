@@ -428,6 +428,51 @@
   .sutta .mini-btn:hover { color: var(--accent); border-color: var(--accent); }
   .sutta .mini-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+  /* Continue-reading card */
+  .cont-card {
+    display: flex; align-items: center; gap: 12px;
+    background: var(--paper-2);
+    border: 1.5px solid var(--accent);
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .cont-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+  .cont-card .cc-ic {
+    width: 34px; height: 34px; border-radius: 50%; flex: none;
+    display: grid; place-items: center;
+    background: var(--accent); color: #fff; font-size: 0.8rem;
+  }
+  .cont-card .cc-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+  .cont-card .cc-lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-mute); font-family: var(--sans); }
+  .cont-card .cc-title { font-family: var(--sans); font-weight: 600; color: var(--ink); font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cont-card .cc-title i { font-family: var(--serif); color: var(--ink-mute); font-weight: 400; font-size: 0.85em; }
+  .cont-card .cc-go { color: var(--accent); font-size: 1.1rem; }
+
+  /* Daily verse card */
+  .daily-card {
+    background: linear-gradient(135deg, rgba(255,215,106,0.10), transparent 60%), var(--paper-2);
+    border: 1px solid var(--gold);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 14px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .daily-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+  .daily-card .dc-lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); font-family: var(--sans); font-weight: 700; margin-bottom: 6px; }
+  [data-theme="parchment"] .daily-card .dc-lbl { color: #a07d1c; }
+  .daily-card .dc-title { font-family: var(--sans); font-weight: 700; color: var(--ink); font-size: 1.02rem; margin-bottom: 6px; }
+  .daily-card .dc-title i { font-family: var(--serif); color: var(--ink-mute); font-weight: 400; font-size: 0.85em; }
+  .daily-card .dc-excerpt { color: var(--ink-dim); font-size: 0.88rem; line-height: 1.85; margin-bottom: 8px; }
+  .daily-card .dc-open { color: var(--accent); font-size: 0.82rem; font-family: var(--sans); font-weight: 600; }
+
+  /* Read-state marks */
+  .famous-chip.read { opacity: 0.75; }
+  .famous-chip.read .fc-my { color: var(--ink-mute); }
+
   /* Full-text search — snippets & match highlighting */
   .search-snippet { font-size: 0.88rem; line-height: 1.9; }
   .search-snippet mark, .sutta mark.search-mark {
@@ -661,6 +706,7 @@
           <button class="fetch-batch-btn" data-multi="thag" data-books="21">ထေရဂါထာ (auto)</button>
           <button class="fetch-batch-btn" data-multi="thig" data-books="16">ထေရီဂါထာ (auto)</button>
           <button class="fetch-batch-btn" data-multi="cp" data-books="3">စရိယာပိဋက (auto)</button>
+          <button class="fetch-batch-btn" data-nikaya="ja">ဇာတ် ၅၄၇ (547 · ကြာသည်)</button>
         </div>
         <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
           <div class="fetch-batch-title">🔢 အပိုင်းတစ်ခုလုံး ရယူရန် · Fetch any section by prefix</div>
@@ -1561,6 +1607,31 @@
   }
   setReaderScale(getReaderScale()); // apply on load
 
+  // ---- Reading progress + continue-reading ----
+  const READ_KEY = 'tipitaka.read.v1';       // set of sutta keys the user has opened
+  const LAST_KEY = 'tipitaka.lastread.v1';   // {key, y} — last sutta + scroll position
+  function readSet() { try { return new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]')); } catch { return new Set(); } }
+  function saveReadSet(s) { localStorage.setItem(READ_KEY, JSON.stringify([...s])); }
+  function markRead(key) { const s = readSet(); if (!s.has(key)) { s.add(key); saveReadSet(s); } }
+  function setLastRead(key, y) { localStorage.setItem(LAST_KEY, JSON.stringify({ key, y: Math.round(y || 0) })); }
+  function getLastRead() { try { return JSON.parse(localStorage.getItem(LAST_KEY) || 'null'); } catch { return null; } }
+  // Remember scroll position while reading (throttled)
+  let scrollSaveTimer = null;
+  window.addEventListener('scroll', () => {
+    if (!activeSutta) return;
+    clearTimeout(scrollSaveTimer);
+    scrollSaveTimer = setTimeout(() => { if (activeSutta) setLastRead(activeSutta, window.scrollY); }, 250);
+  }, { passive: true });
+
+  // Deterministic daily pick — same sutta all day, changes at midnight
+  function dailySuttaKey() {
+    const keys = Object.keys(SUTTAS).sort();
+    if (!keys.length) return null;
+    const d = new Date();
+    const seed = d.getFullYear() * 372 + (d.getMonth() + 1) * 31 + d.getDate();
+    return keys[seed % keys.length];
+  }
+
   function applyTheme(t) {
     if (!THEMES.includes(t)) t = 'parchment';
     document.documentElement.dataset.theme = t;
@@ -1614,8 +1685,45 @@
     `;
     c.appendChild(header);
 
-    // Famous suttas quick-access panel (shown on Sutta Piṭaka) — full text available
+    // Continue-reading + daily verse cards (Sutta Piṭaka home)
     if (activePitaka === 'sutta') {
+      const wasRead = readSet();
+
+      // ▶ Continue reading — reopen last sutta at the saved scroll position
+      const last = getLastRead();
+      if (last && SUTTAS[last.key]) {
+        const ls = SUTTAS[last.key];
+        const cont = document.createElement('div');
+        cont.className = 'cont-card';
+        cont.innerHTML = `
+          <span class="cc-ic">▶</span>
+          <span class="cc-txt"><span class="cc-lbl">ဆက်ဖတ်ရန် · Continue reading</span>
+          <span class="cc-title">${ls.my} <i>· ${ls.pali}</i></span></span>
+          <span class="cc-go">➜</span>`;
+        cont.onclick = () => {
+          activeSutta = last.key; renderContent();
+          setTimeout(() => window.scrollTo({ top: last.y || 0 }), 60);
+        };
+        c.appendChild(cont);
+      }
+
+      // 📅 Daily verse — deterministic per-day pick from the whole library
+      const dk = dailySuttaKey();
+      if (dk && SUTTAS[dk] && dk !== last?.key) {
+        const ds = SUTTAS[dk];
+        const firstLine = (ds.my_body || []).map(l => String(l || '').replace(/\*\*/g, '').trim()).find(l => l.length > 20) || '';
+        const daily = document.createElement('div');
+        daily.className = 'daily-card';
+        daily.innerHTML = `
+          <div class="dc-lbl">📅 ယနေ့အတွက် တရားတော် · Today's Reading</div>
+          <div class="dc-title">${ds.my} <i>· ${ds.pali}</i></div>
+          ${firstLine ? `<div class="dc-excerpt">${firstLine.slice(0, 180)}${firstLine.length > 180 ? '…' : ''}</div>` : ''}
+          <div class="dc-open">ဖတ်ရန် ▸</div>`;
+        daily.onclick = () => { activeSutta = dk; renderContent(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+        c.appendChild(daily);
+      }
+
+      // Famous suttas quick-access panel — full text available; ✓ marks read ones
       const famous = document.createElement('div');
       famous.className = 'famous-panel';
       famous.innerHTML = `<div class="famous-title">📖 အပြည့်အစုံ ဖတ်နိုင်သော ကျော်ကြားသုတ်များ · Full-text Suttas (မြန်မာပြန်)</div>`;
@@ -1623,8 +1731,8 @@
       grid.className = 'famous-grid';
       Object.entries(SUTTAS).forEach(([key, s]) => {
         const chip = document.createElement('button');
-        chip.className = 'famous-chip';
-        chip.innerHTML = `<span class="fc-my">${s.my}</span><span class="fc-pali">${s.pali}</span>`;
+        chip.className = 'famous-chip' + (wasRead.has(key) ? ' read' : '');
+        chip.innerHTML = `<span class="fc-my">${wasRead.has(key) ? '✓ ' : ''}${s.my}</span><span class="fc-pali">${s.pali}</span>`;
         chip.onclick = () => { activeSutta = key; renderContent(); window.scrollTo({top:0,behavior:'smooth'}); };
         grid.appendChild(chip);
       });
@@ -1692,7 +1800,7 @@
           // Every row is actionable — embedded sutta, linked tool, or in-app fetch
           row.className = 'child-row has-content';
           let badge;
-          if (hasSutta) badge = '· 📖 ဖတ်ရန်';
+          if (hasSutta) badge = readSet().has(ch.key) ? '· ✓ ဖတ်ပြီး' : '· 📖 ဖတ်ရန်';
           else if (hasTool) badge = '· 🔗 ဖွင့်ရန်';
           else badge = '· 🌐 ရယူရန်';
           row.innerHTML = `
@@ -1779,6 +1887,9 @@
     if (!s) return document.createTextNode('');
     const favs = favSet();
     const isFav = favs.has(key);
+    // Opening a sutta counts as reading it + becomes the continue-reading target
+    markRead(key);
+    setLastRead(key, 0);
 
     const wrap = document.createElement('div');
     const close = document.createElement('button');
@@ -1889,7 +2000,8 @@
   function updateStats() {
     const favs = favSet();
     const suttaCount = Object.keys(SUTTAS).length;
-    $('stats').textContent = `${suttaCount} suttas included · ${favs.size} favorited · Full Tipiṭaka structure indexed`;
+    const readCount = [...readSet()].filter(k => SUTTAS[k]).length;
+    $('stats').textContent = `${suttaCount} suttas · ✓ ${readCount} ဖတ်ပြီး · ★ ${favs.size} · Full Tipiṭaka structure indexed`;
   }
 
   // ---- Full-text search — every bundled + fetched sutta body, with snippets & highlighting ----
@@ -2163,6 +2275,7 @@
     vv:  { count: 85,  uid: i => 'vv' + i },       // Vimānavatthu — heavenly-mansion stories
     pv:  { count: 51,  uid: i => 'pv' + i },       // Petavatthu — ghost-realm stories
     bv:  { count: 29,  uid: i => 'bv' + i },       // Buddhavaṃsa — the 28 Buddhas
+    ja:  { count: 547, uid: i => 'ja' + i },       // Jātaka — all 547 birth-stories (long fetch)
     snMajor: { list: SN_MAJOR },                    // curated SN
     anMajor: { list: AN_MAJOR },                    // curated AN
   };
