@@ -428,6 +428,21 @@
   .sutta .mini-btn:hover { color: var(--accent); border-color: var(--accent); }
   .sutta .mini-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
+  /* Full-text search — snippets & match highlighting */
+  .search-snippet { font-size: 0.88rem; line-height: 1.9; }
+  .search-snippet mark, .sutta mark.search-mark {
+    background: rgba(255, 200, 60, 0.45);
+    color: inherit;
+    border-radius: 3px;
+    padding: 0 2px;
+  }
+  [data-theme="dark"] .search-snippet mark,
+  [data-theme="dark"] .sutta mark.search-mark { background: rgba(255, 200, 60, 0.28); }
+  [data-theme="royal"] .search-snippet mark,
+  [data-theme="royal"] .sutta mark.search-mark { background: rgba(255, 215, 106, 0.35); }
+  .book-card.search-hit { cursor: pointer; border-left: 3px solid var(--gold); }
+  .book-card.search-hit:hover { border-color: var(--accent); }
+
   /* Group/jump menu — quick nav between books (nikāyas) in a pitaka */
   .book-jump {
     display: flex; flex-wrap: wrap; gap: 6px;
@@ -1812,6 +1827,35 @@
     renderSmartParagraphs(bodies[0], s.my_body, 'my');
     renderSmartParagraphs(bodies[1], s.pali_body, 'pali');
 
+    // Arrived from search? Highlight every match in the body and jump to the first one.
+    if (pendingHighlight) {
+      const q = pendingHighlight; pendingHighlight = '';
+      const walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT);
+      const nodes = [];
+      while (walker.nextNode()) {
+        if (walker.currentNode.nodeValue.toLowerCase().includes(q)) nodes.push(walker.currentNode);
+      }
+      nodes.forEach(node => {
+        const frag = document.createDocumentFragment();
+        let rest = node.nodeValue;
+        let idx;
+        while ((idx = rest.toLowerCase().indexOf(q)) >= 0) {
+          frag.appendChild(document.createTextNode(rest.slice(0, idx)));
+          const m = document.createElement('mark');
+          m.className = 'search-mark';
+          m.textContent = rest.slice(idx, idx + q.length);
+          frag.appendChild(m);
+          rest = rest.slice(idx + q.length);
+        }
+        frag.appendChild(document.createTextNode(rest));
+        node.parentNode.replaceChild(frag, node);
+      });
+      setTimeout(() => {
+        const first = card.querySelector('.search-mark');
+        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 120);
+    }
+
     card.querySelector('[data-act="fav"]').onclick = () => {
       const f = favSet();
       f.has(key) ? f.delete(key) : f.add(key);
@@ -1848,50 +1892,109 @@
     $('stats').textContent = `${suttaCount} suttas included · ${favs.size} favorited · Full Tipiṭaka structure indexed`;
   }
 
-  // Search
-  $('searchInput').addEventListener('input', (e) => {
-    searchQuery = e.target.value.trim().toLowerCase();
+  // ---- Full-text search — every bundled + fetched sutta body, with snippets & highlighting ----
+  let pendingHighlight = '';   // carries the query into the reader for in-text highlighting
+
+  function escHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
+  // Build a highlighted snippet around the first match: …before <mark>match</mark> after…
+  function makeSnippet(text, q) {
+    const idx = text.toLowerCase().indexOf(q);
+    if (idx < 0) return null;
+    const start = Math.max(0, idx - 45);
+    const end = Math.min(text.length, idx + q.length + 75);
+    return (start > 0 ? '…' : '') +
+      escHtml(text.slice(start, idx)) +
+      '<mark>' + escHtml(text.slice(idx, idx + q.length)) + '</mark>' +
+      escHtml(text.slice(idx + q.length, end)) +
+      (end < text.length ? '…' : '');
+  }
+
+  function runSearch() {
     if (!searchQuery) { renderContent(); return; }
-    // Simple search across sutta names + book names
+    const q = searchQuery;
     const c = $('content');
     c.innerHTML = '';
+
+    // Collect matches: title hits rank above body hits; snippet from the matching body line
+    const suttaHits = [];
+    Object.entries(SUTTAS).forEach(([key, s]) => {
+      const titleHay = (s.my + ' ' + s.pali + ' ' + (s.source || '')).toLowerCase();
+      const titleHit = titleHay.includes(q);
+      let snippet = null, where = '';
+      for (const [body, lbl] of [[s.my_body, 'မြန်မာ'], [s.pali_body, 'Pāḷi']]) {
+        if (snippet || !Array.isArray(body)) continue;
+        for (const line of body) {
+          const sn = makeSnippet(String(line || ''), q);
+          if (sn) { snippet = sn; where = lbl; break; }
+        }
+      }
+      if (titleHit || snippet) {
+        suttaHits.push({ key, s, snippet, where, rank: (titleHit ? 2 : 0) + (snippet ? 1 : 0) });
+      }
+    });
+    suttaHits.sort((a, b) => b.rank - a.rank || (b.s._fetched ? 0 : 1) - (a.s._fetched ? 0 : 1));
+
+    // Book/structure matches
+    const bookHits = [];
+    activePitakas().forEach(p => {
+      p.books.forEach(b => {
+        const hay = (b.my + ' ' + b.pali + ' ' + (b.desc || '')).toLowerCase();
+        if (hay.includes(q)) bookHits.push({ p, b });
+      });
+    });
+
+    const total = suttaHits.length + bookHits.length;
     const header = document.createElement('div');
-    header.innerHTML = `<div class="section-title">Search results</div><div class="section-sub">for "${searchQuery}"</div>`;
+    header.innerHTML = `
+      <div class="section-title">🔍 ရှာဖွေမှု ရလဒ်</div>
+      <div class="section-sub">"${escHtml(q)}" — ${total} ခု တွေ့သည် (သုတ် ${suttaHits.length} · ကျမ်း ${bookHits.length})</div>`;
     c.appendChild(header);
 
     const list = document.createElement('div');
     list.className = 'book-list';
-    let hits = 0;
 
-    // Search suttas
-    Object.entries(SUTTAS).forEach(([key, s]) => {
-      const hay = (s.my + ' ' + s.pali + ' ' + s.source + ' ' + s.context + ' ' + s.my_body.join(' ') + ' ' + s.pali_body.join(' ')).toLowerCase();
-      if (hay.includes(searchQuery)) {
-        const row = document.createElement('div');
-        row.className = 'book-card';
-        row.innerHTML = `<div class="b-head"><div><span class="b-my">${s.my}</span> <span class="b-name">· ${s.pali}</span></div><div><span class="b-count">📖 open</span></div></div><div class="b-desc">${s.source}</div>`;
-        row.onclick = () => { activeSutta = key; searchQuery = ''; $('searchInput').value = ''; renderContent(); };
-        list.appendChild(row);
-        hits++;
-      }
+    const openHit = (key) => {
+      pendingHighlight = q;
+      activeSutta = key; searchQuery = ''; $('searchInput').value = '';
+      renderContent(); window.scrollTo({ top: 0 });
+    };
+
+    suttaHits.slice(0, 100).forEach(({ key, s, snippet, where }) => {
+      const row = document.createElement('div');
+      row.className = 'book-card search-hit';
+      row.innerHTML = `
+        <div class="b-head"><div>
+          <span class="b-my">${s._fetched ? '🌐 ' : '📖 '}${escHtml(s.my)}</span>
+          <span class="b-name">· ${escHtml(s.pali)}</span>
+        </div><div><span class="b-count">${where ? where + ' ထဲတွင်' : 'ခေါင်းစဉ်'} · ဖတ်ရန် ▸</span></div></div>
+        ${snippet ? `<div class="b-desc search-snippet">${snippet}</div>` : `<div class="b-desc">${escHtml(s.source || '')}</div>`}`;
+      row.onclick = () => openHit(key);
+      list.appendChild(row);
     });
-    // Search books
-    activePitakas().forEach(p => {
-      p.books.forEach(b => {
-        const hay = (b.my + ' ' + b.pali + ' ' + (b.desc || '')).toLowerCase();
-        if (hay.includes(searchQuery)) {
-          const row = document.createElement('div');
-          row.className = 'book-card';
-          row.innerHTML = `<div class="b-head"><div><span class="b-my">${b.my}</span> <span class="b-name">· ${b.pali}</span></div><div><span class="b-count">${p.my}</span></div></div><div class="b-desc">${b.desc || ''}</div>`;
-          row.onclick = () => { activePitaka = p.id; searchQuery = ''; $('searchInput').value = ''; renderPitakaNav(); renderContent(); };
-          list.appendChild(row);
-          hits++;
-        }
-      });
+    if (suttaHits.length > 100) {
+      const more = document.createElement('div');
+      more.style.cssText = 'text-align:center;padding:8px;color:var(--ink-mute);font-size:0.82rem;font-style:italic;';
+      more.textContent = `…နောက်ထပ် ${suttaHits.length - 100} ခု — ရှာဖွေစာသား ပိုတိကျအောင် ရိုက်ပါ`;
+      list.appendChild(more);
+    }
+
+    bookHits.forEach(({ p, b }) => {
+      const row = document.createElement('div');
+      row.className = 'book-card';
+      row.innerHTML = `<div class="b-head"><div><span class="b-my">📚 ${escHtml(b.my)}</span> <span class="b-name">· ${escHtml(b.pali)}</span></div><div><span class="b-count">${escHtml(p.my)}</span></div></div><div class="b-desc">${escHtml(b.desc || '')}</div>`;
+      row.onclick = () => { activePitaka = p.id; searchQuery = ''; $('searchInput').value = ''; renderPitakaNav(); renderContent(); };
+      list.appendChild(row);
     });
 
-    if (!hits) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-mute);font-style:italic;">မတွေ့ပါ။ (No matches.)</div>';
+    if (!total) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-mute);font-style:italic;">မတွေ့ပါ။ (No matches.)<br><span style="font-size:0.8rem">🌐 ဖြင့် သုတ်များ ထပ်ရယူပြီး ရှာနိုင်ပါသည်</span></div>';
     c.appendChild(list);
+  }
+
+  let searchTimer;
+  $('searchInput').addEventListener('input', (e) => {
+    searchQuery = e.target.value.trim().toLowerCase();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(runSearch, 180);   // debounce — full-text over many fetched suttas
   });
 
   $('favToggle').onclick = () => {
