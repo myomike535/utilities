@@ -596,6 +596,12 @@
           <button class="fetch-batch-btn" data-nikaya="ud">ဥဒါန် (80)</button>
           <button class="fetch-batch-btn" data-nikaya="iti">ဣတိဝုတ် (112)</button>
           <button class="fetch-batch-btn" data-nikaya="snp">သုတ်နိပါတ် (71)</button>
+          <button class="fetch-batch-btn" data-nikaya="vv">ဝိမာနဝတ္ထု (85)</button>
+          <button class="fetch-batch-btn" data-nikaya="pv">ပေတဝတ္ထု (51)</button>
+          <button class="fetch-batch-btn" data-nikaya="bv">ဗုဒ္ဓဝင် (29)</button>
+          <button class="fetch-batch-btn" data-multi="thag" data-books="21">ထေရဂါထာ (auto)</button>
+          <button class="fetch-batch-btn" data-multi="thig" data-books="16">ထေရီဂါထာ (auto)</button>
+          <button class="fetch-batch-btn" data-multi="cp" data-books="3">စရိယာပိဋက (auto)</button>
         </div>
         <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
           <div class="fetch-batch-title">🔢 အပိုင်းတစ်ခုလုံး ရယူရန် · Fetch any section by prefix</div>
@@ -1953,8 +1959,8 @@
   // ---- Batch fetch a whole nikāya / curated set ----
   let batchCancel = false;
   // Curated "major suttas" for the huge nikāyas (SN 7762, AN 9557 — can't fetch all)
-  const SN_MAJOR = ['sn1.1','sn2.26','sn3.8','sn6.1','sn11.3','sn12.2','sn12.15','sn12.23','sn15.3','sn22.59','sn22.86','sn35.28','sn35.197','sn36.6','sn45.8','sn46.51','sn47.19','sn48.10','sn54.1','sn55.21','sn56.11'];
-  const AN_MAJOR = ['an1.21','an2.19','an3.65','an3.66','an4.10','an4.55','an5.57','an5.177','an6.19','an7.6','an8.6','an8.53','an8.54','an9.20','an10.60','an10.61','an11.1'];
+  const SN_MAJOR = ['sn1.1','sn1.10','sn2.26','sn3.8','sn3.25','sn4.19','sn5.10','sn6.1','sn6.2','sn7.1','sn7.2','sn8.1','sn11.3','sn12.2','sn12.15','sn12.23','sn12.61','sn12.65','sn15.3','sn15.13','sn17.5','sn20.7','sn22.59','sn22.86','sn22.95','sn35.28','sn35.197','sn36.6','sn36.21','sn42.11','sn44.1','sn45.8','sn46.51','sn47.19','sn47.20','sn48.10','sn54.1','sn55.21','sn56.11'];
+  const AN_MAJOR = ['an1.21','an2.19','an3.62','an3.65','an3.66','an3.100','an4.10','an4.36','an4.55','an4.184','an5.57','an5.161','an5.177','an6.19','an6.63','an7.6','an7.64','an8.6','an8.53','an8.54','an9.20','an10.60','an10.61','an11.1','an11.16'];
   const NIKAYA_UIDS = {
     dn:  { count: 34,  uid: i => 'dn' + i },
     mn:  { count: 152, uid: i => 'mn' + i },
@@ -1962,6 +1968,9 @@
     ud:  { count: 80,  uid: i => 'ud' + i },       // Udāna
     iti: { count: 112, uid: i => 'iti' + i },      // Itivuttaka
     snp: { count: 71,  uid: i => 'snp' + i },      // Sutta Nipāta (flat count approx)
+    vv:  { count: 85,  uid: i => 'vv' + i },       // Vimānavatthu — heavenly-mansion stories
+    pv:  { count: 51,  uid: i => 'pv' + i },       // Petavatthu — ghost-realm stories
+    bv:  { count: 29,  uid: i => 'bv' + i },       // Buddhavaṃsa — the 28 Buddhas
     snMajor: { list: SN_MAJOR },                    // curated SN
     anMajor: { list: AN_MAJOR },                    // curated AN
   };
@@ -1996,10 +2005,53 @@
     $('fetchStatus').className = 'fetch-status ok';
     $('fetchStatus').textContent = `${ok} suttas ကို app ထဲ သိမ်းပြီး။ Sutta Piṭaka အောက်ဆုံးတွင် ကြည့်ပါ။`;
   }
+  // Multi-section fetch: verse anthologies nested as base{book}.{verse} (thag1.1, thig5.10, cp1.1).
+  // The button carries its own code (data-multi) + book count, so clicking auto-knows what to pull.
+  async function multiSectionFetch(base, maxBook, name) {
+    batchCancel = false;
+    const prog = $('fetchProgress'), fill = $('fpFill'), label = $('fpLabel');
+    prog.style.display = 'block';
+    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = true);
+    $('fetchStatus').textContent = '';
+    let ok = 0, tried = 0;
+    const MAX_MISS = 4, MAX_N = 250;
+    for (let book = 1; book <= maxBook && !batchCancel; book++) {
+      let n = 1, miss = 0;
+      while (n <= MAX_N && miss < MAX_MISS && !batchCancel) {
+        const uid = `${base}${book}.${n}`;
+        label.textContent = `${uid} ... (✓${ok} · ${tried} tried)`;
+        try { await fetchFromSC(uid); ok++; miss = 0; }
+        catch (e) { miss++; }
+        tried++; n++;
+        fill.style.width = Math.round((book / maxBook) * 100) + '%';
+        await new Promise(r => setTimeout(r, 300));
+      }
+    }
+    injectFetchedBook();
+    renderPitakaNav(); renderContent(); updateDataBtn();
+    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = false);
+    fill.style.width = '100%';
+    label.textContent = batchCancel ? `⏹ ရပ် — ${ok} ရရှိ` : `✅ ${name} — ${ok} ဂါထာ/အခန်း ရရှိ (offline သိမ်းထား)`;
+    $('fetchStatus').className = 'fetch-status ok';
+    $('fetchStatus').textContent = ok ? `${ok} ကို app ထဲ သိမ်းပြီး။ Sutta Piṭaka အောက်ဆုံးတွင် ကြည့်ပါ။` : `${name} — data မတွေ့ပါ။`;
+  }
+
   document.querySelectorAll('.fetch-batch-btn').forEach(btn => {
+    if (btn.id === 'sectionGo') return; // wired separately below
     btn.onclick = () => {
+      // Multi-section (verse anthology) buttons carry their own code — no typing needed
+      if (btn.dataset.multi) {
+        const base = btn.dataset.multi, books = +btn.dataset.books || 20;
+        const name = btn.textContent.replace(/\s*\(auto\)\s*/, '').trim();
+        if (confirm(`${name} — ဂါထာ/အခန်း အားလုံး SuttaCentral မှ ရယူမည်။ (auto — ကြာနိုင်သည်)\n\nဆက်လုပ်မလား?`)) {
+          multiSectionFetch(base, books, name);
+        }
+        return;
+      }
       const n = btn.dataset.nikaya;
+      if (!n) return;
       const spec = NIKAYA_UIDS[n];
+      if (!spec) return;
       const cnt = spec.list ? spec.list.length : spec.count;
       if (confirm(`${cnt} suttas ကို SuttaCentral မှ ရယူမည်။ (~${Math.ceil(cnt * 0.7 / 60)} မိနစ်ခန့် ကြာနိုင်သည်)\n\nဆက်လုပ်မလား?`)) {
         batchFetch(n);
@@ -2060,6 +2112,7 @@
     snp: 'သုတ်နိပါတ်',       ud:  'ဥဒါန်',          iti: 'ဣတိဝုတ်',
     thag:'ထေရဂါထာ',        thig:'ထေရီဂါထာ',       vv:  'ဝိမာနဝတ္ထု',
     pv:  'ပေတဝတ္ထု',        ja:  'ဇာတ်',           bv:  'ဗုဒ္ဓဝင်',
+    cp:  'စရိယာပိဋက',
   };
   function nikayaOf(uid) {
     const m = uid.match(/^([a-z]+)/);
