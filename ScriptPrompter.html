@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="my" data-theme="dark">
+<html lang="my" data-theme="dark" class="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Script + Teleprompter</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#22c55e">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
 <style>
   :root {
     --bg:#070a0f; --bg2:#0d1119;
@@ -13,6 +15,23 @@
     --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
     --accent:#22c55e; --accent-2:#0ea5e9;
     --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    /* Element Plus theme mapping */
+    --el-color-primary:#22c55e;
+    --el-color-primary-light-3:#4ade80;
+    --el-color-primary-dark-2:#16a34a;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24;
+    --el-bg-color-overlay:#1b2130;
+    --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342;
+    --el-border-color-light:#2b3342;
+    --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa;
+    --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3;
+    --el-text-color-placeholder:#616c7d;
   }
   * { margin:0; padding:0; box-sizing:border-box; font-family:var(--sans); }
   body {
@@ -104,80 +123,79 @@
       <h1>Script + Teleprompter</h1>
       <div class="sub">AI video script (Myanmar-first) + auto-scroll prompter</div>
     </div>
-    <button class="hbtn" @click="newScript">＋ New</button>
-    <button class="hbtn" @click="openSettings">⚙ AI</button>
+    <el-button @click="newScript">＋ New</el-button>
+    <el-button @click="openSettings">⚙ AI</el-button>
   </header>
 
-  <!-- AI settings modal -->
-  <div class="overlay" v-if="showSettings" @click.self="showSettings=false">
-    <div class="modal">
-      <h2>⚙ AI Settings</h2>
-      <div class="hint">Keys ကို localStorage တွင်သာ သိမ်းသည် — Post Studio / Note Taker tools များနှင့် မျှဝေသုံးသည်။</div>
-      <label class="fl">Provider</label>
-      <select v-model="aiPref" @change="savePrefs">
-        <option value="auto">🔄 Auto — Gemini → Groq → OpenRouter</option>
-        <option value="gemini">✨ Gemini only</option>
-        <option value="groq">⚡ Groq only</option>
-        <option value="openrouter">🌐 OpenRouter only</option>
-      </select>
-      <label class="fl">Gemini API key</label>
-      <input type="password" v-model="gKeyInput" placeholder="AIza…" autocomplete="off">
-      <label class="fl">Groq API key</label>
-      <input type="password" v-model="qKeyInput" placeholder="gsk_…" autocomplete="off">
-      <label class="fl">OpenRouter API key</label>
-      <input type="password" v-model="oKeyInput" placeholder="sk-or-…" autocomplete="off">
-      <label class="fl">OpenRouter model</label>
-      <input type="text" v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off">
-      <div class="modal-actions">
-        <button class="ai-btn ghost" @click="showSettings=false">Cancel</button>
-        <button class="ai-btn" @click="saveKeys">💾 Save</button>
-      </div>
+  <!-- AI settings dialog (Element Plus) -->
+  <el-dialog v-model="showSettings" title="⚙ AI Settings" width="min(460px, 94vw)">
+    <div style="font-size:.78rem;color:var(--faint);margin-bottom:12px;line-height:1.7">
+      Keys ကို localStorage တွင်သာ သိမ်းသည် — Post Studio / Note Taker tools များနှင့် မျှဝေသုံးသည်။
     </div>
-  </div>
+    <label class="fl">Provider</label>
+    <el-select v-model="aiPref" @change="savePrefs" style="width:100%">
+      <el-option value="auto" label="🔄 Auto — Gemini → Groq → OpenRouter"/>
+      <el-option value="gemini" label="✨ Gemini only"/>
+      <el-option value="groq" label="⚡ Groq only"/>
+      <el-option value="openrouter" label="🌐 OpenRouter only"/>
+    </el-select>
+    <label class="fl">Gemini API key</label>
+    <el-input v-model="gKeyInput" type="password" show-password placeholder="AIza…" autocomplete="off"/>
+    <label class="fl">Groq API key</label>
+    <el-input v-model="qKeyInput" type="password" show-password placeholder="gsk_…" autocomplete="off"/>
+    <label class="fl">OpenRouter API key</label>
+    <el-input v-model="oKeyInput" type="password" show-password placeholder="sk-or-…" autocomplete="off"/>
+    <label class="fl">OpenRouter model</label>
+    <el-input v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off"/>
+    <template #footer>
+      <el-button @click="showSettings=false">Cancel</el-button>
+      <el-button type="primary" @click="saveKeys">💾 Save</el-button>
+    </template>
+  </el-dialog>
 
   <div class="card">
     <label class="fl">💡 Video topic</label>
-    <input type="text" v-model="cur.topic" placeholder="e.g. JavaScript array methods ၅ ခု — beginner များအတွက်">
+    <el-input v-model="cur.topic" placeholder="e.g. JavaScript array methods ၅ ခု — beginner များအတွက်" clearable/>
     <div class="r3">
       <div>
         <label class="fl">⏱ Length</label>
-        <select v-model="cur.dur">
-          <option value="30s">30 စက္ကန့် (Reel/Short)</option>
-          <option value="1min">1 မိနစ်</option>
-          <option value="3min">3 မိနစ်</option>
-          <option value="5min">5 မိနစ်</option>
-        </select>
+        <el-select v-model="cur.dur" style="width:100%">
+          <el-option value="30s" label="30 စက္ကန့် (Reel/Short)"/>
+          <el-option value="1min" label="1 မိနစ်"/>
+          <el-option value="3min" label="3 မိနစ်"/>
+          <el-option value="5min" label="5 မိနစ်"/>
+        </el-select>
       </div>
       <div>
         <label class="fl">🗣 Language</label>
-        <select v-model="cur.lang">
-          <option value="mm">မြန်မာ</option>
-          <option value="mixed">မြန်မာ + English terms</option>
-          <option value="en">English</option>
-        </select>
+        <el-select v-model="cur.lang" style="width:100%">
+          <el-option value="mm" label="မြန်မာ"/>
+          <el-option value="mixed" label="မြန်မာ + English terms"/>
+          <el-option value="en" label="English"/>
+        </el-select>
       </div>
       <div>
         <label class="fl">🎭 Style</label>
-        <select v-model="cur.style">
-          <option value="edu">📚 Educational</option>
-          <option value="energetic">⚡ Energetic</option>
-          <option value="story">📖 Storytelling</option>
-        </select>
+        <el-select v-model="cur.style" style="width:100%">
+          <el-option value="edu" label="📚 Educational"/>
+          <el-option value="energetic" label="⚡ Energetic"/>
+          <el-option value="story" label="📖 Storytelling"/>
+        </el-select>
       </div>
     </div>
-    <button class="ai-btn" @click="aiScript" :disabled="busy">{{ busy ? '⏳ ရေးနေသည်…' : '✨ AI Script ရေးပေး' }}</button>
+    <el-button type="primary" @click="aiScript" :loading="busy" style="margin-top:12px">✨ AI Script ရေးပေး</el-button>
   </div>
 
   <div class="card">
     <label class="fl">📝 Script (Hook → Body → CTA) — ပြင်ဆင်နိုင်သည်</label>
-    <textarea v-model="cur.text" rows="14" placeholder="Script ဒီမှာ ရေးပါ သို့မဟုတ် AI ကို ရေးခိုင်းပါ…"></textarea>
+    <el-input v-model="cur.text" type="textarea" :rows="14" placeholder="Script ဒီမှာ ရေးပါ သို့မဟုတ် AI ကို ရေးခိုင်းပါ…"/>
     <div style="margin-top:6px;font-size:.72rem;color:var(--faint)">
       {{ wordInfo }}
     </div>
-    <div class="btn-row">
-      <button class="ai-btn" @click="openPrompter" :disabled="!cur.text.trim()">▶ Teleprompter ဖွင့်မည်</button>
-      <button class="ai-btn ghost" @click="saveCur">💾 Save</button>
-      <button class="ai-btn ghost" @click="copyText">📋 Copy</button>
+    <div class="btn-row" style="margin-top:10px">
+      <el-button type="primary" @click="openPrompter" :disabled="!cur.text.trim()">▶ Teleprompter ဖွင့်မည်</el-button>
+      <el-button @click="saveCur">💾 Save</el-button>
+      <el-button @click="copyText">📋 Copy</el-button>
     </div>
   </div>
 
@@ -187,7 +205,11 @@
       <div v-for="s in scriptsSorted" :key="s.id" class="hist-item" @click="loadScript(s)">
         <span class="ht">{{ s.topic || s.text.slice(0,40) }}</span>
         <span class="hd">{{ new Date(s.t).toLocaleDateString() }}</span>
-        <button class="mini" @click.stop="delScript(s.id)">🗑</button>
+        <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delScript(s.id)">
+          <template #reference>
+            <el-button size="small" text @click.stop>🗑</el-button>
+          </template>
+        </el-popconfirm>
       </div>
     </div>
   </div>
@@ -207,7 +229,6 @@
   <div class="tp-mid"></div>
 </div>
 
-<div class="toast" :class="{show:toastMsg}">{{ toastMsg }}</div>
 </div>
 <div id="vue-loading">⏳ Loading…</div>
 
@@ -217,9 +238,10 @@
 <script defer src="_pwa.js"></script>
 <script defer src="_settings.js"></script>
 <script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
 <script>
-if (typeof Vue === 'undefined') {
-  document.getElementById('vue-loading').textContent = '⚠ Vue မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
 } else {
 const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
 const STORE = 'scripts.v1';
@@ -234,12 +256,13 @@ const OMODEL_DEFAULT = 'google/gemini-2.0-flash-exp:free';
 const PREF_KEY = 'creator.ai.provider';
 const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
 
-createApp({
+const app = createApp({
   setup() {
     const blank = () => ({ id: Date.now(), topic: '', dur: '1min', lang: 'mixed', style: 'edu', text: '', t: Date.now() });
     const cur = ref(blank());
     const scripts = ref([]);
-    const busy = ref(false); const toastMsg = ref('');
+    const busy = ref(false);
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 3200 });
 
     // teleprompter state
     const tpShow = ref(false), tpPlaying = ref(false), tpMirror = ref(false);
@@ -406,8 +429,6 @@ Write for SPEAKING (short sentences, natural rhythm). Return only the script.`);
       else if (e.key === 'ArrowDown') tpSpeed.value = Math.max(0.3, tpSpeed.value - 0.1);
     }
 
-    let tt = null;
-    function toast(m) { toastMsg.value = m; clearTimeout(tt); tt = setTimeout(() => toastMsg.value = '', 3200); }
 
     onMounted(() => {
       load();
@@ -417,7 +438,7 @@ Write for SPEAKING (short sentences, natural rhythm). Return only the script.`);
     onUnmounted(() => { document.removeEventListener('keydown', onKey); closePrompter(); });
 
     return {
-      cur, scripts, scriptsSorted, busy, toastMsg, wordInfo,
+      cur, scripts, scriptsSorted, busy, wordInfo,
       newScript, saveCur, loadScript, delScript, copyText, aiScript,
       showSettings, aiPref, gKeyInput, qKeyInput, oKeyInput, oModelInput,
       openSettings, savePrefs, saveKeys,
@@ -425,7 +446,9 @@ Write for SPEAKING (short sentences, natural rhythm). Return only the script.`);
       openPrompter, closePrompter, tpToggle, tpRestart, applyFs,
     };
   }
-}).mount('#app');
+});
+app.use(ElementPlus);
+app.mount('#app');
 }
 </script>
 </body>

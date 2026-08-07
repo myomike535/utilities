@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="my" data-theme="dark">
+<html lang="my" data-theme="dark" class="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bookmarks · အသုံးဝင် Link များ</title>
 <link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
 <meta name="theme-color" content="#6366f1">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -17,6 +19,24 @@
     --success: #22c55e; --warn: #f59e0b; --danger: #ef4444;
     --shadow: 0 20px 50px rgba(0,0,0,0.4);
     --sans: 'Segoe UI','Pyidaungsu','Padauk','Myanmar Text',system-ui,sans-serif;
+    /* Element Plus theme mapping — brand color + fonts */
+    --el-color-primary:#6366f1;
+    --el-color-primary-light-3:#818cf8;
+    --el-color-primary-light-5:#a5b4fc;
+    --el-color-primary-dark-2:#4f46e5;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#27273a;
+    --el-bg-color-overlay:#2d2d44;
+    --el-fill-color-blank:#1e1e2f;
+    --el-border-color:#3a3a52;
+    --el-border-color-light:#3a3a52;
+    --el-border-color-lighter:#2f2f47;
+    --el-text-color-primary:#e4e4e7;
+    --el-text-color-regular:#c4c4d0;
+    --el-text-color-secondary:#9a9ab0;
+    --el-text-color-placeholder:#6b6b82;
   }
   [data-theme="light"] {
     --bg-1: #eef2ff; --bg-2: #e0e7ff; --app-bg: #ffffff;
@@ -43,16 +63,12 @@
 
   /* Quick add */
   .add-row { display:flex; gap:8px; margin-bottom: 14px; flex-wrap:wrap; }
-  .add-row input { flex:1; min-width: 200px; padding:11px 14px; border:1px solid var(--border); border-radius:10px; background:var(--card-bg); color:var(--text); font-size:0.95rem; outline:none; }
-  .add-row input:focus { border-color:var(--accent); }
-  .add-row button { padding:0 20px; border:none; border-radius:10px; background:var(--accent); color:#fff; font-weight:600; cursor:pointer; font-family:inherit; }
-  .add-row button:hover { background:var(--accent-hover); }
+  .add-row .el-input { flex:1; min-width: 200px; }
 
   /* Toolbar */
   .toolbar { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
-  .toolbar input.search { flex:1; min-width:180px; padding:9px 12px; border:1px solid var(--border); border-radius:8px; background:var(--card-bg); color:var(--text); font-size:0.9rem; outline:none; }
-  .toolbar input.search:focus { border-color:var(--accent); }
-  .toolbar select { padding:9px 10px; border:1px solid var(--border); border-radius:8px; background:var(--card-bg); color:var(--text); font-size:0.85rem; outline:none; cursor:pointer; }
+  .toolbar .el-input { flex:1; min-width:180px; }
+  .toolbar .el-select { width:170px; }
 
   /* Tag filter chips */
   .tag-filters { display:flex; gap:6px; flex-wrap:wrap; margin-bottom:16px; }
@@ -81,7 +97,6 @@
   .grid.list .bm .bm-note { display:none; }
   .bm .bm-tags { display:flex; gap:4px; flex-wrap:wrap; margin-top:6px; }
   .grid.list .bm .bm-tags { margin-top:0; }
-  .bm .bm-tag { font-size:0.68rem; padding:1px 8px; border-radius:999px; background:rgba(99,102,241,0.15); color:var(--accent-2); }
   .bm .bm-meta { color:var(--text-mute); font-size:0.68rem; margin-top:4px; }
   .bm .bm-actions { position:absolute; top:8px; right:8px; display:flex; gap:2px; opacity:0; transition:opacity 0.15s; }
   .bm:hover .bm-actions { opacity:1; }
@@ -96,21 +111,11 @@
 
   .stats-line { color:var(--text-mute); font-size:0.8rem; margin-top:16px; text-align:center; }
 
-  /* Modal */
-  .modal-bd { position:fixed; inset:0; background:rgba(0,0,0,0.55); display:flex; align-items:flex-start; justify-content:center; padding:8vh 16px; z-index:900; }
-  .modal { background:var(--app-bg); border:1px solid var(--border); border-radius:14px; padding:22px 24px; max-width:480px; width:100%; box-shadow:var(--shadow); }
-  .modal h2 { font-size:1.1rem; margin-bottom:14px; }
-  .modal label { display:block; font-size:0.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; margin:10px 0 4px; font-weight:600; }
-  .modal input, .modal textarea { width:100%; padding:9px 12px; border:1px solid var(--border); border-radius:8px; background:var(--card-bg); color:var(--text); font-size:0.9rem; outline:none; font-family:inherit; }
-  .modal input:focus, .modal textarea:focus { border-color:var(--accent); }
-  .modal textarea { resize:vertical; min-height:60px; }
-  .modal .m-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
-  .modal button { padding:9px 16px; border:1px solid var(--border); border-radius:8px; background:transparent; color:var(--text); cursor:pointer; font-family:inherit; font-size:0.85rem; }
-  .modal button.primary { background:var(--accent); color:#fff; border-color:var(--accent); font-weight:600; }
-  .modal button.danger { color:var(--danger); border-color:var(--danger); margin-right:auto; }
+  /* Edit dialog */
+  .edit-form label { display:block; font-size:0.72rem; color:var(--text-dim); text-transform:uppercase; letter-spacing:0.06em; margin:10px 0 4px; font-weight:600; }
+  .dlg-footer { display:flex; gap:8px; justify-content:flex-end; align-items:center; }
+  .dlg-footer .del-slot { margin-right:auto; }
 
-  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--app-bg); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:10px 16px; box-shadow:var(--shadow); font-size:0.85rem; opacity:0; pointer-events:none; transition:all 0.25s; z-index:1000; }
-  .toast.show { transform:translateX(-50%) translateY(0); opacity:1; }
   input[type="file"]{ display:none; }
   .vue-badge { font-size:0.6rem; color:var(--text-mute); background:rgba(66,184,131,0.15); border:1px solid rgba(66,184,131,0.4); padding:1px 5px; border-radius:4px; margin-left:6px; vertical-align:middle; }
 
@@ -138,19 +143,19 @@
 
       <!-- Quick add -->
       <div class="add-row">
-        <input v-model="quickUrl" @keyup.enter="quickAdd" placeholder="🔗 URL paste လုပ်၍ Enter နှိပ်ပါ (e.g. github.com/...)">
-        <button @click="quickAdd">+ Add</button>
+        <el-input v-model="quickUrl" clearable @keyup.enter="quickAdd" placeholder="🔗 URL paste လုပ်၍ Enter နှိပ်ပါ (e.g. github.com/...)"></el-input>
+        <el-button type="primary" @click="quickAdd">+ Add</el-button>
       </div>
 
       <!-- Toolbar -->
       <div class="toolbar">
-        <input class="search" v-model="search" placeholder="🔍 ရှာဖွေရန် — title, URL, tag, note">
-        <select v-model="sortBy">
-          <option value="recent">Recent</option>
-          <option value="visited">Most visited</option>
-          <option value="alpha">A → Z</option>
-          <option value="added">Newest added</option>
-        </select>
+        <el-input v-model="search" clearable placeholder="🔍 ရှာဖွေရန် — title, URL, tag, note"></el-input>
+        <el-select v-model="sortBy">
+          <el-option value="recent" label="Recent"></el-option>
+          <el-option value="visited" label="Most visited"></el-option>
+          <el-option value="alpha" label="A → Z"></el-option>
+          <el-option value="added" label="Newest added"></el-option>
+        </el-select>
       </div>
 
       <!-- Tag filters -->
@@ -173,14 +178,18 @@
             <div class="bm-url">{{ hostOf(bm.url) }}</div>
             <div class="bm-note" v-if="bm.note && view==='grid'">{{ bm.note }}</div>
             <div class="bm-tags" v-if="bm.tags.length">
-              <span v-for="t in bm.tags" :key="t" class="bm-tag">{{ t }}</span>
+              <el-tag v-for="t in bm.tags" :key="t" size="small" effect="dark">{{ t }}</el-tag>
             </div>
             <div class="bm-meta" v-if="bm.visits">{{ bm.visits }}× · {{ ago(bm.lastVisit) }}</div>
           </div>
           <div class="bm-actions" @click.stop>
             <button class="mini pin" :class="{on: bm.pinned}" @click="togglePin(bm)" title="Pin">{{ bm.pinned ? '★' : '☆' }}</button>
             <button class="mini" @click="edit(bm)" title="Edit">✎</button>
-            <button class="mini" @click="remove(bm)" title="Delete">✕</button>
+            <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="remove(bm)">
+              <template #reference>
+                <el-button size="small" text @click.stop>🗑</el-button>
+              </template>
+            </el-popconfirm>
           </div>
         </div>
       </div>
@@ -196,28 +205,33 @@
       </div>
     </div>
 
-    <!-- Edit modal -->
-    <div class="modal-bd" v-if="editing" @click.self="editing=null">
-      <div class="modal">
-        <h2>{{ editing.id ? 'Bookmark ပြင်ရန်' : 'Bookmark အသစ်' }}</h2>
+    <!-- Edit dialog -->
+    <el-dialog v-model="showEdit" :title="editing && editing.id ? 'Bookmark ပြင်ရန်' : 'Bookmark အသစ်'" width="min(460px, 94vw)">
+      <div class="edit-form" v-if="editing">
         <label>Title</label>
-        <input v-model="editing.title" placeholder="ခေါင်းစဉ်" @keyup.enter="saveEdit">
+        <el-input v-model="editing.title" placeholder="ခေါင်းစဉ်" @keyup.enter="saveEdit"></el-input>
         <label>URL</label>
-        <input v-model="editing.url" placeholder="https://...">
+        <el-input v-model="editing.url" placeholder="https://..."></el-input>
         <label>Tags (comma-separated)</label>
-        <input v-model="editing.tagsStr" placeholder="dev, wsde, reference">
+        <el-input v-model="editing.tagsStr" placeholder="dev, wsde, reference"></el-input>
         <label>Note</label>
-        <textarea v-model="editing.note" placeholder="မှတ်ချက် (optional)"></textarea>
-        <div class="m-actions">
-          <button v-if="editing.id" class="danger" @click="remove(editing); editing=null">🗑 Delete</button>
-          <button @click="editing=null">Cancel</button>
-          <button class="primary" @click="saveEdit">Save</button>
-        </div>
+        <el-input type="textarea" :rows="3" v-model="editing.note" placeholder="မှတ်ချက် (optional)"></el-input>
       </div>
-    </div>
+      <template #footer>
+        <div class="dlg-footer" v-if="editing">
+          <span class="del-slot" v-if="editing.id">
+            <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="remove(editing); editing=null">
+              <template #reference>
+                <el-button text>🗑 Delete</el-button>
+              </template>
+            </el-popconfirm>
+          </span>
+          <el-button @click="editing=null">Cancel</el-button>
+          <el-button type="primary" @click="saveEdit">Save</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
-
-  <div class="toast" id="toast"></div>
 
 <script defer src="_palette.js"></script>
 <script defer src="_navrail.js"></script>
@@ -226,14 +240,15 @@
 <script defer src="_settings.js"></script>
 <script defer src="_cloudsync.js"></script>
 <script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
 <script>
-  if (typeof Vue === 'undefined') {
-    document.getElementById('vue-loading').innerHTML = '⚠ Vue load မဖြစ်ပါ — refresh လုပ်ပါ။';
-    throw new Error('Vue not loaded');
+  if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+    document.getElementById('vue-loading').innerHTML = '⚠ Vue/ElementPlus load မဖြစ်ပါ — refresh လုပ်ပါ။';
+    throw new Error('Vue or ElementPlus not loaded');
   }
   const { createApp, ref, computed, watch, onMounted } = Vue;
 
-  createApp({
+  const app = createApp({
     setup() {
       const STORE = 'bookmarks.v1';
       const THEME_KEY = 'tasks.theme';
@@ -252,6 +267,10 @@
       const sortBy = ref('recent');
       const view = ref(localStorage.getItem('bookmarks.view') || 'grid');
       const editing = ref(null);
+      const showEdit = computed({
+        get: () => !!editing.value,
+        set: v => { if (!v) editing.value = null; },
+      });
       const theme = ref(localStorage.getItem(THEME_KEY) || 'dark');
 
       function normalize(b) {
@@ -282,8 +301,9 @@
       function persist() { localStorage.setItem(STORE, JSON.stringify(bookmarks.value)); }
       watch(bookmarks, persist, { deep: true });
       watch(view, v => localStorage.setItem('bookmarks.view', v));
-      watch(theme, t => { document.documentElement.dataset.theme = t; localStorage.setItem(THEME_KEY, t); });
+      watch(theme, t => { document.documentElement.dataset.theme = t; document.documentElement.classList.toggle('dark', t === 'dark'); localStorage.setItem(THEME_KEY, t); });
       document.documentElement.dataset.theme = theme.value;
+      document.documentElement.classList.toggle('dark', theme.value === 'dark');
 
       // ---- Tags ----
       const allTags = computed(() => {
@@ -331,7 +351,7 @@
       function edit(bm) { editing.value = { ...bm, tagsStr: bm.tags.join(', ') }; }
       function saveEdit() {
         const e = editing.value;
-        if (!e.url.trim()) { toast('URL လိုအပ်သည်'); return; }
+        if (!e.url.trim()) { toast('URL လိုအပ်သည်', 'warning'); return; }
         const tags = (e.tagsStr||'').split(',').map(s=>s.trim()).filter(Boolean);
         const target = bookmarks.value.find(b => b.id === e.id);
         if (target) {
@@ -343,7 +363,6 @@
         toast('✅ သိမ်းပြီး');
       }
       function remove(bm) {
-        if (!confirm(`"${bm.title}" ကို ဖျက်မလား?`)) return;
         bookmarks.value = bookmarks.value.filter(b => b.id !== bm.id);
         toast('🗑 ဖျက်ပြီး');
       }
@@ -393,22 +412,24 @@
               bookmarks.value.unshift(...add);
               toast(`⬆ ${add.length} bookmarks imported`);
             }
-          } catch (err) { toast('⚠ Import failed: ' + err.message); }
+          } catch (err) { toast('⚠ Import failed: ' + err.message, 'error'); }
         };
         r.readAsText(file); e.target.value = '';
       }
 
       // ---- Toast ----
-      let tt; function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('show'),2200); }
+      const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 3200 });
 
       return {
-        bookmarks, quickUrl, search, activeTag, sortBy, view, editing, theme,
+        bookmarks, quickUrl, search, activeTag, sortBy, view, editing, showEdit, theme,
         allTags, filtered,
         quickAdd, open, togglePin, edit, saveEdit, remove, cycleTheme,
         initial, avatarColor, ago, hostOf, exportJson, onImport,
       };
     },
-  }).mount('#app');
+  });
+  app.use(ElementPlus);
+  app.mount('#app');
   const le = document.getElementById('vue-loading'); if (le) le.remove();
 </script>
 </body>

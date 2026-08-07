@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>ကုသိုလ်မှတ်တမ်း · Merit Journal</title>
 <link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
 <meta name="theme-color" content="#8b6f47">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -34,6 +36,23 @@
     --border: #4a3d78; --border-soft: #362e58;
     --shadow: 0 12px 32px rgba(0,0,0,0.55);
   }
+  /* Element Plus → parchment palette mapping */
+  :root {
+    --el-color-primary: var(--accent);
+    --el-font-family: var(--sans);
+  }
+  :root, html[data-theme="parchment"], html[data-theme="dark"], html[data-theme="royal"] {
+    --el-bg-color: var(--paper);
+    --el-bg-color-overlay: var(--paper-2);
+    --el-fill-color-blank: var(--paper-2);
+    --el-border-color: var(--border);
+    --el-border-color-light: var(--border);
+    --el-border-color-lighter: var(--border-soft);
+    --el-text-color-primary: var(--ink);
+    --el-text-color-regular: var(--ink-dim);
+    --el-text-color-secondary: var(--ink-mute);
+    --el-text-color-placeholder: var(--ink-mute);
+  }
   [v-cloak] { display:none !important; }
   #vue-loading { display:flex; align-items:center; justify-content:center; min-height:60vh; color:var(--ink-mute); font-family:var(--serif); font-style:italic; }
   * { margin:0; padding:0; box-sizing:border-box; font-family:var(--sans); -webkit-tap-highlight-color:transparent; }
@@ -52,11 +71,11 @@
   header .title { flex:1; }
   header h1 { font-size:1.25rem; color:var(--accent); }
   header .sub { font-family:var(--serif); font-style:italic; color:var(--ink-mute); font-size:0.78rem; }
-  .hbtn { background:transparent; border:1px solid var(--border); color:var(--ink-dim); width:36px; height:36px; border-radius:50%; cursor:pointer; font-size:1rem; }
-  .hbtn:hover { border-color:var(--accent); }
+  .hbtn.el-button { background:transparent; color:var(--ink-dim); width:36px; height:36px; font-size:1rem; }
+  .hbtn.el-button:hover { border-color:var(--accent); }
 
   .date-nav { display:flex; align-items:center; gap:10px; justify-content:center; margin-bottom:14px; }
-  .date-nav button { background:var(--paper-2); border:1px solid var(--border); border-radius:8px; width:34px; height:34px; cursor:pointer; color:var(--ink); }
+  .date-nav .el-button { background:var(--paper-2); border-radius:8px; width:34px; height:34px; padding:0; color:var(--ink); }
   .date-nav .cur { font-weight:700; color:var(--ink); min-width:170px; text-align:center; }
   .date-nav .cur small { display:block; font-weight:400; color:var(--ink-mute); font-size:0.72rem; }
 
@@ -79,12 +98,11 @@
   }
   .merit-item.done .chk { background:var(--accent); border-color:var(--accent); color:#fff; }
 
-  textarea.note {
-    width:100%; margin-top:12px; background:var(--paper-2); border:1px solid var(--border-soft);
-    border-radius:10px; padding:11px 14px; color:var(--ink); font-size:0.9rem; line-height:1.8;
-    resize:vertical; min-height:70px; outline:none; font-family:var(--sans);
+  .note { margin-top:12px; }
+  .note .el-textarea__inner {
+    background:var(--paper-2); border-radius:10px; padding:11px 14px;
+    font-size:0.9rem; line-height:1.8; min-height:70px; font-family:var(--sans);
   }
-  textarea.note:focus { border-color:var(--accent); }
 
   .sect { margin-top:20px; padding-top:14px; border-top:1px dashed var(--border); }
   .sect-title { font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-mute); margin-bottom:10px; font-weight:700; }
@@ -101,12 +119,6 @@
     margin-top:16px; text-align:center; font-family:var(--serif); font-style:italic;
     color:var(--ink-mute); font-size:0.82rem; line-height:1.9;
   }
-  .toast {
-    position:fixed; bottom:26px; left:50%; transform:translateX(-50%) translateY(80px);
-    background:var(--ink); color:var(--paper); padding:9px 20px; border-radius:999px;
-    font-size:0.85rem; opacity:0; transition:all 0.3s; z-index:99; pointer-events:none;
-  }
-  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
 </style>
 </head>
 <body>
@@ -117,13 +129,13 @@
         <h1>📿 ကုသိုလ်မှတ်တမ်း</h1>
         <div class="sub">Merit Journal · နေ့စဉ် ဒါန သီလ ဘာဝနာ</div>
       </div>
-      <button class="hbtn" @click="cycleTheme">{{ themeIcon }}</button>
+      <el-button class="hbtn" circle @click="cycleTheme">{{ themeIcon }}</el-button>
     </header>
 
     <div class="date-nav">
-      <button @click="shiftDay(-1)">‹</button>
+      <el-button @click="shiftDay(-1)">‹</el-button>
       <div class="cur">{{ dateLabel }}<small v-if="!isToday">({{ daysAgo }} ရက်အလို — ပြင်နိုင်သည်)</small><small v-else>ယနေ့</small></div>
-      <button @click="shiftDay(1)" :disabled="isToday">›</button>
+      <el-button @click="shiftDay(1)" :disabled="isToday">›</el-button>
     </div>
 
     <div class="merit-list">
@@ -134,7 +146,7 @@
       </div>
     </div>
 
-    <textarea class="note" v-model="entry.note" @change="save" placeholder="မှတ်စု — ယနေ့ ပြုခဲ့သော ကုသိုလ်များ… (ဥပမာ - ဆွမ်းလောင်း၊ တရားနာ၊ လှူဒါန်း)"></textarea>
+    <el-input class="note" type="textarea" :rows="3" v-model="entry.note" @change="save" placeholder="မှတ်စု — ယနေ့ ပြုခဲ့သော ကုသိုလ်များ… (ဥပမာ - ဆွမ်းလောင်း၊ တရားနာ၊ လှူဒါန်း)"></el-input>
 
     <div class="sect">
       <div class="sect-title">📅 ၂၈ ရက် · Streak <b style="color:var(--accent)">{{ streak }}</b> ရက်</div>
@@ -149,7 +161,6 @@
 
     <div class="dedic">ဣဒံ မေ ပုညံ အာသဝက္ခယာဝဟံ ဟောတု<br>ဤကောင်းမှုသည် အာသဝေါကုန်ခြင်း၏ အကြောင်းဖြစ်ပါစေ 🙏</div>
   </div>
-  <div class="toast" :class="{show:toastMsg}">{{ toastMsg }}</div>
 </div>
 <div id="vue-loading">⏳ ဖွင့်နေသည်...</div>
 
@@ -159,15 +170,16 @@
 <script defer src="_pwa.js"></script>
 <script defer src="_settings.js"></script>
 <script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
 <script>
-if (typeof Vue === 'undefined') {
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
   document.getElementById('vue-loading').textContent = '⚠ Vue မရရှိပါ — page ကို refresh လုပ်ကြည့်ပါ';
 } else {
 const { createApp, ref, computed, onMounted } = Vue;
 const STORE = 'merit.journal.v1';
 const THEME_KEY = 'tipitaka.theme';
 
-createApp({
+const app = createApp({
   setup() {
     const MERITS = [
       { k: 'dana',   ic: '🤲', my: 'ဒါန — ပေးလှူခြင်း',            pali: 'Dāna' },
@@ -179,7 +191,6 @@ createApp({
     ];
     const data = ref({});           // { 'YYYY-MM-DD': {acts:[], note:''} }
     const offset = ref(0);          // 0 = today, -1 = yesterday …
-    const toastMsg = ref('');
     const theme = ref(localStorage.getItem(THEME_KEY) || 'parchment');
 
     function keyOf(off) {
@@ -244,31 +255,37 @@ createApp({
     });
 
     const THEMES = ['parchment', 'dark', 'royal'];
+    function applyTheme(t) {
+      document.documentElement.dataset.theme = t;
+      // Element Plus: dark + royal ride on Element's dark vars; parchment stays light
+      document.documentElement.classList.toggle('dark', t !== 'parchment');
+    }
     function cycleTheme() {
       const i = THEMES.indexOf(theme.value);
       theme.value = THEMES[(i + 1) % THEMES.length];
-      document.documentElement.dataset.theme = theme.value;
+      applyTheme(theme.value);
       localStorage.setItem(THEME_KEY, theme.value);
     }
     const themeIcon = computed(() => theme.value === 'parchment' ? '📜' : theme.value === 'dark' ? '🌙' : '👑');
 
-    let toastTimer = null;
-    function toast(m) { toastMsg.value = m; clearTimeout(toastTimer); toastTimer = setTimeout(() => toastMsg.value = '', 3000); }
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 3200 });
 
     onMounted(() => {
       load();
-      document.documentElement.dataset.theme = theme.value;
+      applyTheme(theme.value);
       document.getElementById('vue-loading').style.display = 'none';
     });
 
     return {
-      MERITS, entry, entryFor, todayKey, toastMsg,
+      MERITS, entry, entryFor, todayKey,
       offset, dateLabel, isToday, daysAgo,
       streak, calendar, monthDays,
       toggle, save, shiftDay, jumpTo, cycleTheme, themeIcon,
     };
   }
-}).mount('#app');
+});
+app.use(ElementPlus);
+app.mount('#app');
 }
 </script>
 </body>

@@ -1,10 +1,12 @@
 <!DOCTYPE html>
-<html lang="my" data-theme="dark">
+<html lang="my" data-theme="dark" class="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Note Taker · Vue</title>
 <link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
 <meta name="theme-color" content="#a78bfa">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
@@ -16,6 +18,24 @@
     --success:#22c55e; --warn:#f59e0b; --danger:#ef4444;
     --shadow:0 20px 50px rgba(0,0,0,0.4);
     --sans:'Segoe UI','Pyidaungsu','Padauk','Myanmar Text',system-ui,sans-serif;
+    /* Element Plus theme mapping — brand color + font */
+    --el-color-primary:#a78bfa;
+    --el-color-primary-light-3:#c4b5fd;
+    --el-color-primary-light-5:#ddd6fe;
+    --el-color-primary-dark-2:#8b5cf6;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#27273a;
+    --el-bg-color-overlay:#2d2d44;
+    --el-fill-color-blank:#1e1e2f;
+    --el-border-color:#3a3a52;
+    --el-border-color-light:#3a3a52;
+    --el-border-color-lighter:#2f2f47;
+    --el-text-color-primary:#e4e4e7;
+    --el-text-color-regular:#bcbccc;
+    --el-text-color-secondary:#9a9ab0;
+    --el-text-color-placeholder:#6b6b82;
   }
   [data-theme="light"] {
     --bg-1:#f4ecd8; --bg-2:#e6d7b8; --app-bg:#faf4e6; --card-bg:#f0e2c8; --card-2:#ede0be;
@@ -62,7 +82,7 @@
   .mic-btn.green{background:var(--success);}
   .mic-btn.recording{background:var(--danger);animation:pulse 1.4s infinite;}
   @keyframes pulse{50%{box-shadow:0 0 0 8px rgba(239,68,68,0);}0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,0.5);}}
-  .mic-bar select{padding:7px 9px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);font-size:0.82rem;outline:none;}
+  .mic-bar .el-select{width:140px;}
   .mic-status{color:var(--text-dim);font-size:0.8rem;flex:1;text-align:right;min-width:120px;}
   .rec-dot{display:inline-block;width:8px;height:8px;background:var(--danger);border-radius:50%;margin-right:5px;animation:blink 1s infinite;}
   @keyframes blink{50%{opacity:0.3;}}
@@ -72,14 +92,9 @@
   .transcript .interim{color:var(--text-mute);font-style:italic;}
 
   .actions{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0;padding:10px 0;border-top:1px solid var(--border-soft);border-bottom:1px solid var(--border-soft);align-items:center;}
-  .act-btn{padding:7px 12px;border:1px solid var(--accent);border-radius:8px;background:transparent;color:var(--accent);font-size:0.82rem;cursor:pointer;font-family:inherit;transition:all 0.15s;}
-  .act-btn:hover{background:var(--accent);color:#fff;}
-  .act-btn:disabled{opacity:0.5;cursor:wait;}
-  .act-btn.plain{border-color:var(--border);color:var(--text);}
-  .act-btn.plain:hover{border-color:var(--accent);color:var(--accent);background:transparent;}
-  .trans-group{display:flex;gap:0;border:1px solid var(--accent);border-radius:8px;overflow:hidden;}
-  .trans-group .act-btn{border:none;border-radius:0;}
-  .trans-group select{border:none;border-left:1px solid var(--accent);background:var(--card-bg);color:var(--text);font-size:0.8rem;padding:0 6px;outline:none;}
+  .actions .el-button+.el-button{margin-left:0;}
+  .trans-group{display:flex;gap:6px;align-items:center;}
+  .trans-group .el-select{width:120px;}
 
   .insights{display:flex;flex-direction:column;gap:12px;}
   .insight{background:var(--card-bg);border:1px solid var(--border-soft);border-radius:10px;padding:12px 16px;}
@@ -89,11 +104,13 @@
   .kw{display:inline-block;background:rgba(167,139,250,0.15);color:var(--accent);padding:2px 10px;border-radius:999px;font-size:0.78rem;margin:2px;}
   .act-item{padding:3px 0;display:flex;gap:6px;}
   .act-item::before{content:'☐';color:var(--warn);}
-  .send-tasks{margin-top:8px;width:100%;padding:6px;font-size:0.78rem;}
-
-  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--app-bg);color:var(--text);border:1px solid var(--border);border-radius:10px;padding:10px 16px;box-shadow:var(--shadow);font-size:0.85rem;opacity:0;pointer-events:none;transition:all 0.25s;z-index:1000;}
-  .toast.show{transform:translateX(-50%) translateY(0);opacity:1;}
+  .send-tasks{margin-top:8px;width:100%;}
   input[type=file]{display:none;}
+
+  /* Element Plus fine-tuning inside our layout */
+  .el-input__inner, .el-textarea__inner{font-family:var(--sans);}
+  .el-dialog{--el-dialog-bg-color:var(--app-bg);border-radius:14px;}
+  .el-dialog label.klabel{display:block;font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;margin:10px 0 4px;}
 </style>
 </head>
 <body>
@@ -120,7 +137,11 @@
             <button class="icon-btn" :class="{active: hasKey}" @click="openKey" title="API key">🔑</button>
             <button class="icon-btn" @click="exportMd" title="Export Markdown">⬇</button>
             <button class="icon-btn" @click="cycleTheme" title="Theme">🌙</button>
-            <button class="icon-btn" @click="delSession" title="Delete" style="color:var(--danger)">🗑</button>
+            <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delSession">
+              <template #reference>
+                <button class="icon-btn" title="Delete" style="color:var(--danger)" @click.stop>🗑</button>
+              </template>
+            </el-popconfirm>
           </div>
         </header>
 
@@ -134,31 +155,31 @@
           </button>
           <button class="mic-btn" style="background:#2980b9" @click="$refs.audioFile.click()">📁 Audio</button>
           <input type="file" ref="audioFile" accept="audio/*" @change="onAudioFile">
-          <select v-model="lang">
-            <option value="my-MM">🇲🇲 မြန်မာ</option>
-            <option value="en-US">🇺🇸 English</option>
-            <option value="zh-CN">🇨🇳 中文</option>
-            <option value="th-TH">🇹🇭 ไทย</option>
-          </select>
+          <el-select v-model="lang">
+            <el-option value="my-MM" label="🇲🇲 မြန်မာ"/>
+            <el-option value="en-US" label="🇺🇸 English"/>
+            <el-option value="zh-CN" label="🇨🇳 中文"/>
+            <el-option value="th-TH" label="🇹🇭 ไทย"/>
+          </el-select>
           <span class="mic-status" v-html="status"></span>
         </div>
 
         <div class="transcript" contenteditable="true" ref="transcriptEl" @input="onTranscriptInput">{{ cur.transcript }}</div>
 
         <div class="actions">
-          <button class="act-btn" @click="run('summary')" :disabled="busy">✨ အနှစ်ချုပ်</button>
-          <button class="act-btn" @click="run('actions')" :disabled="busy">📌 Actions</button>
-          <button class="act-btn" @click="run('keywords')" :disabled="busy">🏷 Keywords</button>
+          <el-button type="primary" @click="run('summary')" :disabled="busy">✨ အနှစ်ချုပ်</el-button>
+          <el-button @click="run('actions')" :disabled="busy">📌 Actions</el-button>
+          <el-button @click="run('keywords')" :disabled="busy">🏷 Keywords</el-button>
           <div class="trans-group">
-            <button class="act-btn" @click="run('translate')" :disabled="busy">🌐 ဘာသာပြန်</button>
-            <select v-model="transTarget">
-              <option value="Myanmar (Burmese)">မြန်မာ</option>
-              <option value="English">English</option>
-              <option value="Chinese">中文</option>
-              <option value="Thai">ไทย</option>
-            </select>
+            <el-button @click="run('translate')" :disabled="busy">🌐 ဘာသာပြန်</el-button>
+            <el-select v-model="transTarget">
+              <el-option value="Myanmar (Burmese)" label="မြန်မာ"/>
+              <el-option value="English" label="English"/>
+              <el-option value="Chinese" label="中文"/>
+              <el-option value="Thai" label="ไทย"/>
+            </el-select>
           </div>
-          <button class="act-btn plain" @click="clearText">🗑 ရှင်း</button>
+          <el-button @click="clearText">🗑 ရှင်း</el-button>
         </div>
 
         <div class="insights">
@@ -171,7 +192,7 @@
             <h3>📌 Action Items</h3>
             <div class="body" v-if="cur.actions && cur.actions.length">
               <div v-for="(a,i) in cur.actions" :key="i" class="act-item">{{ a }}</div>
-              <button class="act-btn send-tasks" @click="sendTasks">📤 Task Manager သို့ ပို့ ({{ cur.actions.length }})</button>
+              <el-button size="small" class="send-tasks" @click="sendTasks">📤 Task Manager သို့ ပို့ ({{ cur.actions.length }})</el-button>
             </div>
             <div class="empty" v-else>"Actions" ကို နှိပ်ပါ</div>
           </div>
@@ -190,28 +211,23 @@
       </main>
     </div>
 
-    <!-- API key modal -->
-    <div v-if="keyModal" style="position:fixed;inset:0;background:rgba(0,0,0,0.55);display:flex;align-items:flex-start;justify-content:center;padding:8vh 16px;z-index:900;" @click.self="keyModal=false">
-      <div style="background:var(--app-bg);border:1px solid var(--border);border-radius:14px;padding:22px 24px;max-width:480px;width:100%;box-shadow:var(--shadow);">
-        <h2 style="font-size:1.1rem;margin-bottom:10px;">🔑 AI Provider</h2>
-        <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:12px;">Gemini (audio + all) သို့ Groq (text သာ) — free key ရယူ၍ ထည့်ပါ။</p>
-        <label style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;">Provider</label>
-        <select v-model="provider" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);margin:4px 0 10px;">
-          <option value="gemini">🟢 Google Gemini (audio + text)</option>
-          <option value="groq">🚀 Groq (text only, fast)</option>
-        </select>
-        <label style="font-size:0.72rem;color:var(--text-dim);text-transform:uppercase;letter-spacing:0.06em;">API Key</label>
-        <input v-model="keyInput" type="password" :placeholder="provider==='gemini'?'AIza...':'gsk_...'" style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:8px;background:var(--card-bg);color:var(--text);font-family:monospace;margin:4px 0;">
-        <p style="font-size:0.72rem;color:var(--text-mute);font-style:italic;margin-top:6px;">Free key: <a :href="provider==='gemini'?'https://aistudio.google.com/apikey':'https://console.groq.com/keys'" target="_blank" style="color:var(--accent);">{{ provider==='gemini'?'aistudio.google.com':'console.groq.com' }}</a> · audio transcribe needs Gemini</p>
-        <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:14px;">
-          <button @click="keyModal=false" style="padding:9px 16px;border:1px solid var(--border);border-radius:8px;background:transparent;color:var(--text);cursor:pointer;">Cancel</button>
-          <button @click="saveKey" style="padding:9px 16px;border:none;border-radius:8px;background:var(--accent);color:#fff;font-weight:600;cursor:pointer;">Save</button>
-        </div>
-      </div>
-    </div>
+    <!-- API key modal (Element Plus) -->
+    <el-dialog v-model="keyModal" title="🔑 AI Provider" width="min(460px, 94vw)">
+      <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:4px;">Gemini (audio + all) သို့ Groq (text သာ) — free key ရယူ၍ ထည့်ပါ။</p>
+      <label class="klabel">Provider</label>
+      <el-select v-model="provider" style="width:100%">
+        <el-option value="gemini" label="🟢 Google Gemini (audio + text)"/>
+        <el-option value="groq" label="🚀 Groq (text only, fast)"/>
+      </el-select>
+      <label class="klabel">API Key</label>
+      <el-input v-model="keyInput" type="password" show-password :placeholder="provider==='gemini'?'AIza...':'gsk_...'" autocomplete="off"/>
+      <p style="font-size:0.72rem;color:var(--text-mute);font-style:italic;margin-top:8px;">Free key: <a :href="provider==='gemini'?'https://aistudio.google.com/apikey':'https://console.groq.com/keys'" target="_blank" style="color:var(--accent);">{{ provider==='gemini'?'aistudio.google.com':'console.groq.com' }}</a> · audio transcribe needs Gemini</p>
+      <template #footer>
+        <el-button @click="keyModal=false">Cancel</el-button>
+        <el-button type="primary" @click="saveKey">Save</el-button>
+      </template>
+    </el-dialog>
   </div>
-
-  <div class="toast" id="toast"></div>
 
 <script defer src="_palette.js"></script>
 <script defer src="_navrail.js"></script>
@@ -220,11 +236,12 @@
 <script defer src="_settings.js"></script>
 <script defer src="_cloudsync.js"></script>
 <script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
 <script>
-  if (typeof Vue === 'undefined') { document.getElementById('vue-loading').textContent='⚠ Vue load failed — refresh'; throw new Error('no vue'); }
+  if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') { document.getElementById('vue-loading').textContent='⚠ Vue/ElementPlus load failed — refresh'; throw new Error('no vue/element-plus'); }
   const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
 
-  createApp({
+  const app = createApp({
     setup() {
       const STORE = 'ainotes.vue.v1';
       const THEME_KEY = 'ainotes.theme';
@@ -257,8 +274,9 @@
       watch(sessions, persist, { deep:true });
       watch(currentId, persist);
       watch(lang, l => localStorage.setItem('ainotes.lang', l));
-      watch(theme, t => { document.documentElement.dataset.theme=t; localStorage.setItem(THEME_KEY,t); });
+      watch(theme, t => { document.documentElement.dataset.theme=t; document.documentElement.classList.toggle('dark', t==='dark'); localStorage.setItem(THEME_KEY,t); });
       document.documentElement.dataset.theme = theme.value;
+      document.documentElement.classList.toggle('dark', theme.value==='dark');
 
       function touch(){ if(cur.value) cur.value.updatedAt = Date.now(); }
       function wordCount(t){ return (t||'').trim() ? (t.trim().split(/\s+/).length) : 0; }
@@ -267,7 +285,7 @@
       // ---- Sessions ----
       function newSession(){ const b=blank(); sessions.value.unshift(b); currentId.value=b.id; syncTranscriptEl(); }
       function select(id){ if(listening.value) stopMic(); currentId.value=id; syncTranscriptEl(); }
-      function delSession(){ if(!confirm('ဤမှတ်စုကို ဖျက်မလား?')) return; sessions.value=sessions.value.filter(s=>s.id!==currentId.value); if(!sessions.value.length) sessions.value.push(blank()); currentId.value=sessions.value[0].id; syncTranscriptEl(); }
+      function delSession(){ sessions.value=sessions.value.filter(s=>s.id!==currentId.value); if(!sessions.value.length) sessions.value.push(blank()); currentId.value=sessions.value[0].id; syncTranscriptEl(); }
 
       const transcriptEl = ref(null);
       function syncTranscriptEl(){ nextTick(()=>{ if(transcriptEl.value && cur.value) transcriptEl.value.textContent = cur.value.transcript || ''; }); }
@@ -313,7 +331,7 @@
               const text=await geminiTranscribe(b64);
               if(text){ appendText('\n'+text.trim()); status.value='✅ စာသား ရရှိပြီ'; toast('✨ ရရှိပြီ'); }
               else status.value='⚠ စာသား မရ';
-            }catch(err){ status.value='⚠ '+err.message; toast('⚠ '+err.message); }
+            }catch(err){ status.value='⚠ '+err.message; toast('⚠ '+err.message,'error'); }
           };
           mediaRec.start(); aiRecording.value=true; status.value='<span class="rec-dot"></span>AI Voice recording...';
         }catch(e){ status.value='⚠ Mic မရ'; }
@@ -332,7 +350,7 @@
           const text=await geminiTranscribe(b64,mime);
           if(text){ appendText('\n'+text.trim()); status.value='✅ ရရှိပြီ'; toast('✨ ရရှိပြီ'); }
           else status.value='⚠ စာသား မရ';
-        }catch(err){ status.value='⚠ '+err.message; toast('⚠ '+err.message); }
+        }catch(err){ status.value='⚠ '+err.message; toast('⚠ '+err.message,'error'); }
         e.target.value='';
       }
 
@@ -409,7 +427,7 @@
       };
 
       async function run(kind){
-        const c=cur.value; if(!c || !c.transcript.trim()){ toast('စာသား မရှိပါ'); return; }
+        const c=cur.value; if(!c || !c.transcript.trim()){ toast('စာသား မရှိပါ','warning'); return; }
         if(!hasKey.value){ openKey(); return; }
         busy.value=true; status.value='⏳ AI...';
         try{
@@ -419,7 +437,7 @@
           else if(kind==='keywords') c.keywords = out.split(',').map(k=>k.trim()).filter(Boolean).slice(0,12);
           else if(kind==='translate'){ c.translation=out.trim(); c.translationTarget=transTarget.value; }
           touch(); status.value='✅ ပြီး'; toast('✅ ရရှိပြီ');
-        }catch(e){ status.value='⚠ '+e.message; toast('⚠ '+e.message); }
+        }catch(e){ status.value='⚠ '+e.message; toast('⚠ '+e.message,'error'); }
         finally{ busy.value=false; }
       }
 
@@ -452,8 +470,8 @@
       watch(provider, p=>{ keyInput.value=localStorage.getItem(p==='gemini'?GKEY:QKEY)||''; });
       function saveKey(){ const k=keyInput.value.trim(); if(provider.value==='gemini'){ k?localStorage.setItem(GKEY,k):localStorage.removeItem(GKEY); } else { k?localStorage.setItem(QKEY,k):localStorage.removeItem(QKEY); } localStorage.setItem('ainotes.provider',provider.value); keyModal.value=false; toast(k?'🔑 Saved':'Cleared'); }
 
-      // ---- Toast ----
-      let tt; function toast(m){ const el=document.getElementById('toast'); el.textContent=m; el.classList.add('show'); clearTimeout(tt); tt=setTimeout(()=>el.classList.remove('show'),2200); }
+      // ---- Toast (Element Plus ElMessage) ----
+      const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 3200 });
 
       onMounted(()=>{ syncTranscriptEl(); if(!hasKey.value) setTimeout(()=>{ status.value='🔑 API key ထည့်ရန် 🔑 နှိပ်ပါ'; },600); });
 
@@ -461,7 +479,9 @@
         transcriptEl, wordCount, dateStr, newSession, select, delSession, onTranscriptInput, cycleTheme,
         toggleMic, toggleAiRec, onAudioFile, run, clearText, exportMd, sendTasks, openKey, saveKey };
     },
-  }).mount('#app');
+  });
+  app.use(ElementPlus);
+  app.mount('#app');
   const le=document.getElementById('vue-loading'); if(le) le.remove();
 </script>
 </body>
