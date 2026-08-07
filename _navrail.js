@@ -209,6 +209,11 @@
     .nr-toggle svg { width: 16px; height: 16px; transition: transform 0.25s ease; }
     .nr.expanded .nr-toggle svg { transform: rotate(180deg); }
 
+    /* Mobile-only elements MUST be hidden at desktop widths — without these base
+       rules they render unstyled in document flow (giant raw SVGs beside content) */
+    .nr-bottom-nav { display: none; }
+    .nr-mobile-backdrop { display: none; }
+
     /* ═══════════════ MOBILE: Kimi-style bottom nav + optional drawer ═══════════════ */
     @media (max-width: 640px) {
       /* Give content bottom breathing room for the fixed bottom nav */
