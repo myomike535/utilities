@@ -36,7 +36,6 @@
     { href: 'RecapAudioMaker.html',                icon: 'headphones', label: 'Recap Audio',    color: '#f472b6' },
     { href: 'PasswordManager.html',                icon: 'shield',     label: 'Passwords',      color: '#22c55e' },
     { href: 'SqlFormatter.html',                   icon: 'braces',     label: 'SQL Formatter',  color: '#ec4899' },
-    { href: 'SqlDeploy.html',                      icon: 'rocket',     label: 'SQL Deploy',     color: '#38bdf8' },
     { href: 'GithubTrending.html',                 icon: 'trending',   label: 'GH Trending',    color: '#58a6ff' },
     { href: 'BookmarkManager.html',                icon: 'bookmark',   label: 'Bookmarks',      color: '#6366f1' },
     { href: 'StudyRoom.html',                      icon: 'study',      label: 'Study Room',     color: '#f59e0b' },

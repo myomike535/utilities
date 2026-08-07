@@ -3,7 +3,7 @@
 // offline fallback for navigation to any cached tool.
 // Bump CACHE_VERSION to force clients to fetch fresh copies.
 
-const CACHE_VERSION = 'utilities-v40';
+const CACHE_VERSION = 'utilities-v41';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -17,7 +17,6 @@ const PRECACHE_URLS = [
   './RecapAudioMaker.html',
   './PasswordManager.html',
   './SqlFormatter.html',
-  './SqlDeploy.html',
   './GithubTrending.html',
   './StudyRoom.html',
   './dhammapada.html',

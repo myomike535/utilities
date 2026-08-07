@@ -9,6 +9,7 @@ _local.*
 
 # Local-only internal MecWise/WSDE tools (never push to public repo)
 lowCodeValidator.html
+SqlDeploy.html
 *.local.html
 
 # OS clutter
