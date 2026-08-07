@@ -626,6 +626,42 @@
     .input-row, .meta-row, .toolbar, .filters, .footer, .hint { padding-left: 20px; padding-right: 20px; }
     ul { padding-left: 20px; padding-right: 20px; }
   }
+
+  /* ===== Element-style polish (CSS only — no logic changes) ===== */
+  /* Focus rings — soft glow instead of bare border swap */
+  #taskInput:focus, #searchInput:focus,
+  .meta-row select:focus, .meta-row input[type="text"]:focus, .meta-row input[type="date"]:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  }
+  li .blocked-reason:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 18%, transparent); }
+  /* Keyboard focus visibility on every button */
+  button:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
+  /* Buttons — subtle depth + press feedback */
+  .icon-btn { transition: all 0.18s; }
+  .icon-btn:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); transform: translateY(-1px); }
+  .icon-btn:active { transform: translateY(0) scale(0.95); }
+  .filter-btn { transition: all 0.18s; }
+  .filter-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .filter-btn:active { transform: translateY(0) scale(0.97); }
+  .meta-row #addBtn {
+    background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 35%, transparent);
+    transition: all 0.18s;
+  }
+  .meta-row #addBtn:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .meta-row #addBtn:active { transform: translateY(0) scale(0.97); }
+  /* Toast — ElMessage-style pill with accent edge */
+  .toast {
+    border-radius: 12px;
+    border-left: 3px solid var(--accent);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 32px rgba(0,0,0,0.45);
+  }
+  .toast button { transition: all 0.15s; }
+  .toast button:active { transform: scale(0.95); }
+  /* Selects — consistent hover */
+  .meta-row select:hover, .meta-row input:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
 </style>
   <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
