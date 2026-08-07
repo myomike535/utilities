@@ -1,11 +1,13 @@
 <!DOCTYPE html>
-<html lang="my" data-theme="dark">
+<html lang="my" data-theme="dark" class="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Post Studio · EN+MM Composer</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#6366f1">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
 <style>
   :root {
     --bg:#070a0f; --bg2:#0d1119;
@@ -15,9 +17,28 @@
     --accent:#6366f1; --accent-2:#a78bfa; --ok:#42d392; --warn:#fbbf24; --danger:#ff6b6b;
     --radius:14px;
     --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    /* Element Plus theme mapping — brand color + darker surfaces */
+    --el-color-primary:#6366f1;
+    --el-color-primary-light-3:#818cf8;
+    --el-color-primary-light-5:#a5b4fc;
+    --el-color-primary-dark-2:#4f46e5;
+    --el-font-family:var(--sans);
   }
-  * { margin:0; padding:0; box-sizing:border-box; font-family:var(--sans); }
+  html.dark {
+    --el-bg-color:#151a24;
+    --el-bg-color-overlay:#1b2130;
+    --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342;
+    --el-border-color-light:#2b3342;
+    --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa;
+    --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3;
+    --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
   body {
+    margin:0; font-family:var(--sans);
     background:
       radial-gradient(1000px 600px at 10% -10%, rgba(99,102,241,.18), transparent 55%),
       radial-gradient(900px 550px at 105% 0%, rgba(167,139,250,.14), transparent 55%),
@@ -31,77 +52,41 @@
   header { display:flex; align-items:center; gap:13px; margin-bottom:20px; }
   .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
     background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(99,102,241,.4); }
-  header h1 { font-size:1.25rem; }
+  header h1 { font-size:1.25rem; margin:0; }
   header .sub { color:var(--muted); font-size:.8rem; }
   header .title { flex:1; }
-  .hbtn { background:var(--card); border:1px solid var(--field-border); color:var(--muted); padding:8px 14px; border-radius:10px; cursor:pointer; font-size:.85rem; }
-  .hbtn:hover { color:var(--text); border-color:var(--accent); }
 
   .cols { display:grid; grid-template-columns:1fr 300px; gap:16px; }
   @media(max-width:860px){ .cols{grid-template-columns:1fr} }
 
   .card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:var(--radius); padding:18px; margin-bottom:14px; }
-  .card h3 { font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:12px; }
-
+  .card h3 { font-size:.8rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 12px; }
   label.fl { display:block; font-size:.75rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
-  input[type=text], textarea, select {
-    width:100%; background:var(--field); border:1px solid var(--field-border); color:var(--text);
-    border-radius:10px; padding:10px 12px; font-size:.92rem; outline:none; transition:border .15s;
-  }
-  input:focus, textarea:focus { border-color:var(--accent); }
-  textarea { resize:vertical; line-height:1.8; }
-  .chips { display:flex; flex-wrap:wrap; gap:6px; }
-  .chip { padding:6px 12px; border:1px solid var(--field-border); border-radius:999px; background:var(--field);
-    color:var(--muted); font-size:.8rem; cursor:pointer; transition:all .15s; }
-  .chip:hover { border-color:var(--accent); color:var(--text); }
-  .chip.on { background:var(--accent); border-color:var(--accent); color:#fff; font-weight:600; }
 
   .duo { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
   @media(max-width:680px){ .duo{grid-template-columns:1fr} }
-  .pane-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; }
+  .pane-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:5px; flex-wrap:wrap; gap:4px; }
   .pane-head .t { font-size:.78rem; font-weight:700; color:var(--accent-2); }
   .cnt { font-size:.7rem; color:var(--faint); }
   .cnt.over { color:var(--danger); font-weight:700; }
-  .mini { background:transparent; border:1px solid var(--field-border); color:var(--muted); padding:4px 10px;
-    border-radius:8px; font-size:.72rem; cursor:pointer; }
-  .mini:hover { color:var(--text); border-color:var(--accent); }
 
   .ai-row { display:flex; flex-wrap:wrap; gap:7px; margin-top:12px; }
-  .ai-btn { padding:8px 14px; border:none; border-radius:10px; font-size:.82rem; font-weight:600; cursor:pointer;
-    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; }
-  .ai-btn.ghost { background:var(--field); color:var(--muted); border:1px solid var(--field-border); }
-  .ai-btn.ghost:hover { color:var(--text); border-color:var(--accent); }
-  .ai-btn:disabled { opacity:.5; cursor:wait; }
 
   .tagset { display:flex; align-items:center; gap:6px; background:var(--field); border-radius:8px; padding:6px 10px; margin-bottom:6px; font-size:.8rem; }
   .tagset .n { font-weight:700; color:var(--accent-2); }
   .tagset .t { flex:1; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .tagset button { background:none; border:none; color:var(--faint); cursor:pointer; font-size:.8rem; }
-  .tagset button:hover { color:var(--text); }
 
   .hist { display:flex; flex-direction:column; gap:6px; max-height:400px; overflow-y:auto; }
   .hist-item { background:var(--field); border-radius:8px; padding:8px 12px; cursor:pointer; border:1px solid transparent; }
   .hist-item:hover { border-color:var(--field-border); }
   .hist-item .ht { font-size:.84rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .hist-item .hd { font-size:.68rem; color:var(--faint); display:flex; gap:8px; margin-top:2px; }
-  .badge { font-size:.65rem; padding:1px 8px; border-radius:99px; font-weight:700; }
-  .badge.draft { background:rgba(251,191,36,.15); color:var(--warn); }
-  .badge.posted { background:rgba(66,211,146,.15); color:var(--ok); }
+  .hist-item .hd { font-size:.68rem; color:var(--faint); display:flex; gap:8px; margin-top:4px; align-items:center; }
 
-  .toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px);
-    background:var(--card2); border:1px solid var(--field-border); color:var(--text); padding:10px 20px;
-    border-radius:999px; font-size:.85rem; opacity:0; transition:all .3s; z-index:99; }
-  .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
-
-  /* Settings modal */
-  .overlay { position:fixed; inset:0; background:rgba(5,7,10,.65); backdrop-filter:blur(4px);
-    display:flex; align-items:center; justify-content:center; padding:16px; z-index:120; }
-  .modal { background:var(--card); border:1px solid rgba(255,255,255,.1); border-radius:16px;
-    padding:22px; width:100%; max-width:440px; }
-  .modal h2 { font-size:1rem; margin-bottom:4px; }
-  .modal .hint { font-size:.74rem; color:var(--faint); margin-bottom:12px; line-height:1.6; }
-  .modal .hint a { color:var(--accent-2); }
-  .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
+  /* Element Plus fine-tuning inside our layout */
+  .el-textarea__inner, .el-input__inner { font-family:var(--sans); }
+  .el-textarea__inner { line-height:1.8; }
+  .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+  .el-segmented { --el-segmented-bg-color:var(--field); }
 </style>
 </head>
 <body>
@@ -113,50 +98,47 @@
       <h1>Post Studio</h1>
       <div class="sub">EN + မြန်မာ bilingual composer — Myo's Learing Lab and WebDev Academy</div>
     </div>
-    <button class="hbtn" @click="newPost">＋ New</button>
-    <button class="hbtn" @click="openSettings" :title="hasKey?'AI settings':'Set AI keys'">⚙ AI</button>
+    <el-button @click="newPost">＋ New</el-button>
+    <el-button @click="openSettings" :type="hasKey ? 'default' : 'warning'">⚙ AI</el-button>
   </header>
 
-  <!-- AI settings modal -->
-  <div class="overlay" v-if="showSettings" @click.self="showSettings=false">
-    <div class="modal">
-      <h2>⚙ AI Settings</h2>
-      <div class="hint">Keys ကို ဤ browser ၏ localStorage တွင်သာ သိမ်းသည် — Note Taker tools များနှင့် မျှဝေသုံးသည်။</div>
-      <label class="fl">Provider</label>
-      <select v-model="aiPref" @change="savePrefs">
-        <option value="auto">🔄 Auto — Gemini → Groq → OpenRouter</option>
-        <option value="gemini">✨ Gemini only</option>
-        <option value="groq">⚡ Groq only</option>
-        <option value="openrouter">🌐 OpenRouter only</option>
-      </select>
-      <label class="fl">Gemini API key <span style="color:var(--faint)">(<a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent-2)">aistudio.google.com/apikey</a>)</span></label>
-      <input type="password" v-model="gKeyInput" placeholder="AIza…" autocomplete="off">
-      <label class="fl">Groq API key <span style="color:var(--faint)">(<a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent-2)">console.groq.com/keys</a>)</span></label>
-      <input type="password" v-model="qKeyInput" placeholder="gsk_…" autocomplete="off">
-      <label class="fl">OpenRouter API key <span style="color:var(--faint)">(<a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent-2)">openrouter.ai/keys</a>)</span></label>
-      <input type="password" v-model="oKeyInput" placeholder="sk-or-…" autocomplete="off">
-      <label class="fl">OpenRouter model <span style="color:var(--faint)">(Myanmar အတွက် Gemini-family အကြံပြု)</span></label>
-      <input type="text" v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off">
-      <div class="modal-actions">
-        <button class="ai-btn ghost" @click="showSettings=false">Cancel</button>
-        <button class="ai-btn" @click="saveKeys">💾 Save</button>
-      </div>
+  <!-- AI settings dialog (Element Plus) -->
+  <el-dialog v-model="showSettings" title="⚙ AI Settings" width="min(460px, 94vw)">
+    <div style="font-size:.78rem;color:var(--faint);margin-bottom:12px;line-height:1.7">
+      Keys ကို ဤ browser ၏ localStorage တွင်သာ သိမ်းသည် — Note Taker tools များနှင့် မျှဝေသုံးသည်။
     </div>
-  </div>
+    <label class="fl">Provider</label>
+    <el-select v-model="aiPref" @change="savePrefs" style="width:100%">
+      <el-option value="auto" label="🔄 Auto — Gemini → Groq → OpenRouter"/>
+      <el-option value="gemini" label="✨ Gemini only"/>
+      <el-option value="groq" label="⚡ Groq only"/>
+      <el-option value="openrouter" label="🌐 OpenRouter only"/>
+    </el-select>
+    <label class="fl">Gemini API key <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent-2)">aistudio.google.com/apikey</a></label>
+    <el-input v-model="gKeyInput" type="password" show-password placeholder="AIza…" autocomplete="off"/>
+    <label class="fl">Groq API key <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent-2)">console.groq.com/keys</a></label>
+    <el-input v-model="qKeyInput" type="password" show-password placeholder="gsk_…" autocomplete="off"/>
+    <label class="fl">OpenRouter API key <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent-2)">openrouter.ai/keys</a></label>
+    <el-input v-model="oKeyInput" type="password" show-password placeholder="sk-or-…" autocomplete="off"/>
+    <label class="fl">OpenRouter model (Myanmar အတွက် Gemini-family အကြံပြု)</label>
+    <el-input v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off"/>
+    <template #footer>
+      <el-button @click="showSettings=false">Cancel</el-button>
+      <el-button type="primary" @click="saveKeys">💾 Save</el-button>
+    </template>
+  </el-dialog>
 
   <div class="cols">
     <div>
       <!-- Composer -->
       <div class="card">
         <label class="fl">💡 Topic / အကြောင်းအရာ</label>
-        <input type="text" v-model="cur.topic" placeholder="e.g. CSS Grid vs Flexbox — ဘယ်အချိန် ဘာသုံးမလဲ">
+        <el-input v-model="cur.topic" placeholder="e.g. CSS Grid vs Flexbox — ဘယ်အချိန် ဘာသုံးမလဲ" clearable/>
         <label class="fl">🎭 Style</label>
-        <div class="chips">
-          <button v-for="t in TEMPLATES" :key="t.k" class="chip" :class="{on:cur.template===t.k}" @click="cur.template=t.k">{{ t.label }}</button>
-        </div>
+        <el-segmented v-model="cur.template" :options="TEMPLATES.map(t=>({label:t.label, value:t.k}))" size="default" block/>
         <div class="ai-row">
-          <button class="ai-btn" @click="aiGenerate" :disabled="busy">{{ busy==='gen' ? '⏳ ရေးနေသည်…' : '✨ AI ဖြင့် EN+MM ရေးပေး' }}</button>
-          <button class="ai-btn ghost" @click="aiHashtags" :disabled="busy">{{ busy==='tag' ? '⏳' : '# Hashtags အကြံပြု' }}</button>
+          <el-button type="primary" @click="aiGenerate" :loading="busy==='gen'">✨ AI ဖြင့် EN+MM ရေးပေး</el-button>
+          <el-button @click="aiHashtags" :loading="busy==='tag'"># Hashtags အကြံပြု</el-button>
         </div>
       </div>
 
@@ -166,13 +148,13 @@
           <div>
             <div class="pane-head">
               <span class="t">🇬🇧 English</span>
-              <span>
-                <button class="mini" @click="aiTranslate('en2mm')" :disabled="busy">→ MM</button>
-                <button class="mini" @click="aiImprove('en')" :disabled="busy">✨ Improve</button>
-                <button class="mini" @click="copy(cur.en)">📋</button>
-              </span>
+              <el-button-group size="small">
+                <el-button size="small" @click="aiTranslate('en2mm')" :disabled="!!busy">→ MM</el-button>
+                <el-button size="small" @click="aiImprove('en')" :disabled="!!busy">✨ Improve</el-button>
+                <el-button size="small" @click="copy(cur.en)">📋</el-button>
+              </el-button-group>
             </div>
-            <textarea v-model="cur.en" rows="10" placeholder="English version…"></textarea>
+            <el-input v-model="cur.en" type="textarea" :rows="10" placeholder="English version…"/>
             <div style="margin-top:4px">
               <span class="cnt" :class="{over:cur.en.length>280}">X/Twitter: {{ cur.en.length }}/280</span> ·
               <span class="cnt" :class="{over:cur.en.length>2200}">IG: {{ cur.en.length }}/2200</span>
@@ -181,23 +163,23 @@
           <div>
             <div class="pane-head">
               <span class="t">🇲🇲 မြန်မာ</span>
-              <span>
-                <button class="mini" @click="aiTranslate('mm2en')" :disabled="busy">→ EN</button>
-                <button class="mini" @click="aiImprove('mm')" :disabled="busy">✨ ပိုကောင်းအောင်</button>
-                <button class="mini" @click="copy(cur.mm)">📋</button>
-              </span>
+              <el-button-group size="small">
+                <el-button size="small" @click="aiTranslate('mm2en')" :disabled="!!busy">→ EN</el-button>
+                <el-button size="small" @click="aiImprove('mm')" :disabled="!!busy">✨ ပိုကောင်းအောင်</el-button>
+                <el-button size="small" @click="copy(cur.mm)">📋</el-button>
+              </el-button-group>
             </div>
-            <textarea v-model="cur.mm" rows="10" placeholder="မြန်မာ ဗားရှင်း…"></textarea>
+            <el-input v-model="cur.mm" type="textarea" :rows="10" placeholder="မြန်မာ ဗားရှင်း…"/>
             <div style="margin-top:4px"><span class="cnt">{{ cur.mm.length }} chars</span></div>
           </div>
         </div>
         <label class="fl"># Hashtags</label>
-        <input type="text" v-model="cur.tags" placeholder="#webdev #coding #myanmar">
+        <el-input v-model="cur.tags" placeholder="#webdev #coding #myanmar"/>
         <div class="ai-row">
-          <button class="ai-btn ghost" @click="copyAll">📋 Copy: EN + MM + tags</button>
-          <button class="ai-btn ghost" @click="copyMmFirst">📋 Copy: MM + EN + tags</button>
-          <button class="ai-btn ghost" @click="saveCur('draft')">💾 Draft</button>
-          <button class="ai-btn" @click="saveCur('posted')">✅ Posted မှတ်မည်</button>
+          <el-button @click="copyAll">📋 EN + MM + tags</el-button>
+          <el-button @click="copyMmFirst">📋 MM + EN + tags</el-button>
+          <el-button @click="saveCur('draft')">💾 Draft</el-button>
+          <el-button type="success" @click="saveCur('posted')">✅ Posted မှတ်မည်</el-button>
         </div>
       </div>
     </div>
@@ -209,13 +191,13 @@
         <div v-for="(s,i) in tagSets" :key="i" class="tagset">
           <span class="n">{{ s.name }}</span>
           <span class="t">{{ s.tags }}</span>
-          <button @click="appendTags(s.tags)" title="Append">＋</button>
-          <button @click="tagSets.splice(i,1); save()" title="Delete">✕</button>
+          <el-button size="small" text @click="appendTags(s.tags)" title="Append">＋</el-button>
+          <el-button size="small" text @click="tagSets.splice(i,1); save()" title="Delete">✕</el-button>
         </div>
         <div style="display:flex; gap:6px; margin-top:8px">
-          <input type="text" v-model="newSetName" placeholder="Name" style="flex:0 0 84px">
-          <input type="text" v-model="newSetTags" placeholder="#tags…">
-          <button class="mini" @click="addTagSet">＋</button>
+          <el-input v-model="newSetName" placeholder="Name" style="flex:0 0 90px"/>
+          <el-input v-model="newSetTags" placeholder="#tags…"/>
+          <el-button @click="addTagSet">＋</el-button>
         </div>
       </div>
 
@@ -226,9 +208,13 @@
           <div v-for="p in postsSorted" :key="p.id" class="hist-item" @click="loadPost(p)">
             <div class="ht">{{ p.topic || p.en.slice(0,40) || p.mm.slice(0,40) || '(untitled)' }}</div>
             <div class="hd">
-              <span class="badge" :class="p.status">{{ p.status }}</span>
+              <el-tag :type="p.status==='posted' ? 'success' : 'warning'" size="small" effect="dark">{{ p.status }}</el-tag>
               <span>{{ new Date(p.t).toLocaleDateString() }}</span>
-              <button class="mini" @click.stop="delPost(p.id)" style="margin-left:auto">🗑</button>
+              <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delPost(p.id)">
+                <template #reference>
+                  <el-button size="small" text style="margin-left:auto" @click.stop>🗑</el-button>
+                </template>
+              </el-popconfirm>
             </div>
           </div>
         </div>
@@ -236,7 +222,6 @@
     </div>
   </div>
 </div>
-<div class="toast" :class="{show:toastMsg}">{{ toastMsg }}</div>
 </div>
 <div id="vue-loading">⏳ Loading…</div>
 
@@ -246,9 +231,10 @@
 <script defer src="_pwa.js"></script>
 <script defer src="_settings.js"></script>
 <script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
 <script>
-if (typeof Vue === 'undefined') {
-  document.getElementById('vue-loading').textContent = '⚠ Vue မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
 } else {
 const { createApp, ref, computed, onMounted } = Vue;
 const STORE = 'poststudio.v1';
@@ -263,14 +249,14 @@ const OMODEL_DEFAULT = 'google/gemini-2.0-flash-exp:free';   // free + strong My
 const PREF_KEY = 'creator.ai.provider';   // auto | gemini | groq | openrouter
 const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
 
-createApp({
+const app = createApp({
   setup() {
     const TEMPLATES = [
       { k: 'tip',      label: '💡 Tip' },
       { k: 'tutorial', label: '📚 Tutorial' },
-      { k: 'announce', label: '📣 Announcement' },
+      { k: 'announce', label: '📣 Announce' },
       { k: 'question', label: '❓ Question' },
-      { k: 'motivate', label: '🔥 Motivation' },
+      { k: 'motivate', label: '🔥 Motivate' },
     ];
     const TEMPLATE_HINTS = {
       tip: 'a short practical tip post with a strong hook line, 3-5 punchy lines, and a call-to-action to follow the page',
@@ -284,12 +270,14 @@ createApp({
     const posts = ref([]);
     const tagSets = ref([]);
     const newSetName = ref(''); const newSetTags = ref('');
-    const busy = ref(''); const toastMsg = ref('');
+    const busy = ref('');
     const hasKey = computed(() => !!(localStorage.getItem(GKEY) || localStorage.getItem(QKEY) || localStorage.getItem(OKEY)));
     const showSettings = ref(false);
     const aiPref = ref(localStorage.getItem(PREF_KEY) || 'auto');
     const gKeyInput = ref(''); const qKeyInput = ref('');
     const oKeyInput = ref(''); const oModelInput = ref('');
+
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 3200 });
 
     function load() {
       try {
@@ -325,7 +313,7 @@ createApp({
     function copyAll() { copy([cur.value.en, cur.value.mm, cur.value.tags].filter(Boolean).join('\n\n')); }
     function copyMmFirst() { copy([cur.value.mm, cur.value.en, cur.value.tags].filter(Boolean).join('\n\n')); }
 
-    // ---- AI providers: Gemini + Groq with Auto fallback ----
+    // ---- AI providers: Gemini + Groq + OpenRouter with Auto fallback ----
     function geminiModel() {
       const m = localStorage.getItem(GMODEL);
       if (m && VALID_MODELS.includes(m)) return m;
@@ -364,38 +352,24 @@ createApp({
       const d = await res.json();
       return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
     }
-    async function callGroq(prompt) {
-      const key = localStorage.getItem(QKEY);
-      if (!key) throw new Error('Groq key မရှိပါ');
-      const model = localStorage.getItem(QMODEL) || 'llama-3.3-70b-versatile';
-      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+    async function callChatApi(url, key, model, prompt, label) {
+      if (!key) throw new Error(label + ' key မရှိပါ');
+      const res = await fetch(url, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
         body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 2000 }),
       });
       if (!res.ok) {
         let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
-        throw new Error(`Groq ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
+        throw new Error(`${label} ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
       }
       const d = await res.json();
       return d.choices?.[0]?.message?.content || '';
     }
-    async function callOpenRouter(prompt) {
-      const key = localStorage.getItem(OKEY);
-      if (!key) throw new Error('OpenRouter key မရှိပါ');
-      const model = localStorage.getItem(OMODEL) || OMODEL_DEFAULT;
-      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 2000 }),
-      });
-      if (!res.ok) {
-        let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
-        throw new Error(`OpenRouter ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
-      }
-      const d = await res.json();
-      return d.choices?.[0]?.message?.content || '';
-    }
+    const callGroq = p => callChatApi('https://api.groq.com/openai/v1/chat/completions',
+      localStorage.getItem(QKEY), localStorage.getItem(QMODEL) || 'llama-3.3-70b-versatile', p, 'Groq');
+    const callOpenRouter = p => callChatApi('https://openrouter.ai/api/v1/chat/completions',
+      localStorage.getItem(OKEY), localStorage.getItem(OMODEL) || OMODEL_DEFAULT, p, 'OpenRouter');
     // Provider router: honors the setting; Auto tries Gemini → Groq → OpenRouter
     async function gemini(prompt) {
       const pref = localStorage.getItem(PREF_KEY) || 'auto';
@@ -404,7 +378,6 @@ createApp({
       if (pref === 'gemini') return callGemini(prompt);
       if (pref === 'groq') return callGroq(prompt);
       if (pref === 'openrouter') return callOpenRouter(prompt);
-      // auto — first configured provider wins; on failure fall through to the next
       const chain = [
         hasG && { name: 'Gemini', fn: callGemini },
         hasQ && { name: 'Groq', fn: callGroq },
@@ -415,14 +388,14 @@ createApp({
         try { return await chain[i].fn(prompt); }
         catch (e) {
           lastErr = e;
-          if (i < chain.length - 1) toast(`${chain[i].name} မရ — ${chain[i + 1].name} ဖြင့် ဆက်လုပ်နေသည်…`);
+          if (i < chain.length - 1) toast(`${chain[i].name} မရ — ${chain[i + 1].name} ဖြင့် ဆက်လုပ်နေသည်…`, 'warning');
         }
       }
       throw lastErr;
     }
 
     async function aiGenerate() {
-      if (!cur.value.topic.trim()) { toast('Topic အရင်ရေးပါ'); return; }
+      if (!cur.value.topic.trim()) { toast('Topic အရင်ရေးပါ', 'warning'); return; }
       busy.value = 'gen';
       try {
         const txt = await gemini(
@@ -440,7 +413,7 @@ Return EXACTLY this format (no extra commentary):
         if (mm) cur.value.mm = mm;
         if (!en && !mm) cur.value.en = txt.trim();
         toast('✨ ရေးပြီးပါပြီ — စိစစ်ပြီး ပြင်ဆင်ပါ');
-      } catch (e) { toast('⚠ ' + e.message); }
+      } catch (e) { toast('⚠ ' + e.message, 'error'); }
       busy.value = '';
     }
     async function aiTranslate(dir) {
@@ -452,7 +425,7 @@ Return EXACTLY this format (no extra commentary):
           ? `Translate this social post to natural Myanmar (Burmese) suitable for a Facebook audience. Keep hashtags/emojis. Return only the translation:\n\n${src}`
           : `Translate this social post to natural English suitable for a Facebook audience. Keep hashtags/emojis. Return only the translation:\n\n${src}`);
         if (dir === 'en2mm') cur.value.mm = out.trim(); else cur.value.en = out.trim();
-      } catch (e) { toast('⚠ ' + e.message); }
+      } catch (e) { toast('⚠ ' + e.message, 'error'); }
       busy.value = '';
     }
     async function aiImprove(lang) {
@@ -462,7 +435,7 @@ Return EXACTLY this format (no extra commentary):
       try {
         const out = await gemini(`Improve this ${lang === 'en' ? 'English' : 'Myanmar (Burmese)'} social media post: stronger hook, better flow, keep the same meaning and language. Return only the improved post:\n\n${src}`);
         if (lang === 'en') cur.value.en = out.trim(); else cur.value.mm = out.trim();
-      } catch (e) { toast('⚠ ' + e.message); }
+      } catch (e) { toast('⚠ ' + e.message, 'error'); }
       busy.value = '';
     }
     async function aiHashtags() {
@@ -472,25 +445,24 @@ Return EXACTLY this format (no extra commentary):
       try {
         const out = await gemini(`Suggest 8-12 relevant hashtags for this web-development/education social post (mix of popular + niche, include 1-2 Myanmar ones). Return only hashtags space-separated:\n\n${base}`);
         cur.value.tags = out.trim().replace(/\n+/g, ' ');
-      } catch (e) { toast('⚠ ' + e.message); }
+      } catch (e) { toast('⚠ ' + e.message, 'error'); }
       busy.value = '';
     }
-
-    let tt = null;
-    function toast(m) { toastMsg.value = m; clearTimeout(tt); tt = setTimeout(() => toastMsg.value = '', 3200); }
 
     onMounted(() => { load(); document.getElementById('vue-loading').style.display = 'none'; });
 
     return {
-      TEMPLATES, cur, posts, postsSorted, tagSets, newSetName, newSetTags, busy, toastMsg, hasKey,
-      newPost, saveCur, loadPost, delPost, addTagSet, appendTags,
+      TEMPLATES, cur, posts, postsSorted, tagSets, newSetName, newSetTags, busy, hasKey,
+      newPost, saveCur, loadPost, delPost, addTagSet, appendTags, save,
       copy, copyAll, copyMmFirst,
       showSettings, aiPref, gKeyInput, qKeyInput, oKeyInput, oModelInput,
       openSettings, savePrefs, saveKeys,
       aiGenerate, aiTranslate, aiImprove, aiHashtags,
     };
   }
-}).mount('#app');
+});
+app.use(ElementPlus);
+app.mount('#app');
 }
 </script>
 </body>
