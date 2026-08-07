@@ -3,7 +3,7 @@
 // offline fallback for navigation to any cached tool.
 // Bump CACHE_VERSION to force clients to fetch fresh copies.
 
-const CACHE_VERSION = 'utilities-v44';
+const CACHE_VERSION = 'utilities-v45';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -47,6 +47,7 @@ const PRECACHE_URLS = [
   './_motion.js',
   './_motion.css',
   './manifest.json',
+  './favicon.svg',
 ];
 
 // External API hosts — always go network-first (never cache LLM responses).
