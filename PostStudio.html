@@ -92,6 +92,16 @@
     background:var(--card2); border:1px solid var(--field-border); color:var(--text); padding:10px 20px;
     border-radius:999px; font-size:.85rem; opacity:0; transition:all .3s; z-index:99; }
   .toast.show { opacity:1; transform:translateX(-50%) translateY(0); }
+
+  /* Settings modal */
+  .overlay { position:fixed; inset:0; background:rgba(5,7,10,.65); backdrop-filter:blur(4px);
+    display:flex; align-items:center; justify-content:center; padding:16px; z-index:120; }
+  .modal { background:var(--card); border:1px solid rgba(255,255,255,.1); border-radius:16px;
+    padding:22px; width:100%; max-width:440px; }
+  .modal h2 { font-size:1rem; margin-bottom:4px; }
+  .modal .hint { font-size:.74rem; color:var(--faint); margin-bottom:12px; line-height:1.6; }
+  .modal .hint a { color:var(--accent-2); }
+  .modal-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:16px; }
 </style>
 </head>
 <body>
@@ -104,8 +114,35 @@
       <div class="sub">EN + မြန်မာ bilingual composer — Myo's Learing Lab and WebDev Academy</div>
     </div>
     <button class="hbtn" @click="newPost">＋ New</button>
-    <button class="hbtn" @click="keyModal" :title="hasKey?'Gemini key set':'Set Gemini key'">🔑</button>
+    <button class="hbtn" @click="openSettings" :title="hasKey?'AI settings':'Set AI keys'">⚙ AI</button>
   </header>
+
+  <!-- AI settings modal -->
+  <div class="overlay" v-if="showSettings" @click.self="showSettings=false">
+    <div class="modal">
+      <h2>⚙ AI Settings</h2>
+      <div class="hint">Keys ကို ဤ browser ၏ localStorage တွင်သာ သိမ်းသည် — Note Taker tools များနှင့် မျှဝေသုံးသည်။</div>
+      <label class="fl">Provider</label>
+      <select v-model="aiPref" @change="savePrefs">
+        <option value="auto">🔄 Auto — Gemini → Groq → OpenRouter</option>
+        <option value="gemini">✨ Gemini only</option>
+        <option value="groq">⚡ Groq only</option>
+        <option value="openrouter">🌐 OpenRouter only</option>
+      </select>
+      <label class="fl">Gemini API key <span style="color:var(--faint)">(<a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent-2)">aistudio.google.com/apikey</a>)</span></label>
+      <input type="password" v-model="gKeyInput" placeholder="AIza…" autocomplete="off">
+      <label class="fl">Groq API key <span style="color:var(--faint)">(<a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent-2)">console.groq.com/keys</a>)</span></label>
+      <input type="password" v-model="qKeyInput" placeholder="gsk_…" autocomplete="off">
+      <label class="fl">OpenRouter API key <span style="color:var(--faint)">(<a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent-2)">openrouter.ai/keys</a>)</span></label>
+      <input type="password" v-model="oKeyInput" placeholder="sk-or-…" autocomplete="off">
+      <label class="fl">OpenRouter model <span style="color:var(--faint)">(Myanmar အတွက် Gemini-family အကြံပြု)</span></label>
+      <input type="text" v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off">
+      <div class="modal-actions">
+        <button class="ai-btn ghost" @click="showSettings=false">Cancel</button>
+        <button class="ai-btn" @click="saveKeys">💾 Save</button>
+      </div>
+    </div>
+  </div>
 
   <div class="cols">
     <div>
@@ -215,9 +252,15 @@ if (typeof Vue === 'undefined') {
 } else {
 const { createApp, ref, computed, onMounted } = Vue;
 const STORE = 'poststudio.v1';
-// Shared with the AI Note Taker tools — one Gemini key across the suite
+// Shared with the AI Note Taker tools — one set of keys across the suite
 const GKEY = 'ainotes.enterprise.gemini.key';
 const GMODEL = 'ainotes.enterprise.gemini.model';
+const QKEY = 'ainotes.apikey.groq';
+const QMODEL = 'ainotes.model.groq';
+const OKEY = 'creator.apikey.openrouter';
+const OMODEL = 'creator.model.openrouter';
+const OMODEL_DEFAULT = 'google/gemini-2.0-flash-exp:free';   // free + strong Myanmar
+const PREF_KEY = 'creator.ai.provider';   // auto | gemini | groq | openrouter
 const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
 
 createApp({
@@ -242,7 +285,11 @@ createApp({
     const tagSets = ref([]);
     const newSetName = ref(''); const newSetTags = ref('');
     const busy = ref(''); const toastMsg = ref('');
-    const hasKey = computed(() => !!localStorage.getItem(GKEY));
+    const hasKey = computed(() => !!(localStorage.getItem(GKEY) || localStorage.getItem(QKEY) || localStorage.getItem(OKEY)));
+    const showSettings = ref(false);
+    const aiPref = ref(localStorage.getItem(PREF_KEY) || 'auto');
+    const gKeyInput = ref(''); const qKeyInput = ref('');
+    const oKeyInput = ref(''); const oModelInput = ref('');
 
     function load() {
       try {
@@ -278,20 +325,34 @@ createApp({
     function copyAll() { copy([cur.value.en, cur.value.mm, cur.value.tags].filter(Boolean).join('\n\n')); }
     function copyMmFirst() { copy([cur.value.mm, cur.value.en, cur.value.tags].filter(Boolean).join('\n\n')); }
 
-    // ---- Gemini ----
+    // ---- AI providers: Gemini + Groq with Auto fallback ----
     function geminiModel() {
       const m = localStorage.getItem(GMODEL);
       if (m && VALID_MODELS.includes(m)) return m;
       if (m) localStorage.setItem(GMODEL, 'gemini-2.5-flash');
       return 'gemini-2.5-flash';
     }
-    function keyModal() {
-      const k = prompt('Gemini API key (aistudio.google.com/apikey မှ အခမဲ့ရနိုင်):', localStorage.getItem(GKEY) || '');
-      if (k !== null) { k.trim() ? localStorage.setItem(GKEY, k.trim()) : localStorage.removeItem(GKEY); }
+    function openSettings() {
+      gKeyInput.value = localStorage.getItem(GKEY) || '';
+      qKeyInput.value = localStorage.getItem(QKEY) || '';
+      oKeyInput.value = localStorage.getItem(OKEY) || '';
+      oModelInput.value = localStorage.getItem(OMODEL) || OMODEL_DEFAULT;
+      aiPref.value = localStorage.getItem(PREF_KEY) || 'auto';
+      showSettings.value = true;
     }
-    async function gemini(prompt) {
+    function savePrefs() { localStorage.setItem(PREF_KEY, aiPref.value); }
+    function saveKeys() {
+      gKeyInput.value.trim() ? localStorage.setItem(GKEY, gKeyInput.value.trim()) : localStorage.removeItem(GKEY);
+      qKeyInput.value.trim() ? localStorage.setItem(QKEY, qKeyInput.value.trim()) : localStorage.removeItem(QKEY);
+      oKeyInput.value.trim() ? localStorage.setItem(OKEY, oKeyInput.value.trim()) : localStorage.removeItem(OKEY);
+      oModelInput.value.trim() ? localStorage.setItem(OMODEL, oModelInput.value.trim()) : localStorage.removeItem(OMODEL);
+      savePrefs();
+      showSettings.value = false;
+      toast('🔑 သိမ်းပြီး — ' + (localStorage.getItem(GKEY) ? 'Gemini ✓ ' : '') + (localStorage.getItem(QKEY) ? 'Groq ✓ ' : '') + (localStorage.getItem(OKEY) ? 'OpenRouter ✓' : ''));
+    }
+    async function callGemini(prompt) {
       const key = localStorage.getItem(GKEY);
-      if (!key) { keyModal(); throw new Error('API key လိုအပ်ပါသည်'); }
+      if (!key) throw new Error('Gemini key မရှိပါ');
       const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel()}:generateContent?key=${encodeURIComponent(key)}`, {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
@@ -302,6 +363,62 @@ createApp({
       }
       const d = await res.json();
       return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+    async function callGroq(prompt) {
+      const key = localStorage.getItem(QKEY);
+      if (!key) throw new Error('Groq key မရှိပါ');
+      const model = localStorage.getItem(QMODEL) || 'llama-3.3-70b-versatile';
+      const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 2000 }),
+      });
+      if (!res.ok) {
+        let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
+        throw new Error(`Groq ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
+      }
+      const d = await res.json();
+      return d.choices?.[0]?.message?.content || '';
+    }
+    async function callOpenRouter(prompt) {
+      const key = localStorage.getItem(OKEY);
+      if (!key) throw new Error('OpenRouter key မရှိပါ');
+      const model = localStorage.getItem(OMODEL) || OMODEL_DEFAULT;
+      const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 2000 }),
+      });
+      if (!res.ok) {
+        let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
+        throw new Error(`OpenRouter ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
+      }
+      const d = await res.json();
+      return d.choices?.[0]?.message?.content || '';
+    }
+    // Provider router: honors the setting; Auto tries Gemini → Groq → OpenRouter
+    async function gemini(prompt) {
+      const pref = localStorage.getItem(PREF_KEY) || 'auto';
+      const hasG = !!localStorage.getItem(GKEY), hasQ = !!localStorage.getItem(QKEY), hasO = !!localStorage.getItem(OKEY);
+      if (!hasG && !hasQ && !hasO) { openSettings(); throw new Error('API key ထည့်ပါ (⚙ AI)'); }
+      if (pref === 'gemini') return callGemini(prompt);
+      if (pref === 'groq') return callGroq(prompt);
+      if (pref === 'openrouter') return callOpenRouter(prompt);
+      // auto — first configured provider wins; on failure fall through to the next
+      const chain = [
+        hasG && { name: 'Gemini', fn: callGemini },
+        hasQ && { name: 'Groq', fn: callGroq },
+        hasO && { name: 'OpenRouter', fn: callOpenRouter },
+      ].filter(Boolean);
+      let lastErr = null;
+      for (let i = 0; i < chain.length; i++) {
+        try { return await chain[i].fn(prompt); }
+        catch (e) {
+          lastErr = e;
+          if (i < chain.length - 1) toast(`${chain[i].name} မရ — ${chain[i + 1].name} ဖြင့် ဆက်လုပ်နေသည်…`);
+        }
+      }
+      throw lastErr;
     }
 
     async function aiGenerate() {
@@ -367,7 +484,9 @@ Return EXACTLY this format (no extra commentary):
     return {
       TEMPLATES, cur, posts, postsSorted, tagSets, newSetName, newSetTags, busy, toastMsg, hasKey,
       newPost, saveCur, loadPost, delPost, addTagSet, appendTags,
-      copy, copyAll, copyMmFirst, keyModal,
+      copy, copyAll, copyMmFirst,
+      showSettings, aiPref, gKeyInput, qKeyInput, oKeyInput, oModelInput,
+      openSettings, savePrefs, saveKeys,
       aiGenerate, aiTranslate, aiImprove, aiHashtags,
     };
   }
