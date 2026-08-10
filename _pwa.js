@@ -12,8 +12,11 @@
       navigator.serviceWorker.register('sw.js', { scope: './' })
         .then(reg => {
           // console.info('[PWA] Service Worker registered', reg.scope);
-          // Check for updates every 30 min
+          // Check for updates every 30 min AND whenever the app regains focus
           setInterval(() => reg.update().catch(() => {}), 30 * 60 * 1000);
+          document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') reg.update().catch(() => {});
+          });
 
           // ---- Auto-update banner ----
           // A new SW is "waiting" once installed while an old one still controls the page.
