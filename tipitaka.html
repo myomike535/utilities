@@ -419,6 +419,9 @@
   .fetch-progress { margin-top: 10px; }
   .fp-bar { height: 8px; background: var(--accent-soft); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
   .fp-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s; }
+  /* Indeterminate mode — single fetch has no known total, show a sweeping bar */
+  .fp-fill.indet { width: 40% !important; transition: none; animation: fpSweep 1.1s linear infinite; }
+  @keyframes fpSweep { from { transform: translateX(-110%); } to { transform: translateX(280%); } }
   .fp-label { font-size: 12px; color: var(--muted); font-family: 'Consolas', monospace; }
   .fetch-cancel { margin-top: 6px; padding: 4px 12px; border: 1px solid var(--accent); border-radius: 16px; background: transparent; color: var(--accent); font-size: 12px; cursor: pointer; font-family: inherit; }
   .fetch-status { font-size: 13px; color: var(--muted); min-height: 22px; margin-bottom: 8px; }
@@ -681,9 +684,9 @@
         </div>
 
         <div class="fetch-progress" id="fetchProgress" v-show="progress.show">
-          <div class="fp-bar"><div class="fp-fill" id="fpFill" :style="{ width: progress.pct + '%' }"></div></div>
+          <div class="fp-bar"><div class="fp-fill" id="fpFill" :class="{ indet: progress.indet }" :style="progress.indet ? {} : { width: progress.pct + '%' }"></div></div>
           <div class="fp-label" id="fpLabel">{{ progress.label }}</div>
-          <button class="fetch-cancel" id="fetchCancel" @click="batchCancel = true">ရပ်မည်</button>
+          <button v-if="!progress.indet" class="fetch-cancel" id="fetchCancel" @click="batchCancel = true">ရပ်မည်</button>
         </div>
         <p class="fetch-note" style="margin-top:6px;">⚠ SN (၇၇၆၂) နှင့် AN (၉၅၅၇) သည် သုတ်များ များလွန်း၍ တစ်ခုချင်း ရယူပါ (batch မရ)။</p>
       </div>
@@ -2141,7 +2144,7 @@
   const sectionInputEl = ref(null);
   const batchBusy = ref(false);
   const batchCancel = ref(false);
-  const progress = reactive({ show: false, pct: 0, label: '' });
+  const progress = reactive({ show: false, pct: 0, label: '', indet: false });
   function setFetchStatus(kind, text) { fetchStatusKind.value = kind; fetchStatusText.value = text; }
 
   function openFetch() {
@@ -2154,8 +2157,10 @@
   async function doFetch() {
     const uid = fetchUid.value.trim();
     if (!uid) { if (fetchInputEl.value) fetchInputEl.value.focus(); return; }
-    setFetchStatus('', `⏳ ${uid} ရယူနေသည်...`);
+    setFetchStatus('', '');
     fetchBusy.value = true;
+    progress.show = true; progress.indet = true; progress.pct = 0;
+    progress.label = `⏳ ${uid} — SuttaCentral မှ ရယူနေသည်...`;
     try {
       const key = await fetchFromSC(uid);
       setFetchStatus('ok', `✅ ရရှိပြီး — ဖတ်ရန် ဖွင့်နေသည်...`);
@@ -2171,6 +2176,7 @@
       setFetchStatus('err', '⚠ ' + msg);
     } finally {
       fetchBusy.value = false;
+      progress.indet = false; progress.show = false;
     }
   }
 
@@ -2180,7 +2186,7 @@
     if (!spec) return;
     batchCancel.value = false;
     const uids = spec.list ? spec.list.slice() : Array.from({ length: spec.count }, (_, i) => spec.uid(i + 1));
-    progress.show = true; progress.pct = 0;
+    progress.show = true; progress.pct = 0; progress.indet = false;
     batchBusy.value = true;
     setFetchStatus('', '');
     let done = 0, ok = 0, fail = 0;
@@ -2208,7 +2214,7 @@
   // The button carries its own code (data-multi) + book count, so clicking auto-knows what to pull.
   async function multiSectionFetch(base, maxBook, name) {
     batchCancel.value = false;
-    progress.show = true; progress.pct = 0;
+    progress.show = true; progress.pct = 0; progress.indet = false;
     batchBusy.value = true;
     setFetchStatus('', '');
     let ok = 0, tried = 0;
@@ -2251,7 +2257,7 @@
     prefix = prefix.trim().toLowerCase().replace(/[.\s]+$/, '');
     if (!prefix) return;
     batchCancel.value = false;
-    progress.show = true; progress.pct = 0;
+    progress.show = true; progress.pct = 0; progress.indet = false;
     batchBusy.value = true;
     setFetchStatus('', '');
     // If prefix has no number-dot, some books are flat (dn1, ud1). Detect: if prefix ends in a letter, use "prefix{n}"; else "prefix.{n}"
