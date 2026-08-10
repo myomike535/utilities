@@ -646,93 +646,15 @@
     .sutta { padding: 16px 18px; }
     .sutta .s-my { font-size: 1.15rem; }
   }
+
+  /* Hide the app until Vue compiles the template (prevents raw {{ }} flash) */
+  [v-cloak] { display: none !important; }
+  #vue-loading {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 60vh; color: var(--ink-mute);
+    font-family: var(--serif); font-style: italic; font-size: 1rem;
+  }
 </style>
-</head>
-<body>
-  <div class="app">
-    <header>
-      <div class="title">
-        <h1>ပိဋကတ်သုံးပုံ · Tipiṭaka</h1>
-        <div class="subtitle">မြန်မာဘာသာပြန် · The Three Baskets (Myanmar Translation)</div>
-      </div>
-      <div class="header-actions">
-        <a class="icon-btn" href="index.html" title="Home">🏠</a>
-        <button class="icon-btn" id="themeBtn" title="Theme">📜</button>
-        <button class="icon-btn" id="favToggle" title="Favorites">⭐</button>
-        <button class="icon-btn" id="fetchBtn" title="SuttaCentral မှ သုတ် ရယူရန် · Fetch real suttas (Myanmar + Pāḷi)">🌐</button>
-        <button class="icon-btn" id="importBtn" title="ပိဋကတ် Data ထည့်သွင်းရန် · Import full Tipiṭaka data (JSON)">⬆</button>
-        <button class="icon-btn" id="dataBtn" title="Imported data status">💾</button>
-        <input type="file" id="importFile" accept="application/json,.json" style="display:none">
-      </div>
-    </header>
-
-    <div class="search-bar">
-      <input type="text" id="searchInput" placeholder="🔍 ရှာဖွေရန် — သုတ်၊ ကျမ်း၊ ဘာသာပြန် (Search suttas, books, translations)">
-    </div>
-
-    <div class="pitaka-nav" id="pitakaNav"></div>
-
-    <div class="content" id="content"></div>
-
-    <div class="stats" id="stats"></div>
-  </div>
-
-  <div class="fetch-backdrop" id="fetchModal">
-    <div class="fetch-panel">
-      <div class="fetch-head">
-        <h2>🌐 SuttaCentral မှ သုတ် ရယူရန်</h2>
-        <button class="fetch-close" id="fetchClose">✕</button>
-      </div>
-      <p class="fetch-sub">Sutta ID ထည့်၍ တကယ့် မြန်မာဘာသာပြန် (Pitaka Myanmar Translation) + Pāḷi ကို ရယူပါ။ Offline သိမ်းထားပါမည်။</p>
-      <div class="fetch-row">
-        <input type="text" id="fetchInput" placeholder="e.g. dn31 · mn10 · sn56.11 · an3.65 · dhp1">
-        <button class="fetch-go" id="fetchGo">ရယူမည်</button>
-      </div>
-      <div class="fetch-quick" id="fetchQuick"></div>
-
-      <div class="fetch-batch">
-        <div class="fetch-batch-title">📥 တစ်နိကာယ်လုံး ရယူရန် · Batch fetch a whole Nikāya</div>
-        <div class="fetch-batch-btns">
-          <button class="fetch-batch-btn" data-nikaya="dn">ဒီဃနိကာယ် (34)</button>
-          <button class="fetch-batch-btn" data-nikaya="mn">မဇ္ဈိမနိကာယ် (152)</button>
-          <button class="fetch-batch-btn" data-nikaya="snMajor">သံယုတ္တ ⭐ (21)</button>
-          <button class="fetch-batch-btn" data-nikaya="anMajor">အင်္ဂုတ္တရ ⭐ (17)</button>
-          <button class="fetch-batch-btn" data-nikaya="kp">ခုဒ္ဒကပါဌ (9)</button>
-          <button class="fetch-batch-btn" data-nikaya="ud">ဥဒါန် (80)</button>
-          <button class="fetch-batch-btn" data-nikaya="iti">ဣတိဝုတ် (112)</button>
-          <button class="fetch-batch-btn" data-nikaya="snp">သုတ်နိပါတ် (71)</button>
-          <button class="fetch-batch-btn" data-nikaya="vv">ဝိမာနဝတ္ထု (85)</button>
-          <button class="fetch-batch-btn" data-nikaya="pv">ပေတဝတ္ထု (51)</button>
-          <button class="fetch-batch-btn" data-nikaya="bv">ဗုဒ္ဓဝင် (29)</button>
-          <button class="fetch-batch-btn" data-multi="thag" data-books="21">ထေရဂါထာ (auto)</button>
-          <button class="fetch-batch-btn" data-multi="thig" data-books="16">ထေရီဂါထာ (auto)</button>
-          <button class="fetch-batch-btn" data-multi="cp" data-books="3">စရိယာပိဋက (auto)</button>
-          <button class="fetch-batch-btn" data-nikaya="ja">ဇာတ် ၅၄၇ (547 · ကြာသည်)</button>
-        </div>
-        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
-          <div class="fetch-batch-title">🔢 အပိုင်းတစ်ခုလုံး ရယူရန် · Fetch any section by prefix</div>
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <input type="text" id="sectionInput" placeholder="e.g. sn12 · an5 · thag1 · vv · pv" style="flex:1;min-width:140px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--paper-2);color:var(--ink);font-family:'Consolas',monospace;font-size:0.85rem;outline:none;">
-            <button class="fetch-batch-btn" id="sectionGo">ရယူမည်</button>
-          </div>
-          <p class="fetch-note" style="margin-top:4px;">Prefix ထည့်လျှင် {prefix}.1, {prefix}.2 … ကို ဆက်တိုက် ရယူ၍ အဆုံးထိ (consecutive miss ၅ ကြိမ်တွင် ရပ်)။ Section list: sn1-56, an1-11, thag/thig, ja (jātaka), vv, pv, bv, cp.</p>
-        </div>
-
-        <div class="fetch-progress" id="fetchProgress" style="display:none">
-          <div class="fp-bar"><div class="fp-fill" id="fpFill"></div></div>
-          <div class="fp-label" id="fpLabel"></div>
-          <button class="fetch-cancel" id="fetchCancel">ရပ်မည်</button>
-        </div>
-        <p class="fetch-note" style="margin-top:6px;">⚠ SN (၇၇၆၂) နှင့် AN (၉၅၅၇) သည် သုတ်များ များလွန်း၍ တစ်ခုချင်း ရယူပါ (batch မရ)။</p>
-      </div>
-
-      <div class="fetch-status" id="fetchStatus"></div>
-      <p class="fetch-note">💡 ID format: နိကာယ်အတိုကောက် + နံပါတ် (dn=ဒီဃ, mn=မဇ္ဈိမ, sn=သံယုတ္တ, an=အင်္ဂုတ္တရ, dhp=ဓမ္မပဒ)။ ရယူပြီးသော သုတ်များ Sutta Piṭaka ၏ အောက်ဆုံးတွင် ပေါ်ပါမည်။</p>
-    </div>
-  </div>
-
-  <div class="toast" id="toast"></div>
-
 <style>
   .fetch-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: flex-start; justify-content: center; padding: 8vh 16px; z-index: 950; }
   .fetch-backdrop.show { display: flex; }
@@ -771,6 +693,244 @@
     .fetch-row { flex-direction: column; }
   }
 </style>
+</head>
+<body>
+  <div id="vue-loading">📖 ဖွင့်နေသည်...</div>
+
+  <div id="app" v-cloak>
+  <div class="app">
+    <header>
+      <div class="title">
+        <h1>ပိဋကတ်သုံးပုံ · Tipiṭaka</h1>
+        <div class="subtitle">မြန်မာဘာသာပြန် · The Three Baskets (Myanmar Translation)</div>
+      </div>
+      <div class="header-actions">
+        <a class="icon-btn" href="index.html" title="Home">🏠</a>
+        <button class="icon-btn" id="themeBtn" title="Theme" @click="cycleTheme">{{ themeIcon }}</button>
+        <button class="icon-btn" id="favToggle" title="Favorites" @click="showFavorites">⭐</button>
+        <button class="icon-btn" id="fetchBtn" title="SuttaCentral မှ သုတ် ရယူရန် · Fetch real suttas (Myanmar + Pāḷi)" @click="openFetch()">🌐</button>
+        <button class="icon-btn" id="importBtn" title="ပိဋကတ် Data ထည့်သွင်းရန် · Import full Tipiṭaka data (JSON)" @click="importFileEl && importFileEl.click()">⬆</button>
+        <button class="icon-btn" id="dataBtn" :title="dataBtnTitle" :style="dataBtnStyle" @click="dataBtnClick">💾</button>
+        <input type="file" id="importFile" ref="importFileEl" accept="application/json,.json" style="display:none" @change="onImportFile">
+      </div>
+    </header>
+
+    <div class="search-bar">
+      <input type="text" id="searchInput" v-model="searchText" placeholder="🔍 ရှာဖွေရန် — သုတ်၊ ကျမ်း၊ ဘာသာပြန် (Search suttas, books, translations)">
+    </div>
+
+    <div class="pitaka-nav" id="pitakaNav">
+      <button v-for="p in pitakas" :key="p.id" class="p-btn" :class="{ active: p.id === activePitaka }" @click="selectPitaka(p.id)"><span class="p-my">{{ p.my }}</span>{{ p.pali }}</button>
+    </div>
+
+    <div class="content" id="content">
+
+      <!-- ══════════ Full-text search results ══════════ -->
+      <template v-if="searchQ">
+        <div>
+          <div class="section-title">🔍 ရှာဖွေမှု ရလဒ်</div>
+          <div class="section-sub">"{{ searchQ }}" — {{ searchTotal }} ခု တွေ့သည် (သုတ် {{ searchResults.suttaHits.length }} · ကျမ်း {{ searchResults.bookHits.length }})</div>
+        </div>
+        <div class="book-list">
+          <div v-for="hit in searchResults.suttaHits.slice(0, 100)" :key="hit.key" class="book-card search-hit" @click="openHit(hit.key)">
+            <div class="b-head"><div>
+              <span class="b-my">{{ hit.s._fetched ? '🌐 ' : '📖 ' }}{{ hit.s.my }}</span>
+              <span class="b-name">· {{ hit.s.pali }}</span>
+            </div><div><span class="b-count">{{ hit.where ? hit.where + ' ထဲတွင်' : 'ခေါင်းစဉ်' }} · ဖတ်ရန် ▸</span></div></div>
+            <div v-if="hit.snippet" class="b-desc search-snippet" v-html="hit.snippet"></div>
+            <div v-else class="b-desc">{{ hit.s.source || '' }}</div>
+          </div>
+          <div v-if="searchResults.suttaHits.length > 100" style="text-align:center;padding:8px;color:var(--ink-mute);font-size:0.82rem;font-style:italic;">…နောက်ထပ် {{ searchResults.suttaHits.length - 100 }} ခု — ရှာဖွေစာသား ပိုတိကျအောင် ရိုက်ပါ</div>
+          <div v-for="(bh, i) in searchResults.bookHits" :key="'b' + i" class="book-card" @click="openBookHit(bh)">
+            <div class="b-head"><div><span class="b-my">📚 {{ bh.b.my }}</span> <span class="b-name">· {{ bh.b.pali }}</span></div><div><span class="b-count">{{ bh.p.my }}</span></div></div>
+            <div class="b-desc">{{ bh.b.desc || '' }}</div>
+          </div>
+          <div v-if="!searchTotal" style="text-align:center;padding:20px;color:var(--ink-mute);font-style:italic;">မတွေ့ပါ။ (No matches.)<br><span style="font-size:0.8rem">🌐 ဖြင့် သုတ်များ ထပ်ရယူပြီး ရှာနိုင်ပါသည်</span></div>
+        </div>
+      </template>
+
+      <!-- ══════════ Favorites view ══════════ -->
+      <template v-else-if="showFavs">
+        <div>
+          <div class="section-title">⭐ ကြိုက်နှစ်သက်ရာ · Favorites</div>
+          <div class="section-sub">{{ favsCount }} suttas</div>
+        </div>
+        <div class="book-list">
+          <div v-for="f in favList" :key="f.key" class="book-card" @click="openSutta(f.key)">
+            <div class="b-head"><div><span class="b-my">{{ f.s.my }}</span> <span class="b-name">· {{ f.s.pali }}</span></div><div><span class="b-count">📖 open</span></div></div>
+            <div class="b-desc">{{ f.s.source }}</div>
+          </div>
+        </div>
+      </template>
+
+      <!-- ══════════ Sutta reader ══════════ -->
+      <template v-else-if="activeSutta && currentSutta">
+        <div>
+          <button class="close-sutta" @click="closeSutta">← ပြန်သွားရန်</button>
+          <div class="reader-toolbar">
+            <span class="rt-label">စာလုံးအရွယ်</span>
+            <button class="rt-a-sm" data-rt="down" title="ချုံ့ရန်" @click="readerScaleDown">A−</button>
+            <button data-rt="reset" title="မူလ" style="font-size:0.72rem" @click="readerScaleReset">↺</button>
+            <button class="rt-a-lg" data-rt="up" title="ချဲ့ရန်" @click="readerScaleUp">A+</button>
+          </div>
+          <article class="sutta">
+            <div class="s-head">
+              <div>
+                <div class="s-my">{{ currentSutta.my }}</div>
+                <div class="s-pali">{{ currentSutta.pali }}</div>
+              </div>
+              <div class="s-source">{{ currentSutta.source }}</div>
+            </div>
+            <div v-if="currentSutta.context" class="s-context">{{ currentSutta.context }}</div>
+            <div class="s-body">
+              <div class="lang my"><span class="lbl">မြန်မာ ဘာသာပြန်</span><p v-for="(sp, i) in readerParas.my" :key="'m' + i" :class="sp.cls" v-html="sp.html"></p></div>
+              <div class="lang pali"><span class="lbl">Pāḷi</span><p v-for="(sp, i) in readerParas.pali" :key="'p' + i" :class="sp.cls" v-html="sp.html"></p></div>
+            </div>
+            <div class="s-actions">
+              <button class="mini-btn" :class="{ active: isFav }" data-act="fav" @click="toggleFav">{{ isFav ? '★ ကြိုက်နှစ်သက်' : '☆ ကြိုက်နှစ်သက်ရန်' }}</button>
+              <button class="mini-btn" data-act="copy" @click="copySutta">📋 ကူးရန်</button>
+              <button v-if="currentSutta.scUid && !currentSutta._fetched" class="mini-btn" data-act="fetchfull" :disabled="fetchFullBusy" @click="fetchFull">{{ fetchFullBusy ? '⏳ ရယူနေသည်...' : '🌐 SuttaCentral မှ အပြည့် ရယူ' }}</button>
+            </div>
+          </article>
+        </div>
+      </template>
+
+      <!-- ══════════ Browse (pitaka → books accordion) ══════════ -->
+      <template v-else>
+        <div>
+          <div class="section-title">{{ pitaka.my }}</div>
+          <div class="section-sub">{{ pitaka.pali }} — {{ pitaka.en }}</div>
+          <div class="section-intro">{{ pitaka.intro }}</div>
+        </div>
+
+        <template v-if="activePitaka === 'sutta'">
+          <div v-if="contCard" class="cont-card" @click="openContinue">
+            <span class="cc-ic">▶</span>
+            <span class="cc-txt"><span class="cc-lbl">ဆက်ဖတ်ရန် · Continue reading</span>
+            <span class="cc-title">{{ contCard.my }} <i>· {{ contCard.pali }}</i></span></span>
+            <span class="cc-go">➜</span>
+          </div>
+
+          <div v-if="dailyCard" class="daily-card" @click="openSuttaTop(dailyCard.key)">
+            <div class="dc-lbl">📅 ယနေ့အတွက် တရားတော် · Today's Reading</div>
+            <div class="dc-title">{{ dailyCard.s.my }} <i>· {{ dailyCard.s.pali }}</i></div>
+            <div v-if="dailyCard.excerpt" class="dc-excerpt">{{ dailyCard.excerpt }}</div>
+            <div class="dc-open">ဖတ်ရန် ▸</div>
+          </div>
+
+          <div class="famous-panel">
+            <div class="famous-title">📖 အပြည့်အစုံ ဖတ်နိုင်သော ကျော်ကြားသုတ်များ · Full-text Suttas (မြန်မာပြန်)</div>
+            <div class="famous-grid">
+              <button v-for="[key, s] in suttaEntries" :key="key" class="famous-chip" :class="{ read: isRead(key) }" @click="openSuttaTop(key)"><span class="fc-my">{{ isRead(key) ? '✓ ' : '' }}{{ s.my }}</span><span class="fc-pali">{{ s.pali }}</span></button>
+            </div>
+          </div>
+        </template>
+
+        <div v-if="pitaka.books.length > 3" class="book-jump">
+          <span class="bj-lbl">📚 အုပ်စုများ — နှိပ်၍ သွားရန်</span>
+          <button v-for="(book, idx) in pitaka.books" :key="'j' + idx" class="bj-chip" :class="{ fetched: book._fetched }" @click="jumpToBook(idx)">{{ book._fetched ? '🌐 ' : '' }}{{ book.my }}<span v-if="book.suttaCount" class="bj-n"> {{ book.suttaCount }}</span></button>
+        </div>
+
+        <div class="book-list">
+          <div v-for="(book, idx) in pitaka.books" :key="idx" class="book-card" :id="'book-' + idx" :class="{ open: isBookOpen(idx) }">
+            <div class="b-head" @click="toggleBook(idx)">
+              <div>
+                <span class="b-my">{{ book.my }}</span>
+                <span class="b-name">· {{ book.pali }}</span>
+              </div>
+              <div>
+                <template v-if="book._fetched">
+                  <button class="b-dl" data-dl="md" title="Markdown ဒေါင်းလုဒ်" @click.stop="downloadGroup(book, 'md')">⬇ MD</button><button class="b-dl" data-dl="json" title="JSON ဒေါင်းလုဒ်" @click.stop="downloadGroup(book, 'json')">⬇ JSON</button>
+                </template>
+                <span v-if="book.suttaCount" class="b-count">{{ book.suttaCount }} entries</span>
+                <span v-if="hasExpand(book)" class="b-chev">▶</span>
+              </div>
+            </div>
+            <div class="b-desc">{{ book.desc || '' }}</div>
+            <div class="b-children">
+              <div v-for="(ch, ci) in (book.children || [])" :key="ci" class="child-row has-content" @click.stop="childClick(ch)">
+                <span><span class="c-name">{{ ch.my }}</span> <span class="c-pali">· {{ ch.pali }}</span></span>
+                <span class="c-pali">{{ ch.count }} {{ childBadge(ch) }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="external-links">
+          <div class="el-title">🌐 အပြည့်အစုံ ဖတ်လိုပါက</div>
+          <p style="color:var(--ink-dim);font-size:0.85rem;line-height:1.7;margin:0;">
+            အထက်က ဗန်းဒလ်လုပ်ထားသော သုတ်များအပြင် — <b>🌐 button</b> ကို နှိပ်၍ Sutta ID (dn31၊ mn10၊ sn56.11…) ထည့်လျှင်
+            <b>Pitaka Myanmar Translation (တကယ့် မြန်မာဘာသာပြန်)</b> နှင့် Pāḷi ကို app ထဲသို့ တိုက်ရိုက် ရယူ၍ offline သိမ်းနိုင်ပါသည်။
+            ရယူပြီးသော သုတ်များ ဤ Sutta Piṭaka အောက်ဆုံးတွင် ပေါ်ပါမည်။
+          </p>
+          <button class="mini-btn" id="extFetchBtn" style="margin-top:10px;" @click="openFetch()">🌐 SuttaCentral မှ ရယူရန်</button>
+        </div>
+      </template>
+
+    </div>
+
+    <div class="stats" id="stats">{{ statsText }}</div>
+  </div>
+
+  <!-- ══════════ SuttaCentral fetch modal ══════════ -->
+  <div class="fetch-backdrop" id="fetchModal" :class="{ show: showFetch }" @click.self="closeFetch">
+    <div class="fetch-panel">
+      <div class="fetch-head">
+        <h2>🌐 SuttaCentral မှ သုတ် ရယူရန်</h2>
+        <button class="fetch-close" id="fetchClose" @click="closeFetch">✕</button>
+      </div>
+      <p class="fetch-sub">Sutta ID ထည့်၍ တကယ့် မြန်မာဘာသာပြန် (Pitaka Myanmar Translation) + Pāḷi ကို ရယူပါ။ Offline သိမ်းထားပါမည်။</p>
+      <div class="fetch-row">
+        <input type="text" id="fetchInput" ref="fetchInputEl" v-model="fetchUid" placeholder="e.g. dn31 · mn10 · sn56.11 · an3.65 · dhp1" @keypress.enter="doFetch">
+        <button class="fetch-go" id="fetchGo" :disabled="fetchBusy" @click="doFetch">ရယူမည်</button>
+      </div>
+      <div class="fetch-quick" id="fetchQuick">
+        <button v-for="f in FAMOUS_IDS" :key="f.id" class="fetch-chip" @click="fetchUid = f.id; doFetch()">{{ f.label }} ({{ f.id }})</button>
+      </div>
+
+      <div class="fetch-batch">
+        <div class="fetch-batch-title">📥 တစ်နိကာယ်လုံး ရယူရန် · Batch fetch a whole Nikāya</div>
+        <div class="fetch-batch-btns">
+          <button class="fetch-batch-btn" data-nikaya="dn" :disabled="batchBusy" @click="confirmBatch('dn')">ဒီဃနိကာယ် (34)</button>
+          <button class="fetch-batch-btn" data-nikaya="mn" :disabled="batchBusy" @click="confirmBatch('mn')">မဇ္ဈိမနိကာယ် (152)</button>
+          <button class="fetch-batch-btn" data-nikaya="snMajor" :disabled="batchBusy" @click="confirmBatch('snMajor')">သံယုတ္တ ⭐ (21)</button>
+          <button class="fetch-batch-btn" data-nikaya="anMajor" :disabled="batchBusy" @click="confirmBatch('anMajor')">အင်္ဂုတ္တရ ⭐ (17)</button>
+          <button class="fetch-batch-btn" data-nikaya="kp" :disabled="batchBusy" @click="confirmBatch('kp')">ခုဒ္ဒကပါဌ (9)</button>
+          <button class="fetch-batch-btn" data-nikaya="ud" :disabled="batchBusy" @click="confirmBatch('ud')">ဥဒါန် (80)</button>
+          <button class="fetch-batch-btn" data-nikaya="iti" :disabled="batchBusy" @click="confirmBatch('iti')">ဣတိဝုတ် (112)</button>
+          <button class="fetch-batch-btn" data-nikaya="snp" :disabled="batchBusy" @click="confirmBatch('snp')">သုတ်နိပါတ် (71)</button>
+          <button class="fetch-batch-btn" data-nikaya="vv" :disabled="batchBusy" @click="confirmBatch('vv')">ဝိမာနဝတ္ထု (85)</button>
+          <button class="fetch-batch-btn" data-nikaya="pv" :disabled="batchBusy" @click="confirmBatch('pv')">ပေတဝတ္ထု (51)</button>
+          <button class="fetch-batch-btn" data-nikaya="bv" :disabled="batchBusy" @click="confirmBatch('bv')">ဗုဒ္ဓဝင် (29)</button>
+          <button class="fetch-batch-btn" data-multi="thag" data-books="21" :disabled="batchBusy" @click="confirmMulti('thag', 21, 'ထေရဂါထာ')">ထေရဂါထာ (auto)</button>
+          <button class="fetch-batch-btn" data-multi="thig" data-books="16" :disabled="batchBusy" @click="confirmMulti('thig', 16, 'ထေရီဂါထာ')">ထေရီဂါထာ (auto)</button>
+          <button class="fetch-batch-btn" data-multi="cp" data-books="3" :disabled="batchBusy" @click="confirmMulti('cp', 3, 'စရိယာပိဋက')">စရိယာပိဋက (auto)</button>
+          <button class="fetch-batch-btn" data-nikaya="ja" :disabled="batchBusy" @click="confirmBatch('ja')">ဇာတ် ၅၄၇ (547 · ကြာသည်)</button>
+        </div>
+        <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
+          <div class="fetch-batch-title">🔢 အပိုင်းတစ်ခုလုံး ရယူရန် · Fetch any section by prefix</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+            <input type="text" id="sectionInput" ref="sectionInputEl" v-model="sectionText" placeholder="e.g. sn12 · an5 · thag1 · vv · pv" style="flex:1;min-width:140px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--paper-2);color:var(--ink);font-family:'Consolas',monospace;font-size:0.85rem;outline:none;" @keypress.enter="sectionGoClick">
+            <button class="fetch-batch-btn" id="sectionGo" :disabled="batchBusy" @click="sectionGoClick">ရယူမည်</button>
+          </div>
+          <p class="fetch-note" style="margin-top:4px;">Prefix ထည့်လျှင် {prefix}.1, {prefix}.2 … ကို ဆက်တိုက် ရယူ၍ အဆုံးထိ (consecutive miss ၅ ကြိမ်တွင် ရပ်)။ Section list: sn1-56, an1-11, thag/thig, ja (jātaka), vv, pv, bv, cp.</p>
+        </div>
+
+        <div class="fetch-progress" id="fetchProgress" v-show="progress.show">
+          <div class="fp-bar"><div class="fp-fill" id="fpFill" :style="{ width: progress.pct + '%' }"></div></div>
+          <div class="fp-label" id="fpLabel">{{ progress.label }}</div>
+          <button class="fetch-cancel" id="fetchCancel" @click="batchCancel = true">ရပ်မည်</button>
+        </div>
+        <p class="fetch-note" style="margin-top:6px;">⚠ SN (၇၇၆၂) နှင့် AN (၉၅၅၇) သည် သုတ်များ များလွန်း၍ တစ်ခုချင်း ရယူပါ (batch မရ)။</p>
+      </div>
+
+      <div class="fetch-status" id="fetchStatus" :class="fetchStatusKind">{{ fetchStatusText }}</div>
+      <p class="fetch-note">💡 ID format: နိကာယ်အတိုကောက် + နံပါတ် (dn=ဒီဃ, mn=မဇ္ဈိမ, sn=သံယုတ္တ, an=အင်္ဂုတ္တရ, dhp=ဓမ္မပဒ)။ ရယူပြီးသော သုတ်များ Sutta Piṭaka ၏ အောက်ဆုံးတွင် ပေါ်ပါမည်။</p>
+    </div>
+  </div>
+
+  <div class="toast" id="toast" :class="{ show: toastShow }">{{ toastMsg }}</div>
+  </div><!-- /#app -->
 
 <script defer src="_palette.js"></script>
 <script defer src="_navrail.js"></script>
@@ -780,11 +940,20 @@
 <script defer src="_cloudsync.js"></script>
 <script defer src="_prompts.js"></script>
 <script defer src="_dhammaart.js"></script>
+<script src="vue.global.prod.js"></script>
 <script>
+  // Fallback if Vue failed to load (e.g. file missing / offline before cache)
+  if (typeof Vue === 'undefined') {
+    document.getElementById('vue-loading').innerHTML =
+      '⚠ Vue library load မဖြစ်ပါ။<br>Page ကို refresh လုပ်ပါ (သို့) internet ရှိမရှိ စစ်ပါ။';
+    throw new Error('Vue not loaded');
+  }
+
+  const { createApp, ref, reactive, computed, watch, nextTick } = Vue;
+
   const THEME_KEY = 'tipitaka.theme';
   const FAV_KEY = 'tipitaka.favs.v1';
   const THEMES = ['parchment', 'dark', 'royal'];
-  const $ = id => document.getElementById(id);
 
   // ═══════════════════════════════════════════════════════════════
   // TIPIṬAKA STRUCTURE — full three-basket index in Myanmar
@@ -1344,9 +1513,10 @@
   // ═══════════════════════════════════════════════════════════════
 
   // SUTTAS = embedded (bundled, always available) merged with imported data.
-  // Imported data wins on key collision so official text overrides samples.
-  let SUTTAS = { ...EMBEDDED_SUTTAS };
-  let IMPORTED_STRUCTURE = null; // optional override of PITAKAS from imported data
+  // Reactive so fetched/imported suttas appear in the UI without manual re-render calls.
+  const SUTTAS = reactive({ ...EMBEDDED_SUTTAS });
+  const PITAKAS_R = reactive(PITAKAS);           // reactive view over the same structure data
+  const importedStructure = ref(null);           // optional override of PITAKAS from imported data
   let importedMeta = null;
 
   // Map embedded sutta keys → SuttaCentral UIDs so "fetch full" pulls the complete canonical text in-app
@@ -1425,7 +1595,7 @@
         }
       });
     }
-    if (Array.isArray(blob.structure)) IMPORTED_STRUCTURE = blob.structure;
+    if (Array.isArray(blob.structure)) importedStructure.value = blob.structure;
     importedMeta = blob.meta || { importedAt: Date.now() };
     return added;
   }
@@ -1434,15 +1604,9 @@
   async function hydrateImported() {
     try {
       const blob = await dbGet();
-      if (blob) {
-        const n = applyImported(blob);
-        if (n) { renderPitakaNav(); renderContent(); }
-        updateDataBtn();
-      }
+      if (blob) applyImported(blob);   // reactive — UI updates automatically
     } catch (e) { console.warn('hydrate failed', e); }
   }
-
-  function activePitakas() { return IMPORTED_STRUCTURE || PITAKAS; }
 
   // ═══════════════════════════════════════════════════════════════
   // SuttaCentral fetcher — pulls REAL Myanmar (pmt) + Pāḷi text on demand,
@@ -1450,7 +1614,7 @@
   // ═══════════════════════════════════════════════════════════════
 
   const FETCHED_DB_KEY = 'sc-fetched-suttas';
-  let fetchedSuttas = {}; // accumulates across sessions
+  let fetchedSuttas = {}; // accumulates across sessions (plain object — structured-clone safe)
 
   async function dbPutFetched() {
     const db = await openDB();
@@ -1590,13 +1754,16 @@
   // State
   // ═══════════════════════════════════════════════════════════════
 
-  let activePitaka = 'sutta';
-  let activeSutta = null;
-  let searchQuery = '';
-  let showFavsOnly = false;
+  const activePitaka = ref('sutta');
+  const activeSutta = ref(null);
+  const searchText = ref('');        // raw input (v-model)
+  const searchQ = ref('');           // debounced, trimmed, lowercased query
+  const showFavs = ref(false);
+  const readerHighlight = ref('');   // carries the query into the reader for in-text highlighting
 
   function favSet() { try { return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch { return new Set(); } }
   function saveFav(s) { localStorage.setItem(FAV_KEY, JSON.stringify([...s])); }
+  const favs = ref(favSet());
 
   // ---- Reader font-size (read-mode content scale) ----
   const READER_SCALE_KEY = 'tipitaka.reader.scale';
@@ -1607,21 +1774,27 @@
     document.documentElement.style.setProperty('--rsc', v);
   }
   setReaderScale(getReaderScale()); // apply on load
+  function readerScaleDown() { setReaderScale(getReaderScale() - 0.1); }
+  function readerScaleUp() { setReaderScale(getReaderScale() + 0.1); }
+  function readerScaleReset() { setReaderScale(1); }
 
   // ---- Reading progress + continue-reading ----
   const READ_KEY = 'tipitaka.read.v1';       // set of sutta keys the user has opened
   const LAST_KEY = 'tipitaka.lastread.v1';   // {key, y} — last sutta + scroll position
   function readSet() { try { return new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]')); } catch { return new Set(); } }
   function saveReadSet(s) { localStorage.setItem(READ_KEY, JSON.stringify([...s])); }
-  function markRead(key) { const s = readSet(); if (!s.has(key)) { s.add(key); saveReadSet(s); } }
   function setLastRead(key, y) { localStorage.setItem(LAST_KEY, JSON.stringify({ key, y: Math.round(y || 0) })); }
   function getLastRead() { try { return JSON.parse(localStorage.getItem(LAST_KEY) || 'null'); } catch { return null; } }
+  const readKeys = ref(readSet());
+  const lastRead = ref(getLastRead());
+  function markRead(key) { const s = readSet(); if (!s.has(key)) { s.add(key); saveReadSet(s); } readKeys.value = s; }
+  function isRead(key) { return readKeys.value.has(key); }
   // Remember scroll position while reading (throttled)
   let scrollSaveTimer = null;
   window.addEventListener('scroll', () => {
-    if (!activeSutta) return;
+    if (!activeSutta.value) return;
     clearTimeout(scrollSaveTimer);
-    scrollSaveTimer = setTimeout(() => { if (activeSutta) setLastRead(activeSutta, window.scrollY); }, 250);
+    scrollSaveTimer = setTimeout(() => { if (activeSutta.value) setLastRead(activeSutta.value, window.scrollY); }, 250);
   }, { passive: true });
 
   // Deterministic daily pick — same sutta all day, changes at midnight
@@ -1633,381 +1806,33 @@
     return keys[seed % keys.length];
   }
 
+  // ---- Theme ----
+  const theme = ref('parchment');
   function applyTheme(t) {
     if (!THEMES.includes(t)) t = 'parchment';
     document.documentElement.dataset.theme = t;
     localStorage.setItem(THEME_KEY, t);
-    $('themeBtn').textContent = t === 'parchment' ? '📜' : t === 'dark' ? '🌙' : '👑';
+    theme.value = t;
   }
   applyTheme(localStorage.getItem(THEME_KEY) || 'parchment');
-  $('themeBtn').onclick = () => {
+  const themeIcon = computed(() => theme.value === 'parchment' ? '📜' : theme.value === 'dark' ? '🌙' : '👑');
+  function cycleTheme() {
     const i = THEMES.indexOf(document.documentElement.dataset.theme || 'parchment');
     applyTheme(THEMES[(i + 1) % THEMES.length]);
-  };
+  }
 
+  // ---- Toast ----
+  const toastMsg = ref('');
+  const toastShow = ref(false);
   let toastTimer;
   function toast(msg) {
-    $('toast').textContent = msg;
-    $('toast').classList.add('show');
+    toastMsg.value = msg;
+    toastShow.value = true;
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => $('toast').classList.remove('show'), 1800);
+    toastTimer = setTimeout(() => { toastShow.value = false; }, 1800);
   }
 
-  function renderPitakaNav() {
-    const nav = $('pitakaNav');
-    nav.innerHTML = '';
-    activePitakas().forEach(p => {
-      const b = document.createElement('button');
-      b.className = 'p-btn' + (p.id === activePitaka ? ' active' : '');
-      b.innerHTML = `<span class="p-my">${p.my}</span>${p.pali}`;
-      b.onclick = () => { activePitaka = p.id; activeSutta = null; renderPitakaNav(); renderContent(); };
-      nav.appendChild(b);
-    });
-  }
-
-  function renderContent() {
-    const c = $('content');
-    c.innerHTML = '';
-
-    // If a sutta is open, show that
-    if (activeSutta) {
-      c.appendChild(renderSuttaCard(activeSutta));
-      updateStats();
-      return;
-    }
-
-    // Otherwise render the current pitaka's books
-    const pitaka = activePitakas().find(p => p.id === activePitaka);
-    const header = document.createElement('div');
-    header.innerHTML = `
-      <div class="section-title">${pitaka.my}</div>
-      <div class="section-sub">${pitaka.pali} — ${pitaka.en}</div>
-      <div class="section-intro">${pitaka.intro}</div>
-    `;
-    c.appendChild(header);
-
-    // Continue-reading + daily verse cards (Sutta Piṭaka home)
-    if (activePitaka === 'sutta') {
-      const wasRead = readSet();
-
-      // ▶ Continue reading — reopen last sutta at the saved scroll position
-      const last = getLastRead();
-      if (last && SUTTAS[last.key]) {
-        const ls = SUTTAS[last.key];
-        const cont = document.createElement('div');
-        cont.className = 'cont-card';
-        cont.innerHTML = `
-          <span class="cc-ic">▶</span>
-          <span class="cc-txt"><span class="cc-lbl">ဆက်ဖတ်ရန် · Continue reading</span>
-          <span class="cc-title">${ls.my} <i>· ${ls.pali}</i></span></span>
-          <span class="cc-go">➜</span>`;
-        cont.onclick = () => {
-          activeSutta = last.key; renderContent();
-          setTimeout(() => window.scrollTo({ top: last.y || 0 }), 60);
-        };
-        c.appendChild(cont);
-      }
-
-      // 📅 Daily verse — deterministic per-day pick from the whole library
-      const dk = dailySuttaKey();
-      if (dk && SUTTAS[dk] && dk !== last?.key) {
-        const ds = SUTTAS[dk];
-        const firstLine = (ds.my_body || []).map(l => String(l || '').replace(/\*\*/g, '').trim()).find(l => l.length > 20) || '';
-        const daily = document.createElement('div');
-        daily.className = 'daily-card';
-        daily.innerHTML = `
-          <div class="dc-lbl">📅 ယနေ့အတွက် တရားတော် · Today's Reading</div>
-          <div class="dc-title">${ds.my} <i>· ${ds.pali}</i></div>
-          ${firstLine ? `<div class="dc-excerpt">${firstLine.slice(0, 180)}${firstLine.length > 180 ? '…' : ''}</div>` : ''}
-          <div class="dc-open">ဖတ်ရန် ▸</div>`;
-        daily.onclick = () => { activeSutta = dk; renderContent(); window.scrollTo({ top: 0, behavior: 'smooth' }); };
-        c.appendChild(daily);
-      }
-
-      // Famous suttas quick-access panel — full text available; ✓ marks read ones
-      const famous = document.createElement('div');
-      famous.className = 'famous-panel';
-      famous.innerHTML = `<div class="famous-title">📖 အပြည့်အစုံ ဖတ်နိုင်သော ကျော်ကြားသုတ်များ · Full-text Suttas (မြန်မာပြန်)</div>`;
-      const grid = document.createElement('div');
-      grid.className = 'famous-grid';
-      Object.entries(SUTTAS).forEach(([key, s]) => {
-        const chip = document.createElement('button');
-        chip.className = 'famous-chip' + (wasRead.has(key) ? ' read' : '');
-        chip.innerHTML = `<span class="fc-my">${wasRead.has(key) ? '✓ ' : ''}${s.my}</span><span class="fc-pali">${s.pali}</span>`;
-        chip.onclick = () => { activeSutta = key; renderContent(); window.scrollTo({top:0,behavior:'smooth'}); };
-        grid.appendChild(chip);
-      });
-      famous.appendChild(grid);
-      c.appendChild(famous);
-    }
-
-    // Group jump menu — one chip per book; click scrolls to + opens that book
-    if (pitaka.books.length > 3) {
-      const jump = document.createElement('div');
-      jump.className = 'book-jump';
-      jump.innerHTML = `<span class="bj-lbl">📚 အုပ်စုများ — နှိပ်၍ သွားရန်</span>`;
-      pitaka.books.forEach((book, idx) => {
-        const chip = document.createElement('button');
-        chip.className = 'bj-chip' + (book._fetched ? ' fetched' : '');
-        chip.innerHTML = `${book._fetched ? '🌐 ' : ''}${book.my}${book.suttaCount ? ` <span class="bj-n">${book.suttaCount}</span>` : ''}`;
-        chip.onclick = () => {
-          const target = document.getElementById('book-' + idx);
-          if (!target) return;
-          target.classList.add('open');
-          target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        };
-        jump.appendChild(chip);
-      });
-      c.appendChild(jump);
-    }
-
-    const list = document.createElement('div');
-    list.className = 'book-list';
-
-    pitaka.books.forEach((book, idx) => {
-      const card = document.createElement('div');
-      card.className = 'book-card';
-      card.id = 'book-' + idx;
-      card.innerHTML = `
-        <div class="b-head">
-          <div>
-            <span class="b-my">${book.my}</span>
-            <span class="b-name">· ${book.pali}</span>
-          </div>
-          <div>
-            ${book._fetched ? `<button class="b-dl" data-dl="md" title="Markdown ဒေါင်းလုဒ်">⬇ MD</button><button class="b-dl" data-dl="json" title="JSON ဒေါင်းလုဒ်">⬇ JSON</button> ` : ''}
-            ${book.suttaCount ? `<span class="b-count">${book.suttaCount} entries</span> ` : ''}
-            ${book.children?.length || SUTTAS[book.key] ? '<span class="b-chev">▶</span>' : ''}
-          </div>
-        </div>
-        <div class="b-desc">${book.desc || ''}</div>
-        <div class="b-children"></div>
-      `;
-      // Wire download buttons on fetched groups
-      if (book._fetched) {
-        card.querySelectorAll('.b-dl').forEach(btn => {
-          btn.onclick = (e) => {
-            e.stopPropagation();
-            downloadGroup(book, btn.dataset.dl);
-          };
-        });
-      }
-      const children = card.querySelector('.b-children');
-      if (book.children?.length) {
-        book.children.forEach(ch => {
-          const hasSutta = !!SUTTAS[ch.key];
-          const hasTool = !!ch.link;
-          const row = document.createElement('div');
-          // Every row is actionable — embedded sutta, linked tool, or in-app fetch
-          row.className = 'child-row has-content';
-          let badge;
-          if (hasSutta) badge = readSet().has(ch.key) ? '· ✓ ဖတ်ပြီး' : '· 📖 ဖတ်ရန်';
-          else if (hasTool) badge = '· 🔗 ဖွင့်ရန်';
-          else badge = '· 🌐 ရယူရန်';
-          row.innerHTML = `
-            <span><span class="c-name">${ch.my}</span> <span class="c-pali">· ${ch.pali}</span></span>
-            <span class="c-pali">${ch.count} ${badge}</span>
-          `;
-          if (hasSutta) row.onclick = (e) => { e.stopPropagation(); activeSutta = ch.key; renderContent(); window.scrollTo({top:0,behavior:'smooth'}); };
-          else if (hasTool) row.onclick = () => location.href = ch.link;
-          // No embedded data → open the in-app SuttaCentral fetch panel (pulls Myanmar + Pāḷi INTO the app)
-          else row.onclick = (e) => { e.stopPropagation(); openFetch(); if (ch.scUid) { $('fetchInput').value = ch.scUid; } };
-          children.appendChild(row);
-        });
-      }
-      // Whole card click toggles expand
-      card.querySelector('.b-head').onclick = () => card.classList.toggle('open');
-      list.appendChild(card);
-    });
-    c.appendChild(list);
-
-    // External resource links
-    const ext = document.createElement('div');
-    ext.className = 'external-links';
-    ext.innerHTML = `
-      <div class="el-title">🌐 အပြည့်အစုံ ဖတ်လိုပါက</div>
-      <p style="color:var(--ink-dim);font-size:0.85rem;line-height:1.7;margin:0;">
-        အထက်က ဗန်းဒလ်လုပ်ထားသော သုတ်များအပြင် — <b>🌐 button</b> ကို နှိပ်၍ Sutta ID (dn31၊ mn10၊ sn56.11…) ထည့်လျှင်
-        <b>Pitaka Myanmar Translation (တကယ့် မြန်မာဘာသာပြန်)</b> နှင့် Pāḷi ကို app ထဲသို့ တိုက်ရိုက် ရယူ၍ offline သိမ်းနိုင်ပါသည်။
-        ရယူပြီးသော သုတ်များ ဤ Sutta Piṭaka အောက်ဆုံးတွင် ပေါ်ပါမည်။
-      </p>
-      <button class="mini-btn" id="extFetchBtn" style="margin-top:10px;">🌐 SuttaCentral မှ ရယူရန်</button>
-    `;
-    c.appendChild(ext);
-    const efb = ext.querySelector('#extFetchBtn');
-    if (efb) efb.onclick = () => openFetch();
-
-    updateStats();
-  }
-
-  // Smart paragraph renderer — turns a body array into styled blocks.
-  // Detects: **bold**, headings (line ending with colon or all-bold),
-  // numbered items (၁) ၂) 1) 2)), and quoted speech (leading ").
-  function renderSmartParagraphs(container, lines, lang) {
-    if (!Array.isArray(lines)) return;
-    lines.forEach(raw => {
-      const line = String(raw || '');
-      const p = document.createElement('p');
-      p.className = 'sp-para';
-
-      // Classify the paragraph
-      const trimmed = line.trim();
-      const isHeading = /^\*\*.+\*\*/.test(trimmed) && trimmed.replace(/\*\*/g, '').length < 60;
-      // Myanmar or arabic numbered list item
-      const numMatch = trimmed.match(/^([၀-၉]+|\d+)\s*[\)\.]/);
-      const isQuote = /^["“]/.test(trimmed);
-      const isNote = /^\(/.test(trimmed) && /\)$/.test(trimmed);
-
-      if (isHeading) p.classList.add('sp-heading');
-      else if (numMatch) p.classList.add('sp-numbered');
-      else if (isQuote) p.classList.add('sp-quote');
-      else if (isNote) p.classList.add('sp-note');
-
-      // Render inline **bold** safely (build DOM, no innerHTML with data)
-      appendInlineBold(p, line);
-      container.appendChild(p);
-    });
-  }
-
-  function appendInlineBold(el, text) {
-    // Split on **...** and render matched parts as <strong>
-    const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
-    parts.forEach(part => {
-      if (/^\*\*[^*]+\*\*$/.test(part)) {
-        const strong = document.createElement('strong');
-        strong.textContent = part.slice(2, -2);
-        el.appendChild(strong);
-      } else if (part) {
-        el.appendChild(document.createTextNode(part));
-      }
-    });
-  }
-
-  function renderSuttaCard(key) {
-    const s = SUTTAS[key];
-    if (!s) return document.createTextNode('');
-    const favs = favSet();
-    const isFav = favs.has(key);
-    // Opening a sutta counts as reading it + becomes the continue-reading target
-    markRead(key);
-    setLastRead(key, 0);
-
-    const wrap = document.createElement('div');
-    const close = document.createElement('button');
-    close.className = 'close-sutta';
-    close.textContent = '← ပြန်သွားရန်';
-    close.onclick = () => { activeSutta = null; renderContent(); };
-    wrap.appendChild(close);
-
-    // Reader font-size control (scales Myanmar + Pāḷi body text; persists)
-    const toolbar = document.createElement('div');
-    toolbar.className = 'reader-toolbar';
-    toolbar.innerHTML = `
-      <span class="rt-label">စာလုံးအရွယ်</span>
-      <button class="rt-a-sm" data-rt="down" title="ချုံ့ရန်">A−</button>
-      <button data-rt="reset" title="မူလ" style="font-size:0.72rem">↺</button>
-      <button class="rt-a-lg" data-rt="up" title="ချဲ့ရန်">A+</button>
-    `;
-    toolbar.querySelector('[data-rt="down"]').onclick = () => setReaderScale(getReaderScale() - 0.1);
-    toolbar.querySelector('[data-rt="up"]').onclick = () => setReaderScale(getReaderScale() + 0.1);
-    toolbar.querySelector('[data-rt="reset"]').onclick = () => setReaderScale(1);
-    wrap.appendChild(toolbar);
-
-    const card = document.createElement('article');
-    card.className = 'sutta';
-    card.innerHTML = `
-      <div class="s-head">
-        <div>
-          <div class="s-my">${s.my}</div>
-          <div class="s-pali">${s.pali}</div>
-        </div>
-        <div class="s-source">${s.source}</div>
-      </div>
-      ${s.context ? `<div class="s-context">${s.context}</div>` : ''}
-      <div class="s-body">
-        <div class="lang my"><span class="lbl">မြန်မာ ဘာသာပြန်</span></div>
-        <div class="lang pali"><span class="lbl">Pāḷi</span></div>
-      </div>
-      <div class="s-actions">
-        <button class="mini-btn ${isFav ? 'active' : ''}" data-act="fav">${isFav ? '★ ကြိုက်နှစ်သက်' : '☆ ကြိုက်နှစ်သက်ရန်'}</button>
-        <button class="mini-btn" data-act="copy">📋 ကူးရန်</button>
-        ${s.scUid && !s._fetched ? `<button class="mini-btn" data-act="fetchfull">🌐 SuttaCentral မှ အပြည့် ရယူ</button>` : ''}
-      </div>
-    `;
-    const bodies = card.querySelectorAll('.lang');
-    // Smart paragraphs — each array item becomes its own styled block
-    renderSmartParagraphs(bodies[0], s.my_body, 'my');
-    renderSmartParagraphs(bodies[1], s.pali_body, 'pali');
-
-    // Arrived from search? Highlight every match in the body and jump to the first one.
-    if (pendingHighlight) {
-      const q = pendingHighlight; pendingHighlight = '';
-      const walker = document.createTreeWalker(card, NodeFilter.SHOW_TEXT);
-      const nodes = [];
-      while (walker.nextNode()) {
-        if (walker.currentNode.nodeValue.toLowerCase().includes(q)) nodes.push(walker.currentNode);
-      }
-      nodes.forEach(node => {
-        const frag = document.createDocumentFragment();
-        let rest = node.nodeValue;
-        let idx;
-        while ((idx = rest.toLowerCase().indexOf(q)) >= 0) {
-          frag.appendChild(document.createTextNode(rest.slice(0, idx)));
-          const m = document.createElement('mark');
-          m.className = 'search-mark';
-          m.textContent = rest.slice(idx, idx + q.length);
-          frag.appendChild(m);
-          rest = rest.slice(idx + q.length);
-        }
-        frag.appendChild(document.createTextNode(rest));
-        node.parentNode.replaceChild(frag, node);
-      });
-      setTimeout(() => {
-        const first = card.querySelector('.search-mark');
-        if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, 120);
-    }
-
-    card.querySelector('[data-act="fav"]').onclick = () => {
-      const f = favSet();
-      f.has(key) ? f.delete(key) : f.add(key);
-      saveFav(f);
-      renderContent();
-      toast(f.has(key) ? '★ Favorited' : '☆ Removed');
-    };
-    card.querySelector('[data-act="copy"]').onclick = () => {
-      const txt = `${s.my} · ${s.pali}\n${s.source}\n\n${s.my_body.join('\n\n')}\n\n---\n\n${s.pali_body.join('\n\n')}`;
-      navigator.clipboard.writeText(txt).then(() => toast('📋 Copied'));
-    };
-    const ff = card.querySelector('[data-act="fetchfull"]');
-    if (ff) ff.onclick = async () => {
-      ff.disabled = true; ff.textContent = '⏳ ရယူနေသည်...';
-      try {
-        const fk = await fetchFromSC(s.scUid);
-        injectFetchedBook();
-        activeSutta = fk;
-        renderPitakaNav(); renderContent(); updateDataBtn();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-        toast('✅ အပြည့်အစုံ ရရှိပြီး');
-      } catch (e) {
-        ff.disabled = false; ff.textContent = '🌐 SuttaCentral မှ အပြည့် ရယူ';
-        toast('⚠ ' + e.message);
-      }
-    };
-    wrap.appendChild(card);
-    return wrap;
-  }
-
-  function updateStats() {
-    const favs = favSet();
-    const suttaCount = Object.keys(SUTTAS).length;
-    const readCount = [...readSet()].filter(k => SUTTAS[k]).length;
-    $('stats').textContent = `${suttaCount} suttas · ✓ ${readCount} ဖတ်ပြီး · ★ ${favs.size} · Full Tipiṭaka structure indexed`;
-  }
-
-  // ---- Full-text search — every bundled + fetched sutta body, with snippets & highlighting ----
-  let pendingHighlight = '';   // carries the query into the reader for in-text highlighting
-
+  // ---- Search helpers ----
   function escHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
   // Build a highlighted snippet around the first match: …before <mark>match</mark> after…
   function makeSnippet(text, q) {
@@ -2022,247 +1847,6 @@
       (end < text.length ? '…' : '');
   }
 
-  function runSearch() {
-    if (!searchQuery) { renderContent(); return; }
-    const q = searchQuery;
-    const c = $('content');
-    c.innerHTML = '';
-
-    // Collect matches: title hits rank above body hits; snippet from the matching body line
-    const suttaHits = [];
-    Object.entries(SUTTAS).forEach(([key, s]) => {
-      const titleHay = (s.my + ' ' + s.pali + ' ' + (s.source || '')).toLowerCase();
-      const titleHit = titleHay.includes(q);
-      let snippet = null, where = '';
-      for (const [body, lbl] of [[s.my_body, 'မြန်မာ'], [s.pali_body, 'Pāḷi']]) {
-        if (snippet || !Array.isArray(body)) continue;
-        for (const line of body) {
-          const sn = makeSnippet(String(line || ''), q);
-          if (sn) { snippet = sn; where = lbl; break; }
-        }
-      }
-      if (titleHit || snippet) {
-        suttaHits.push({ key, s, snippet, where, rank: (titleHit ? 2 : 0) + (snippet ? 1 : 0) });
-      }
-    });
-    suttaHits.sort((a, b) => b.rank - a.rank || (b.s._fetched ? 0 : 1) - (a.s._fetched ? 0 : 1));
-
-    // Book/structure matches
-    const bookHits = [];
-    activePitakas().forEach(p => {
-      p.books.forEach(b => {
-        const hay = (b.my + ' ' + b.pali + ' ' + (b.desc || '')).toLowerCase();
-        if (hay.includes(q)) bookHits.push({ p, b });
-      });
-    });
-
-    const total = suttaHits.length + bookHits.length;
-    const header = document.createElement('div');
-    header.innerHTML = `
-      <div class="section-title">🔍 ရှာဖွေမှု ရလဒ်</div>
-      <div class="section-sub">"${escHtml(q)}" — ${total} ခု တွေ့သည် (သုတ် ${suttaHits.length} · ကျမ်း ${bookHits.length})</div>`;
-    c.appendChild(header);
-
-    const list = document.createElement('div');
-    list.className = 'book-list';
-
-    const openHit = (key) => {
-      pendingHighlight = q;
-      activeSutta = key; searchQuery = ''; $('searchInput').value = '';
-      renderContent(); window.scrollTo({ top: 0 });
-    };
-
-    suttaHits.slice(0, 100).forEach(({ key, s, snippet, where }) => {
-      const row = document.createElement('div');
-      row.className = 'book-card search-hit';
-      row.innerHTML = `
-        <div class="b-head"><div>
-          <span class="b-my">${s._fetched ? '🌐 ' : '📖 '}${escHtml(s.my)}</span>
-          <span class="b-name">· ${escHtml(s.pali)}</span>
-        </div><div><span class="b-count">${where ? where + ' ထဲတွင်' : 'ခေါင်းစဉ်'} · ဖတ်ရန် ▸</span></div></div>
-        ${snippet ? `<div class="b-desc search-snippet">${snippet}</div>` : `<div class="b-desc">${escHtml(s.source || '')}</div>`}`;
-      row.onclick = () => openHit(key);
-      list.appendChild(row);
-    });
-    if (suttaHits.length > 100) {
-      const more = document.createElement('div');
-      more.style.cssText = 'text-align:center;padding:8px;color:var(--ink-mute);font-size:0.82rem;font-style:italic;';
-      more.textContent = `…နောက်ထပ် ${suttaHits.length - 100} ခု — ရှာဖွေစာသား ပိုတိကျအောင် ရိုက်ပါ`;
-      list.appendChild(more);
-    }
-
-    bookHits.forEach(({ p, b }) => {
-      const row = document.createElement('div');
-      row.className = 'book-card';
-      row.innerHTML = `<div class="b-head"><div><span class="b-my">📚 ${escHtml(b.my)}</span> <span class="b-name">· ${escHtml(b.pali)}</span></div><div><span class="b-count">${escHtml(p.my)}</span></div></div><div class="b-desc">${escHtml(b.desc || '')}</div>`;
-      row.onclick = () => { activePitaka = p.id; searchQuery = ''; $('searchInput').value = ''; renderPitakaNav(); renderContent(); };
-      list.appendChild(row);
-    });
-
-    if (!total) list.innerHTML = '<div style="text-align:center;padding:20px;color:var(--ink-mute);font-style:italic;">မတွေ့ပါ။ (No matches.)<br><span style="font-size:0.8rem">🌐 ဖြင့် သုတ်များ ထပ်ရယူပြီး ရှာနိုင်ပါသည်</span></div>';
-    c.appendChild(list);
-  }
-
-  let searchTimer;
-  $('searchInput').addEventListener('input', (e) => {
-    searchQuery = e.target.value.trim().toLowerCase();
-    clearTimeout(searchTimer);
-    searchTimer = setTimeout(runSearch, 180);   // debounce — full-text over many fetched suttas
-  });
-
-  $('favToggle').onclick = () => {
-    const favs = favSet();
-    if (!favs.size) { toast('No favorites yet'); return; }
-    const c = $('content');
-    c.innerHTML = '';
-    const header = document.createElement('div');
-    header.innerHTML = `<div class="section-title">⭐ ကြိုက်နှစ်သက်ရာ · Favorites</div><div class="section-sub">${favs.size} suttas</div>`;
-    c.appendChild(header);
-    const list = document.createElement('div'); list.className = 'book-list';
-    favs.forEach(key => {
-      const s = SUTTAS[key]; if (!s) return;
-      const row = document.createElement('div');
-      row.className = 'book-card';
-      row.innerHTML = `<div class="b-head"><div><span class="b-my">${s.my}</span> <span class="b-name">· ${s.pali}</span></div><div><span class="b-count">📖 open</span></div></div><div class="b-desc">${s.source}</div>`;
-      row.onclick = () => { activeSutta = key; renderContent(); };
-      list.appendChild(row);
-    });
-    c.appendChild(list);
-  };
-
-  // Init
-  // ---- Import / Data buttons ----
-  $('importBtn').onclick = () => $('importFile').click();
-  $('importFile').addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = async (ev) => {
-      let blob;
-      try { blob = JSON.parse(ev.target.result); }
-      catch { toast('⚠ JSON မှား — Invalid JSON'); return; }
-      const n = applyImported(blob);
-      if (!n) { toast('⚠ သုတ် data မတွေ့ပါ (no suttas found)'); return; }
-      try {
-        await dbPut(blob); // persist to IndexedDB for offline
-        renderPitakaNav(); renderContent(); updateDataBtn();
-        toast(`✅ ${n} သုတ် ထည့်သွင်းပြီး — offline သိမ်းထားပြီ`);
-      } catch (err) {
-        // Even if persist fails, data is live for this session
-        renderPitakaNav(); renderContent(); updateDataBtn();
-        toast(`✅ ${n} သုတ် (session only — persist failed: ${err.message})`);
-      }
-      e.target.value = '';
-    };
-    reader.readAsText(file);
-  });
-
-  function updateDataBtn() {
-    const total = Object.keys(SUTTAS).length;
-    const imported = total - Object.keys(EMBEDDED_SUTTAS).length;
-    $('dataBtn').title = imported > 0
-      ? `${total} suttas (${imported} imported + ${Object.keys(EMBEDDED_SUTTAS).length} bundled) — click to manage`
-      : `${total} bundled suttas — no imported data yet. Click for import guide.`;
-    $('dataBtn').style.color = imported > 0 ? 'var(--accent)' : '';
-  }
-
-  $('dataBtn').onclick = async () => {
-    const total = Object.keys(SUTTAS).length;
-    const embeddedN = Object.keys(EMBEDDED_SUTTAS).length;
-    const imported = total - embeddedN;
-    if (imported > 0) {
-      if (confirm(
-        `📊 Data status:\n` +
-        `• ${embeddedN} bundled suttas (always available)\n` +
-        `• ${imported} imported suttas (offline in IndexedDB)\n` +
-        `• ${total} total\n\n` +
-        `Imported data ကို ဖျက်မလား? (Clear imported data?)`
-      )) {
-        await dbClear();
-        SUTTAS = { ...EMBEDDED_SUTTAS };
-        IMPORTED_STRUCTURE = null;
-        importedMeta = null;
-        renderPitakaNav(); renderContent(); updateDataBtn();
-        toast('Imported data ဖျက်ပြီး');
-      }
-    } else {
-      alert(
-        `📥 ပိဋကတ်သုံးပုံ Full Data\n\n` +
-        `နည်း ၂ မျိုးဖြင့် app ထဲသို့ တကယ့် data ထည့်နိုင်သည်:\n\n` +
-        `🌐 နည်း ၁ (အလွယ်ဆုံး): 🌐 button ကို နှိပ်၍ Sutta ID ထည့်ပါ။\n` +
-        `   SuttaCentral မှ တကယ့် မြန်မာဘာသာပြန် (pmt) + Pāḷi ကို\n` +
-        `   app ထဲသို့ တိုက်ရိုက် ရယူ၍ offline သိမ်းပါမည်။\n\n` +
-        `⬆ နည်း ၂ (JSON file): ⬆ button ဖြင့် JSON ဖိုင် import လုပ်ပါ။\n` +
-        `   Format: { "meta":{...}, "suttas":{ "key":{ "my":"...", "pali":"...", "my_body":["..."], "pali_body":["..."] } } }\n\n` +
-        `ယခု: ${embeddedN} bundled suttas ချက်ချင်း ဖတ်နိုင်သည်။`
-      );
-    }
-  };
-
-  // ---- SuttaCentral fetch panel ----
-  const FAMOUS_IDS = [
-    { id: 'dn31', label: 'သိင်္ဂါလောဝါဒ' },
-    { id: 'dn16', label: 'မဟာပရိနိဗ္ဗာန်' },
-    { id: 'dn22', label: 'မဟာသတိပဋ္ဌာန' },
-    { id: 'mn10', label: 'သတိပဋ္ဌာန' },
-    { id: 'mn118', label: 'အာနာပါနသတိ' },
-    { id: 'sn56.11', label: 'ဓမ္မစကြာ' },
-    { id: 'sn35.28', label: 'အာဒိတ္တ (မီး)' },
-    { id: 'an3.65', label: 'ကာလာမ' },
-    { id: 'an10.60', label: 'ဂိရိမာနန္ဒ' },
-    { id: 'snp1.8', label: 'မေတ္တာ' },
-    { id: 'kp5', label: 'မင်္ဂလ' },
-    { id: 'dhp1', label: 'ဓမ္မပဒ ၁' },
-  ];
-  function openFetch() { $('fetchModal').classList.add('show'); setTimeout(() => $('fetchInput').focus(), 50); renderFetchQuick(); $('fetchStatus').textContent = ''; }
-  function closeFetch() { $('fetchModal').classList.remove('show'); }
-  $('fetchBtn').onclick = openFetch;
-  $('fetchClose').onclick = closeFetch;
-  $('fetchModal').addEventListener('click', e => { if (e.target === $('fetchModal')) closeFetch(); });
-
-  function renderFetchQuick() {
-    const q = $('fetchQuick'); q.innerHTML = '';
-    FAMOUS_IDS.forEach(f => {
-      const c = document.createElement('button');
-      c.className = 'fetch-chip';
-      c.textContent = `${f.label} (${f.id})`;
-      c.onclick = () => { $('fetchInput').value = f.id; doFetch(); };
-      q.appendChild(c);
-    });
-  }
-
-  async function doFetch() {
-    const uid = $('fetchInput').value.trim();
-    if (!uid) { $('fetchInput').focus(); return; }
-    const st = $('fetchStatus');
-    st.className = 'fetch-status';
-    st.textContent = `⏳ ${uid} ရယူနေသည်...`;
-    $('fetchGo').disabled = true;
-    try {
-      const key = await fetchFromSC(uid);
-      st.className = 'fetch-status ok';
-      st.textContent = `✅ ရရှိပြီး — ဖတ်ရန် ဖွင့်နေသည်...`;
-      injectFetchedBook();
-      activePitaka = 'sutta';
-      activeSutta = key;
-      renderPitakaNav(); renderContent(); updateDataBtn();
-      setTimeout(() => { closeFetch(); window.scrollTo({ top: 0, behavior: 'smooth' }); }, 500);
-    } catch (e) {
-      st.className = 'fetch-status err';
-      // CORS or network hint
-      const msg = /Failed to fetch|NetworkError|CORS/i.test(e.message)
-        ? 'ကွန်ရက် သို့ CORS ပြဿနာ — internet ရှိမရှိ စစ်ပါ။ (Some browsers block cross-site fetch on file://; use the hosted GitHub Pages version.)'
-        : e.message;
-      st.textContent = '⚠ ' + msg;
-    } finally {
-      $('fetchGo').disabled = false;
-    }
-  }
-  $('fetchGo').onclick = doFetch;
-  $('fetchInput').addEventListener('keypress', e => { if (e.key === 'Enter') doFetch(); });
-
-  // ---- Batch fetch a whole nikāya / curated set ----
-  let batchCancel = false;
   // Curated "major suttas" for the huge nikāyas (SN 7762, AN 9557 — can't fetch all)
   const SN_MAJOR = ['sn1.1','sn1.10','sn2.26','sn3.8','sn3.25','sn4.19','sn5.10','sn6.1','sn6.2','sn7.1','sn7.2','sn8.1','sn11.3','sn12.2','sn12.15','sn12.23','sn12.61','sn12.65','sn15.3','sn15.13','sn17.5','sn20.7','sn22.59','sn22.86','sn22.95','sn35.28','sn35.197','sn36.6','sn36.21','sn42.11','sn44.1','sn45.8','sn46.51','sn47.19','sn47.20','sn48.10','sn54.1','sn55.21','sn56.11'];
   const AN_MAJOR = ['an1.21','an2.19','an3.62','an3.65','an3.66','an3.100','an4.10','an4.36','an4.55','an4.184','an5.57','an5.161','an5.177','an6.19','an6.63','an7.6','an7.64','an8.6','an8.53','an8.54','an9.20','an10.60','an10.61','an11.1','an11.16'];
@@ -2280,138 +1864,7 @@
     snMajor: { list: SN_MAJOR },                    // curated SN
     anMajor: { list: AN_MAJOR },                    // curated AN
   };
-  async function batchFetch(nikaya) {
-    const spec = NIKAYA_UIDS[nikaya];
-    if (!spec) return;
-    batchCancel = false;
-    const uids = spec.list ? spec.list.slice() : Array.from({ length: spec.count }, (_, i) => spec.uid(i + 1));
-    const prog = $('fetchProgress'), fill = $('fpFill'), label = $('fpLabel');
-    prog.style.display = 'block';
-    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = true);
-    $('fetchStatus').textContent = '';
-    let done = 0, ok = 0, fail = 0;
-    for (const uid of uids) {
-      if (batchCancel) break;
-      label.textContent = `${uid} ရယူနေသည်... (${done}/${uids.length} · ✓${ok} ✗${fail})`;
-      try {
-        await fetchFromSC(uid);
-        ok++;
-      } catch (e) { fail++; }
-      done++;
-      fill.style.width = Math.round((done / uids.length) * 100) + '%';
-      // Polite delay to avoid hammering the API
-      await new Promise(r => setTimeout(r, 350));
-    }
-    injectFetchedBook();
-    renderPitakaNav(); renderContent(); updateDataBtn();
-    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = false);
-    label.textContent = batchCancel
-      ? `⏹ ရပ်လိုက်သည် — ${ok} suttas ရရှိပြီး (offline သိမ်းထား)`
-      : `✅ ပြီးပြီ — ${ok} suttas ရရှိ · ${fail} မရ (offline သိမ်းထား)`;
-    $('fetchStatus').className = 'fetch-status ok';
-    $('fetchStatus').textContent = `${ok} suttas ကို app ထဲ သိမ်းပြီး။ Sutta Piṭaka အောက်ဆုံးတွင် ကြည့်ပါ။`;
-  }
-  // Multi-section fetch: verse anthologies nested as base{book}.{verse} (thag1.1, thig5.10, cp1.1).
-  // The button carries its own code (data-multi) + book count, so clicking auto-knows what to pull.
-  async function multiSectionFetch(base, maxBook, name) {
-    batchCancel = false;
-    const prog = $('fetchProgress'), fill = $('fpFill'), label = $('fpLabel');
-    prog.style.display = 'block';
-    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = true);
-    $('fetchStatus').textContent = '';
-    let ok = 0, tried = 0;
-    const MAX_MISS = 4, MAX_N = 250;
-    for (let book = 1; book <= maxBook && !batchCancel; book++) {
-      let n = 1, miss = 0;
-      while (n <= MAX_N && miss < MAX_MISS && !batchCancel) {
-        const uid = `${base}${book}.${n}`;
-        label.textContent = `${uid} ... (✓${ok} · ${tried} tried)`;
-        try { await fetchFromSC(uid); ok++; miss = 0; }
-        catch (e) { miss++; }
-        tried++; n++;
-        fill.style.width = Math.round((book / maxBook) * 100) + '%';
-        await new Promise(r => setTimeout(r, 300));
-      }
-    }
-    injectFetchedBook();
-    renderPitakaNav(); renderContent(); updateDataBtn();
-    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = false);
-    fill.style.width = '100%';
-    label.textContent = batchCancel ? `⏹ ရပ် — ${ok} ရရှိ` : `✅ ${name} — ${ok} ဂါထာ/အခန်း ရရှိ (offline သိမ်းထား)`;
-    $('fetchStatus').className = 'fetch-status ok';
-    $('fetchStatus').textContent = ok ? `${ok} ကို app ထဲ သိမ်းပြီး။ Sutta Piṭaka အောက်ဆုံးတွင် ကြည့်ပါ။` : `${name} — data မတွေ့ပါ။`;
-  }
 
-  document.querySelectorAll('.fetch-batch-btn').forEach(btn => {
-    if (btn.id === 'sectionGo') return; // wired separately below
-    btn.onclick = () => {
-      // Multi-section (verse anthology) buttons carry their own code — no typing needed
-      if (btn.dataset.multi) {
-        const base = btn.dataset.multi, books = +btn.dataset.books || 20;
-        const name = btn.textContent.replace(/\s*\(auto\)\s*/, '').trim();
-        if (confirm(`${name} — ဂါထာ/အခန်း အားလုံး SuttaCentral မှ ရယူမည်။ (auto — ကြာနိုင်သည်)\n\nဆက်လုပ်မလား?`)) {
-          multiSectionFetch(base, books, name);
-        }
-        return;
-      }
-      const n = btn.dataset.nikaya;
-      if (!n) return;
-      const spec = NIKAYA_UIDS[n];
-      if (!spec) return;
-      const cnt = spec.list ? spec.list.length : spec.count;
-      if (confirm(`${cnt} suttas ကို SuttaCentral မှ ရယူမည်။ (~${Math.ceil(cnt * 0.7 / 60)} မိနစ်ခန့် ကြာနိုင်သည်)\n\nဆက်လုပ်မလား?`)) {
-        batchFetch(n);
-      }
-    };
-  });
-  $('fetchCancel').onclick = () => { batchCancel = true; };
-
-  // ---- Section fetch: {prefix}.1, {prefix}.2 … until N consecutive misses ----
-  async function sectionFetch(prefix) {
-    prefix = prefix.trim().toLowerCase().replace(/[.\s]+$/, '');
-    if (!prefix) return;
-    batchCancel = false;
-    const prog = $('fetchProgress'), fill = $('fpFill'), label = $('fpLabel');
-    prog.style.display = 'block';
-    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = true);
-    $('sectionGo').disabled = true;
-    $('fetchStatus').textContent = '';
-    // If prefix has no number-dot, some books are flat (dn1, ud1). Detect: if prefix ends in a letter, use "prefix{n}"; else "prefix.{n}"
-    const dotted = /[a-z]+\d+$/.test(prefix) ? false : true; // e.g. "sn12" → dotted (sn12.1); "ud" → try ud1
-    const mk = dotted ? (n) => `${prefix}.${n}` : (n) => `${prefix}${n}`;
-    let n = 1, miss = 0, ok = 0, done = 0;
-    const MAX = 500, MAX_MISS = 5;
-    while (n <= MAX && miss < MAX_MISS && !batchCancel) {
-      const uid = mk(n);
-      label.textContent = `${uid} ... (✓${ok} · ${done} tried)`;
-      try { await fetchFromSC(uid); ok++; miss = 0; }
-      catch (e) { miss++; }
-      done++; n++;
-      fill.style.width = Math.min(100, Math.round((ok / Math.max(ok + miss, 10)) * 100)) + '%';
-      await new Promise(r => setTimeout(r, 320));
-    }
-    injectFetchedBook();
-    renderPitakaNav(); renderContent(); updateDataBtn();
-    document.querySelectorAll('.fetch-batch-btn').forEach(b => b.disabled = false);
-    $('sectionGo').disabled = false;
-    fill.style.width = '100%';
-    label.textContent = batchCancel ? `⏹ ရပ် — ${ok} ရရှိ` : `✅ ${ok} suttas ရရှိ (${prefix} section)`;
-    $('fetchStatus').className = 'fetch-status ok';
-    $('fetchStatus').textContent = ok ? `${ok} suttas app ထဲ သိမ်းပြီး။` : `"${prefix}" — data မတွေ့ပါ။ prefix စစ်ပါ။`;
-  }
-  $('sectionGo').onclick = () => {
-    const p = $('sectionInput').value.trim();
-    if (!p) { $('sectionInput').focus(); return; }
-    if (confirm(`"${p}" section အားလုံး ရယူမည်။ (အဆုံးထိ auto — ကြာနိုင်သည်)\n\nဆက်လုပ်မလား?`)) sectionFetch(p);
-  };
-  $('sectionInput').addEventListener('keypress', e => { if (e.key === 'Enter') $('sectionGo').click(); });
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && $('fetchModal').classList.contains('show')) closeFetch();
-  });
-
-  // Add fetched suttas as a virtual book at the bottom of Sutta Piṭaka
-  // Nikāya display names (Myanmar) keyed by SuttaCentral uid prefix
   const NIKAYA_NAMES = {
     dn:  'ဒီဃနိကာယ်',        mn:  'မဇ္ဈိမနိကာယ်',    sn:  'သံယုတ္တနိကာယ်',
     an:  'အင်္ဂုတ္တရနိကာယ်',  kp:  'ခုဒ္ဒကပါဌ',       dhp: 'ဓမ္မပဒ',
@@ -2463,9 +1916,10 @@
     toast(`⬇ ${keys.length} suttas · ${format.toUpperCase()}`);
   }
 
+  // Add fetched suttas as virtual books at the bottom of Sutta Piṭaka, grouped by nikāya
   function injectFetchedBook() {
     const keys = Object.keys(fetchedSuttas);
-    const sutta = PITAKAS.find(p => p.id === 'sutta');
+    const sutta = PITAKAS_R.find(p => p.id === 'sutta');
     // Remove any prior injected books
     sutta.books = sutta.books.filter(b => !b._fetched);
     if (!keys.length) return;
@@ -2508,10 +1962,494 @@
     });
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // Computed views
+  // ═══════════════════════════════════════════════════════════════
+
+  const pitakas = computed(() => importedStructure.value || PITAKAS_R);
+  const pitaka = computed(() => pitakas.value.find(p => p.id === activePitaka.value) || pitakas.value[0]);
+  const currentSutta = computed(() => activeSutta.value ? SUTTAS[activeSutta.value] : null);
+  const suttaEntries = computed(() => Object.entries(SUTTAS));
+  const isFav = computed(() => favs.value.has(activeSutta.value));
+  const favsCount = computed(() => favs.value.size);
+  const favList = computed(() => [...favs.value].map(key => ({ key, s: SUTTAS[key] })).filter(x => x.s));
+
+  const statsText = computed(() => {
+    const suttaCount = Object.keys(SUTTAS).length;
+    const readCount = [...readKeys.value].filter(k => SUTTAS[k]).length;
+    return `${suttaCount} suttas · ✓ ${readCount} ဖတ်ပြီး · ★ ${favs.value.size} · Full Tipiṭaka structure indexed`;
+  });
+
+  const dataBtnTitle = computed(() => {
+    const total = Object.keys(SUTTAS).length;
+    const imported = total - Object.keys(EMBEDDED_SUTTAS).length;
+    return imported > 0
+      ? `${total} suttas (${imported} imported + ${Object.keys(EMBEDDED_SUTTAS).length} bundled) — click to manage`
+      : `${total} bundled suttas — no imported data yet. Click for import guide.`;
+  });
+  const dataBtnStyle = computed(() => {
+    const imported = Object.keys(SUTTAS).length - Object.keys(EMBEDDED_SUTTAS).length;
+    return { color: imported > 0 ? 'var(--accent)' : '' };
+  });
+
+  // ▶ Continue reading — reopen last sutta at the saved scroll position
+  const contCard = computed(() => {
+    const last = lastRead.value;
+    return (last && SUTTAS[last.key]) ? SUTTAS[last.key] : null;
+  });
+
+  // 📅 Daily verse — deterministic per-day pick from the whole library
+  const dailyCard = computed(() => {
+    const dk = dailySuttaKey();
+    const last = lastRead.value;
+    if (!dk || !SUTTAS[dk] || dk === (last && last.key)) return null;
+    const ds = SUTTAS[dk];
+    const firstLine = (ds.my_body || []).map(l => String(l || '').replace(/\*\*/g, '').trim()).find(l => l.length > 20) || '';
+    const excerpt = firstLine ? firstLine.slice(0, 180) + (firstLine.length > 180 ? '…' : '') : '';
+    return { key: dk, s: ds, excerpt };
+  });
+
+  // ---- Smart paragraphs — classification rules identical to the vanilla renderer ----
+  // Detects: **bold**, headings (short all-bold), numbered items (၁) ၂) 1) 2)),
+  // quoted speech (leading "), and editorial notes ( (...) ).
+  function hlEsc(text, q) {
+    if (!q) return escHtml(text);
+    let rest = String(text), out = '', idx;
+    while ((idx = rest.toLowerCase().indexOf(q)) >= 0) {
+      out += escHtml(rest.slice(0, idx)) + '<mark class="search-mark">' + escHtml(rest.slice(idx, idx + q.length)) + '</mark>';
+      rest = rest.slice(idx + q.length);
+    }
+    return out + escHtml(rest);
+  }
+  // Render inline **bold** safely (escape data; only <strong>/<mark> tags are emitted)
+  function inlineBoldHtml(text, q) {
+    const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
+    return parts.map(part => {
+      if (/^\*\*[^*]+\*\*$/.test(part)) return '<strong>' + hlEsc(part.slice(2, -2), q) + '</strong>';
+      return part ? hlEsc(part, q) : '';
+    }).join('');
+  }
+  function smartParas(lines, q) {
+    if (!Array.isArray(lines)) return [];
+    return lines.map(raw => {
+      const line = String(raw || '');
+      // Classify the paragraph
+      const trimmed = line.trim();
+      const isHeading = /^\*\*.+\*\*/.test(trimmed) && trimmed.replace(/\*\*/g, '').length < 60;
+      // Myanmar or arabic numbered list item
+      const numMatch = trimmed.match(/^([၀-၉]+|\d+)\s*[\)\.]/);
+      const isQuote = /^["“]/.test(trimmed);
+      const isNote = /^\(/.test(trimmed) && /\)$/.test(trimmed);
+
+      let cls = 'sp-para';
+      if (isHeading) cls += ' sp-heading';
+      else if (numMatch) cls += ' sp-numbered';
+      else if (isQuote) cls += ' sp-quote';
+      else if (isNote) cls += ' sp-note';
+      return { cls, html: inlineBoldHtml(line, q) };
+    });
+  }
+  const readerParas = computed(() => {
+    const s = currentSutta.value;
+    if (!s) return { my: [], pali: [] };
+    const q = readerHighlight.value;
+    return { my: smartParas(s.my_body, q), pali: smartParas(s.pali_body, q) };
+  });
+
+  // ---- Full-text search — every bundled + fetched sutta body, with snippets & highlighting ----
+  const searchResults = computed(() => {
+    const q = searchQ.value;
+    if (!q) return { suttaHits: [], bookHits: [] };
+
+    // Collect matches: title hits rank above body hits; snippet from the matching body line
+    const suttaHits = [];
+    Object.entries(SUTTAS).forEach(([key, s]) => {
+      const titleHay = (s.my + ' ' + s.pali + ' ' + (s.source || '')).toLowerCase();
+      const titleHit = titleHay.includes(q);
+      let snippet = null, where = '';
+      for (const [body, lbl] of [[s.my_body, 'မြန်မာ'], [s.pali_body, 'Pāḷi']]) {
+        if (snippet || !Array.isArray(body)) continue;
+        for (const line of body) {
+          const sn = makeSnippet(String(line || ''), q);
+          if (sn) { snippet = sn; where = lbl; break; }
+        }
+      }
+      if (titleHit || snippet) {
+        suttaHits.push({ key, s, snippet, where, rank: (titleHit ? 2 : 0) + (snippet ? 1 : 0) });
+      }
+    });
+    suttaHits.sort((a, b) => b.rank - a.rank || (b.s._fetched ? 0 : 1) - (a.s._fetched ? 0 : 1));
+
+    // Book/structure matches
+    const bookHits = [];
+    pitakas.value.forEach(p => {
+      p.books.forEach(b => {
+        const hay = (b.my + ' ' + b.pali + ' ' + (b.desc || '')).toLowerCase();
+        if (hay.includes(q)) bookHits.push({ p, b });
+      });
+    });
+    return { suttaHits, bookHits };
+  });
+  const searchTotal = computed(() => searchResults.value.suttaHits.length + searchResults.value.bookHits.length);
+
+  let searchTimer;
+  watch(searchText, v => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => { searchQ.value = v.trim().toLowerCase(); }, 180);   // debounce — full-text over many fetched suttas
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // Actions
+  // ═══════════════════════════════════════════════════════════════
+
+  function selectPitaka(id) {
+    activePitaka.value = id;
+    activeSutta.value = null;
+    showFavs.value = false;
+    searchText.value = ''; searchQ.value = '';
+  }
+
+  // Opening a sutta counts as reading it + becomes the continue-reading target
+  function openSutta(key, highlight) {
+    showFavs.value = false;
+    readerHighlight.value = highlight || '';
+    activeSutta.value = key;
+    markRead(key);
+    setLastRead(key, 0);
+    lastRead.value = { key, y: 0 };
+  }
+  function openSuttaTop(key) {
+    openSutta(key);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+  function closeSutta() {
+    activeSutta.value = null;
+    readerHighlight.value = '';
+    lastRead.value = getLastRead();
+  }
+  function openContinue() {
+    const last = getLastRead();
+    if (!last || !SUTTAS[last.key]) return;
+    openSutta(last.key);
+    setTimeout(() => window.scrollTo({ top: last.y || 0 }), 60);
+  }
+
+  // Arrived from search? Highlight every match in the body and jump to the first one.
+  function openHit(key) {
+    const q = searchQ.value;
+    searchText.value = ''; searchQ.value = '';
+    openSutta(key, q);
+    window.scrollTo({ top: 0 });
+    nextTick(() => setTimeout(() => {
+      const first = document.querySelector('.sutta mark.search-mark');
+      if (first) first.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 120));
+  }
+  function openBookHit(bh) {
+    activePitaka.value = bh.p.id;
+    showFavs.value = false;
+    searchText.value = ''; searchQ.value = '';
+  }
+
+  function toggleFav() {
+    const key = activeSutta.value;
+    const f = favSet();
+    f.has(key) ? f.delete(key) : f.add(key);
+    saveFav(f);
+    favs.value = f;
+    toast(f.has(key) ? '★ Favorited' : '☆ Removed');
+  }
+  function showFavorites() {
+    if (!favs.value.size) { toast('No favorites yet'); return; }
+    activeSutta.value = null;
+    showFavs.value = true;
+  }
+
+  function copySutta() {
+    const s = currentSutta.value;
+    if (!s) return;
+    const txt = `${s.my} · ${s.pali}\n${s.source}\n\n${s.my_body.join('\n\n')}\n\n---\n\n${s.pali_body.join('\n\n')}`;
+    navigator.clipboard.writeText(txt).then(() => toast('📋 Copied'));
+  }
+
+  const fetchFullBusy = ref(false);
+  async function fetchFull() {
+    const s = currentSutta.value;
+    if (!s || !s.scUid) return;
+    fetchFullBusy.value = true;
+    try {
+      const fk = await fetchFromSC(s.scUid);
+      injectFetchedBook();
+      openSutta(fk);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      toast('✅ အပြည့်အစုံ ရရှိပြီး');
+    } catch (e) {
+      toast('⚠ ' + e.message);
+    } finally {
+      fetchFullBusy.value = false;
+    }
+  }
+
+  // ---- Books accordion + group jump ----
+  const openBooks = ref(new Set());
+  function bookKey(idx) { return activePitaka.value + ':' + idx; }
+  function isBookOpen(idx) { return openBooks.value.has(bookKey(idx)); }
+  function toggleBook(idx) {
+    const s = new Set(openBooks.value);
+    const k = bookKey(idx);
+    s.has(k) ? s.delete(k) : s.add(k);
+    openBooks.value = s;
+  }
+  function jumpToBook(idx) {
+    const s = new Set(openBooks.value);
+    s.add(bookKey(idx));
+    openBooks.value = s;
+    nextTick(() => {
+      const target = document.getElementById('book-' + idx);
+      if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+  }
+  function hasExpand(book) { return !!((book.children && book.children.length) || SUTTAS[book.key]); }
+  function childBadge(ch) {
+    if (SUTTAS[ch.key]) return readKeys.value.has(ch.key) ? '· ✓ ဖတ်ပြီး' : '· 📖 ဖတ်ရန်';
+    if (ch.link) return '· 🔗 ဖွင့်ရန်';
+    return '· 🌐 ရယူရန်';
+  }
+  // Every row is actionable — embedded sutta, linked tool, or in-app fetch
+  function childClick(ch) {
+    if (SUTTAS[ch.key]) { openSuttaTop(ch.key); return; }
+    if (ch.link) { location.href = ch.link; return; }
+    // No embedded data → open the in-app SuttaCentral fetch panel (pulls Myanmar + Pāḷi INTO the app)
+    openFetch();
+    if (ch.scUid) fetchUid.value = ch.scUid;
+  }
+
+  // ---- Import / Data buttons ----
+  const importFileEl = ref(null);
+  function onImportFile(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = async (ev) => {
+      let blob;
+      try { blob = JSON.parse(ev.target.result); }
+      catch { toast('⚠ JSON မှား — Invalid JSON'); return; }
+      const n = applyImported(blob);
+      if (!n) { toast('⚠ သုတ် data မတွေ့ပါ (no suttas found)'); return; }
+      try {
+        await dbPut(blob); // persist to IndexedDB for offline
+        toast(`✅ ${n} သုတ် ထည့်သွင်းပြီး — offline သိမ်းထားပြီ`);
+      } catch (err) {
+        // Even if persist fails, data is live for this session
+        toast(`✅ ${n} သုတ် (session only — persist failed: ${err.message})`);
+      }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  async function dataBtnClick() {
+    const total = Object.keys(SUTTAS).length;
+    const embeddedN = Object.keys(EMBEDDED_SUTTAS).length;
+    const imported = total - embeddedN;
+    if (imported > 0) {
+      if (confirm(
+        `📊 Data status:\n` +
+        `• ${embeddedN} bundled suttas (always available)\n` +
+        `• ${imported} imported suttas (offline in IndexedDB)\n` +
+        `• ${total} total\n\n` +
+        `Imported data ကို ဖျက်မလား? (Clear imported data?)`
+      )) {
+        await dbClear();
+        Object.keys(SUTTAS).forEach(k => { delete SUTTAS[k]; });
+        Object.assign(SUTTAS, EMBEDDED_SUTTAS);
+        importedStructure.value = null;
+        importedMeta = null;
+        toast('Imported data ဖျက်ပြီး');
+      }
+    } else {
+      alert(
+        `📥 ပိဋကတ်သုံးပုံ Full Data\n\n` +
+        `နည်း ၂ မျိုးဖြင့် app ထဲသို့ တကယ့် data ထည့်နိုင်သည်:\n\n` +
+        `🌐 နည်း ၁ (အလွယ်ဆုံး): 🌐 button ကို နှိပ်၍ Sutta ID ထည့်ပါ။\n` +
+        `   SuttaCentral မှ တကယ့် မြန်မာဘာသာပြန် (pmt) + Pāḷi ကို\n` +
+        `   app ထဲသို့ တိုက်ရိုက် ရယူ၍ offline သိမ်းပါမည်။\n\n` +
+        `⬆ နည်း ၂ (JSON file): ⬆ button ဖြင့် JSON ဖိုင် import လုပ်ပါ။\n` +
+        `   Format: { "meta":{...}, "suttas":{ "key":{ "my":"...", "pali":"...", "my_body":["..."], "pali_body":["..."] } } }\n\n` +
+        `ယခု: ${embeddedN} bundled suttas ချက်ချင်း ဖတ်နိုင်သည်။`
+      );
+    }
+  }
+
+  // ---- SuttaCentral fetch panel ----
+  const FAMOUS_IDS = [
+    { id: 'dn31', label: 'သိင်္ဂါလောဝါဒ' },
+    { id: 'dn16', label: 'မဟာပရိနိဗ္ဗာန်' },
+    { id: 'dn22', label: 'မဟာသတိပဋ္ဌာန' },
+    { id: 'mn10', label: 'သတိပဋ္ဌာန' },
+    { id: 'mn118', label: 'အာနာပါနသတိ' },
+    { id: 'sn56.11', label: 'ဓမ္မစကြာ' },
+    { id: 'sn35.28', label: 'အာဒိတ္တ (မီး)' },
+    { id: 'an3.65', label: 'ကာလာမ' },
+    { id: 'an10.60', label: 'ဂိရိမာနန္ဒ' },
+    { id: 'snp1.8', label: 'မေတ္တာ' },
+    { id: 'kp5', label: 'မင်္ဂလ' },
+    { id: 'dhp1', label: 'ဓမ္မပဒ ၁' },
+  ];
+  const showFetch = ref(false);
+  const fetchUid = ref('');
+  const fetchBusy = ref(false);
+  const fetchInputEl = ref(null);
+  const fetchStatusKind = ref('');    // '' | 'ok' | 'err'
+  const fetchStatusText = ref('');
+  const sectionText = ref('');
+  const sectionInputEl = ref(null);
+  const batchBusy = ref(false);
+  const batchCancel = ref(false);
+  const progress = reactive({ show: false, pct: 0, label: '' });
+  function setFetchStatus(kind, text) { fetchStatusKind.value = kind; fetchStatusText.value = text; }
+
+  function openFetch() {
+    showFetch.value = true;
+    setFetchStatus('', '');
+    nextTick(() => setTimeout(() => { if (fetchInputEl.value) fetchInputEl.value.focus(); }, 50));
+  }
+  function closeFetch() { showFetch.value = false; }
+
+  async function doFetch() {
+    const uid = fetchUid.value.trim();
+    if (!uid) { if (fetchInputEl.value) fetchInputEl.value.focus(); return; }
+    setFetchStatus('', `⏳ ${uid} ရယူနေသည်...`);
+    fetchBusy.value = true;
+    try {
+      const key = await fetchFromSC(uid);
+      setFetchStatus('ok', `✅ ရရှိပြီး — ဖတ်ရန် ဖွင့်နေသည်...`);
+      injectFetchedBook();
+      activePitaka.value = 'sutta';
+      openSutta(key);
+      setTimeout(() => { closeFetch(); window.scrollTo({ top: 0, behavior: 'smooth' }); }, 500);
+    } catch (e) {
+      // CORS or network hint
+      const msg = /Failed to fetch|NetworkError|CORS/i.test(e.message)
+        ? 'ကွန်ရက် သို့ CORS ပြဿနာ — internet ရှိမရှိ စစ်ပါ။ (Some browsers block cross-site fetch on file://; use the hosted GitHub Pages version.)'
+        : e.message;
+      setFetchStatus('err', '⚠ ' + msg);
+    } finally {
+      fetchBusy.value = false;
+    }
+  }
+
+  // ---- Batch fetch a whole nikāya / curated set ----
+  async function batchFetch(nikaya) {
+    const spec = NIKAYA_UIDS[nikaya];
+    if (!spec) return;
+    batchCancel.value = false;
+    const uids = spec.list ? spec.list.slice() : Array.from({ length: spec.count }, (_, i) => spec.uid(i + 1));
+    progress.show = true; progress.pct = 0;
+    batchBusy.value = true;
+    setFetchStatus('', '');
+    let done = 0, ok = 0, fail = 0;
+    for (const uid of uids) {
+      if (batchCancel.value) break;
+      progress.label = `${uid} ရယူနေသည်... (${done}/${uids.length} · ✓${ok} ✗${fail})`;
+      try {
+        await fetchFromSC(uid);
+        ok++;
+      } catch (e) { fail++; }
+      done++;
+      progress.pct = Math.round((done / uids.length) * 100);
+      // Polite delay to avoid hammering the API
+      await new Promise(r => setTimeout(r, 350));
+    }
+    injectFetchedBook();
+    batchBusy.value = false;
+    progress.label = batchCancel.value
+      ? `⏹ ရပ်လိုက်သည် — ${ok} suttas ရရှိပြီး (offline သိမ်းထား)`
+      : `✅ ပြီးပြီ — ${ok} suttas ရရှိ · ${fail} မရ (offline သိမ်းထား)`;
+    setFetchStatus('ok', `${ok} suttas ကို app ထဲ သိမ်းပြီး။ Sutta Piṭaka အောက်ဆုံးတွင် ကြည့်ပါ။`);
+  }
+
+  // Multi-section fetch: verse anthologies nested as base{book}.{verse} (thag1.1, thig5.10, cp1.1).
+  // The button carries its own code (data-multi) + book count, so clicking auto-knows what to pull.
+  async function multiSectionFetch(base, maxBook, name) {
+    batchCancel.value = false;
+    progress.show = true; progress.pct = 0;
+    batchBusy.value = true;
+    setFetchStatus('', '');
+    let ok = 0, tried = 0;
+    const MAX_MISS = 4, MAX_N = 250;
+    for (let book = 1; book <= maxBook && !batchCancel.value; book++) {
+      let n = 1, miss = 0;
+      while (n <= MAX_N && miss < MAX_MISS && !batchCancel.value) {
+        const uid = `${base}${book}.${n}`;
+        progress.label = `${uid} ... (✓${ok} · ${tried} tried)`;
+        try { await fetchFromSC(uid); ok++; miss = 0; }
+        catch (e) { miss++; }
+        tried++; n++;
+        progress.pct = Math.round((book / maxBook) * 100);
+        await new Promise(r => setTimeout(r, 300));
+      }
+    }
+    injectFetchedBook();
+    batchBusy.value = false;
+    progress.pct = 100;
+    progress.label = batchCancel.value ? `⏹ ရပ် — ${ok} ရရှိ` : `✅ ${name} — ${ok} ဂါထာ/အခန်း ရရှိ (offline သိမ်းထား)`;
+    setFetchStatus('ok', ok ? `${ok} ကို app ထဲ သိမ်းပြီး။ Sutta Piṭaka အောက်ဆုံးတွင် ကြည့်ပါ။` : `${name} — data မတွေ့ပါ။`);
+  }
+
+  function confirmBatch(n) {
+    const spec = NIKAYA_UIDS[n];
+    if (!spec) return;
+    const cnt = spec.list ? spec.list.length : spec.count;
+    if (confirm(`${cnt} suttas ကို SuttaCentral မှ ရယူမည်။ (~${Math.ceil(cnt * 0.7 / 60)} မိနစ်ခန့် ကြာနိုင်သည်)\n\nဆက်လုပ်မလား?`)) {
+      batchFetch(n);
+    }
+  }
+  function confirmMulti(base, books, name) {
+    if (confirm(`${name} — ဂါထာ/အခန်း အားလုံး SuttaCentral မှ ရယူမည်။ (auto — ကြာနိုင်သည်)\n\nဆက်လုပ်မလား?`)) {
+      multiSectionFetch(base, books, name);
+    }
+  }
+
+  // ---- Section fetch: {prefix}.1, {prefix}.2 … until N consecutive misses ----
+  async function sectionFetch(prefix) {
+    prefix = prefix.trim().toLowerCase().replace(/[.\s]+$/, '');
+    if (!prefix) return;
+    batchCancel.value = false;
+    progress.show = true; progress.pct = 0;
+    batchBusy.value = true;
+    setFetchStatus('', '');
+    // If prefix has no number-dot, some books are flat (dn1, ud1). Detect: if prefix ends in a letter, use "prefix{n}"; else "prefix.{n}"
+    const dotted = /[a-z]+\d+$/.test(prefix) ? false : true; // e.g. "sn12" → dotted (sn12.1); "ud" → try ud1
+    const mk = dotted ? (n) => `${prefix}.${n}` : (n) => `${prefix}${n}`;
+    let n = 1, miss = 0, ok = 0, done = 0;
+    const MAX = 500, MAX_MISS = 5;
+    while (n <= MAX && miss < MAX_MISS && !batchCancel.value) {
+      const uid = mk(n);
+      progress.label = `${uid} ... (✓${ok} · ${done} tried)`;
+      try { await fetchFromSC(uid); ok++; miss = 0; }
+      catch (e) { miss++; }
+      done++; n++;
+      progress.pct = Math.min(100, Math.round((ok / Math.max(ok + miss, 10)) * 100));
+      await new Promise(r => setTimeout(r, 320));
+    }
+    injectFetchedBook();
+    batchBusy.value = false;
+    progress.pct = 100;
+    progress.label = batchCancel.value ? `⏹ ရပ် — ${ok} ရရှိ` : `✅ ${ok} suttas ရရှိ (${prefix} section)`;
+    setFetchStatus('ok', ok ? `${ok} suttas app ထဲ သိမ်းပြီး။` : `"${prefix}" — data မတွေ့ပါ။ prefix စစ်ပါ။`);
+  }
+  function sectionGoClick() {
+    const p = sectionText.value.trim();
+    if (!p) { if (sectionInputEl.value) sectionInputEl.value.focus(); return; }
+    if (confirm(`"${p}" section အားလုံး ရယူမည်။ (အဆုံးထိ auto — ကြာနိုင်သည်)\n\nဆက်လုပ်မလား?`)) sectionFetch(p);
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape' && showFetch.value) closeFetch();
+  });
+
   // ---- Init ----
-  renderPitakaNav();
-  renderContent();
-  updateDataBtn();
   // Hydrate any previously-imported full data from IndexedDB
   hydrateImported();
   // Hydrate previously-fetched suttas
@@ -2522,10 +2460,44 @@
       if (n) {
         Object.assign(SUTTAS, fetchedSuttas);
         injectFetchedBook();
-        renderPitakaNav(); renderContent(); updateDataBtn();
       }
     } catch (e) { console.warn('fetched hydrate failed', e); }
   })();
+
+  createApp({
+    setup() {
+      return {
+        // structure + navigation
+        pitakas, pitaka, activePitaka, selectPitaka,
+        // reader
+        activeSutta, currentSutta, readerParas, openSutta, openSuttaTop, closeSutta,
+        isFav, toggleFav, copySutta, fetchFull, fetchFullBusy,
+        readerScaleDown, readerScaleUp, readerScaleReset,
+        // home cards + famous grid
+        contCard, openContinue, dailyCard, suttaEntries, isRead,
+        // books accordion
+        isBookOpen, toggleBook, jumpToBook, hasExpand, childBadge, childClick, downloadGroup,
+        // search
+        searchText, searchQ, searchResults, searchTotal, openHit, openBookHit,
+        // favorites
+        showFavs, showFavorites, favList, favsCount,
+        // header buttons
+        themeIcon, cycleTheme, dataBtnTitle, dataBtnStyle, dataBtnClick,
+        importFileEl, onImportFile,
+        // stats + toast
+        statsText, toastMsg, toastShow,
+        // fetch modal
+        showFetch, openFetch, closeFetch, fetchUid, fetchInputEl, fetchBusy, doFetch,
+        FAMOUS_IDS, batchBusy, batchCancel, progress, confirmBatch, confirmMulti,
+        sectionText, sectionInputEl, sectionGoClick,
+        fetchStatusKind, fetchStatusText,
+      };
+    },
+  }).mount('#app');
+
+  // Remove the loading placeholder once mounted
+  const loadingEl = document.getElementById('vue-loading');
+  if (loadingEl) loadingEl.remove();
 </script>
 </body>
 </html>
