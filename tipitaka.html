@@ -647,6 +647,94 @@
     .sutta .s-my { font-size: 1.15rem; }
   }
 
+  /* ═══════════ Layout upgrade — modern structure, parchment identity kept ═══════════ */
+
+  /* Visual polish: softer radii, hover lift, smoother transitions */
+  .book-card, .famous-panel, .cont-card, .daily-card { border-radius: 13px; transition: all 0.18s; }
+  .famous-chip { border-radius: 12px; transition: all 0.18s; }
+  .book-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
+  .famous-chip:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.10); }
+  .external-links { border-radius: 12px; }
+  /* Decorative gold hairline under the header */
+  header { position: relative; }
+  header::after {
+    content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
+    opacity: 0.55; pointer-events: none;
+  }
+  /* Section headers get a small gold accent */
+  .section-title { display: flex; align-items: center; gap: 10px; }
+  .section-title::before { content: ''; width: 18px; height: 3px; border-radius: 2px; background: var(--gold); flex: none; }
+
+  /* Two-column reading layout (desktop ≥900px): sticky sidebar + main column */
+  .layout { display: block; }
+  .sidebar { display: none; }
+  .side-baskets { display: flex; flex-direction: column; gap: 8px; }
+  .sb-btn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 12px;
+    background: var(--paper-2); color: var(--ink); cursor: pointer; text-align: left;
+    transition: all 0.18s; font-family: var(--sans); width: 100%;
+  }
+  .sb-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .sb-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
+  .sb-btn.active .sb-pali, .sb-btn.active .sb-n { color: rgba(255,255,255,0.85); }
+  .sb-ic { font-size: 1.15rem; flex: none; }
+  .sb-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .sb-my { font-weight: 700; font-size: 0.92rem; }
+  .sb-pali { font-family: var(--serif); font-style: italic; font-size: 0.75rem; color: var(--ink-mute); }
+  .sb-n { font-family: var(--serif); font-style: italic; font-size: 0.75rem; color: var(--ink-mute); flex: none; }
+  .side-jump {
+    border: 1px solid var(--border-soft); border-radius: 12px; background: var(--paper-2);
+    padding: 10px; display: flex; flex-direction: column; gap: 3px;
+  }
+  .sj-lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-mute); padding: 2px 4px 6px; font-family: var(--sans); }
+  .sj-item {
+    display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
+    padding: 7px 10px; border: none; border-radius: 8px; background: transparent;
+    color: var(--ink-dim); font-size: 0.84rem; font-family: var(--sans);
+    cursor: pointer; text-align: left; transition: all 0.18s; width: 100%;
+  }
+  .sj-item:hover { background: var(--paper-3); color: var(--accent); }
+  .sj-item.fetched .sj-name { color: var(--accent-2); }
+  .sj-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sj-n { font-family: var(--serif); font-style: italic; font-size: 0.72rem; color: var(--ink-mute); flex: none; }
+  .side-stats {
+    border: 1px solid var(--gold); border-radius: 12px;
+    background: linear-gradient(135deg, rgba(255,215,106,0.08), transparent 60%), var(--paper-2);
+    padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;
+  }
+  .ss-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--ink-dim); font-family: var(--sans); }
+  .ss-row b { color: var(--ink); }
+  @media (min-width: 900px) {
+    .app { max-width: 1180px; }
+    .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 30px; align-items: start; }
+    .sidebar {
+      display: flex; flex-direction: column; gap: 14px;
+      position: sticky; top: 18px; align-self: start;
+      max-height: calc(100vh - 36px); overflow-y: auto; padding-right: 2px;
+    }
+    /* Sidebar replaces the horizontal basket bar, jump chips and footer stats on desktop */
+    .main .pitaka-nav, .main .stats, .main .book-jump { display: none; }
+  }
+
+  /* Reading-progress bar — thin gold/accent gradient fixed at the viewport top (reader mode only) */
+  .read-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 1200; pointer-events: none; }
+  .read-progress .rp-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), var(--accent)); transition: width 0.1s linear; }
+
+  /* Prev/next sutta navigation at the bottom of the reader card */
+  .sutta .s-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+  .sutta .s-nav .sn-btn {
+    flex: 0 1 48%; min-width: 0; display: flex; flex-direction: column; gap: 2px;
+    padding: 10px 14px; background: var(--paper-2); border: 1px solid var(--border);
+    border-radius: 12px; cursor: pointer; color: var(--ink); font-family: var(--sans);
+    text-align: left; transition: all 0.18s;
+  }
+  .sutta .s-nav .sn-btn.next { margin-left: auto; text-align: right; align-items: flex-end; }
+  .sutta .s-nav .sn-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
+  .sutta .s-nav .sn-lbl { font-size: 0.68rem; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sutta .s-nav .sn-title { font-size: 0.9rem; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
   /* Hide the app until Vue compiles the template (prevents raw {{ }} flash) */
   [v-cloak] { display: none !important; }
   #vue-loading {
@@ -714,6 +802,36 @@
         <input type="file" id="importFile" ref="importFileEl" accept="application/json,.json" style="display:none" @change="onImportFile">
       </div>
     </header>
+
+    <div v-if="readerMode" class="read-progress"><div class="rp-fill" :style="{ width: readProgress + '%' }"></div></div>
+
+    <div class="layout">
+      <aside class="sidebar">
+        <nav class="side-baskets">
+          <button v-for="p in pitakas" :key="'sb' + p.id" class="sb-btn" :class="{ active: p.id === activePitaka }" @click="selectPitaka(p.id)">
+            <span class="sb-ic">{{ basketIcon(p.id) }}</span>
+            <span class="sb-txt">
+              <span class="sb-my">{{ p.my }}</span>
+              <span class="sb-pali">{{ p.pali }}</span>
+            </span>
+            <span class="sb-n">{{ p.books.length }} ကျမ်း</span>
+          </button>
+        </nav>
+        <div v-if="pitaka.books.length" class="side-jump">
+          <div class="sj-lbl">📚 ကျမ်းများ — နှိပ်၍ သွားရန်</div>
+          <button v-for="(book, idx) in pitaka.books" :key="'sj' + idx" class="sj-item" :class="{ fetched: book._fetched }" @click="sideJump(idx)">
+            <span class="sj-name">{{ book._fetched ? '🌐 ' : '' }}{{ book.my }}</span>
+            <span v-if="book.suttaCount" class="sj-n">{{ book.suttaCount }}</span>
+          </button>
+        </div>
+        <div class="side-stats">
+          <div class="ss-row"><span>သုတ်များ</span><b>{{ statsBits.total }}</b></div>
+          <div class="ss-row"><span>✓ ဖတ်ပြီး</span><b>{{ statsBits.read }}</b></div>
+          <div class="ss-row"><span>★ ကြိုက်နှစ်သက်</span><b>{{ statsBits.favs }}</b></div>
+        </div>
+      </aside>
+
+      <div class="main">
 
     <div class="search-bar">
       <input type="text" id="searchInput" v-model="searchText" placeholder="🔍 ရှာဖွေရန် — သုတ်၊ ကျမ်း၊ ဘာသာပြန် (Search suttas, books, translations)">
@@ -790,6 +908,14 @@
               <button class="mini-btn" :class="{ active: isFav }" data-act="fav" @click="toggleFav">{{ isFav ? '★ ကြိုက်နှစ်သက်' : '☆ ကြိုက်နှစ်သက်ရန်' }}</button>
               <button class="mini-btn" data-act="copy" @click="copySutta">📋 ကူးရန်</button>
               <button v-if="currentSutta.scUid && !currentSutta._fetched" class="mini-btn" data-act="fetchfull" :disabled="fetchFullBusy" @click="fetchFull">{{ fetchFullBusy ? '⏳ ရယူနေသည်...' : '🌐 SuttaCentral မှ အပြည့် ရယူ' }}</button>
+            </div>
+            <div v-if="readerNav.prev || readerNav.next" class="s-nav">
+              <button v-if="readerNav.prev" class="sn-btn prev" @click="openSuttaTop(readerNav.prev.key)">
+                <span class="sn-lbl">← ယခင်သုတ်</span><span class="sn-title">{{ readerNav.prev.my }}</span>
+              </button>
+              <button v-if="readerNav.next" class="sn-btn next" @click="openSuttaTop(readerNav.next.key)">
+                <span class="sn-lbl">နောက်သုတ် →</span><span class="sn-title">{{ readerNav.next.my }}</span>
+              </button>
             </div>
           </article>
         </div>
@@ -870,6 +996,9 @@
     </div>
 
     <div class="stats" id="stats">{{ statsText }}</div>
+
+      </div><!-- /.main -->
+    </div><!-- /.layout -->
   </div>
 
   <!-- ══════════ SuttaCentral fetch modal ══════════ -->
@@ -1789,10 +1918,13 @@
   const lastRead = ref(getLastRead());
   function markRead(key) { const s = readSet(); if (!s.has(key)) { s.add(key); saveReadSet(s); } readKeys.value = s; }
   function isRead(key) { return readKeys.value.has(key); }
-  // Remember scroll position while reading (throttled)
+  // Remember scroll position while reading (throttled) + reading-progress bar
+  const readProgress = ref(0);
   let scrollSaveTimer = null;
   window.addEventListener('scroll', () => {
     if (!activeSutta.value) return;
+    const max = document.documentElement.scrollHeight - window.innerHeight;
+    readProgress.value = max > 0 ? Math.min(100, Math.max(0, (window.scrollY / max) * 100)) : 100;
     clearTimeout(scrollSaveTimer);
     scrollSaveTimer = setTimeout(() => { if (activeSutta.value) setLastRead(activeSutta.value, window.scrollY); }, 250);
   }, { passive: true });
@@ -2092,6 +2224,58 @@
   });
   const searchTotal = computed(() => searchResults.value.suttaHits.length + searchResults.value.bookHits.length);
 
+  // ---- Layout upgrade: sidebar, reading progress, prev/next navigation ----
+  const BASKET_ICONS = { vinaya: '⚖️', sutta: '📖', abhidhamma: '🧘' };
+  function basketIcon(id) { return BASKET_ICONS[id] || '📜'; }
+
+  // Sidebar stats card (same numbers as the footer stats line)
+  const statsBits = computed(() => ({
+    total: Object.keys(SUTTAS).length,
+    read: [...readKeys.value].filter(k => SUTTAS[k]).length,
+    favs: favs.value.size,
+  }));
+
+  // True only while the reader branch is the visible view
+  const readerMode = computed(() => !searchQ.value && !showFavs.value && !!activeSutta.value && !!SUTTAS[activeSutta.value]);
+
+  // Prev/next within the current context:
+  //  · fetched sutta → uid order inside its fetched nikāya group
+  //  · bundled/imported → SUTTAS insertion order (same order as the famous grid)
+  const readerNav = computed(() => {
+    const key = activeSutta.value;
+    if (!key || !SUTTAS[key]) return { prev: null, next: null };
+    let order;
+    if (SUTTAS[key]._fetched && key.startsWith('sc-')) {
+      const nk = nikayaOf(key.replace(/^sc-/, ''));
+      order = Object.keys(SUTTAS)
+        .filter(k => SUTTAS[k] && SUTTAS[k]._fetched && k.startsWith('sc-') && nikayaOf(k.replace(/^sc-/, '')) === nk)
+        .sort((a, b) => {
+          const na = uidNumKey(a.replace(/^sc-/, '')), nb = uidNumKey(b.replace(/^sc-/, ''));
+          for (let i = 0; i < Math.max(na.length, nb.length); i++) {
+            if ((na[i] || 0) !== (nb[i] || 0)) return (na[i] || 0) - (nb[i] || 0);
+          }
+          return 0;
+        });
+    } else {
+      order = Object.keys(SUTTAS).filter(k => SUTTAS[k] && !SUTTAS[k]._fetched);
+    }
+    const i = order.indexOf(key);
+    const mk = k => (k && SUTTAS[k] ? { key: k, my: SUTTAS[k].my } : null);
+    return {
+      prev: i > 0 ? mk(order[i - 1]) : null,
+      next: (i >= 0 && i < order.length - 1) ? mk(order[i + 1]) : null,
+    };
+  });
+
+  // Sidebar book list click — return to browse first, then scroll to + open the book
+  function sideJump(idx) {
+    activeSutta.value = null;
+    showFavs.value = false;
+    readerHighlight.value = '';
+    searchText.value = ''; searchQ.value = '';
+    nextTick(() => jumpToBook(idx));
+  }
+
   let searchTimer;
   watch(searchText, v => {
     clearTimeout(searchTimer);
@@ -2113,6 +2297,7 @@
   function openSutta(key, highlight) {
     showFavs.value = false;
     readerHighlight.value = highlight || '';
+    readProgress.value = 0;
     activeSutta.value = key;
     markRead(key);
     setLastRead(key, 0);
@@ -2486,6 +2671,8 @@
         importFileEl, onImportFile,
         // stats + toast
         statsText, toastMsg, toastShow,
+        // layout upgrade: sidebar, reading progress, prev/next
+        basketIcon, statsBits, sideJump, readerMode, readProgress, readerNav,
         // fetch modal
         showFetch, openFetch, closeFetch, fetchUid, fetchInputEl, fetchBusy, doFetch,
         FAMOUS_IDS, batchBusy, batchCancel, progress, confirmBatch, confirmMulti,
