@@ -1,781 +1,431 @@
 <!DOCTYPE html>
-<html lang="my" data-theme="parchment">
+<html lang="my" data-theme="light">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ပိဋကတ်သုံးပုံ · Tipiṭaka</title>
 <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
-<meta name="theme-color" content="#8b6f47">
+<meta name="theme-color" content="#8b5a2b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <style>
-  :root, [data-theme="parchment"] {
-    --bg-1: #f0d5a0;
-    --bg-2: #e2c185;
-    --paper: #fbeed0;
-    --paper-2: #f5e2b4;
-    --paper-3: #eed99f;
-    --ink: #2d2115;
-    --ink-dim: #6b5738;
-    --ink-mute: #a08967;
-    --accent: #c62d2d;
-    --accent-2: #8b6f47;
-    --gold: #b8860b;
-    --border: #d4b075;
-    --border-soft: #e2c58a;
-    --shadow: 0 8px 24px rgba(139,100,40,0.22);
-    --rule: rgba(198,45,45,0.35);
-    --line: rgba(139,100,40,0.28);
-    --serif: 'Georgia', 'Cambria', 'Times New Roman', serif;
-    --sans: 'Pyidaungsu', 'Padauk', 'Myanmar Text', 'Segoe UI', system-ui, sans-serif;
+  /* ═══════════════════════════════════════════════════════════════
+     jataka550-family design system — variables + patterns adopted from
+     jataka550.html so the two pages feel like siblings.
+     Light/Dark themes; legacy values parchment→light, royal→dark.
+     ═══════════════════════════════════════════════════════════════ */
+  :root {
+    --bg: #faf7f2;
+    --panel: #ffffff;
+    --ink: #2b2622;
+    --muted: #7a6f66;
+    --accent: #8b5a2b;
+    --accent-soft: #f2e6d5;
+    --border: #e8dfd3;
+    --pali: #5d3a1a;
+    --mm: #1f3a5f;
+    --shadow: 0 2px 8px rgba(139, 90, 43, 0.08);
+    --shadow-lift: 0 8px 24px rgba(139, 90, 43, 0.15);
+    --ease: cubic-bezier(0.4, 0, 0.2, 1);
   }
   [data-theme="dark"] {
-    --bg-1: #1a1310; --bg-2: #2a1e18;
-    --paper: #2f231a; --paper-2: #3a2c22; --paper-3: #453629;
-    --ink: #f5e2b4; --ink-dim: #c9ac74; --ink-mute: #8a7654;
-    --accent: #e8a3a3; --accent-2: #d4b075; --gold: #ffd76a;
-    --border: #4a3a2a; --border-soft: #3a2c22;
-    --shadow: 0 8px 24px rgba(0,0,0,0.5);
-    --rule: rgba(232,163,163,0.4); --line: rgba(212,176,117,0.22);
-  }
-  [data-theme="royal"] {
-    --bg-1: #1a1830; --bg-2: #2d2650;
-    --paper: #241e42; --paper-2: #2d2650; --paper-3: #362e5d;
-    --ink: #f2d98a; --ink-dim: #d4b56a; --ink-mute: #9b8248;
-    --accent: #ffd76a; --accent-2: #b8860b; --gold: #ffd76a;
-    --border: #4a3d78; --border-soft: #362e58;
-    --shadow: 0 12px 32px rgba(0,0,0,0.55);
-    --rule: rgba(255,215,106,0.4); --line: rgba(212,181,106,0.25);
+    --bg: #1a1815;
+    --panel: #24211d;
+    --ink: #e8e2d8;
+    --muted: #a09488;
+    --accent: #d4a574;
+    --accent-soft: #3a2f22;
+    --border: #3a342c;
+    --pali: #e2c299;
+    --mm: #a8c5e8;
+    --shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    --shadow-lift: 0 8px 24px rgba(0, 0, 0, 0.5);
   }
 
-  * { margin: 0; padding: 0; box-sizing: border-box; font-family: var(--sans); }
-  body {
-    background: linear-gradient(135deg, var(--bg-1), var(--bg-2));
-    color: var(--ink);
-    min-height: 100vh;
-    padding: 24px 16px;
-    display: flex; justify-content: center;
-  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", "Padauk", "Myanmar Text", Roboto, sans-serif; }
 
-  .app {
-    background: var(--paper);
-    max-width: 900px;
-    width: 100%;
-    border-radius: 6px;
-    padding: 32px 40px 40px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    position: relative;
-    background-image: linear-gradient(to right, transparent 0, transparent 32px,
-                     var(--rule) 32px, var(--rule) 34px, transparent 34px);
-  }
-  [data-theme="royal"] .app {
-    background: radial-gradient(ellipse at top, rgba(255,215,106,0.05), transparent 60%), var(--paper);
-    border-color: var(--gold);
-  }
-
+  /* ── Sticky top app bar (jataka550 pattern) ── */
   header {
-    padding-bottom: 18px;
-    margin-bottom: 22px;
-    border-bottom: 1.5px solid var(--line);
-    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    background: var(--panel);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 18px;
+    display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+    position: sticky; top: 0; z-index: 10;
+    box-shadow: var(--shadow);
   }
-  header .title { flex: 1; min-width: 200px; padding-left: 12px; }
-  header h1 {
-    font-family: var(--serif);
-    font-size: 2rem;
-    font-weight: 600;
-    color: var(--accent);
-    font-style: italic;
-    letter-spacing: 0.02em;
+  h1 { font-size: 19px; margin: 0; color: var(--accent); white-space: nowrap; }
+  h1 small { font-size: 12px; color: var(--muted); font-weight: normal; }
+  .spacer { flex: 1; }
+  .btn {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 12px; font-size: 13px; cursor: pointer;
+    font-family: inherit;
+    text-decoration: none; display: inline-flex; align-items: center;
+    transition: all 0.25s var(--ease);
   }
-  header .subtitle {
-    font-family: var(--serif);
-    font-style: italic;
-    color: var(--ink-dim);
-    font-size: 0.92rem;
-    margin-top: 2px;
+  .btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  .btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #searchInput {
+    background: var(--bg); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 8px 16px; font-size: 14px; width: 220px;
+    font-family: inherit; outline: none;
+    transition: all 0.3s var(--ease);
   }
+  #searchInput:focus { border-color: var(--accent); width: 280px; box-shadow: 0 0 0 3px var(--accent-soft); }
+  .prog { flex-basis: 100%; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
+  .prog-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.5s var(--ease); }
+  .menu-toggle { display: none; font-size: 18px; padding: 6px 10px; }
+  #drawer-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 19;
+    opacity: 0; transition: opacity 0.3s;
+  }
+  #drawer-backdrop.show { opacity: 1; }
 
-  .header-actions { display: flex; gap: 6px; flex-wrap: wrap; }
-  .icon-btn {
-    width: 36px; height: 36px;
-    border-radius: 6px;
-    border: 1px solid var(--border);
-    background: transparent;
-    color: var(--ink-dim);
-    cursor: pointer;
+  /* ── Layout: sticky sidebar + main column ── */
+  .layout { display: flex; max-width: 1200px; margin: 0 auto; gap: 18px; padding: 18px; align-items: flex-start; }
+  aside {
+    width: 285px; flex-shrink: 0;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; position: sticky; top: 76px;
+    max-height: calc(100vh - 96px); overflow-y: auto;
+    box-shadow: var(--shadow);
+  }
+  aside h3 { margin: 4px 6px 10px; font-size: 14px; color: var(--muted); }
+  .nipata-list { list-style: none; margin: 0 0 6px; padding: 0; }
+  .nipata-list li {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 8px 9px; border-radius: 9px; cursor: pointer; font-size: 13px;
+    transition: background 0.2s var(--ease);
+  }
+  .nipata-list li:hover { background: var(--accent-soft); }
+  .nipata-list li.active { background: var(--accent); color: #fff; }
+  .nipata-list li.active .np-en, .nipata-list li.active .range { color: inherit; opacity: 0.85; }
+  .np-badge {
+    width: 32px; height: 32px; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 1rem;
-    text-decoration: none;
-    transition: all 0.15s;
-    font-family: inherit;
+    background: var(--accent-soft); border-radius: 8px; font-size: 15px;
   }
-  .icon-btn:hover { color: var(--accent); border-color: var(--accent); }
+  .nipata-list li.active .np-badge { background: rgba(255,255,255,0.22); }
+  .np-info { flex: 1; line-height: 1.45; min-width: 0; }
+  .np-en { font-size: 11px; color: var(--muted); }
+  .range { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .nipata-list li.fetched .np-en { color: var(--accent); }
+  .side-stats { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; margin-top: 6px; }
+  .ss-row { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); padding: 2px 4px; }
+  .ss-row b { color: var(--ink); }
 
-  .search-bar {
-    display: flex; gap: 10px; align-items: center;
-    padding-left: 12px;
-    margin-bottom: 20px;
-  }
-  .search-bar input {
-    flex: 1;
-    padding: 10px 14px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--paper-2);
-    color: var(--ink);
-    font-size: 0.95rem;
-    outline: none;
-    font-family: inherit;
-  }
-  .search-bar input:focus { border-color: var(--accent); }
+  section.content { flex: 1; min-width: 0; }
 
-  .pitaka-nav {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    padding-left: 12px;
-    margin-bottom: 24px;
+  /* ── Section banner (jataka nipata-banner) ── */
+  .nipata-banner {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--shadow);
   }
-  .pitaka-nav .p-btn {
-    padding: 14px 16px;
-    border: 1.5px solid var(--border);
-    border-radius: 10px;
-    background: var(--paper-2);
-    color: var(--ink);
-    font-family: var(--serif);
-    font-size: 0.95rem;
-    cursor: pointer;
-    transition: all 0.15s;
-    text-align: center;
-    font-style: italic;
-    font-weight: 600;
-  }
-  .pitaka-nav .p-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
-  .pitaka-nav .p-btn.active {
-    background: var(--accent);
-    color: #fff;
-    border-color: var(--accent);
-  }
-  .pitaka-nav .p-btn .p-my {
-    display: block;
-    font-family: var(--sans);
-    font-size: 1rem;
-    font-style: normal;
-    font-weight: 700;
-    margin-bottom: 2px;
-  }
-  @media (max-width: 640px) {
-    .pitaka-nav { grid-template-columns: 1fr; }
-  }
-
-  .content { padding-left: 12px; }
-  .section-title {
-    font-family: var(--serif);
-    font-style: italic;
-    color: var(--accent);
-    font-size: 1.4rem;
-    font-weight: 600;
-    margin-bottom: 4px;
-  }
-  .section-sub {
-    font-family: var(--serif);
-    color: var(--ink-mute);
-    font-size: 0.85rem;
-    font-style: italic;
-    margin-bottom: 20px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid var(--line);
-  }
+  .nipata-banner .nb-ic { font-size: 38px; line-height: 1; flex-shrink: 0; opacity: 0.9; }
+  .nipata-title { margin: 0 0 4px; font-size: 21px; color: var(--accent); }
+  .nipata-sub { margin: 0; font-size: 13px; color: var(--muted); }
   .section-intro {
-    background: var(--paper-2);
-    border-left: 3px solid var(--accent-2);
-    padding: 12px 16px;
-    border-radius: 4px;
-    margin-bottom: 20px;
-    color: var(--ink);
-    line-height: 1.8;
-    font-size: 0.95rem;
+    background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 10px 14px; margin-bottom: 16px; font-size: 13.5px; line-height: 1.95; color: var(--ink);
   }
 
-  .book-list {
-    display: flex; flex-direction: column;
-    gap: 8px;
-  }
+  /* ── Cards (jataka story-card pattern) ── */
+  .book-list { display: flex; flex-direction: column; gap: 0; }
   .book-card {
-    background: var(--paper-2);
-    border: 1px solid var(--border-soft);
-    border-radius: 8px;
-    padding: 14px 16px;
-    transition: border-color 0.15s;
+    position: relative; overflow: hidden;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+    animation: rise 0.4s var(--ease) both;
   }
-  .book-card:hover { border-color: var(--border); }
+  .book-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-2px); }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
   .book-card .b-head {
     display: flex; justify-content: space-between; align-items: baseline;
     gap: 10px; flex-wrap: wrap;
     cursor: pointer;
   }
-  .book-card .b-name {
-    font-family: var(--serif);
-    font-style: italic;
-    color: var(--accent);
-    font-weight: 600;
-    font-size: 1rem;
-  }
-  .book-card .b-my {
-    color: var(--ink);
-    font-size: 1.05rem;
-    font-weight: 600;
-    font-family: var(--sans);
-    margin-right: 6px;
-  }
-  .book-card .b-count {
-    font-family: var(--serif);
-    color: var(--ink-mute);
-    font-size: 0.8rem;
-    font-style: italic;
-  }
-  .book-card .b-desc {
-    margin-top: 6px;
-    color: var(--ink-dim);
-    font-size: 0.88rem;
-    line-height: 1.7;
-  }
+  .book-card .b-my { font-size: 16.5px; color: var(--mm); font-weight: 600; line-height: 1.6; }
+  .book-card .b-name { font-size: 14px; color: var(--pali); font-style: italic; }
+  .book-card .b-count { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .book-card .b-desc { margin-top: 6px; color: var(--muted); font-size: 13.5px; line-height: 1.9; }
   .book-card .b-dl {
-    background: transparent;
-    border: 1px solid var(--accent-2);
-    color: var(--accent-2);
-    border-radius: 6px;
-    padding: 2px 7px;
-    font-size: 0.68rem;
-    cursor: pointer;
-    font-family: var(--sans);
-    margin-left: 3px;
-    transition: all 0.15s;
+    background: none; border: 1px solid var(--border); border-radius: 16px;
+    color: var(--muted); font-size: 11px; padding: 3px 10px; cursor: pointer;
+    font-family: inherit; margin-left: 3px;
+    transition: all 0.2s var(--ease);
   }
-  .book-card .b-dl:hover { background: var(--accent-2); color: #fff; }
+  .book-card .b-dl:hover { border-color: var(--accent); color: var(--accent); }
+  .book-card .b-chev { color: var(--muted); font-size: 12px; display: inline-block; transition: transform 0.2s var(--ease); }
+  .book-card.open .b-chev { transform: rotate(90deg); }
   .book-card .b-children {
-    margin-top: 12px;
-    padding-top: 10px;
-    border-top: 1px dashed var(--line);
-    display: none;
-    flex-direction: column;
-    gap: 6px;
+    margin-top: 12px; padding-top: 10px;
+    border-top: 1px dashed var(--border);
+    display: none; flex-direction: column; gap: 6px;
   }
   .book-card.open .b-children { display: flex; }
-  .book-card .b-chev { color: var(--ink-mute); font-size: 0.85rem; transition: transform 0.2s; }
-  .book-card.open .b-chev { transform: rotate(90deg); }
   .child-row {
     display: flex; justify-content: space-between; align-items: baseline;
-    padding: 6px 10px;
-    background: var(--paper);
-    border-radius: 4px;
-    font-size: 0.86rem;
-    color: var(--ink);
+    padding: 7px 10px; background: var(--bg); border-radius: 8px;
+    font-size: 13px; color: var(--ink); gap: 8px;
+    transition: background 0.2s var(--ease);
   }
-  .child-row.has-content {
-    cursor: pointer;
-    border-left: 3px solid var(--accent);
-  }
-  .child-row.has-content:hover { background: var(--paper-3); }
-  .child-row .c-name { font-family: var(--sans); font-weight: 600; }
-  .child-row .c-pali { color: var(--ink-mute); font-family: var(--serif); font-style: italic; font-size: 0.78rem; }
+  .child-row.has-content { cursor: pointer; border-left: 3px solid var(--accent); }
+  .child-row.has-content:hover { background: var(--accent-soft); }
+  .child-row .c-name { font-weight: 600; color: var(--ink); }
+  .child-row .c-pali { color: var(--muted); font-style: italic; font-size: 11.5px; }
+  .book-card.search-hit { cursor: pointer; border-left: 3px solid var(--accent); }
 
-  /* Full-text sutta reader */
-  .sutta {
-    background: var(--paper);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 26px 30px 30px;
-    margin: 8px auto 20px;
-    max-width: 760px;                 /* comfortable reading measure */
-    animation: sutFade 0.4s ease;
-  }
-  @keyframes sutFade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; } }
-  .sutta .s-head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px; }
-  .sutta .s-my {
-    font-family: var(--sans);
-    color: var(--accent);
-    font-size: 1.35rem;
-    font-weight: 700;
-  }
-  .sutta .s-pali {
-    font-family: var(--serif);
-    font-style: italic;
-    color: var(--ink-mute);
-    font-size: 0.9rem;
-    margin-bottom: 16px;
-  }
-  .sutta .s-source {
-    font-family: var(--serif);
-    color: var(--ink-mute);
-    font-style: italic;
-    font-size: 0.72rem;
-    letter-spacing: 0.06em;
-  }
-  .sutta .s-context {
-    background: var(--paper-2);
-    border-left: 3px solid var(--gold);
-    padding: 10px 14px;
-    border-radius: 4px;
-    margin-bottom: 16px;
-    font-size: 0.9rem;
-    line-height: 1.8;
-    color: var(--ink-dim);
-    font-style: italic;
-  }
-  .sutta .s-body {
-    display: flex; flex-direction: column;
-    gap: 14px;
-  }
-  .sutta .lang {
-    padding: 16px 20px;
-    background: var(--paper-2);
-    border-left: 3px solid var(--accent-2);
-    border-radius: 4px;
-    font-size: calc(1.02rem * var(--rsc, 1));   /* scales with reader font control */
-    line-height: 2;
-  }
-  .sutta .lang.my {
-    font-family: var(--sans);
-    color: var(--ink);
-    border-left-color: var(--accent);
-  }
-  .sutta .lang.pali {
-    font-family: var(--serif);
-    font-style: italic;
-    color: var(--accent);
-  }
-  .sutta .lang.en {
-    font-family: var(--serif);
-    color: var(--ink);
-  }
-  .sutta .lang .lbl {
-    display: block;
-    font-family: var(--sans);
-    font-size: 0.68rem;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    color: var(--ink-mute);
-    font-style: normal;
-    font-weight: 600;
-    margin-bottom: 10px;
-  }
-
-  /* Smart paragraphs */
-  .sutta .lang .sp-para {
-    margin: 0 0 12px 0;
-    line-height: 1.95;
-  }
-  .sutta .lang .sp-para:last-child { margin-bottom: 0; }
-  .sutta .lang .sp-para strong {
-    color: var(--accent);
-    font-weight: 700;
-  }
-  .sutta .lang.pali .sp-para { line-height: 1.75; }
-  /* Heading paragraph — section marker */
-  .sutta .lang .sp-heading {
-    margin-top: 6px;
-    padding: 6px 0 4px;
-    border-bottom: 1px solid var(--line);
-    font-weight: 600;
-  }
-  .sutta .lang .sp-heading strong {
-    color: var(--accent);
-    font-size: 1.02em;
-  }
-  /* Numbered list item — hanging indent + gold marker feel */
-  .sutta .lang .sp-numbered {
-    padding-left: 14px;
-    border-left: 2px solid var(--gold);
-    margin-left: 2px;
-  }
-  /* Quoted speech (Buddha's words) — indented, distinct */
-  .sutta .lang.my .sp-quote {
-    padding: 8px 12px;
-    background: rgba(198,45,45,0.06);
-    border-left: 3px solid var(--accent);
-    border-radius: 0 6px 6px 0;
-    font-weight: 500;
-  }
-  [data-theme="dark"] .sutta .lang.my .sp-quote { background: rgba(232,163,163,0.08); }
-  [data-theme="royal"] .sutta .lang.my .sp-quote { background: rgba(255,215,106,0.08); }
-  /* Editorial note — muted, smaller */
-  .sutta .lang .sp-note {
-    color: var(--ink-mute);
-    font-style: italic;
-    font-size: 0.9em;
-  }
-  .sutta .s-actions {
-    display: flex; gap: 6px;
-    margin-top: 16px;
-    padding-top: 12px;
-    border-top: 1px dashed var(--line);
-    justify-content: flex-end;
-    flex-wrap: wrap;
-  }
-  .sutta .mini-btn {
-    background: transparent;
-    border: 1px solid var(--border);
-    color: var(--ink-dim);
-    padding: 5px 12px;
-    border-radius: 6px;
-    font-family: var(--sans);
-    font-size: 0.78rem;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .sutta .mini-btn:hover { color: var(--accent); border-color: var(--accent); }
-  .sutta .mini-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
-
-  /* Continue-reading card */
+  /* ── Continue-reading + daily cards ── */
   .cont-card {
     display: flex; align-items: center; gap: 12px;
-    background: var(--paper-2);
-    border: 1.5px solid var(--accent);
-    border-radius: 10px;
-    padding: 12px 16px;
-    margin-bottom: 14px;
-    cursor: pointer;
-    transition: all 0.15s;
+    background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 12px; padding: 12px 16px; margin-bottom: 14px;
+    cursor: pointer; box-shadow: var(--shadow);
+    transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
   }
-  .cont-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
+  .cont-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-2px); }
   .cont-card .cc-ic {
-    width: 34px; height: 34px; border-radius: 50%; flex: none;
+    width: 34px; height: 34px; border-radius: 9px; flex: none;
     display: grid; place-items: center;
-    background: var(--accent); color: #fff; font-size: 0.8rem;
+    background: var(--accent); color: #fff; font-size: 13px;
   }
   .cont-card .cc-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
-  .cont-card .cc-lbl { font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-mute); font-family: var(--sans); }
-  .cont-card .cc-title { font-family: var(--sans); font-weight: 600; color: var(--ink); font-size: 0.95rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .cont-card .cc-title i { font-family: var(--serif); color: var(--ink-mute); font-weight: 400; font-size: 0.85em; }
-  .cont-card .cc-go { color: var(--accent); font-size: 1.1rem; }
-
-  /* Daily verse card */
+  .cont-card .cc-lbl { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+  .cont-card .cc-title { font-weight: 600; color: var(--mm); font-size: 14.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cont-card .cc-title i { color: var(--pali); font-weight: 400; font-size: 0.88em; }
+  .cont-card .cc-go { color: var(--accent); font-size: 17px; }
   .daily-card {
-    background: linear-gradient(135deg, rgba(255,215,106,0.10), transparent 60%), var(--paper-2);
-    border: 1px solid var(--gold);
-    border-radius: 10px;
-    padding: 14px 18px;
-    margin-bottom: 14px;
-    cursor: pointer;
-    transition: all 0.15s;
+    position: relative; overflow: hidden;
+    background: var(--panel); border: 1px solid var(--border);
+    border-radius: 12px; padding: 14px 18px; margin-bottom: 14px;
+    cursor: pointer; box-shadow: var(--shadow);
+    transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
   }
-  .daily-card:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(0,0,0,0.12); }
-  .daily-card .dc-lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--gold); font-family: var(--sans); font-weight: 700; margin-bottom: 6px; }
-  [data-theme="parchment"] .daily-card .dc-lbl { color: #a07d1c; }
-  .daily-card .dc-title { font-family: var(--sans); font-weight: 700; color: var(--ink); font-size: 1.02rem; margin-bottom: 6px; }
-  .daily-card .dc-title i { font-family: var(--serif); color: var(--ink-mute); font-weight: 400; font-size: 0.85em; }
-  .daily-card .dc-excerpt { color: var(--ink-dim); font-size: 0.88rem; line-height: 1.85; margin-bottom: 8px; }
-  .daily-card .dc-open { color: var(--accent); font-size: 0.82rem; font-family: var(--sans); font-weight: 600; }
+  .daily-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-2px); }
+  .daily-card .dc-lbl { font-size: 11px; color: var(--accent); font-weight: 700; margin-bottom: 6px; }
+  .daily-card .dc-title { font-weight: 700; color: var(--mm); font-size: 16px; margin-bottom: 6px; }
+  .daily-card .dc-title i { color: var(--pali); font-weight: 400; font-size: 0.85em; }
+  .daily-card .dc-excerpt { color: var(--muted); font-size: 13px; line-height: 1.95; margin-bottom: 8px; }
+  .daily-card .dc-open { color: var(--accent); font-size: 12.5px; font-weight: 600; }
 
-  /* Read-state marks */
-  .famous-chip.read { opacity: 0.75; }
-  .famous-chip.read .fc-my { color: var(--ink-mute); }
+  /* ── Famous suttas panel ── */
+  .famous-panel {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 14px; box-shadow: var(--shadow);
+  }
+  .famous-title { font-size: 14px; color: var(--accent); font-weight: 600; margin-bottom: 12px; }
+  .famous-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); gap: 8px; }
+  .famous-chip {
+    display: flex; flex-direction: column; align-items: flex-start; gap: 2px;
+    padding: 10px 12px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 10px; cursor: pointer; text-align: left; font-family: inherit;
+    color: var(--ink);
+    transition: all 0.2s var(--ease);
+  }
+  .famous-chip:hover { border-color: var(--accent); transform: translateY(-1px); box-shadow: var(--shadow); }
+  .famous-chip .fc-my { color: var(--mm); font-weight: 600; font-size: 13.5px; }
+  .famous-chip .fc-pali { color: var(--pali); font-style: italic; font-size: 11.5px; }
+  .famous-chip.read { opacity: 0.72; }
+  .famous-chip.read .fc-my { color: var(--muted); }
 
-  /* Full-text search — snippets & match highlighting */
-  .search-snippet { font-size: 0.88rem; line-height: 1.9; }
-  .search-snippet mark, .sutta mark.search-mark {
-    background: rgba(255, 200, 60, 0.45);
-    color: inherit;
-    border-radius: 3px;
-    padding: 0 2px;
-  }
-  [data-theme="dark"] .search-snippet mark,
-  [data-theme="dark"] .sutta mark.search-mark { background: rgba(255, 200, 60, 0.28); }
-  [data-theme="royal"] .search-snippet mark,
-  [data-theme="royal"] .sutta mark.search-mark { background: rgba(255, 215, 106, 0.35); }
-  .book-card.search-hit { cursor: pointer; border-left: 3px solid var(--gold); }
-  .book-card.search-hit:hover { border-color: var(--accent); }
-
-  /* Group/jump menu — quick nav between books (nikāyas) in a pitaka */
-  .book-jump {
-    display: flex; flex-wrap: wrap; gap: 6px;
-    margin: 0 0 18px; padding-bottom: 14px;
-    border-bottom: 1px dashed var(--line);
-  }
-  .book-jump .bj-lbl {
-    width: 100%; font-family: var(--sans); font-size: 0.7rem; text-transform: uppercase;
-    letter-spacing: 0.08em; color: var(--ink-mute); margin-bottom: 2px;
-  }
-  .book-jump .bj-chip {
-    padding: 6px 12px; border: 1px solid var(--border-soft); border-radius: 999px;
-    background: var(--paper-2); color: var(--ink-dim); font-size: 0.82rem;
-    font-family: var(--sans); cursor: pointer; transition: all 0.15s;
-    display: inline-flex; align-items: center; gap: 6px;
-  }
-  .book-jump .bj-chip:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
-  .book-jump .bj-chip.fetched { border-color: var(--accent-2); }
-  .book-jump .bj-chip .bj-n {
-    color: var(--ink-mute); font-size: 0.7rem; font-family: var(--serif); font-style: italic;
-  }
-
-  /* Reader font-size toolbar */
-  .reader-toolbar {
-    display: flex; align-items: center; gap: 8px;
-    margin: 4px auto 0; max-width: 760px;
-  }
-  .reader-toolbar .rt-label {
-    font-size: 0.7rem; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em;
-    font-family: var(--sans);
-  }
-  .reader-toolbar button {
-    min-width: 32px; height: 30px; padding: 0 8px;
-    border: 1px solid var(--border); background: var(--paper-2);
-    color: var(--ink); border-radius: 8px; cursor: pointer;
-    font-family: var(--sans); transition: all 0.15s; display: grid; place-items: center;
-  }
-  .reader-toolbar button:hover { border-color: var(--accent); color: var(--accent); }
-  .reader-toolbar .rt-a-sm { font-size: 0.78rem; }
-  .reader-toolbar .rt-a-lg { font-size: 1.05rem; font-weight: 700; }
-
+  /* ── Sutta reader (jataka card framing, original typography behavior) ── */
   .close-sutta {
-    position: sticky; top: 10px; z-index: 5;   /* reachable even deep in a long sutta */
-    background: var(--paper-2);
-    border: 1px solid var(--border);
-    color: var(--ink-dim);
-    padding: 6px 14px;
-    border-radius: 999px;
-    font-family: var(--sans);
-    font-size: 0.85rem;
-    cursor: pointer;
-    margin-bottom: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    position: sticky; top: 76px; z-index: 5;
+    background: var(--panel); border: 1px solid var(--border);
+    color: var(--muted); padding: 7px 14px; border-radius: 20px;
+    font-family: inherit; font-size: 13px; cursor: pointer;
+    margin-bottom: 12px; box-shadow: var(--shadow);
+    transition: all 0.2s var(--ease);
   }
   .close-sutta:hover { color: var(--accent); border-color: var(--accent); }
-
-  .famous-panel {
-    margin-bottom: 22px;
-    padding: 14px 16px;
-    background: var(--paper-2);
-    border: 1px solid var(--border);
-    border-radius: 10px;
+  .reader-toolbar { display: flex; align-items: center; gap: 8px; margin: 4px auto 0; max-width: 760px; }
+  .reader-toolbar .rt-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .reader-toolbar button {
+    min-width: 32px; height: 30px; padding: 0 8px;
+    border: 1px solid var(--border); background: var(--panel);
+    color: var(--ink); border-radius: 8px; cursor: pointer;
+    font-family: inherit; transition: all 0.2s var(--ease); display: grid; place-items: center;
   }
-  .famous-title {
-    font-family: var(--serif);
-    font-style: italic;
-    color: var(--accent);
-    font-weight: 600;
-    font-size: 0.92rem;
-    margin-bottom: 12px;
+  .reader-toolbar button:hover { border-color: var(--accent); color: var(--accent); }
+  .reader-toolbar .rt-a-sm { font-size: 11.5px; }
+  .reader-toolbar .rt-a-lg { font-size: 15px; font-weight: 700; }
+  .sutta {
+    position: relative; overflow: hidden;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 22px 24px 24px; margin: 8px auto 20px;
+    max-width: 760px;
+    box-shadow: var(--shadow);
+    animation: rise 0.4s var(--ease) both;
   }
-  .famous-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 8px;
+  .sutta .s-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 4px; }
+  .sutta .s-my { font-size: 20px; color: var(--mm); font-weight: 700; line-height: 1.5; }
+  .sutta .s-pali { font-size: 13.5px; color: var(--pali); font-style: italic; margin-bottom: 12px; }
+  .sutta .s-source { font-size: 11px; color: var(--muted); font-style: italic; letter-spacing: 0.04em; text-align: right; }
+  .bookmark-btn {
+    background: none; border: none; font-size: 21px; cursor: pointer;
+    color: var(--muted); transition: transform 0.2s var(--ease), color 0.2s;
+    padding: 0 2px; line-height: 1; flex-shrink: 0;
   }
-  .famous-chip {
-    display: flex; flex-direction: column;
-    align-items: flex-start;
-    gap: 2px;
-    padding: 10px 12px;
-    background: var(--paper);
-    border: 1px solid var(--border-soft);
-    border-radius: 8px;
-    cursor: pointer;
-    text-align: left;
-    transition: all 0.15s;
-    font-family: var(--sans);
+  .bookmark-btn:hover { transform: scale(1.25); }
+  .bookmark-btn.on { color: var(--accent); }
+  .sutta .s-context {
+    background: var(--accent-soft); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 9px 13px; margin-bottom: 14px;
+    font-size: 13px; line-height: 1.95; color: var(--ink); font-style: italic;
   }
-  .famous-chip:hover { border-color: var(--accent); transform: translateY(-1px); }
-  .famous-chip .fc-my {
-    color: var(--ink);
-    font-weight: 700;
-    font-size: 0.92rem;
+  .sutta .s-body { display: flex; flex-direction: column; gap: 14px; }
+  .sutta .lang {
+    padding: 14px 18px; background: var(--bg);
+    border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 0 10px 10px 0;
+    font-size: calc(14.5px * var(--rsc, 1));
+    line-height: 2;
   }
-  .famous-chip .fc-pali {
-    color: var(--ink-mute);
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 0.75rem;
+  .sutta .lang.my { color: var(--ink); }
+  .sutta .lang.pali { color: var(--pali); font-style: italic; }
+  .sutta .lang.en { color: var(--ink); }
+  .sutta .lang .lbl {
+    display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em;
+    color: var(--muted); font-style: normal; font-weight: 600; margin-bottom: 10px;
   }
-
-  .external-links {
-    margin-top: 24px;
-    padding: 14px 16px;
-    background: var(--paper-2);
-    border: 1px dashed var(--border);
-    border-radius: 6px;
-    font-size: 0.85rem;
+  /* Smart paragraphs — same classification classes, jataka palette */
+  .sutta .lang .sp-para { margin: 0 0 12px 0; line-height: 1.95; }
+  .sutta .lang .sp-para:last-child { margin-bottom: 0; }
+  .sutta .lang .sp-para strong { color: var(--accent); font-weight: 700; }
+  .sutta .lang.pali .sp-para { line-height: 1.75; }
+  .sutta .lang .sp-heading { margin-top: 6px; padding: 6px 0 4px; border-bottom: 1px solid var(--border); font-weight: 600; }
+  .sutta .lang .sp-heading strong { color: var(--accent); font-size: 1.02em; }
+  .sutta .lang .sp-numbered { padding-left: 14px; border-left: 2px solid var(--accent); margin-left: 2px; }
+  .sutta .lang.my .sp-quote {
+    padding: 8px 12px; background: var(--accent-soft);
+    border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    font-weight: 500;
   }
-  .external-links .el-title {
-    font-family: var(--serif);
-    color: var(--accent);
-    font-weight: 600;
-    font-style: italic;
-    margin-bottom: 6px;
+  .sutta .lang .sp-note { color: var(--muted); font-style: italic; font-size: 0.9em; }
+  .sutta .s-actions {
+    display: flex; gap: 8px; margin-top: 14px; padding-top: 12px;
+    border-top: 1px dashed var(--border);
+    justify-content: flex-end; flex-wrap: wrap;
   }
-  .external-links a {
-    color: var(--accent);
-    text-decoration: underline;
-    text-decoration-style: dotted;
-    display: block;
-    padding: 3px 0;
+  .mini-btn {
+    background: none; border: 1px solid var(--border); border-radius: 16px;
+    color: var(--muted); font-size: 12px; padding: 5px 12px; cursor: pointer;
+    font-family: inherit; transition: all 0.2s var(--ease);
   }
-  .external-links a:hover { color: var(--gold); }
-
-  .stats {
-    padding: 12px;
-    text-align: center;
-    color: var(--ink-mute);
-    font-family: var(--serif);
-    font-style: italic;
-    font-size: 0.85rem;
-    margin-top: 20px;
-  }
-
-  .toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
-    background: var(--paper); color: var(--ink);
-    border: 1px solid var(--border); border-radius: 8px;
-    padding: 10px 16px; box-shadow: var(--shadow);
-    font-size: 0.85rem; opacity: 0; pointer-events: none;
-    transition: all 0.25s; z-index: 1000;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; }
-
-  @media (max-width: 640px) {
-    body { padding: 12px 8px; }
-    .app { padding: 20px 20px 28px; padding-left: 32px;
-      background-image: linear-gradient(to right, transparent 0, transparent 20px,
-                       var(--rule) 20px, var(--rule) 22px, transparent 22px);
-    }
-    header h1 { font-size: 1.5rem; }
-    .content, .search-bar, .pitaka-nav { padding-left: 0; }
-    .sutta { padding: 16px 18px; }
-    .sutta .s-my { font-size: 1.15rem; }
-  }
-
-  /* ═══════════ Layout upgrade — modern structure, parchment identity kept ═══════════ */
-
-  /* Visual polish: softer radii, hover lift, smoother transitions */
-  .book-card, .famous-panel, .cont-card, .daily-card { border-radius: 13px; transition: all 0.18s; }
-  .famous-chip { border-radius: 12px; transition: all 0.18s; }
-  .book-card:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(0,0,0,0.10); }
-  .famous-chip:hover { box-shadow: 0 6px 16px rgba(0,0,0,0.10); }
-  .external-links { border-radius: 12px; }
-  /* Decorative gold hairline under the header */
-  header { position: relative; }
-  header::after {
-    content: ''; position: absolute; left: 0; right: 0; bottom: -2px; height: 2px;
-    background: linear-gradient(90deg, transparent, var(--gold) 30%, var(--gold) 70%, transparent);
-    opacity: 0.55; pointer-events: none;
-  }
-  /* Section headers get a small gold accent */
-  .section-title { display: flex; align-items: center; gap: 10px; }
-  .section-title::before { content: ''; width: 18px; height: 3px; border-radius: 2px; background: var(--gold); flex: none; }
-
-  /* Two-column reading layout (desktop ≥900px): sticky sidebar + main column */
-  .layout { display: block; }
-  .sidebar { display: none; }
-  .side-baskets { display: flex; flex-direction: column; gap: 8px; }
-  .sb-btn {
-    display: flex; align-items: center; gap: 10px;
-    padding: 10px 12px; border: 1.5px solid var(--border); border-radius: 12px;
-    background: var(--paper-2); color: var(--ink); cursor: pointer; text-align: left;
-    transition: all 0.18s; font-family: var(--sans); width: 100%;
-  }
-  .sb-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
-  .sb-btn.active { background: var(--accent); border-color: var(--accent); color: #fff; }
-  .sb-btn.active .sb-pali, .sb-btn.active .sb-n { color: rgba(255,255,255,0.85); }
-  .sb-ic { font-size: 1.15rem; flex: none; }
-  .sb-txt { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .sb-my { font-weight: 700; font-size: 0.92rem; }
-  .sb-pali { font-family: var(--serif); font-style: italic; font-size: 0.75rem; color: var(--ink-mute); }
-  .sb-n { font-family: var(--serif); font-style: italic; font-size: 0.75rem; color: var(--ink-mute); flex: none; }
-  .side-jump {
-    border: 1px solid var(--border-soft); border-radius: 12px; background: var(--paper-2);
-    padding: 10px; display: flex; flex-direction: column; gap: 3px;
-  }
-  .sj-lbl { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--ink-mute); padding: 2px 4px 6px; font-family: var(--sans); }
-  .sj-item {
-    display: flex; justify-content: space-between; align-items: baseline; gap: 8px;
-    padding: 7px 10px; border: none; border-radius: 8px; background: transparent;
-    color: var(--ink-dim); font-size: 0.84rem; font-family: var(--sans);
-    cursor: pointer; text-align: left; transition: all 0.18s; width: 100%;
-  }
-  .sj-item:hover { background: var(--paper-3); color: var(--accent); }
-  .sj-item.fetched .sj-name { color: var(--accent-2); }
-  .sj-name { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .sj-n { font-family: var(--serif); font-style: italic; font-size: 0.72rem; color: var(--ink-mute); flex: none; }
-  .side-stats {
-    border: 1px solid var(--gold); border-radius: 12px;
-    background: linear-gradient(135deg, rgba(255,215,106,0.08), transparent 60%), var(--paper-2);
-    padding: 12px 14px; display: flex; flex-direction: column; gap: 6px;
-  }
-  .ss-row { display: flex; justify-content: space-between; font-size: 0.82rem; color: var(--ink-dim); font-family: var(--sans); }
-  .ss-row b { color: var(--ink); }
-  @media (min-width: 900px) {
-    .app { max-width: 1180px; }
-    .layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 30px; align-items: start; }
-    .sidebar {
-      display: flex; flex-direction: column; gap: 14px;
-      position: sticky; top: 18px; align-self: start;
-      max-height: calc(100vh - 36px); overflow-y: auto; padding-right: 2px;
-    }
-    /* Sidebar replaces the horizontal basket bar, jump chips and footer stats on desktop */
-    .main .pitaka-nav, .main .stats, .main .book-jump { display: none; }
-  }
-
-  /* Reading-progress bar — thin gold/accent gradient fixed at the viewport top (reader mode only) */
-  .read-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 1200; pointer-events: none; }
-  .read-progress .rp-fill { height: 100%; width: 0; background: linear-gradient(90deg, var(--gold), var(--accent)); transition: width 0.1s linear; }
-
-  /* Prev/next sutta navigation at the bottom of the reader card */
-  .sutta .s-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--line); }
+  .mini-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .mini-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .sutta .s-nav { display: flex; justify-content: space-between; gap: 10px; margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border); }
   .sutta .s-nav .sn-btn {
     flex: 0 1 48%; min-width: 0; display: flex; flex-direction: column; gap: 2px;
-    padding: 10px 14px; background: var(--paper-2); border: 1px solid var(--border);
-    border-radius: 12px; cursor: pointer; color: var(--ink); font-family: var(--sans);
-    text-align: left; transition: all 0.18s;
+    padding: 10px 14px; background: var(--bg); border: 1px solid var(--border);
+    border-radius: 12px; cursor: pointer; color: var(--ink); font-family: inherit;
+    text-align: left; transition: all 0.2s var(--ease);
   }
   .sutta .s-nav .sn-btn.next { margin-left: auto; text-align: right; align-items: flex-end; }
   .sutta .s-nav .sn-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
-  .sutta .s-nav .sn-lbl { font-size: 0.68rem; color: var(--ink-mute); text-transform: uppercase; letter-spacing: 0.08em; }
-  .sutta .s-nav .sn-title { font-size: 0.9rem; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .sutta .s-nav .sn-lbl { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; }
+  .sutta .s-nav .sn-title { font-size: 13px; font-weight: 600; color: var(--mm); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* ── Search snippets & in-reader match highlighting ── */
+  .search-snippet { font-size: 13px; line-height: 1.9; }
+  .search-snippet mark, .sutta mark.search-mark {
+    background: var(--accent-soft);
+    color: var(--accent);
+    border-radius: 3px;
+    padding: 0 2px;
+  }
+
+  /* ── External resources ── */
+  .external-links {
+    margin-top: 20px; padding: 14px 16px;
+    background: var(--panel); border: 1px dashed var(--border); border-radius: 12px;
+    font-size: 13px;
+  }
+  .external-links .el-title { color: var(--accent); font-weight: 600; margin-bottom: 6px; }
+
+  /* ── Footer stats + toast ── */
+  .stats { text-align: center; color: var(--muted); font-size: 12px; padding: 24px 12px 40px; line-height: 2; }
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--ink); color: var(--bg);
+    border-radius: 22px; padding: 10px 22px; font-size: 13.5px;
+    opacity: 0; pointer-events: none; transition: all 0.35s var(--ease); z-index: 50;
+    max-width: 86vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Reading-progress bar (reader mode only) ── */
+  .read-progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; z-index: 40; pointer-events: none; }
+  .read-progress .rp-fill { height: 100%; width: 0; background: var(--accent); transition: width 0.1s linear; }
+
+  /* ── Mobile: drawer sidebar (jataka550 pattern) ── */
+  @media (max-width: 820px) {
+    .layout { padding: 12px; }
+    aside {
+      position: fixed; left: 0; top: 0; bottom: 0; z-index: 20;
+      width: 300px; max-height: none; border-radius: 0 12px 12px 0;
+      transform: translateX(-105%); transition: transform 0.35s var(--ease);
+    }
+    aside.open { transform: none; }
+    #drawer-backdrop { display: block; pointer-events: none; }
+    #drawer-backdrop.show { pointer-events: auto; }
+    .menu-toggle { display: inline-flex; }
+    #searchInput { width: 140px; }
+    #searchInput:focus { width: 170px; }
+    h1 small { display: none; }
+    .sutta { padding: 16px 18px; }
+    .sutta .s-my { font-size: 17px; }
+    .close-sutta { top: 8px; }
+  }
 
   /* Hide the app until Vue compiles the template (prevents raw {{ }} flash) */
   [v-cloak] { display: none !important; }
   #vue-loading {
     display: flex; align-items: center; justify-content: center;
-    min-height: 60vh; color: var(--ink-mute);
-    font-family: var(--serif); font-style: italic; font-size: 1rem;
+    min-height: 60vh; color: var(--muted);
+    font-style: italic; font-size: 15px;
   }
 </style>
 <style>
   .fetch-backdrop { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: none; align-items: flex-start; justify-content: center; padding: 8vh 16px; z-index: 950; }
   .fetch-backdrop.show { display: flex; }
-  .fetch-panel { background: var(--paper); color: var(--ink); border: 1px solid var(--border); border-radius: 12px; padding: 22px 24px; max-width: 520px; width: 100%; box-shadow: var(--shadow); }
+  .fetch-panel { background: var(--panel); color: var(--ink); border: 1px solid var(--border); border-radius: 14px; padding: 22px 24px; max-width: 520px; width: 100%; box-shadow: var(--shadow-lift); }
   .fetch-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .fetch-head h2 { font-family: var(--serif); font-style: italic; color: var(--accent); font-size: 1.15rem; }
-  .fetch-close { background: transparent; border: none; color: var(--ink-mute); cursor: pointer; font-size: 1.2rem; }
+  .fetch-head h2 { margin: 0; color: var(--accent); font-size: 16px; }
+  .fetch-close { background: transparent; border: none; color: var(--muted); cursor: pointer; font-size: 18px; font-family: inherit; }
   .fetch-close:hover { color: var(--accent); }
-  .fetch-sub { color: var(--ink-dim); font-size: 0.85rem; line-height: 1.6; margin-bottom: 14px; }
+  .fetch-sub { color: var(--muted); font-size: 13px; line-height: 1.7; margin: 0 0 14px; }
   .fetch-row { display: flex; gap: 8px; margin-bottom: 14px; }
-  .fetch-row input { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; background: var(--paper-2); color: var(--ink); font-size: 0.95rem; outline: none; font-family: 'Consolas', monospace; }
-  .fetch-row input:focus { border-color: var(--accent); }
-  .fetch-go { padding: 10px 18px; border: none; border-radius: 8px; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; font-family: var(--sans); }
+  .fetch-row input { flex: 1; padding: 9px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg); color: var(--ink); font-size: 14px; outline: none; font-family: 'Consolas', monospace; transition: all 0.25s var(--ease); }
+  .fetch-row input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
+  .fetch-go { padding: 9px 18px; border: none; border-radius: 10px; background: var(--accent); color: #fff; font-weight: 600; cursor: pointer; font-family: inherit; font-size: 13px; transition: all 0.2s var(--ease); }
   .fetch-go:hover { filter: brightness(1.08); }
   .fetch-go:disabled { opacity: 0.5; cursor: wait; }
   .fetch-quick { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
-  .fetch-chip { padding: 5px 10px; border: 1px solid var(--border-soft); border-radius: 999px; background: var(--paper-2); color: var(--ink-dim); font-size: 0.78rem; cursor: pointer; font-family: var(--sans); transition: all 0.15s; }
+  .fetch-chip { padding: 5px 11px; border: 1px solid var(--border); border-radius: 16px; background: var(--bg); color: var(--muted); font-size: 12px; cursor: pointer; font-family: inherit; transition: all 0.2s var(--ease); }
   .fetch-chip:hover { border-color: var(--accent); color: var(--accent); }
   .fetch-batch { border-top: 1px dashed var(--border); padding-top: 12px; margin-bottom: 12px; }
-  .fetch-batch-title { font-size: 0.82rem; color: var(--ink-dim); font-weight: 600; margin-bottom: 8px; }
+  .fetch-batch-title { font-size: 12.5px; color: var(--ink); font-weight: 600; margin-bottom: 8px; }
   .fetch-batch-btns { display: flex; flex-wrap: wrap; gap: 6px; }
-  .fetch-batch-btn { padding: 8px 12px; border: 1px solid var(--accent-2); border-radius: 8px; background: var(--paper-2); color: var(--ink); font-size: 0.82rem; cursor: pointer; font-family: var(--sans); transition: all 0.15s; }
-  .fetch-batch-btn:hover { background: var(--accent-2); color: #fff; }
+  .fetch-batch-btn { padding: 7px 12px; border: 1px solid var(--accent); border-radius: 10px; background: var(--bg); color: var(--ink); font-size: 12.5px; cursor: pointer; font-family: inherit; transition: all 0.2s var(--ease); }
+  .fetch-batch-btn:hover { background: var(--accent); color: #fff; }
   .fetch-batch-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .fetch-progress { margin-top: 10px; }
-  .fp-bar { height: 8px; background: var(--paper-2); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
-  .fp-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--gold)); width: 0%; transition: width 0.2s; }
-  .fp-label { font-size: 0.78rem; color: var(--ink-dim); font-family: 'Consolas', monospace; }
-  .fetch-cancel { margin-top: 6px; padding: 4px 12px; border: 1px solid var(--accent); border-radius: 6px; background: transparent; color: var(--accent); font-size: 0.78rem; cursor: pointer; font-family: var(--sans); }
-  .fetch-status { font-size: 0.85rem; color: var(--ink-dim); min-height: 22px; margin-bottom: 8px; }
-  .fetch-status.err { color: var(--accent); }
-  .fetch-status.ok { color: var(--success); }
-  .fetch-note { font-size: 0.75rem; color: var(--ink-mute); line-height: 1.6; font-style: italic; }
+  .fp-bar { height: 8px; background: var(--accent-soft); border-radius: 4px; overflow: hidden; margin-bottom: 6px; }
+  .fp-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.2s; }
+  .fp-label { font-size: 12px; color: var(--muted); font-family: 'Consolas', monospace; }
+  .fetch-cancel { margin-top: 6px; padding: 4px 12px; border: 1px solid var(--accent); border-radius: 16px; background: transparent; color: var(--accent); font-size: 12px; cursor: pointer; font-family: inherit; }
+  .fetch-status { font-size: 13px; color: var(--muted); min-height: 22px; margin-bottom: 8px; }
+  .fetch-status.err { color: #c0392b; }
+  [data-theme="dark"] .fetch-status.err { color: #e57368; }
+  .fetch-status.ok { color: var(--accent); }
+  .fetch-note { font-size: 11.5px; color: var(--muted); line-height: 1.7; font-style: italic; margin: 0; }
   @media (max-width: 640px) {
     .fetch-panel { padding: 18px; }
     .fetch-row { flex-direction: column; }
@@ -786,44 +436,43 @@
   <div id="vue-loading">📖 ဖွင့်နေသည်...</div>
 
   <div id="app" v-cloak>
-  <div class="app">
     <header>
-      <div class="title">
-        <h1>ပိဋကတ်သုံးပုံ · Tipiṭaka</h1>
-        <div class="subtitle">မြန်မာဘာသာပြန် · The Three Baskets (Myanmar Translation)</div>
-      </div>
-      <div class="header-actions">
-        <a class="icon-btn" href="index.html" title="Home">🏠</a>
-        <button class="icon-btn" id="themeBtn" title="Theme" @click="cycleTheme">{{ themeIcon }}</button>
-        <button class="icon-btn" id="favToggle" title="Favorites" @click="showFavorites">⭐</button>
-        <button class="icon-btn" id="fetchBtn" title="SuttaCentral မှ သုတ် ရယူရန် · Fetch real suttas (Myanmar + Pāḷi)" @click="openFetch()">🌐</button>
-        <button class="icon-btn" id="importBtn" title="ပိဋကတ် Data ထည့်သွင်းရန် · Import full Tipiṭaka data (JSON)" @click="importFileEl && importFileEl.click()">⬆</button>
-        <button class="icon-btn" id="dataBtn" :title="dataBtnTitle" :style="dataBtnStyle" @click="dataBtnClick">💾</button>
-        <input type="file" id="importFile" ref="importFileEl" accept="application/json,.json" style="display:none" @change="onImportFile">
-      </div>
+      <button class="btn menu-toggle" id="menuToggle" @click="drawerOpen = true">☰</button>
+      <h1>ပိဋကတ်သုံးပုံ <small>· Tipiṭaka</small></h1>
+      <div class="spacer"></div>
+      <input id="searchInput" type="search" v-model="searchText" placeholder="🔍 ရှာဖွေရန် — သုတ်၊ ကျမ်း၊ ဘာသာပြန် (Search suttas, books, translations)">
+      <a class="btn" href="index.html" title="Home">🏠</a>
+      <button class="btn" id="fetchBtn" title="SuttaCentral မှ သုတ် ရယူရန် · Fetch real suttas (Myanmar + Pāḷi)" @click="openFetch()">🌐</button>
+      <button class="btn" id="importBtn" title="ပိဋကတ် Data ထည့်သွင်းရန် · Import full Tipiṭaka data (JSON)" @click="importFileEl && importFileEl.click()">⬆</button>
+      <button class="btn" id="dataBtn" :title="dataBtnTitle" :style="dataBtnStyle" @click="dataBtnClick">💾</button>
+      <button class="btn" id="favToggle" title="Favorites" @click="showFavorites">⭐</button>
+      <button class="btn" id="themeBtn" title="Theme" @click="cycleTheme">🌓</button>
+      <input type="file" id="importFile" ref="importFileEl" accept="application/json,.json" style="display:none" @change="onImportFile">
+      <div class="prog" title="ဖတ်ပြီးမှု"><div class="prog-fill" :style="{ width: readPct + '%' }"></div></div>
     </header>
 
     <div v-if="readerMode" class="read-progress"><div class="rp-fill" :style="{ width: readProgress + '%' }"></div></div>
 
+    <div id="drawer-backdrop" :class="{ show: drawerOpen }" @click="drawerOpen = false"></div>
+
     <div class="layout">
-      <aside class="sidebar">
-        <nav class="side-baskets">
-          <button v-for="p in pitakas" :key="'sb' + p.id" class="sb-btn" :class="{ active: p.id === activePitaka }" @click="selectPitaka(p.id)">
-            <span class="sb-ic">{{ basketIcon(p.id) }}</span>
-            <span class="sb-txt">
-              <span class="sb-my">{{ p.my }}</span>
-              <span class="sb-pali">{{ p.pali }}</span>
-            </span>
-            <span class="sb-n">{{ p.books.length }} ကျမ်း</span>
-          </button>
-        </nav>
-        <div v-if="pitaka.books.length" class="side-jump">
-          <div class="sj-lbl">📚 ကျမ်းများ — နှိပ်၍ သွားရန်</div>
-          <button v-for="(book, idx) in pitaka.books" :key="'sj' + idx" class="sj-item" :class="{ fetched: book._fetched }" @click="sideJump(idx)">
-            <span class="sj-name">{{ book._fetched ? '🌐 ' : '' }}{{ book.my }}</span>
-            <span v-if="book.suttaCount" class="sj-n">{{ book.suttaCount }}</span>
-          </button>
-        </div>
+      <aside :class="{ open: drawerOpen }">
+        <h3>☸️ ပိဋက ၃ ပုံ — သုတ် {{ statsBits.total }} ပုဒ်</h3>
+        <ul class="nipata-list">
+          <li v-for="p in pitakas" :key="'sb' + p.id" :class="{ active: p.id === activePitaka }" @click="selectPitaka(p.id)">
+            <span class="np-badge">{{ basketIcon(p.id) }}</span>
+            <span class="np-info">{{ p.my }}<br><span class="np-en">{{ p.pali }}</span></span>
+            <span class="range">{{ p.books.length }} ကျမ်း</span>
+          </li>
+        </ul>
+        <h3 v-if="pitaka.books.length">📚 ကျမ်းများ — နှိပ်၍ သွားရန်</h3>
+        <ul v-if="pitaka.books.length" class="nipata-list">
+          <li v-for="(book, idx) in pitaka.books" :key="'sj' + idx" :class="{ fetched: book._fetched }" @click="sideJump(idx)">
+            <span class="np-badge">{{ book._fetched ? '🌐' : '📜' }}</span>
+            <span class="np-info">{{ book.my }}<br><span class="np-en">{{ book.pali }}</span></span>
+            <span v-if="book.suttaCount" class="range">{{ book.suttaCount }}</span>
+          </li>
+        </ul>
         <div class="side-stats">
           <div class="ss-row"><span>သုတ်များ</span><b>{{ statsBits.total }}</b></div>
           <div class="ss-row"><span>✓ ဖတ်ပြီး</span><b>{{ statsBits.read }}</b></div>
@@ -831,23 +480,14 @@
         </div>
       </aside>
 
-      <div class="main">
-
-    <div class="search-bar">
-      <input type="text" id="searchInput" v-model="searchText" placeholder="🔍 ရှာဖွေရန် — သုတ်၊ ကျမ်း၊ ဘာသာပြန် (Search suttas, books, translations)">
-    </div>
-
-    <div class="pitaka-nav" id="pitakaNav">
-      <button v-for="p in pitakas" :key="p.id" class="p-btn" :class="{ active: p.id === activePitaka }" @click="selectPitaka(p.id)"><span class="p-my">{{ p.my }}</span>{{ p.pali }}</button>
-    </div>
-
-    <div class="content" id="content">
+      <section class="content" id="content">
 
       <!-- ══════════ Full-text search results ══════════ -->
       <template v-if="searchQ">
-        <div>
-          <div class="section-title">🔍 ရှာဖွေမှု ရလဒ်</div>
-          <div class="section-sub">"{{ searchQ }}" — {{ searchTotal }} ခု တွေ့သည် (သုတ် {{ searchResults.suttaHits.length }} · ကျမ်း {{ searchResults.bookHits.length }})</div>
+        <div class="nipata-banner">
+          <span class="nb-ic">🔍</span>
+          <div><h2 class="nipata-title">ရှာဖွေမှု ရလဒ်</h2>
+          <p class="nipata-sub">"{{ searchQ }}" — {{ searchTotal }} ခု တွေ့သည် (သုတ် {{ searchResults.suttaHits.length }} · ကျမ်း {{ searchResults.bookHits.length }})</p></div>
         </div>
         <div class="book-list">
           <div v-for="hit in searchResults.suttaHits.slice(0, 100)" :key="hit.key" class="book-card search-hit" @click="openHit(hit.key)">
@@ -858,20 +498,21 @@
             <div v-if="hit.snippet" class="b-desc search-snippet" v-html="hit.snippet"></div>
             <div v-else class="b-desc">{{ hit.s.source || '' }}</div>
           </div>
-          <div v-if="searchResults.suttaHits.length > 100" style="text-align:center;padding:8px;color:var(--ink-mute);font-size:0.82rem;font-style:italic;">…နောက်ထပ် {{ searchResults.suttaHits.length - 100 }} ခု — ရှာဖွေစာသား ပိုတိကျအောင် ရိုက်ပါ</div>
+          <div v-if="searchResults.suttaHits.length > 100" style="text-align:center;padding:8px;color:var(--muted);font-size:0.82rem;font-style:italic;">…နောက်ထပ် {{ searchResults.suttaHits.length - 100 }} ခု — ရှာဖွေစာသား ပိုတိကျအောင် ရိုက်ပါ</div>
           <div v-for="(bh, i) in searchResults.bookHits" :key="'b' + i" class="book-card" @click="openBookHit(bh)">
             <div class="b-head"><div><span class="b-my">📚 {{ bh.b.my }}</span> <span class="b-name">· {{ bh.b.pali }}</span></div><div><span class="b-count">{{ bh.p.my }}</span></div></div>
             <div class="b-desc">{{ bh.b.desc || '' }}</div>
           </div>
-          <div v-if="!searchTotal" style="text-align:center;padding:20px;color:var(--ink-mute);font-style:italic;">မတွေ့ပါ။ (No matches.)<br><span style="font-size:0.8rem">🌐 ဖြင့် သုတ်များ ထပ်ရယူပြီး ရှာနိုင်ပါသည်</span></div>
+          <div v-if="!searchTotal" style="text-align:center;padding:20px;color:var(--muted);font-style:italic;">မတွေ့ပါ။ (No matches.)<br><span style="font-size:0.8rem">🌐 ဖြင့် သုတ်များ ထပ်ရယူပြီး ရှာနိုင်ပါသည်</span></div>
         </div>
       </template>
 
       <!-- ══════════ Favorites view ══════════ -->
       <template v-else-if="showFavs">
-        <div>
-          <div class="section-title">⭐ ကြိုက်နှစ်သက်ရာ · Favorites</div>
-          <div class="section-sub">{{ favsCount }} suttas</div>
+        <div class="nipata-banner">
+          <span class="nb-ic">⭐</span>
+          <div><h2 class="nipata-title">ကြိုက်နှစ်သက်ရာ · Favorites</h2>
+          <p class="nipata-sub">{{ favsCount }} suttas</p></div>
         </div>
         <div class="book-list">
           <div v-for="f in favList" :key="f.key" class="book-card" @click="openSutta(f.key)">
@@ -898,6 +539,7 @@
                 <div class="s-pali">{{ currentSutta.pali }}</div>
               </div>
               <div class="s-source">{{ currentSutta.source }}</div>
+              <button class="bookmark-btn" :class="{ on: isFav }" title="Favorite" @click="toggleFav">{{ isFav ? '★' : '☆' }}</button>
             </div>
             <div v-if="currentSutta.context" class="s-context">{{ currentSutta.context }}</div>
             <div class="s-body">
@@ -923,11 +565,12 @@
 
       <!-- ══════════ Browse (pitaka → books accordion) ══════════ -->
       <template v-else>
-        <div>
-          <div class="section-title">{{ pitaka.my }}</div>
-          <div class="section-sub">{{ pitaka.pali }} — {{ pitaka.en }}</div>
-          <div class="section-intro">{{ pitaka.intro }}</div>
+        <div class="nipata-banner">
+          <span class="nb-ic">{{ basketIcon(pitaka.id) }}</span>
+          <div><h2 class="nipata-title">{{ pitaka.my }}</h2>
+          <p class="nipata-sub">{{ pitaka.pali }} — {{ pitaka.en }}</p></div>
         </div>
+        <div class="section-intro">{{ pitaka.intro }}</div>
 
         <template v-if="activePitaka === 'sutta'">
           <div v-if="contCard" class="cont-card" @click="openContinue">
@@ -951,11 +594,6 @@
             </div>
           </div>
         </template>
-
-        <div v-if="pitaka.books.length > 3" class="book-jump">
-          <span class="bj-lbl">📚 အုပ်စုများ — နှိပ်၍ သွားရန်</span>
-          <button v-for="(book, idx) in pitaka.books" :key="'j' + idx" class="bj-chip" :class="{ fetched: book._fetched }" @click="jumpToBook(idx)">{{ book._fetched ? '🌐 ' : '' }}{{ book.my }}<span v-if="book.suttaCount" class="bj-n"> {{ book.suttaCount }}</span></button>
-        </div>
 
         <div class="book-list">
           <div v-for="(book, idx) in pitaka.books" :key="idx" class="book-card" :id="'book-' + idx" :class="{ open: isBookOpen(idx) }">
@@ -984,7 +622,7 @@
 
         <div class="external-links">
           <div class="el-title">🌐 အပြည့်အစုံ ဖတ်လိုပါက</div>
-          <p style="color:var(--ink-dim);font-size:0.85rem;line-height:1.7;margin:0;">
+          <p style="color:var(--muted);font-size:0.85rem;line-height:1.7;margin:0;">
             အထက်က ဗန်းဒလ်လုပ်ထားသော သုတ်များအပြင် — <b>🌐 button</b> ကို နှိပ်၍ Sutta ID (dn31၊ mn10၊ sn56.11…) ထည့်လျှင်
             <b>Pitaka Myanmar Translation (တကယ့် မြန်မာဘာသာပြန်)</b> နှင့် Pāḷi ကို app ထဲသို့ တိုက်ရိုက် ရယူ၍ offline သိမ်းနိုင်ပါသည်။
             ရယူပြီးသော သုတ်များ ဤ Sutta Piṭaka အောက်ဆုံးတွင် ပေါ်ပါမည်။
@@ -993,13 +631,10 @@
         </div>
       </template>
 
-    </div>
-
-    <div class="stats" id="stats">{{ statsText }}</div>
-
-      </div><!-- /.main -->
+      </section><!-- /.content -->
     </div><!-- /.layout -->
-  </div>
+
+    <footer class="stats" id="stats">{{ statsText }}<br>မြန်မာဘာသာပြန် · The Three Baskets (Myanmar Translation)</footer>
 
   <!-- ══════════ SuttaCentral fetch modal ══════════ -->
   <div class="fetch-backdrop" id="fetchModal" :class="{ show: showFetch }" @click.self="closeFetch">
@@ -1039,7 +674,7 @@
         <div style="margin-top:10px;padding-top:10px;border-top:1px dashed var(--border);">
           <div class="fetch-batch-title">🔢 အပိုင်းတစ်ခုလုံး ရယူရန် · Fetch any section by prefix</div>
           <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <input type="text" id="sectionInput" ref="sectionInputEl" v-model="sectionText" placeholder="e.g. sn12 · an5 · thag1 · vv · pv" style="flex:1;min-width:140px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--paper-2);color:var(--ink);font-family:'Consolas',monospace;font-size:0.85rem;outline:none;" @keypress.enter="sectionGoClick">
+            <input type="text" id="sectionInput" ref="sectionInputEl" v-model="sectionText" placeholder="e.g. sn12 · an5 · thag1 · vv · pv" style="flex:1;min-width:140px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;background:var(--bg);color:var(--ink);font-family:'Consolas',monospace;font-size:0.85rem;outline:none;" @keypress.enter="sectionGoClick">
             <button class="fetch-batch-btn" id="sectionGo" :disabled="batchBusy" @click="sectionGoClick">ရယူမည်</button>
           </div>
           <p class="fetch-note" style="margin-top:4px;">Prefix ထည့်လျှင် {prefix}.1, {prefix}.2 … ကို ဆက်တိုက် ရယူ၍ အဆုံးထိ (consecutive miss ၅ ကြိမ်တွင် ရပ်)။ Section list: sn1-56, an1-11, thag/thig, ja (jātaka), vv, pv, bv, cp.</p>
@@ -1082,7 +717,7 @@
 
   const THEME_KEY = 'tipitaka.theme';
   const FAV_KEY = 'tipitaka.favs.v1';
-  const THEMES = ['parchment', 'dark', 'royal'];
+  const THEMES = ['light', 'dark'];
 
   // ═══════════════════════════════════════════════════════════════
   // TIPIṬAKA STRUCTURE — full three-basket index in Myanmar
@@ -1938,19 +1573,24 @@
     return keys[seed % keys.length];
   }
 
-  // ---- Theme ----
-  const theme = ref('parchment');
+  // ---- Theme (jataka550 system: light/dark; legacy values parchment→light, royal→dark) ----
+  const theme = ref('light');
+  function normalizeTheme(t) {
+    if (t === 'parchment') return 'light';   // legacy tipitaka.theme value
+    if (t === 'royal') return 'dark';        // legacy tipitaka.theme value
+    return THEMES.includes(t) ? t : 'light';
+  }
   function applyTheme(t) {
-    if (!THEMES.includes(t)) t = 'parchment';
+    t = normalizeTheme(t);
     document.documentElement.dataset.theme = t;
     localStorage.setItem(THEME_KEY, t);
     theme.value = t;
   }
-  applyTheme(localStorage.getItem(THEME_KEY) || 'parchment');
-  const themeIcon = computed(() => theme.value === 'parchment' ? '📜' : theme.value === 'dark' ? '🌙' : '👑');
+  applyTheme(localStorage.getItem(THEME_KEY) || 'light');
   function cycleTheme() {
-    const i = THEMES.indexOf(document.documentElement.dataset.theme || 'parchment');
-    applyTheme(THEMES[(i + 1) % THEMES.length]);
+    const t = (document.documentElement.dataset.theme || 'light') === 'light' ? 'dark' : 'light';
+    applyTheme(t);
+    toast(t === 'light' ? '☀️ Light' : '🌙 Dark');
   }
 
   // ---- Toast ----
@@ -2228,6 +1868,14 @@
   const BASKET_ICONS = { vinaya: '⚖️', sutta: '📖', abhidhamma: '🧘' };
   function basketIcon(id) { return BASKET_ICONS[id] || '📜'; }
 
+  // Mobile sidebar drawer (jataka550 pattern)
+  const drawerOpen = ref(false);
+  // Header progress line — share of suttas marked read (jataka550 pattern)
+  const readPct = computed(() => {
+    const total = Object.keys(SUTTAS).length;
+    return total ? Math.round([...readKeys.value].filter(k => SUTTAS[k]).length / total * 100) : 0;
+  });
+
   // Sidebar stats card (same numbers as the footer stats line)
   const statsBits = computed(() => ({
     total: Object.keys(SUTTAS).length,
@@ -2273,6 +1921,7 @@
     showFavs.value = false;
     readerHighlight.value = '';
     searchText.value = ''; searchQ.value = '';
+    drawerOpen.value = false;
     nextTick(() => jumpToBook(idx));
   }
 
@@ -2291,6 +1940,7 @@
     activeSutta.value = null;
     showFavs.value = false;
     searchText.value = ''; searchQ.value = '';
+    drawerOpen.value = false;
   }
 
   // Opening a sutta counts as reading it + becomes the continue-reading target
@@ -2667,12 +2317,13 @@
         // favorites
         showFavs, showFavorites, favList, favsCount,
         // header buttons
-        themeIcon, cycleTheme, dataBtnTitle, dataBtnStyle, dataBtnClick,
+        cycleTheme, dataBtnTitle, dataBtnStyle, dataBtnClick,
         importFileEl, onImportFile,
         // stats + toast
         statsText, toastMsg, toastShow,
         // layout upgrade: sidebar, reading progress, prev/next
         basketIcon, statsBits, sideJump, readerMode, readProgress, readerNav,
+        drawerOpen, readPct,
         // fetch modal
         showFetch, openFetch, closeFetch, fetchUid, fetchInputEl, fetchBusy, doFetch,
         FAMOUS_IDS, batchBusy, batchCancel, progress, confirmBatch, confirmMulti,
