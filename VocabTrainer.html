@@ -381,6 +381,110 @@ function starterDeck() {
   };
 }
 
+// ---- Starter deck: Irregular Verbs (30 cards) ----
+const SEED_IRREGULAR = [
+  ['go — went — gone', 'သွားသည်', 'She went to the market yesterday.'],
+  ['be — was/were — been', 'ဖြစ်သည် / ရှိသည်', 'He was very tired last night.'],
+  ['have — had — had', 'ရှိသည် / ပိုင်ဆိုင်သည်', 'They had a big house in Yangon.'],
+  ['do — did — done', 'လုပ်သည် / ပြုလုပ်သည်', 'I did my homework before dinner.'],
+  ['say — said — said', 'ပြောသည် / ဆိုသည်', 'She said hello to everyone.'],
+  ['get — got — got/gotten', 'ရသည် / ရရှိသည်', 'He got a new phone last week.'],
+  ['make — made — made', 'ပြုလုပ်သည် / ဖန်တီးသည်', 'Mom made noodles for breakfast.'],
+  ['know — knew — known', 'သိသည်', 'I knew the answer at once.'],
+  ['think — thought — thought', 'ထင်သည် / စဉ်းစားသည်', 'I thought the movie was great.'],
+  ['take — took — taken', 'ယူသည်', 'She took my umbrella by mistake.'],
+  ['see — saw — seen', 'မြင်သည် / တွေ့မြင်သည်', 'We saw a rainbow this morning.'],
+  ['come — came — come', 'လာသည်', 'My friend came to visit me last week.'],
+  ['give — gave — given', 'ပေးသည်', 'He gave me a useful book.'],
+  ['find — found — found', 'ရှာတွေ့သည်', 'I found my keys under the sofa.'],
+  ['tell — told — told', 'ပြောပြသည်', 'She told us a funny story.'],
+  ['become — became — become', 'ဖြစ်လာသည်', 'He became a doctor in 2020.'],
+  ['leave — left — left', 'ထွက်ခွာသည် / ချန်ထားသည်', 'They left the office at six.'],
+  ['feel — felt — felt', 'ခံစားရသည်', 'I felt happy after the exam.'],
+  ['bring — brought — brought', 'ယူဆောင်လာသည်', 'She brought snacks for everyone.'],
+  ['begin — began — begun', 'စတင်သည်', 'The class began at nine o\'clock.'],
+  ['keep — kept — kept', 'ဆက်လက်ထိန်းသိမ်းသည် / သိမ်းဆည်းထားသည်', 'He kept all the old letters.'],
+  ['write — wrote — written', 'ရေးသည် / ရေးသားသည်', 'She wrote a letter to her teacher.'],
+  ['run — ran — run', 'ပြေးသည်', 'The boy ran to catch the bus.'],
+  ['eat — ate — eaten', 'စားသည်', 'We ate mohinga this morning.'],
+  ['drink — drank — drunk', 'သောက်သည်', 'He drank two cups of tea.'],
+  ['speak — spoke — spoken', 'စကားပြောသည်', 'She spoke English at the meeting.'],
+  ['read — read — read', 'ဖတ်သည် (past ကို "red" ဟု အသံထွက်သည်)', 'I read that novel last month.'],
+  ['buy — bought — bought', 'ဝယ်သည် / ဝယ်ယူသည်', 'They bought fruit at the market.'],
+  ['teach — taught — taught', 'သင်ကြားသည် / သင်ပေးသည်', 'He taught math for ten years.'],
+  ['forget — forgot — forgotten', 'မေ့သည် / မေ့လျော့သည်', 'I forgot my password again.'],
+];
+
+// ---- Starter deck: Workplace English (25 cards) ----
+const SEED_WORKPLACE = [
+  ['Could you clarify that?', 'အဲဒီအချက်ကို ထပ်ရှင်းပြပေးပါလား — နားမလည်သည့်အခါ ယဉ်ကျေးစွာ ပြန်မေးသောစကား', '"Sorry, could you clarify that last point?"'],
+  ['I\'ll follow up by email.', 'Email ဖြင့် ဆက်လက် အကြောင်းကြားပေးပါမည်', '"Thanks for the call — I\'ll follow up by email."'],
+  ['Let\'s schedule a meeting.', 'အစည်းအဝေးအချိန် ချိန်းဆိုကြပါစို့', '"Let\'s schedule a meeting for Monday morning."'],
+  ['I\'m running a bit late.', 'နည်းနည်း နောက်ကျနေပါသည် — ကြိုတင် အကြောင်းကြားရာတွင် သုံးသည်', '"Sorry, I\'m running a bit late — please start without me."'],
+  ['Could you send me the file?', 'ဖိုင်ကို ပို့ပေးနိုင်ပါသလား', '"Could you send me the file before lunch?"'],
+  ['Let me get back to you.', 'အဖြေကို နောက်မှ ပြန်ပြောပေးပါမည် — ချက်ချင်း မဖြေနိုင်သေးသောအခါ သုံးသည်', '"Good question — let me get back to you this afternoon."'],
+  ['What\'s the deadline?', 'နောက်ဆုံးသတ်မှတ်ရက် ဘယ်တော့လဲ', '"What\'s the deadline for this report?"'],
+  ['I\'m on it.', 'အခုပဲ လုပ်ဆောင်နေပါပြီ — တာဝန်ယူကြောင်း တိုတိုပြောသောစကား', '"Don\'t worry, I\'m on it."'],
+  ['Can we push this back?', 'ချိန်းဆိုထားသည့်အချိန်ကို နောက်ရွှေ့လို့ ရမလား', '"Can we push this back to Thursday?"'],
+  ['Keep me in the loop.', 'သတင်းအချက်အလက်များကို ကျွန်တော့်ကိုပါ အမြဲ အသိပေးထားပါ', '"Keep me in the loop on the client\'s reply."'],
+  ['Let\'s touch base tomorrow.', 'မနက်ဖြန် ခဏလောက် ပြန်ဆက်သွယ် ဆွေးနွေးကြပါစို့', '"Let\'s touch base tomorrow after the demo."'],
+  ['I\'ll share my screen.', 'Screen ကို ပြပေးပါမည် — online meeting တွင် သုံးသည်', '"One second — I\'ll share my screen now."'],
+  ['Sorry to interrupt, but…', 'ကြားဖြတ်ပြောရသည့်အတွက် ခွင့်လွှတ်ပါ — ယဉ်ကျေးစွာ ကြားဖြတ်လိုသောအခါ သုံးသည်', '"Sorry to interrupt, but we\'re almost out of time."'],
+  ['Could you repeat that, please?', 'ထပ်ပြောပြပေးပါလား', '"The line broke up — could you repeat that, please?"'],
+  ['That works for me.', 'ကျွန်တော့်အတွက် အဆင်ပြေပါသည် — အချိန်/အစီအစဉ် သဘောတူသောအခါ သုံးသည်', '"Ten o\'clock? That works for me."'],
+  ['I have a conflict at that time.', 'အဲဒီအချိန်မှာ တခြားချိန်းဆိုမှု ရှိနေပါသည်', '"I have a conflict at that time — can we do 3 pm?"'],
+  ['Let\'s take this offline.', 'ဒီကိစ္စကို အစည်းအဝေးပြီးမှ သီးခြား ဆွေးနွေးကြပါစို့', '"Good point — let\'s take this offline."'],
+  ['Any updates on this?', 'ဒီကိစ္စနဲ့ ပတ်သက်ပြီး သတင်းအသစ် ရှိပါသလား', '"Any updates on the server issue?"'],
+  ['I\'ll loop in my manager.', 'မန်နေဂျာကို ဒီဆွေးနွေးမှုထဲ ထည့်ပေးပါမည်', '"I\'ll loop in my manager on this email."'],
+  ['Thanks for your patience.', 'စောင့်ဆိုင်းပေးသည့်အတွက် ကျေးဇူးတင်ပါသည်', '"Thanks for your patience — the fix is ready now."'],
+  ['Could you review my work?', 'ကျွန်တော့်အလုပ်ကို စစ်ဆေးကြည့်ပေးနိုင်ပါသလား', '"Could you review my work before I submit it?"'],
+  ['Let\'s move on to the next item.', 'နောက်အကြောင်းအရာကို ဆက်သွားကြပါစို့ — အစည်းအဝေး ဦးဆောင်ရာတွင် သုံးသည်', '"We\'re short on time — let\'s move on to the next item."'],
+  ['I\'ll take notes.', 'မှတ်စု ရေးမှတ်ပေးပါမည်', '"You lead the meeting — I\'ll take notes."'],
+  ['It\'s a work in progress.', 'ဆက်လက် လုပ်ဆောင်နေဆဲ ဖြစ်ပါသည် — မပြီးသေးကြောင်း ပြောသောစကား', '"The new design is still a work in progress."'],
+  ['Let me know if you need anything.', 'တစ်ခုခု လိုအပ်ရင် အကြောင်းကြားပါ', '"I\'m heading out — let me know if you need anything."'],
+];
+
+// ---- Starter deck: Interview English (25 cards) ----
+const SEED_INTERVIEW = [
+  ['Tell me about yourself.', 'မိမိအကြောင်း အကျဉ်းချုပ် ပြောပြပါ — အလုပ်နှင့်ဆိုင်သော အချက်များကိုသာ ၁–၂ မိနစ်အတွင်း ဖြေပါ', '"I\'m a web developer with three years of experience building Vue apps."'],
+  ['Why do you want to work here?', 'ဒီကုမ္ပဏီမှာ ဘာကြောင့် အလုပ်လုပ်ချင်တာလဲ — ကုမ္ပဏီအကြောင်း ကြိုလေ့လာပြီး ဖြေပါ', '"I admire your products, and my skills match this role well."'],
+  ['My greatest strength is…', 'ကျွန်တော်၏ အဓိက အားသာချက်မှာ… — သက်သေပြနိုင်သည့် ဥပမာတစ်ခုနှင့် တွဲပြောပါ', '"My greatest strength is learning new tools quickly."'],
+  ['My weakness is…', 'ကျွန်တော်၏ အားနည်းချက်မှာ… — ရိုးသားစွာဖြေပြီး ပြုပြင်နေပုံကို ထည့်ပြောပါ', '"My weakness is public speaking, so I practice by giving small demos."'],
+  ['I\'m passionate about web development.', 'Web development ကို အလွန် စိတ်အားထက်သန်ပါသည် — လက်တွေ့လုပ်ဆောင်ချက်နှင့် သက်သေပြပါ', '"I\'m passionate about web development and build side projects every weekend."'],
+  ['Where do you see yourself in five years?', 'နောက်ငါးနှစ်မှာ ဘယ်အဆင့် ရောက်ချင်ပါသလဲ — ရည်မှန်းချက်ကို ကုမ္ပဏီနှင့် ဆက်စပ်၍ ဖြေပါ', '"In five years, I hope to lead a small development team here."'],
+  ['Tell me about a challenge you faced.', 'ကြုံခဲ့ရသော အခက်အခဲတစ်ခုကို ပြောပြပါ — အခြေအနေ၊ လုပ်ဆောင်ချက်၊ ရလဒ် အစဉ်လိုက် ဖြေပါ', '"Our server crashed before a demo, and I restored it within an hour."'],
+  ['Why should we hire you?', 'ဘာကြောင့် ခင်ဗျားကို ခန့်သင့်တာလဲ — ကိုယ့်စွမ်းရည်နှင့် ရာထူးလိုအပ်ချက်ကို ချိတ်ဆက်ဖြေပါ', '"You need someone who ships fast, and that\'s exactly what I do."'],
+  ['I have three years of experience in…', '…တွင် အတွေ့အကြုံ သုံးနှစ် ရှိပါသည် — ကိန်းဂဏန်းဖြင့် တိကျစွာ ပြောပါ', '"I have three years of experience in front-end development."'],
+  ['I work well under pressure.', 'ဖိအားအောက်တွင် ကောင်းစွာ လုပ်ဆောင်နိုင်ပါသည် — deadline ဥပမာနှင့် တွဲပြောပါ', '"I work well under pressure and never miss a release date."'],
+  ['I\'m a quick learner.', 'အသစ်ကို လျင်မြန်စွာ သင်ယူနိုင်ပါသည် — သင်ယူခဲ့သော နည်းပညာ ဥပမာပေးပါ', '"I\'m a quick learner — I picked up Vue in just two weeks."'],
+  ['I\'m a team player.', 'အဖွဲ့နှင့် ပူးပေါင်း လုပ်ကိုင်တတ်ပါသည် — ပူးပေါင်းခဲ့သော project ဥပမာပေးပါ', '"I\'m a team player and enjoy pair programming with colleagues."'],
+  ['Could you tell me more about the team?', 'အဖွဲ့အကြောင်း ထပ်ပြောပြပေးပါလား — interview အဆုံးတွင် ပြန်မေးသင့်သော မေးခွန်း', '"Could you tell me more about the team I would join?"'],
+  ['What does a typical day look like?', 'ပုံမှန် တစ်နေ့တာ ဘယ်လိုရှိပါသလဲ — အလုပ်သဘာဝကို သိရန် ပြန်မေးသော မေးခွန်း', '"What does a typical day look like for this role?"'],
+  ['I\'m available to start immediately.', 'ချက်ချင်း အလုပ် စတင်နိုင်ပါသည် — စတင်နိုင်မည့်ရက်ကို တိကျစွာ ပြောပါ', '"I\'m available to start immediately, or with one week\'s notice."'],
+  ['What are your salary expectations?', 'လစာ ဘယ်လောက် မျှော်လင့်ပါသလဲ — စျေးကွက်နှုန်းကို ကြိုလေ့လာပြီး အပိုင်းအခြားဖြင့် ဖြေပါ', '"Based on my experience, I\'m looking for a fair market range."'],
+  ['Tell me about a project you\'re proud of.', 'ဂုဏ်ယူရသော project တစ်ခုကို ပြောပြပါ — ကိုယ့်အခန်းကဏ္ဍနှင့် ရလဒ်ကို ထင်ရှားစွာ ပြောပါ', '"I built a script generator that cut testing time by half."'],
+  ['How do you handle criticism?', 'ဝေဖန်မှုကို ဘယ်လို ကိုင်တွယ်ပါသလဲ — feedback ကို တိုးတက်ရန် အခွင့်အရေးအဖြစ် ရှုမြင်ကြောင်း ဖြေပါ', '"I treat feedback as a chance to improve my code."'],
+  ['Do you have any questions for us?', 'ကျွန်ုပ်တို့ကို မေးစရာ ရှိပါသလား — မေးခွန်း အနည်းဆုံးတစ်ခု ကြိုပြင်ထားပါ', '"Yes — how do you measure success in the first six months?"'],
+  ['I\'d like to grow with the company.', 'ကုမ္ပဏီနှင့်အတူ တိုးတက်လိုပါသည် — ရေရှည် လုပ်ကိုင်လိုကြောင်း ပြသသောစကား', '"I\'d like to grow with the company and take on more responsibility."'],
+  ['Thank you for this opportunity.', 'ဒီအခွင့်အရေးအတွက် ကျေးဇူးတင်ပါသည် — interview အစ သို့မဟုတ် အဆုံးတွင် ပြောပါ', '"Thank you for this opportunity — I enjoyed our conversation."'],
+  ['I left my last job because…', 'ယခင်အလုပ်မှ ထွက်ခဲ့ရသည့် အကြောင်းမှာ… — ကုမ္ပဏီဟောင်းကို မဝေဖန်ဘဲ အပြုသဘော ဖြေပါ', '"I left my last job because I wanted more challenging projects."'],
+  ['I\'m comfortable working remotely.', 'အဝေးမှ (remote) အလုပ်လုပ်ရသည်ကို အဆင်ပြေပါသည် — ကိုယ်ပိုင်စည်းကမ်း ရှိကြောင်း ထည့်ပြောပါ', '"I\'m comfortable working remotely and keep a strict daily routine."'],
+  ['How do you prioritize your tasks?', 'အလုပ်များကို ဘယ်လို ဦးစားပေး စီစဉ်ပါသလဲ — သုံးသည့် နည်းစနစ်ဖြင့် ဖြေပါ', '"I list tasks each morning and tackle the urgent ones first."'],
+  ['When can I expect to hear from you?', 'အဖြေကို ဘယ်တော့ သိရနိုင်ပါမလဲ — interview အဆုံးတွင် နောက်တစ်ဆင့်ကို မေးသော မေးခွန်း', '"When can I expect to hear about the next steps?"'],
+];
+
+function seedDeck(id, name, prefix, rows) {
+  return { id, name, cards: rows.map((s, i) => ({ id: prefix + (i + 1), front: s[0], back: s[1], ex: s[2], sr: newSr() })) };
+}
+function builtinDecks() {
+  return [
+    starterDeck(),
+    seedDeck('irregular-verbs', 'Irregular Verbs', 'iv', SEED_IRREGULAR),
+    seedDeck('workplace-english', 'Workplace English', 'wp', SEED_WORKPLACE),
+    seedDeck('interview-english', 'Interview English', 'ie', SEED_INTERVIEW),
+  ];
+}
+
 const app = createApp({
   setup() {
     const store = ref({ decks: [], days: [] });
@@ -409,9 +513,17 @@ const app = createApp({
     function load() {
       try {
         const d = JSON.parse(localStorage.getItem(STORE) || 'null');
-        if (d && Array.isArray(d.decks)) { store.value = { decks: d.decks, days: d.days || [] }; return; }
+        if (d && Array.isArray(d.decks)) {
+          store.value = { decks: d.decks, days: d.days || [] };
+          // Append any built-in deck the user doesn't have yet (match by name; never duplicate)
+          const names = new Set(store.value.decks.map(x => x.name));
+          let changed = false;
+          builtinDecks().forEach(b => { if (!names.has(b.name)) { store.value.decks.push(b); changed = true; } });
+          if (changed) save();
+          return;
+        }
       } catch (e) {}
-      store.value = { decks: [starterDeck()], days: [] };
+      store.value = { decks: builtinDecks(), days: [] };
       save();
     }
     function save() { localStorage.setItem(STORE, JSON.stringify(store.value)); }

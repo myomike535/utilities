@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Graded Reading · အင်္ဂလိပ်စာ ဖတ်စာ</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#10b981">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#10b981; --accent-2:#34d399;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --serif:'Georgia','Times New Roman',serif;
+    --el-color-primary:#10b981;
+    --el-color-primary-light-3:#34d399;
+    --el-color-primary-dark-2:#059669;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(16,185,129,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(52,211,153,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:900px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:20px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(16,185,129,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+  .stats-chip {
+    background:rgba(16,185,129,.12); border:1px solid rgba(16,185,129,.35); color:var(--accent-2);
+    padding:6px 14px; border-radius:999px; font-size:.85rem; font-weight:700;
+  }
+
+  /* ---- Library ---- */
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:12px; }
+  .card {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:16px 18px; display:flex; flex-direction:column; gap:9px;
+    transition:all .18s; cursor:pointer;
+  }
+  .card:hover { transform:translateY(-2px); border-color:color-mix(in srgb, var(--accent) 45%, transparent);
+    box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  .card-head { display:flex; align-items:flex-start; gap:8px; }
+  .card-head .t { flex:1; font-weight:700; font-size:.98rem; line-height:1.45; }
+  .card-head .done { color:var(--accent); font-size:1rem; }
+  .card-meta { display:flex; align-items:center; gap:8px; flex-wrap:wrap; font-size:.72rem; color:var(--muted); }
+  .tapbar { height:5px; border-radius:3px; background:var(--field); overflow:hidden; }
+  .tapbar .fill { height:100%; border-radius:3px; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transition:width .3s; }
+  .tap-label { font-size:.68rem; color:var(--faint); }
+
+  /* ---- Reader ---- */
+  .reader-head { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .reader-head h2 { margin:0; font-size:1.15rem; flex:1; min-width:160px; }
+  .rtoolbar {
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:12px;
+    padding:10px 14px; margin-bottom:14px;
+  }
+  .rtoolbar .lab { font-size:.72rem; color:var(--muted); }
+  .article-box {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px;
+    padding:24px 26px;
+  }
+  .article-text { line-height:2.1; color:#e6ecf4; font-family:var(--serif); letter-spacing:.01em; }
+  .w { cursor:pointer; border-radius:4px; padding:1px 2px; transition:background .12s; }
+  .w:hover { background:rgba(16,185,129,.18); }
+  .w.tapped {
+    text-decoration:underline; text-decoration-color:var(--accent); text-decoration-thickness:2px;
+    text-underline-offset:4px; background:rgba(16,185,129,.10);
+  }
+  .hint { margin-top:14px; font-size:.75rem; color:var(--faint); }
+
+  .gloss-bubble {
+    position:fixed; z-index:3000; max-width:260px;
+    background:var(--card2); border:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    border-radius:10px; padding:9px 13px; box-shadow:0 10px 30px rgba(0,0,0,.5);
+    transform:translate(-50%,-100%); pointer-events:none;
+  }
+  .gloss-bubble::after {
+    content:''; position:absolute; left:50%; bottom:-6px; transform:translateX(-50%) rotate(45deg);
+    width:10px; height:10px; background:var(--card2);
+    border-right:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+    border-bottom:1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  }
+  .gb-word { font-weight:700; color:var(--accent-2); font-size:.85rem; margin-bottom:2px; }
+  .gb-gloss { font-size:.86rem; color:var(--text); line-height:1.6; }
+
+  .gloss-panel {
+    margin-top:16px; background:var(--card); border:1px solid rgba(255,255,255,.07);
+    border-radius:14px; padding:18px 22px;
+  }
+  .gloss-panel h3 { margin:0 0 12px; font-size:.92rem; color:var(--accent-2); }
+  .gloss-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(230px,1fr)); gap:7px 18px; }
+  .gloss-row { display:flex; gap:8px; font-size:.82rem; line-height:1.7; align-items:baseline; }
+  .gloss-row .en { font-weight:700; color:#cfe9dd; min-width:90px; }
+  .gloss-row .en.was-tapped { color:var(--accent-2); }
+  .gloss-row .my { color:var(--muted); }
+
+  .el-slider { --el-slider-main-bg-color:var(--accent); }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+
+  <!-- ============ LIBRARY VIEW ============ -->
+  <div v-if="view === 'library'">
+    <header>
+      <div class="logo">📖</div>
+      <div class="title">
+        <h1>Graded Reading · အင်္ဂလိပ်စာ ဖတ်စာ</h1>
+        <div class="sub">အဆင့်လိုက် အင်္ဂလိပ်စာဖတ်ခြင်း — စကားလုံးနှိပ်ပြီး မြန်မာအဓိပ္ပာယ် ကြည့်ပါ</div>
+      </div>
+      <span class="stats-chip">📚 {{ progress.read.length }}/{{ articles.length }} ဖတ်ပြီး</span>
+    </header>
+
+    <div class="grid">
+      <div v-for="a in articles" :key="a.id" class="card" @click="openArticle(a)">
+        <div class="card-head">
+          <span class="t">{{ a.title }}</span>
+          <span v-if="isRead(a.id)" class="done" title="ဖတ်ပြီး">✓</span>
+        </div>
+        <div class="card-meta">
+          <el-tag size="small" effect="dark" :type="levelType(a.level)">{{ levelMy(a.level) }}</el-tag>
+          <span>{{ a.words.length }} လုံး</span>
+          <span>· အဓိပ္ပာယ် {{ Object.keys(a.glossary).length }} လုံး</span>
+        </div>
+        <div class="tapbar"><div class="fill" :style="{ width: tapPercent(a) + '%' }"></div></div>
+        <div class="tap-label">စကားလုံး {{ tapPercent(a) }}% နှိပ်ကြည့်ပြီး</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ READER VIEW ============ -->
+  <div v-if="view === 'reader' && current">
+    <div class="reader-head">
+      <el-button @click="backToLibrary">← စာကြည့်တိုက်</el-button>
+      <h2>{{ current.title }}</h2>
+      <el-tag effect="dark" :type="levelType(current.level)">{{ levelMy(current.level) }}</el-tag>
+    </div>
+
+    <div class="rtoolbar">
+      <el-button size="small" @click="fontDown" :disabled="progress.fontScale <= 0.8">A-</el-button>
+      <el-button size="small" @click="fontUp" :disabled="progress.fontScale >= 1.7">A+</el-button>
+      <el-button size="small" :type="speaking ? 'danger' : 'default'" @click="toggleSpeak">
+        {{ speaking ? '⏹ ရပ်ရန်' : '🔊 အသံဖြင့်ဖတ်ပြရန်' }}
+      </el-button>
+      <span class="lab">အမြန်နှုန်း</span>
+      <el-slider v-model="rate" :min="0.6" :max="1.4" :step="0.1" style="width:120px" :show-tooltip="false"></el-slider>
+      <span class="lab">{{ rate.toFixed(1) }}×</span>
+      <span style="flex:1"></span>
+      <el-button size="small" @click="showGloss = !showGloss">
+        {{ showGloss ? 'အဓိပ္ပာယ်များ ဖျောက်ရန်' : 'အဓိပ္ပာယ်များ ပြရန်' }}
+      </el-button>
+      <el-button size="small" :type="isRead(current.id) ? 'success' : 'primary'" @click="markRead">
+        {{ isRead(current.id) ? '✓ ဖတ်ပြီးပြီ' : '✓ ဖတ်ပြီး' }}
+      </el-button>
+    </div>
+
+    <div class="article-box">
+      <div class="article-text" :style="{ fontSize: (1.05 * progress.fontScale) + 'rem' }">
+        <template v-for="(t, i) in tokens" :key="i"><span
+          class="w"
+          :class="{ tapped: isTapped(t) }"
+          @click.stop="tapWord(t, $event)">{{ t }}</span><span> </span></template>
+      </div>
+      <div class="hint">💡 စကားလုံးတစ်လုံးချင်းကို နှိပ်ပြီး မြန်မာအဓိပ္ပာယ် ကြည့်နိုင်ပါသည် — နှိပ်ပြီးသော စကားလုံးများကို မျဉ်းသားပြထားပါမည်</div>
+    </div>
+
+    <div v-if="showGloss" class="gloss-panel">
+      <h3>📚 အဓိပ္ပာယ်များ — {{ current.title }}</h3>
+      <div class="gloss-grid">
+        <div v-for="w in glossWords" :key="w" class="gloss-row">
+          <span class="en" :class="{ 'was-tapped': tappedSet.has(w) }">{{ w }}</span>
+          <span class="my">{{ current.glossary[w] }}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- floating gloss bubble -->
+  <div v-if="bubble.show" class="gloss-bubble" :style="{ left: bubble.x + 'px', top: bubble.y + 'px' }">
+    <div class="gb-word">{{ bubble.word }}</div>
+    <div class="gb-gloss">{{ bubble.gloss }}</div>
+  </div>
+
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, reactive, computed, onMounted, onBeforeUnmount } = Vue;
+const STORE = 'reading.v1';
+
+/* ============================================================
+   ARTICLES — 6 graded readings (2 Beginner / 2 Intermediate / 2 Advanced)
+   ============================================================ */
+const ARTICLES = [
+  {
+    id: 'first-website',
+    title: 'My First Website',
+    level: 'Beginner',
+    text: 'Last month, I built my first website. It was a simple page about my hobbies. First, I learned HTML. HTML gives a page its structure, like a skeleton gives shape to a body. Then I added CSS to choose colors and fonts. When I opened the file in my browser, I saw my own page on the screen. I was so happy! It was not perfect, but it was mine. Next week, I want to learn JavaScript, so my website can respond when people click a button. Step by step, I am becoming a real web developer.',
+    glossary: {
+      'built': 'တည်ဆောက်ခဲ့သည်',
+      'website': 'ဝဘ်ဆိုက်',
+      'simple': 'ရိုးရှင်းသော',
+      'page': 'စာမျက်နှာ',
+      'hobbies': 'ဝါသနာများ',
+      'learned': 'သင်ယူခဲ့သည်',
+      'structure': 'ဖွဲ့စည်းပုံ',
+      'skeleton': 'အရိုးစု',
+      'shape': 'ပုံသဏ္ဌာန်',
+      'added': 'ထည့်သွင်းခဲ့သည်',
+      'choose': 'ရွေးချယ်သည်',
+      'colors': 'အရောင်များ',
+      'fonts': 'စာလုံးပုံစံများ',
+      'opened': 'ဖွင့်ခဲ့သည်',
+      'browser': 'ဘရောက်ဆာ (ဝဘ်ကြည့်ဆော့ဖ်ဝဲ)',
+      'screen': 'မျက်နှာပြင်',
+      'perfect': 'ပြီးပြည့်စုံသော',
+      'respond': 'တုံ့ပြန်သည်',
+      'click': 'နှိပ်သည်',
+      'button': 'ခလုတ်',
+      'becoming': 'ဖြစ်လာနေသည်',
+      'developer': 'ဆော့ဖ်ဝဲရေးသားသူ',
+    },
+  },
+  {
+    id: 'office-day',
+    title: 'A Day at the Office',
+    level: 'Beginner',
+    text: 'My name is Su Su, and I am a junior developer. Every morning, I arrive at the office at nine. First, I check my email and read new messages from my team. Then we have a short meeting called a stand-up. Each person shares what they finished yesterday and what they plan to do today. After the meeting, I write code until lunch. In the afternoon, I test my work and fix small bugs. Before I go home, I save my changes and push them to the server. It is a busy day, but I enjoy my job very much.',
+    glossary: {
+      'junior': 'အငယ်တန်း',
+      'developer': 'ဆော့ဖ်ဝဲရေးသားသူ',
+      'arrive': 'ရောက်ရှိသည်',
+      'office': 'ရုံး',
+      'check': 'စစ်ဆေးသည်',
+      'messages': 'သတင်းစကားများ',
+      'team': 'အဖွဲ့',
+      'meeting': 'အစည်းအဝေး',
+      'stand-up': 'နေ့စဉ် အစည်းအဝေးတို',
+      'shares': 'မျှဝေပြောပြသည်',
+      'finished': 'ပြီးစီးခဲ့သည်',
+      'plan': 'စီစဉ်သည်',
+      'code': 'ကုဒ် (ပရိုဂရမ်စာသား)',
+      'lunch': 'နေ့လယ်စာ',
+      'test': 'စမ်းသပ်သည်',
+      'fix': 'ပြင်ဆင်သည်',
+      'bugs': 'ကုဒ်ချို့ယွင်းချက်များ',
+      'save': 'သိမ်းဆည်းသည်',
+      'changes': 'ပြောင်းလဲမှုများ',
+      'push': 'ဆာဗာသို့ တင်ပို့သည်',
+      'server': 'ဆာဗာ (ဝန်ဆောင်မှုပေး ကွန်ပျူတာ)',
+      'busy': 'အလုပ်များသော',
+      'enjoy': 'နှစ်သက်သည်',
+    },
+  },
+  {
+    id: 'what-is-internet',
+    title: 'What is the Internet?',
+    level: 'Intermediate',
+    text: 'The Internet is a huge network that connects millions of computers around the world. When you send a message or open a website, your data travels through many cables and routers before it reaches its destination. Some of these cables even lie under the ocean, linking one continent to another. Every device on the network has an address, called an IP address, which works like a home address for computers. When you type a website name, a special service called DNS translates that name into the correct IP address. Then your request finds its way, hop by hop, to the right server. All of this happens in less than a second. The Internet seems like magic, but it is really just millions of machines passing small packets of data to each other, billions of times every single day.',
+    glossary: {
+      'huge': 'ကြီးမားသော',
+      'network': 'ကွန်ရက်',
+      'connects': 'ချိတ်ဆက်ပေးသည်',
+      'millions': 'သန်းပေါင်းများစွာ',
+      'data': 'ဒေတာ (အချက်အလက်)',
+      'travels': 'ခရီးသွားသည်',
+      'cables': 'ကြိုးများ',
+      'routers': 'လမ်းကြောင်းညွှန် စက်များ',
+      'reaches': 'ရောက်ရှိသည်',
+      'destination': 'သွားလိုရာ ပန်းတိုင်',
+      'ocean': 'သမုဒ္ဒရာ',
+      'linking': 'ဆက်သွယ်ပေးနေသော',
+      'continent': 'တိုက်ကြီး',
+      'device': 'စက်ပစ္စည်း',
+      'address': 'လိပ်စာ',
+      'service': 'ဝန်ဆောင်မှု',
+      'translates': 'ပြောင်းလဲပေးသည်',
+      'correct': 'မှန်ကန်သော',
+      'request': 'တောင်းဆိုချက်',
+      'hop': 'တစ်ဆင့်ချင်း ခုန်ကူးခြင်း',
+      'server': 'ဆာဗာ (ဝန်ဆောင်မှုပေး ကွန်ပျူတာ)',
+      'magic': 'မှော်ပညာ',
+      'machines': 'စက်များ',
+      'packets': 'ဒေတာအထုပ်ငယ်များ',
+      'billions': 'ဘီလီယံပေါင်းများစွာ',
+    },
+  },
+  {
+    id: 'websites-talk',
+    title: 'How Websites Talk to Servers',
+    level: 'Intermediate',
+    text: 'When you open a website, your browser and a server begin a short conversation. The browser sends a request, and the server sends back a response. This exchange follows a set of rules called HTTP. Think of it like ordering food at a restaurant. You are the client, the kitchen is the server, and the waiter is the protocol carrying messages between you. A request usually asks for a page, an image, or some data. The response contains the content, plus a status code that reports the result. The code 200 means success, while 404 means the page was not found. Modern websites often use an API, which lets JavaScript fetch fresh data without reloading the whole page. That is why your news feed can update instantly while you are still reading the first story.',
+    glossary: {
+      'browser': 'ဘရောက်ဆာ (ဝဘ်ကြည့်ဆော့ဖ်ဝဲ)',
+      'conversation': 'အပြန်အလှန် စကားပြောခြင်း',
+      'request': 'တောင်းဆိုချက်',
+      'response': 'ပြန်ကြားချက်',
+      'exchange': 'အပြန်အလှန် ဖလှယ်မှု',
+      'rules': 'စည်းမျဉ်းများ',
+      'ordering': 'မှာယူခြင်း',
+      'restaurant': 'စားသောက်ဆိုင်',
+      'client': 'ဝန်ဆောင်မှု တောင်းသူ',
+      'kitchen': 'မီးဖိုချောင်',
+      'waiter': 'စားပွဲထိုး',
+      'protocol': 'ဆက်သွယ်ရေး စည်းမျဉ်းစနစ်',
+      'carrying': 'သယ်ဆောင်နေသော',
+      'contains': 'ပါဝင်သည်',
+      'content': 'အကြောင်းအရာ',
+      'status': 'အခြေအနေ',
+      'reports': 'အစီရင်ခံသည်',
+      'result': 'ရလဒ်',
+      'success': 'အောင်မြင်မှု',
+      'found': 'တွေ့ရှိသည်',
+      'modern': 'ခေတ်မီသော',
+      'fetch': 'ဆွဲယူသည်',
+      'reloading': 'စာမျက်နှာ ပြန်တင်ခြင်း',
+      'instantly': 'ချက်ချင်း',
+      'feed': 'သတင်းစီးကြောင်း',
+    },
+  },
+  {
+    id: 'choosing-framework',
+    title: 'Choosing a JavaScript Framework',
+    level: 'Advanced',
+    text: 'Every few months, a new JavaScript framework appears, and developers argue about which one is best. The honest answer is that it depends on your project and your team. React offers a massive ecosystem and plenty of job opportunities, but it leaves many decisions, such as routing and state management, up to you. Vue is praised for its gentle learning curve and clear documentation, which makes it a popular choice for small teams and beginners. Angular provides a complete, opinionated structure that large enterprises appreciate, although newcomers often find it heavy. Before choosing, ask practical questions. How experienced is your team? How large will the application grow? Who will maintain the code in five years? A simple site may need no framework at all; plain HTML and a little JavaScript can be surprisingly powerful. Remember that frameworks are tools, not religions. The skills that truly last are the fundamentals: understanding the language, the browser, and the patterns beneath every library. Master those, and switching frameworks becomes easy.',
+    glossary: {
+      'framework': 'မူဘောင် (ဆော့ဖ်ဝဲတည်ဆောက်ရေး ဘောင်)',
+      'appears': 'ပေါ်ထွက်လာသည်',
+      'argue': 'ငြင်းခုံသည်',
+      'honest': 'ရိုးသားသော',
+      'depends': 'မူတည်သည်',
+      'massive': 'အလွန်ကြီးမားသော',
+      'ecosystem': 'ဂေဟစနစ် (ဆက်စပ်ကိရိယာ အစုအဝေး)',
+      'opportunities': 'အခွင့်အလမ်းများ',
+      'decisions': 'ဆုံးဖြတ်ချက်များ',
+      'routing': 'စာမျက်နှာ လမ်းကြောင်း စီမံခြင်း',
+      'management': 'စီမံခန့်ခွဲမှု',
+      'praised': 'ချီးမွမ်းခံရသည်',
+      'gentle': 'ညင်သာသော / မခက်ခဲသော',
+      'curve': 'မျဉ်းကွေး (သင်ယူရ ခက်လွယ်အဆင့်)',
+      'documentation': 'အသုံးပြုနည်း စာရွက်စာတမ်း',
+      'opinionated': 'ပုံသေစည်းမျဉ်း သတ်မှတ်ထားသော',
+      'enterprises': 'လုပ်ငန်းကြီးများ',
+      'appreciate': 'တန်ဖိုးထားသည်',
+      'newcomers': 'အသစ်ဝင်လာသူများ',
+      'practical': 'လက်တွေ့ကျသော',
+      'experienced': 'အတွေ့အကြုံရင့်သော',
+      'maintain': 'ထိန်းသိမ်းစောင့်ရှောက်သည်',
+      'surprisingly': 'အံ့သြဖွယ်ကောင်းအောင်',
+      'fundamentals': 'အခြေခံ အုတ်မြစ်များ',
+      'patterns': 'ပုံစံနည်းလမ်းများ',
+    },
+  },
+  {
+    id: 'code-review',
+    title: 'The Code Review',
+    level: 'Advanced',
+    text: 'On Friday afternoon, Thiri opened a pull request for the payment feature she had built all week. Within an hour, her senior colleague Aung left fourteen comments. At first, her heart sank; she felt the comments were criticism of her ability. But as she read them slowly, she noticed something. Aung was not attacking her; he was teaching. One comment explained why a database query inside a loop would become slow with real traffic. Another suggested a clearer name for a confusing variable. A third pointed out a missing test for a negative amount, a bug that could have cost the company money. Thiri refactored her code, replied to each comment, and pushed the changes. Aung approved the request with a short note: great improvement, this is exactly how we all learn. That evening, Thiri understood the truth about code review. It is not a judgment of the author; it is a conversation that protects the product and grows the team. Now she reviews the code of others with the same patience, because good feedback, given kindly, turns junior developers into senior ones.',
+    glossary: {
+      'payment': 'ငွေပေးချေမှု',
+      'feature': 'လုပ်ဆောင်ချက် အသစ်',
+      'senior': 'အကြီးတန်း / ဝါရင့်',
+      'colleague': 'လုပ်ဖော်ကိုင်ဖက်',
+      'comments': 'မှတ်ချက်များ',
+      'sank': 'နှလုံးထဲ ကျသွားသည်',
+      'criticism': 'ဝေဖန်မှု',
+      'ability': 'စွမ်းရည်',
+      'noticed': 'သတိထားမိသည်',
+      'attacking': 'တိုက်ခိုက်ခြင်း',
+      'explained': 'ရှင်းပြခဲ့သည်',
+      'query': 'ဒေတာဘေ့စ် မေးမြန်းချက်',
+      'loop': 'ထပ်ကျော့ လုပ်ဆောင်မှု',
+      'traffic': 'အသုံးပြုမှု ပမာဏ',
+      'suggested': 'အကြံပြုခဲ့သည်',
+      'confusing': 'စိတ်ရှုပ်စရာကောင်းသော',
+      'variable': 'ကိန်းရှင် (တန်ဖိုးသိမ်းသည့်အမည်)',
+      'missing': 'လိုအပ်နေသော / ပျောက်နေသော',
+      'negative': 'အနုတ် တန်ဖိုး',
+      'refactored': 'ကုဒ်ကို ပြန်လည်ဖွဲ့စည်းခဲ့သည်',
+      'approved': 'အတည်ပြုခဲ့သည်',
+      'improvement': 'တိုးတက်မှု',
+      'judgment': 'အပြစ်တင် ဆုံးဖြတ်ခြင်း',
+      'protects': 'ကာကွယ်ပေးသည်',
+      'patience': 'စိတ်ရှည်မှု',
+      'feedback': 'တုံ့ပြန် အကြံပြုချက်',
+    },
+  },
+];
+// derive tokenized word list for each article
+ARTICLES.forEach(a => { a.words = a.text.split(/\s+/).filter(Boolean); });
+
+const app = createApp({
+  setup() {
+    const articles = ref(ARTICLES);
+    const view = ref('library');
+    const current = ref(null);
+    const showGloss = ref(false);
+    const speaking = ref(false);
+    const rate = ref(1.0);
+    const bubble = reactive({ show: false, x: 0, y: 0, word: '', gloss: '' });
+    const progress = ref({ read: [], tapped: {}, fontScale: 1 });
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2600 });
+
+    function load() {
+      try {
+        const d = JSON.parse(localStorage.getItem(STORE) || '{}');
+        progress.value = {
+          read: Array.isArray(d.read) ? d.read : [],
+          tapped: (d.tapped && typeof d.tapped === 'object') ? d.tapped : {},
+          fontScale: typeof d.fontScale === 'number' ? d.fontScale : 1,
+        };
+      } catch (e) {}
+    }
+    function save() { localStorage.setItem(STORE, JSON.stringify(progress.value)); }
+
+    /* ---- helpers ---- */
+    const levelMy = l => ({ Beginner: 'အခြေခံ', Intermediate: 'အလယ်အလတ်', Advanced: 'အဆင့်မြင့်' }[l] || l);
+    const levelType = l => ({ Beginner: 'success', Intermediate: 'warning', Advanced: 'danger' }[l] || 'info');
+    const normalize = t => String(t).toLowerCase().replace(/^[^a-z0-9'-]+|[^a-z0-9'-]+$/g, '');
+    const isRead = id => progress.value.read.includes(id);
+
+    function tapPercent(a) {
+      const total = Object.keys(a.glossary).length;
+      if (!total) return 0;
+      const done = (progress.value.tapped[a.id] || []).filter(w => a.glossary[w]).length;
+      return Math.min(100, Math.round(done / total * 100));
+    }
+
+    const tokens = computed(() => current.value ? current.value.words : []);
+    const glossWords = computed(() => current.value ? Object.keys(current.value.glossary).sort() : []);
+    const tappedSet = computed(() => new Set(current.value ? (progress.value.tapped[current.value.id] || []) : []));
+    const isTapped = t => tappedSet.value.has(normalize(t));
+
+    /* ---- navigation ---- */
+    function openArticle(a) {
+      current.value = a;
+      view.value = 'reader';
+      showGloss.value = false;
+      hideBubble();
+      window.scrollTo(0, 0);
+    }
+    function backToLibrary() {
+      stopSpeak();
+      hideBubble();
+      view.value = 'library';
+      current.value = null;
+    }
+
+    /* ---- word tap + gloss bubble ---- */
+    function tapWord(token, ev) {
+      const w = normalize(token);
+      if (!w) { hideBubble(); return; }
+      const a = current.value;
+      const gloss = a.glossary[w] || '—';
+      const r = ev.target.getBoundingClientRect();
+      bubble.word = w;
+      bubble.gloss = gloss;
+      bubble.x = Math.min(Math.max(r.left + r.width / 2, 130), window.innerWidth - 130);
+      bubble.y = Math.max(r.top - 10, 70);
+      bubble.show = true;
+      if (a.glossary[w]) {
+        const arr = progress.value.tapped[a.id] || (progress.value.tapped[a.id] = []);
+        if (!arr.includes(w)) { arr.push(w); save(); }
+      }
+    }
+    function hideBubble() { bubble.show = false; }
+    const onDocClick = ev => { if (!ev.target.closest || !ev.target.closest('.w')) hideBubble(); };
+
+    /* ---- mark as read ---- */
+    function markRead() {
+      const id = current.value.id;
+      if (isRead(id)) {
+        progress.value.read = progress.value.read.filter(x => x !== id);
+        save();
+        toast('ဖတ်ပြီး အမှတ်အသား ဖြုတ်လိုက်ပါပြီ', 'info');
+      } else {
+        progress.value.read.push(id);
+        save();
+        toast('✓ ဖတ်ပြီးအဖြစ် မှတ်သားလိုက်ပါပြီ — ' + progress.value.read.length + '/' + articles.value.length);
+      }
+    }
+
+    /* ---- font size ---- */
+    function fontUp() { progress.value.fontScale = Math.min(1.7, Math.round((progress.value.fontScale + 0.1) * 10) / 10); save(); }
+    function fontDown() { progress.value.fontScale = Math.max(0.8, Math.round((progress.value.fontScale - 0.1) * 10) / 10); save(); }
+
+    /* ---- read aloud ---- */
+    function toggleSpeak() {
+      if (speaking.value) { stopSpeak(); return; }
+      if (!('speechSynthesis' in window)) { toast('ဤ browser တွင် အသံဖတ်ခြင်း မရနိုင်ပါ', 'warning'); return; }
+      const u = new SpeechSynthesisUtterance(current.value.text);
+      u.lang = 'en-US';
+      u.rate = rate.value;
+      const v = speechSynthesis.getVoices().find(x => x.lang === 'en-US') ||
+                speechSynthesis.getVoices().find(x => x.lang && x.lang.startsWith('en'));
+      if (v) u.voice = v;
+      u.onend = () => { speaking.value = false; };
+      u.onerror = () => { speaking.value = false; };
+      speechSynthesis.cancel();
+      speechSynthesis.speak(u);
+      speaking.value = true;
+    }
+    function stopSpeak() {
+      if ('speechSynthesis' in window) speechSynthesis.cancel();
+      speaking.value = false;
+    }
+
+    onMounted(() => {
+      load();
+      document.addEventListener('click', onDocClick);
+      if ('speechSynthesis' in window) speechSynthesis.getVoices(); // warm voice list
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+    onBeforeUnmount(() => {
+      document.removeEventListener('click', onDocClick);
+      stopSpeak();
+    });
+
+    return {
+      articles, view, current, showGloss, speaking, rate, bubble, progress,
+      tokens, glossWords, tappedSet,
+      levelMy, levelType, isRead, isTapped, tapPercent,
+      openArticle, backToLibrary, tapWord, markRead, fontUp, fontDown, toggleSpeak,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>

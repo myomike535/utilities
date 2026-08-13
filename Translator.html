@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Translator · အင်္ဂလိပ် ⇄ မြန်မာ</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#6366f1">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#6366f1; --accent-2:#a78bfa; --ok:#42d392; --warn:#fbbf24; --danger:#ff6b6b;
+    --radius:14px;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --el-color-primary:#6366f1;
+    --el-color-primary-light-3:#818cf8;
+    --el-color-primary-light-5:#a5b4fc;
+    --el-color-primary-dark-2:#4f46e5;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24;
+    --el-bg-color-overlay:#1b2130;
+    --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342;
+    --el-border-color-light:#2b3342;
+    --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa;
+    --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3;
+    --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(99,102,241,.18), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(167,139,250,.14), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1040px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:20px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(99,102,241,.4); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:180px; }
+
+  .card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:var(--radius); padding:18px; margin-bottom:14px; }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
+
+  .ctlbar { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .duo { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media(max-width:720px){ .duo{grid-template-columns:1fr} }
+  .pane-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:6px; flex-wrap:wrap; gap:6px; min-height:28px; }
+  .pane-head .t { font-size:.8rem; font-weight:700; color:var(--accent-2); }
+  .cnt { font-size:.7rem; color:var(--faint); }
+  .act-row { display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:14px; }
+
+  .hist { display:flex; flex-direction:column; gap:6px; max-height:52vh; overflow-y:auto; }
+  .hist-item { background:var(--field); border-radius:8px; padding:9px 12px; cursor:pointer; border:1px solid transparent; }
+  .hist-item:hover { border-color:var(--field-border); }
+  .hist-item .hs { font-size:.82rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hist-item .hr { font-size:.78rem; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; margin-top:2px; }
+  .hist-item .hd { font-size:.68rem; color:var(--faint); display:flex; gap:8px; margin-top:5px; align-items:center; }
+  .empty { text-align:center; color:var(--faint); padding:30px 0; font-size:.85rem; }
+
+  .el-textarea__inner { font-family:var(--sans); line-height:1.9; font-size:.95rem; }
+  .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+  .el-segmented { --el-segmented-bg-color:var(--field); }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">⇄</div>
+    <div class="title">
+      <h1>Translator</h1>
+      <div class="sub">အင်္ဂလိပ် ⇄ မြန်မာ ဘာသာပြန် — AI + MyMemory</div>
+    </div>
+    <el-button @click="openHistory">🕘 History ({{ history.length }})</el-button>
+    <el-button @click="openSettings" :type="hasKey ? 'default' : 'warning'">⚙ AI</el-button>
+  </header>
+
+  <!-- AI settings dialog (Element Plus) -->
+  <el-dialog v-model="showSettings" title="⚙ AI Settings" width="min(460px, 94vw)">
+    <div style="font-size:.78rem;color:var(--faint);margin-bottom:12px;line-height:1.7">
+      Keys ကို ဤ browser ၏ localStorage တွင်သာ သိမ်းသည် — Note Taker tools များနှင့် မျှဝေသုံးသည်။
+      Key မထည့်ထားလျှင် အခမဲ့ MyMemory engine ဖြင့် ဘာသာပြန်ပေးမည်။
+    </div>
+    <label class="fl">Provider</label>
+    <el-select v-model="aiPref" @change="savePrefs" style="width:100%">
+      <el-option value="auto" label="🔄 Auto — Gemini → Groq → OpenRouter"></el-option>
+      <el-option value="gemini" label="✨ Gemini only"></el-option>
+      <el-option value="groq" label="⚡ Groq only"></el-option>
+      <el-option value="openrouter" label="🌐 OpenRouter only"></el-option>
+    </el-select>
+    <label class="fl">Gemini API key <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent-2)">aistudio.google.com/apikey</a></label>
+    <el-input v-model="gKeyInput" type="password" show-password placeholder="AIza…" autocomplete="off"></el-input>
+    <label class="fl">Groq API key <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent-2)">console.groq.com/keys</a></label>
+    <el-input v-model="qKeyInput" type="password" show-password placeholder="gsk_…" autocomplete="off"></el-input>
+    <label class="fl">OpenRouter API key <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent-2)">openrouter.ai/keys</a></label>
+    <el-input v-model="oKeyInput" type="password" show-password placeholder="sk-or-…" autocomplete="off"></el-input>
+    <label class="fl">OpenRouter model (Myanmar အတွက် Gemini-family အကြံပြု)</label>
+    <el-input v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off"></el-input>
+    <template #footer>
+      <el-button @click="showSettings=false">Cancel</el-button>
+      <el-button type="primary" @click="saveKeys">💾 Save</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- History dialog -->
+  <el-dialog v-model="showHistory" title="🕘 ဘာသာပြန် မှတ်တမ်း" width="min(640px, 96vw)">
+    <div class="hist" v-if="history.length">
+      <div v-for="(h,i) in history" :key="h.at + '-' + i" class="hist-item" @click="restore(h)">
+        <div class="hs">{{ h.src.slice(0, 80) }}</div>
+        <div class="hr">→ {{ h.dst.slice(0, 80) }}</div>
+        <div class="hd">
+          <el-tag size="small" effect="dark">{{ h.dir === 'en2mm' ? 'EN → MM' : 'MM → EN' }}</el-tag>
+          <el-tag size="small" :type="h.engine === 'ai' ? 'success' : 'info'" effect="plain">{{ h.engine === 'ai' ? '✨ AI' : '🌐 MyMemory' }}</el-tag>
+          <span>{{ new Date(h.at).toLocaleString() }}</span>
+        </div>
+      </div>
+    </div>
+    <div v-else class="empty">မှတ်တမ်း မရှိသေးပါ</div>
+    <template #footer>
+      <div style="display:flex; width:100%">
+        <el-popconfirm v-if="history.length" title="မှတ်တမ်းအားလုံး ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="clearHistory">
+          <template #reference><el-button type="danger" plain>🗑 Clear</el-button></template>
+        </el-popconfirm>
+        <span style="flex:1"></span>
+        <el-button @click="showHistory=false">ပိတ်မည်</el-button>
+      </div>
+    </template>
+  </el-dialog>
+
+  <!-- Direction + style controls -->
+  <div class="ctlbar">
+    <el-segmented id="dir-seg" v-model="dir" :options="DIRS" size="large"></el-segmented>
+    <el-button id="swap-btn" circle @click="swap" title="Swap / လဲလှယ်ရန်">⇄</el-button>
+    <span style="flex:1"></span>
+    <label class="fl" style="margin:0">🎭 Style (AI သီးသန့်)</label>
+    <el-select v-model="style" style="width:170px">
+      <el-option value="normal" label="ပုံမှန် (Normal)"></el-option>
+      <el-option value="formal" label="ယဉ်ကျေး (Formal)"></el-option>
+      <el-option value="casual" label="ပေါ့ပါး (Casual)"></el-option>
+      <el-option value="fbpost" label="📱 Facebook post"></el-option>
+    </el-select>
+  </div>
+
+  <!-- Panes -->
+  <div class="card">
+    <div class="duo">
+      <div>
+        <div class="pane-head">
+          <span class="t">{{ dir === 'en2mm' ? '🇬🇧 English — မူရင်းစာသား' : '🇲🇲 မြန်မာ — မူရင်းစာသား' }}</span>
+          <el-button size="small" text @click="src=''" :disabled="!src">✕ ရှင်းမည်</el-button>
+        </div>
+        <el-input id="src-input" v-model="src" type="textarea" :rows="12"
+          :placeholder="dir === 'en2mm' ? 'Type English text here…' : 'မြန်မာစာသား ရိုက်ထည့်ပါ…'"></el-input>
+        <div style="margin-top:4px"><span class="cnt">{{ src.length }} chars</span></div>
+      </div>
+      <div>
+        <div class="pane-head">
+          <span class="t">{{ dir === 'en2mm' ? '🇲🇲 မြန်မာ — ဘာသာပြန်ချက်' : '🇬🇧 English — ဘာသာပြန်ချက်' }}</span>
+          <span style="display:flex; align-items:center; gap:6px">
+            <el-tag v-if="engine" size="small" :type="engine === 'ai' ? 'success' : 'info'" effect="dark">{{ engine === 'ai' ? '✨ AI' : '🌐 MyMemory' }}</el-tag>
+            <el-button size="small" @click="copyResult" :disabled="!dst">📋 Copy</el-button>
+          </span>
+        </div>
+        <el-input id="dst-input" v-model="dst" type="textarea" :rows="12" readonly
+          placeholder="ဘာသာပြန်ချက် ဤနေရာတွင် ပေါ်မည်…"></el-input>
+        <div style="margin-top:4px"><span class="cnt">{{ dst.length }} chars</span></div>
+      </div>
+    </div>
+    <div class="act-row">
+      <el-button id="translate-btn" type="primary" size="large" @click="translate" :loading="busy">
+        {{ busy ? 'ဘာသာပြန်နေသည်…' : '🔁 ဘာသာပြန်မည် (Translate)' }}
+      </el-button>
+      <span class="cnt" v-if="!hasKey">AI key မရှိ — 🌐 MyMemory (အခမဲ့) ဖြင့် ပြန်မည် · ⚙ AI တွင် key ထည့်နိုင်သည်</span>
+    </div>
+  </div>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, watch, onMounted } = Vue;
+const STORE = 'entrans.v1';
+// Shared with the AI Note Taker tools — one set of keys across the suite
+const GKEY = 'ainotes.enterprise.gemini.key';
+const GMODEL = 'ainotes.enterprise.gemini.model';
+const QKEY = 'ainotes.apikey.groq';
+const QMODEL = 'ainotes.model.groq';
+const OKEY = 'creator.apikey.openrouter';
+const OMODEL = 'creator.model.openrouter';
+const OMODEL_DEFAULT = 'google/gemini-2.0-flash-exp:free';   // free + strong Myanmar
+const PREF_KEY = 'creator.ai.provider';   // auto | gemini | groq | openrouter
+const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
+const MM_RE = /[က-႟]/;
+
+const app = createApp({
+  setup() {
+    const DIRS = [
+      { label: '🇬🇧 EN → 🇲🇲 MM', value: 'en2mm' },
+      { label: '🇲🇲 MM → 🇬🇧 EN', value: 'mm2en' },
+    ];
+    const STYLE_HINTS = {
+      normal: 'a natural, everyday tone',
+      formal: 'a formal, polite register',
+      casual: 'a casual, friendly tone',
+      fbpost: 'a lively Facebook-post tone — keep emojis and hashtags, make it read like a social media post',
+    };
+    const dir = ref('en2mm');
+    const style = ref('normal');
+    const src = ref(''); const dst = ref('');
+    const engine = ref('');   // '' | 'ai' | 'mymemory'
+    const busy = ref(false);
+    const history = ref([]);
+    const showHistory = ref(false);
+    const keyVer = ref(0);
+    const hasKey = computed(() => { keyVer.value; return !!(localStorage.getItem(GKEY) || localStorage.getItem(QKEY) || localStorage.getItem(OKEY)); });
+    const showSettings = ref(false);
+    const aiPref = ref(localStorage.getItem(PREF_KEY) || 'auto');
+    const gKeyInput = ref(''); const qKeyInput = ref('');
+    const oKeyInput = ref(''); const oModelInput = ref('');
+
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 3200 });
+
+    function loadHistory() { try { history.value = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (e) {} }
+    function saveHistory() { localStorage.setItem(STORE, JSON.stringify(history.value)); }
+
+    // Auto-detect: Myanmar codepoints in the source → MM → EN
+    watch(src, v => {
+      const t = v.trim();
+      if (!t) return;
+      if (MM_RE.test(t)) { if (dir.value !== 'mm2en') dir.value = 'mm2en'; }
+      else if (dir.value !== 'en2mm') dir.value = 'en2mm';
+    });
+
+    function swap() {
+      const s = src.value;
+      src.value = dst.value;
+      dst.value = s;
+      dir.value = dir.value === 'en2mm' ? 'mm2en' : 'en2mm';
+      engine.value = '';
+    }
+    function copyResult() {
+      if (!dst.value) return;
+      navigator.clipboard.writeText(dst.value).then(() => toast('📋 Copied'));
+    }
+    function openHistory() { showHistory.value = true; }
+    function restore(h) {
+      src.value = h.src; dst.value = h.dst; engine.value = h.engine;
+      dir.value = h.dir;   // set after src so the auto-detect watcher agrees
+      showHistory.value = false;
+      toast('↩ ပြန်ထည့်ပြီး');
+    }
+    function clearHistory() { history.value = []; saveHistory(); toast('🗑 မှတ်တမ်း ဖျက်ပြီး'); }
+    function pushHistory() {
+      history.value.unshift({ src: src.value, dst: dst.value, dir: dir.value, engine: engine.value, at: Date.now() });
+      history.value = history.value.slice(0, 30);
+      saveHistory();
+    }
+
+    // ---- AI providers: Gemini + Groq + OpenRouter with Auto fallback ----
+    function geminiModel() {
+      const m = localStorage.getItem(GMODEL);
+      if (m && VALID_MODELS.includes(m)) return m;
+      if (m) localStorage.setItem(GMODEL, 'gemini-2.5-flash');
+      return 'gemini-2.5-flash';
+    }
+    function openSettings() {
+      gKeyInput.value = localStorage.getItem(GKEY) || '';
+      qKeyInput.value = localStorage.getItem(QKEY) || '';
+      oKeyInput.value = localStorage.getItem(OKEY) || '';
+      oModelInput.value = localStorage.getItem(OMODEL) || OMODEL_DEFAULT;
+      aiPref.value = localStorage.getItem(PREF_KEY) || 'auto';
+      showSettings.value = true;
+    }
+    function savePrefs() { localStorage.setItem(PREF_KEY, aiPref.value); }
+    function saveKeys() {
+      gKeyInput.value.trim() ? localStorage.setItem(GKEY, gKeyInput.value.trim()) : localStorage.removeItem(GKEY);
+      qKeyInput.value.trim() ? localStorage.setItem(QKEY, qKeyInput.value.trim()) : localStorage.removeItem(QKEY);
+      oKeyInput.value.trim() ? localStorage.setItem(OKEY, oKeyInput.value.trim()) : localStorage.removeItem(OKEY);
+      oModelInput.value.trim() ? localStorage.setItem(OMODEL, oModelInput.value.trim()) : localStorage.removeItem(OMODEL);
+      savePrefs();
+      keyVer.value++;
+      showSettings.value = false;
+      toast('🔑 သိမ်းပြီး — ' + (localStorage.getItem(GKEY) ? 'Gemini ✓ ' : '') + (localStorage.getItem(QKEY) ? 'Groq ✓ ' : '') + (localStorage.getItem(OKEY) ? 'OpenRouter ✓' : ''));
+    }
+    async function callGemini(prompt) {
+      const key = localStorage.getItem(GKEY);
+      if (!key) throw new Error('Gemini key မရှိပါ');
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel()}:generateContent?key=${encodeURIComponent(key)}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
+      });
+      if (!res.ok) {
+        let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
+        throw new Error(`Gemini ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
+      }
+      const d = await res.json();
+      return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+    async function callChatApi(url, key, model, prompt, label) {
+      if (!key) throw new Error(label + ' key မရှိပါ');
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 2000 }),
+      });
+      if (!res.ok) {
+        let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
+        throw new Error(`${label} ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
+      }
+      const d = await res.json();
+      return d.choices?.[0]?.message?.content || '';
+    }
+    const callGroq = p => callChatApi('https://api.groq.com/openai/v1/chat/completions',
+      localStorage.getItem(QKEY), localStorage.getItem(QMODEL) || 'llama-3.3-70b-versatile', p, 'Groq');
+    const callOpenRouter = p => callChatApi('https://openrouter.ai/api/v1/chat/completions',
+      localStorage.getItem(OKEY), localStorage.getItem(OMODEL) || OMODEL_DEFAULT, p, 'OpenRouter');
+    // Provider router: honors the setting; Auto tries Gemini → Groq → OpenRouter
+    async function gemini(prompt) {
+      const pref = localStorage.getItem(PREF_KEY) || 'auto';
+      const hasG = !!localStorage.getItem(GKEY), hasQ = !!localStorage.getItem(QKEY), hasO = !!localStorage.getItem(OKEY);
+      if (!hasG && !hasQ && !hasO) { openSettings(); throw new Error('API key ထည့်ပါ (⚙ AI)'); }
+      if (pref === 'gemini') return callGemini(prompt);
+      if (pref === 'groq') return callGroq(prompt);
+      if (pref === 'openrouter') return callOpenRouter(prompt);
+      const chain = [
+        hasG && { name: 'Gemini', fn: callGemini },
+        hasQ && { name: 'Groq', fn: callGroq },
+        hasO && { name: 'OpenRouter', fn: callOpenRouter },
+      ].filter(Boolean);
+      let lastErr = null;
+      for (let i = 0; i < chain.length; i++) {
+        try { return await chain[i].fn(prompt); }
+        catch (e) {
+          lastErr = e;
+          if (i < chain.length - 1) toast(`${chain[i].name} မရ — ${chain[i + 1].name} ဖြင့် ဆက်လုပ်နေသည်…`, 'warning');
+        }
+      }
+      throw lastErr;
+    }
+
+    // ---- Translation ----
+    function buildPrompt(text) {
+      const target = dir.value === 'en2mm' ? 'Myanmar (Burmese)' : 'English';
+      return `Translate the following text to natural ${target}, using ${STYLE_HINTS[style.value] || STYLE_HINTS.normal}. Do not translate literally word-by-word — make it read naturally. Return ONLY the translation, with no commentary, no notes, no quotes:\n\n${text}`;
+    }
+    // Split into <500-char chunks on sentence / line boundaries for MyMemory
+    function chunkText(t, max = 480) {
+      const out = [];
+      let rest = t.trim();
+      while (rest.length > max) {
+        const win = rest.slice(0, max);
+        let cut = Math.max(win.lastIndexOf('။'), win.lastIndexOf('. '), win.lastIndexOf('\n'), win.lastIndexOf('! '), win.lastIndexOf('? '));
+        if (cut < max * 0.4) cut = win.lastIndexOf(' ');
+        if (cut < 1) cut = max - 1;
+        out.push(rest.slice(0, cut + 1));
+        rest = rest.slice(cut + 1).trim();
+      }
+      if (rest) out.push(rest);
+      return out;
+    }
+    function decodeEntities(s) {
+      const el = document.createElement('textarea');
+      el.innerHTML = s;
+      return el.value;
+    }
+    async function myMemory(text) {
+      const pair = dir.value === 'en2mm' ? 'en|my' : 'my|en';
+      const chunks = chunkText(text);
+      const results = [];
+      for (const c of chunks) {
+        const res = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(c) + '&langpair=' + encodeURIComponent(pair));
+        if (!res.ok) throw new Error('MyMemory ' + res.status);
+        const d = await res.json();
+        const t = d?.responseData?.translatedText;
+        if (!t || (d.responseStatus && Number(d.responseStatus) !== 200)) {
+          throw new Error('MyMemory — ' + String(d?.responseDetails || 'no result').slice(0, 120));
+        }
+        results.push(decodeEntities(t));
+      }
+      return results.join(chunks.length > 1 ? ' ' : '');
+    }
+    async function translate() {
+      const text = src.value.trim();
+      if (!text) { toast('ဘာသာပြန်ရန် စာသား အရင် ရိုက်ထည့်ပါ', 'warning'); return; }
+      busy.value = true;
+      engine.value = '';
+      try {
+        let out = '';
+        if (hasKey.value) {
+          try {
+            out = (await gemini(buildPrompt(text))).trim();
+            if (!out) throw new Error('empty AI result');
+            engine.value = 'ai';
+          } catch (e) {
+            toast('✨ AI မရ — 🌐 MyMemory ဖြင့် ဆက်ကြိုးစားနေသည်…', 'warning');
+            out = await myMemory(text);
+            engine.value = 'mymemory';
+          }
+        } else {
+          out = await myMemory(text);
+          engine.value = 'mymemory';
+        }
+        dst.value = out;
+        pushHistory();
+        toast('✅ ဘာသာပြန်ပြီးပါပြီ (' + (engine.value === 'ai' ? '✨ AI' : '🌐 MyMemory') + ')');
+      } catch (e) {
+        engine.value = '';
+        toast('⚠ ဘာသာပြန်၍ မရပါ — network သို့မဟုတ် API ပြဿနာ ရှိနေသည် (' + (e && e.message ? e.message : 'error') + ')', 'error');
+      }
+      busy.value = false;
+    }
+
+    onMounted(() => { loadHistory(); document.getElementById('vue-loading').style.display = 'none'; });
+
+    return {
+      DIRS, dir, style, src, dst, engine, busy, history, hasKey,
+      showHistory, openHistory, restore, clearHistory,
+      swap, copyResult, translate,
+      showSettings, aiPref, gKeyInput, qKeyInput, oKeyInput, oModelInput,
+      openSettings, savePrefs, saveKeys,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>

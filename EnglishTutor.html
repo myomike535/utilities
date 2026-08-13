@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Tutor · အင်္ဂလိပ်စာ လေ့ကျင့်ဖော်</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#0ea5e9">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#0ea5e9; --accent-2:#38bdf8; --amber:#fbbf24;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --el-color-primary:#0ea5e9;
+    --el-color-primary-light-3:#38bdf8;
+    --el-color-primary-light-5:#7dd3fc;
+    --el-color-primary-dark-2:#0284c7;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(14,165,233,.16), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(56,189,248,.11), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 40px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:840px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:16px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(14,165,233,.4); }
+  header h1 { font-size:1.2rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.78rem; }
+  header .title { flex:1; min-width:180px; }
+
+  .chat-card {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:16px;
+    display:flex; flex-direction:column; height:calc(100vh - 210px); min-height:420px;
+  }
+  .chat {
+    flex:1; overflow-y:auto; padding:18px 16px; display:flex; flex-direction:column; gap:12px;
+    scroll-behavior:smooth;
+  }
+  .welcome { text-align:center; color:var(--muted); font-size:.86rem; line-height:2; padding:26px 12px 8px; }
+  .welcome .big { font-size:2rem; }
+
+  .msg { display:flex; flex-direction:column; align-items:flex-start; }
+  .msg.student { align-items:flex-end; }
+  .bubble {
+    max-width:78%; padding:10px 14px; border-radius:14px; font-size:.9rem; line-height:1.8;
+    white-space:pre-wrap; word-break:break-word;
+  }
+  .msg.tutor .bubble { background:var(--card2); border:1px solid var(--field-border); border-bottom-left-radius:4px; }
+  .msg.student .bubble {
+    background:linear-gradient(135deg,var(--accent),#0284c7); color:#fff;
+    border-bottom-right-radius:4px; box-shadow:0 4px 14px rgba(14,165,233,.25);
+  }
+  .who { font-size:.66rem; color:var(--faint); margin:0 4px 3px; }
+  .fixbox {
+    max-width:78%; margin-top:6px; padding:9px 13px; border-radius:11px;
+    background:rgba(251,191,36,.09); border:1px solid rgba(251,191,36,.35);
+    font-size:.8rem; line-height:1.9; color:#fde68a; white-space:pre-wrap; word-break:break-word;
+  }
+  .fixbox.clean { background:rgba(66,211,146,.08); border-color:rgba(66,211,146,.35); color:#a7f3d0; }
+  .fixbox .fixhead { font-weight:700; font-size:.72rem; color:var(--amber); margin-bottom:3px; }
+  .fixbox.clean .fixhead { color:#42d392; }
+
+  .typing { display:flex; gap:5px; align-items:center; padding:12px 16px; background:var(--card2);
+    border:1px solid var(--field-border); border-radius:14px; border-bottom-left-radius:4px; width:fit-content; }
+  .typing i { width:7px; height:7px; border-radius:50%; background:var(--accent-2); display:block;
+    animation:blink 1.2s infinite ease-in-out; }
+  .typing i:nth-child(2){ animation-delay:.2s } .typing i:nth-child(3){ animation-delay:.4s }
+  @keyframes blink { 0%,70%,100%{opacity:.25; transform:translateY(0)} 35%{opacity:1; transform:translateY(-3px)} }
+
+  .chips { display:flex; flex-wrap:wrap; gap:7px; padding:10px 14px 0; }
+  .chip {
+    background:var(--field); border:1px solid var(--field-border); border-radius:999px;
+    padding:5px 13px; font-size:.76rem; color:var(--muted); cursor:pointer; transition:all .15s;
+  }
+  .chip:hover { border-color:var(--accent); color:var(--accent-2); }
+
+  .composer { display:flex; gap:8px; padding:12px 14px 14px; align-items:flex-end; }
+  .composer .box { flex:1; }
+  .hint { font-size:.66rem; color:var(--faint); text-align:right; padding:0 16px 10px; }
+
+  .el-textarea__inner { line-height:1.8; font-family:var(--sans); }
+  .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🗣️</div>
+    <div class="title">
+      <h1>English Tutor</h1>
+      <div class="sub">အင်္ဂလိပ်စာ လေ့ကျင့်ဖော် — AI နှင့် စကားပြော လေ့ကျင့်ပါ</div>
+    </div>
+    <el-select v-model="level" style="width:158px" @change="saveStore">
+      <el-option value="beginner" label="🌱 Beginner · အခြေခံ"></el-option>
+      <el-option value="intermediate" label="🌿 Intermediate · အလယ်"></el-option>
+      <el-option value="advanced" label="🌳 Advanced · အဆင့်မြင့်"></el-option>
+    </el-select>
+    <el-button @click="copyConversation" :disabled="!messages.length">📋 Copy</el-button>
+    <el-popconfirm title="စကားဝိုင်း အားလုံး ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="clearConversation">
+      <template #reference>
+        <el-button :disabled="!messages.length">🗑</el-button>
+      </template>
+    </el-popconfirm>
+    <el-button @click="openSettings" :type="hasKey ? 'default' : 'warning'">⚙ AI</el-button>
+  </header>
+
+  <!-- AI settings dialog (Element Plus) -->
+  <el-dialog v-model="showSettings" title="⚙ AI Settings" width="min(460px, 94vw)">
+    <div style="font-size:.78rem;color:var(--faint);margin-bottom:12px;line-height:1.7">
+      Keys ကို ဤ browser ၏ localStorage တွင်သာ သိမ်းသည် — Note Taker tools များနှင့် မျှဝေသုံးသည်။
+    </div>
+    <label class="fl">Provider</label>
+    <el-select v-model="aiPref" @change="savePrefs" style="width:100%">
+      <el-option value="auto" label="🔄 Auto — Gemini → Groq → OpenRouter"></el-option>
+      <el-option value="gemini" label="✨ Gemini only"></el-option>
+      <el-option value="groq" label="⚡ Groq only"></el-option>
+      <el-option value="openrouter" label="🌐 OpenRouter only"></el-option>
+    </el-select>
+    <label class="fl">Gemini API key <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent-2)">aistudio.google.com/apikey</a></label>
+    <el-input v-model="gKeyInput" type="password" show-password placeholder="AIza…" autocomplete="off"></el-input>
+    <label class="fl">Groq API key <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent-2)">console.groq.com/keys</a></label>
+    <el-input v-model="qKeyInput" type="password" show-password placeholder="gsk_…" autocomplete="off"></el-input>
+    <label class="fl">OpenRouter API key <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent-2)">openrouter.ai/keys</a></label>
+    <el-input v-model="oKeyInput" type="password" show-password placeholder="sk-or-…" autocomplete="off"></el-input>
+    <label class="fl">OpenRouter model (Myanmar အတွက် Gemini-family အကြံပြု)</label>
+    <el-input v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off"></el-input>
+    <template #footer>
+      <el-button @click="showSettings=false">Cancel</el-button>
+      <el-button type="primary" @click="saveKeys">💾 Save</el-button>
+    </template>
+  </el-dialog>
+
+  <div class="chat-card">
+    <div class="chat" ref="chatEl">
+      <div v-if="!messages.length" class="welcome">
+        <div class="big">👋</div>
+        မင်္ဂလာပါ! အင်္ဂလိပ်လို စကားပြော လေ့ကျင့်ကြရအောင်။<br>
+        အောက်က ခေါင်းစဉ်တစ်ခုကို နှိပ်ပါ — သို့မဟုတ် ကိုယ်တိုင် အင်္ဂလိပ်လို စရေးလိုက်ပါ။<br>
+        မှားရင် Tutor က <b style="color:var(--amber)">📝 ပြင်ဆင်ချက်</b> ဖြင့် မြန်မာလို ရှင်းပြပေးပါမည်။
+      </div>
+      <div v-for="m in messages" :key="m.id" class="msg" :class="m.role">
+        <div class="who">{{ m.role === 'student' ? '🧑‍🎓 ကျွန်ုပ်' : '🧑‍🏫 Tutor' }}</div>
+        <div class="bubble">{{ m.text }}</div>
+        <div v-if="m.fix" class="fixbox" :class="{ clean: m.clean }">
+          <div class="fixhead">{{ m.clean ? '✅ ကောင်းပါသည်' : '📝 ပြင်ဆင်ချက်' }}</div>{{ m.fix }}
+        </div>
+      </div>
+      <div v-if="busy" class="msg tutor">
+        <div class="who">🧑‍🏫 Tutor</div>
+        <div class="typing"><i></i><i></i><i></i></div>
+      </div>
+    </div>
+
+    <div class="chips">
+      <span v-for="c in CHIPS" :key="c.label" class="chip" @click="sendChip(c)">{{ c.label }}</span>
+    </div>
+
+    <div class="composer">
+      <div class="box">
+        <el-input v-model="draft" type="textarea" :rows="2" resize="none"
+          placeholder="အင်္ဂလိပ်လို ရေးပါ… (Enter = ပို့မည် · Shift+Enter = စာကြောင်းသစ်)"
+          @keydown.enter.exact.prevent="send"></el-input>
+      </div>
+      <el-button type="primary" @click="send" :loading="busy" style="height:40px">📨 ပို့မည်</el-button>
+    </div>
+    <div class="hint">Enter = ပို့မည် · Shift+Enter = စာကြောင်းသစ် · နောက်ဆုံး စာ ၁၀ စောင်ကို context အဖြစ် ပို့သည်</div>
+  </div>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted, nextTick } = Vue;
+const STORE = 'tutor.v1';
+// Shared with the AI Note Taker tools — one set of keys across the suite
+const GKEY = 'ainotes.enterprise.gemini.key';
+const GMODEL = 'ainotes.enterprise.gemini.model';
+const QKEY = 'ainotes.apikey.groq';
+const QMODEL = 'ainotes.model.groq';
+const OKEY = 'creator.apikey.openrouter';
+const OMODEL = 'creator.model.openrouter';
+const OMODEL_DEFAULT = 'google/gemini-2.0-flash-exp:free';   // free + strong Myanmar
+const PREF_KEY = 'creator.ai.provider';   // auto | gemini | groq | openrouter
+const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
+
+const app = createApp({
+  setup() {
+    const CHIPS = [
+      { label: '👋 Introduce yourself', opener: "Hello! I want to practice introducing myself. My name is Myo and I am a software developer from Myanmar." },
+      { label: '💼 My daily work', opener: "Let me tell you about my daily work. Every day I write code and fix bugs for my company." },
+      { label: '🖥️ Tech interview practice', opener: "Can we practice a tech interview? Please ask me a common software developer interview question." },
+      { label: '☕ Small talk', opener: "Hi! How are you today? The weather here is very hot this week." },
+      { label: '🏗️ Describe a project', opener: "I want to describe a project I am working on. It is a web application for my company." },
+    ];
+    const LEVEL_HINTS = {
+      beginner: 'Use very simple English (A1-A2 level): short sentences, common everyday words only. Be extra encouraging. In the FIX section, explain mostly in Myanmar with plenty of detail because the student is a beginner.',
+      intermediate: 'Use everyday conversational English (B1-B2 level): natural but not too complex. In the FIX section, explain briefly in Myanmar.',
+      advanced: 'Use natural, rich English (C1 level): idioms and nuanced vocabulary are welcome. In the FIX section, give concise Myanmar explanations focusing on nuance and naturalness.',
+    };
+    const messages = ref([]);
+    const level = ref('beginner');
+    const draft = ref('');
+    const busy = ref(false);
+    const chatEl = ref(null);
+
+    const hasKey = computed(() => !!(localStorage.getItem(GKEY) || localStorage.getItem(QKEY) || localStorage.getItem(OKEY)));
+    const showSettings = ref(false);
+    const aiPref = ref(localStorage.getItem(PREF_KEY) || 'auto');
+    const gKeyInput = ref(''); const qKeyInput = ref('');
+    const oKeyInput = ref(''); const oModelInput = ref('');
+
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 3200 });
+
+    function loadStore() {
+      try {
+        const d = JSON.parse(localStorage.getItem(STORE) || '{}');
+        messages.value = Array.isArray(d.messages) ? d.messages : [];
+        if (d.level) level.value = d.level;
+      } catch (e) {}
+    }
+    function saveStore() { localStorage.setItem(STORE, JSON.stringify({ messages: messages.value, level: level.value })); }
+    function scrollBottom() {
+      nextTick(() => { if (chatEl.value) chatEl.value.scrollTop = chatEl.value.scrollHeight; });
+    }
+
+    // ---- AI providers: Gemini + Groq + OpenRouter with Auto fallback ----
+    function geminiModel() {
+      const m = localStorage.getItem(GMODEL);
+      if (m && VALID_MODELS.includes(m)) return m;
+      if (m) localStorage.setItem(GMODEL, 'gemini-2.5-flash');
+      return 'gemini-2.5-flash';
+    }
+    function openSettings() {
+      gKeyInput.value = localStorage.getItem(GKEY) || '';
+      qKeyInput.value = localStorage.getItem(QKEY) || '';
+      oKeyInput.value = localStorage.getItem(OKEY) || '';
+      oModelInput.value = localStorage.getItem(OMODEL) || OMODEL_DEFAULT;
+      aiPref.value = localStorage.getItem(PREF_KEY) || 'auto';
+      showSettings.value = true;
+    }
+    function savePrefs() { localStorage.setItem(PREF_KEY, aiPref.value); }
+    function saveKeys() {
+      gKeyInput.value.trim() ? localStorage.setItem(GKEY, gKeyInput.value.trim()) : localStorage.removeItem(GKEY);
+      qKeyInput.value.trim() ? localStorage.setItem(QKEY, qKeyInput.value.trim()) : localStorage.removeItem(QKEY);
+      oKeyInput.value.trim() ? localStorage.setItem(OKEY, oKeyInput.value.trim()) : localStorage.removeItem(OKEY);
+      oModelInput.value.trim() ? localStorage.setItem(OMODEL, oModelInput.value.trim()) : localStorage.removeItem(OMODEL);
+      savePrefs();
+      showSettings.value = false;
+      toast('🔑 သိမ်းပြီး — ' + (localStorage.getItem(GKEY) ? 'Gemini ✓ ' : '') + (localStorage.getItem(QKEY) ? 'Groq ✓ ' : '') + (localStorage.getItem(OKEY) ? 'OpenRouter ✓' : ''));
+    }
+    async function callGemini(prompt) {
+      const key = localStorage.getItem(GKEY);
+      if (!key) throw new Error('Gemini key မရှိပါ');
+      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel()}:generateContent?key=${encodeURIComponent(key)}`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
+      });
+      if (!res.ok) {
+        let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
+        throw new Error(`Gemini ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
+      }
+      const d = await res.json();
+      return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
+    }
+    async function callChatApi(url, key, model, prompt, label) {
+      if (!key) throw new Error(label + ' key မရှိပါ');
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 2000 }),
+      });
+      if (!res.ok) {
+        let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
+        throw new Error(`${label} ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
+      }
+      const d = await res.json();
+      return d.choices?.[0]?.message?.content || '';
+    }
+    const callGroq = p => callChatApi('https://api.groq.com/openai/v1/chat/completions',
+      localStorage.getItem(QKEY), localStorage.getItem(QMODEL) || 'llama-3.3-70b-versatile', p, 'Groq');
+    const callOpenRouter = p => callChatApi('https://openrouter.ai/api/v1/chat/completions',
+      localStorage.getItem(OKEY), localStorage.getItem(OMODEL) || OMODEL_DEFAULT, p, 'OpenRouter');
+    // Provider router: honors the setting; Auto tries Gemini → Groq → OpenRouter
+    async function gemini(prompt) {
+      const pref = localStorage.getItem(PREF_KEY) || 'auto';
+      const hasG = !!localStorage.getItem(GKEY), hasQ = !!localStorage.getItem(QKEY), hasO = !!localStorage.getItem(OKEY);
+      if (!hasG && !hasQ && !hasO) { openSettings(); throw new Error('API key ထည့်ပါ (⚙ AI)'); }
+      if (pref === 'gemini') return callGemini(prompt);
+      if (pref === 'groq') return callGroq(prompt);
+      if (pref === 'openrouter') return callOpenRouter(prompt);
+      const chain = [
+        hasG && { name: 'Gemini', fn: callGemini },
+        hasQ && { name: 'Groq', fn: callGroq },
+        hasO && { name: 'OpenRouter', fn: callOpenRouter },
+      ].filter(Boolean);
+      let lastErr = null;
+      for (let i = 0; i < chain.length; i++) {
+        try { return await chain[i].fn(prompt); }
+        catch (e) {
+          lastErr = e;
+          if (i < chain.length - 1) toast(`${chain[i].name} မရ — ${chain[i + 1].name} ဖြင့် ဆက်လုပ်နေသည်…`, 'warning');
+        }
+      }
+      throw lastErr;
+    }
+
+    // ---- tutor prompt ----
+    function buildPrompt() {
+      const recent = messages.value.slice(-10);
+      const transcript = recent.map(m => (m.role === 'student' ? 'Student: ' : 'Tutor: ') + m.text).join('\n');
+      return `You are a friendly, patient English conversation tutor for a Myanmar (Burmese) learner.
+Student level: ${level.value}. ${LEVEL_HINTS[level.value]}
+
+Conversation so far (the last "Student:" line is the student's newest message — respond to it):
+${transcript}
+
+Return EXACTLY this format with both sections, no extra commentary before or after:
+===REPLY===
+<Your conversational English reply that continues the conversation naturally — level-appropriate, 2-5 sentences, usually ending with a follow-up question to keep the student talking.>
+===FIX===
+<Look at the student's newest message only. If it has English mistakes: show each as "original → corrected" then a 1-2 line explanation IN MYANMAR (Burmese) of why. If the message is already correct and natural: write one short praise sentence in Myanmar (e.g. စာကြောင်း မှန်ကန်ပါသည်) — nothing else.>`;
+    }
+
+    const CLEAN_MARKERS = ['မှန်ကန်', 'ကောင်းပါ', 'အမှားမရှိ', 'မှားမရှိ', 'perfect', 'no mistake', 'correct'];
+    function looksClean(fix) {
+      return !fix.includes('→') && CLEAN_MARKERS.some(k => fix.toLowerCase().includes(k.toLowerCase()));
+    }
+
+    async function sendText(text) {
+      const t = (text || '').trim();
+      if (!t || busy.value) return;
+      const studentMsg = { id: Date.now(), role: 'student', text: t, fix: '', clean: false, t: Date.now() };
+      messages.value.push(studentMsg);
+      saveStore(); scrollBottom();
+      busy.value = true;
+      try {
+        const out = await gemini(buildPrompt());
+        const reply = out.match(/===REPLY===([\s\S]*?)===FIX===/)?.[1]?.trim();
+        const fix = out.match(/===FIX===([\s\S]*)$/)?.[1]?.trim();
+        const replyText = reply || out.replace(/===REPLY===|===FIX===/g, '').trim() || '…';
+        if (fix) {
+          studentMsg.fix = fix;
+          studentMsg.clean = looksClean(fix);
+        }
+        messages.value.push({ id: Date.now() + 1, role: 'tutor', text: replyText, fix: '', clean: false, t: Date.now() });
+        saveStore(); scrollBottom();
+      } catch (e) {
+        toast('⚠ ' + e.message, 'error');
+      }
+      busy.value = false;
+    }
+    function send() {
+      const t = draft.value;
+      draft.value = '';
+      sendText(t);
+    }
+    function sendChip(c) { sendText(c.opener); }
+
+    function clearConversation() {
+      messages.value = [];
+      saveStore();
+      toast('🗑 စကားဝိုင်း ရှင်းပြီး');
+    }
+    function copyConversation() {
+      const txt = messages.value.map(m => {
+        let line = (m.role === 'student' ? 'Student: ' : 'Tutor: ') + m.text;
+        if (m.fix) line += '\n  [📝 ' + m.fix + ']';
+        return line;
+      }).join('\n\n');
+      navigator.clipboard.writeText(txt).then(() => toast('📋 စကားဝိုင်း ကူးပြီး — ' + messages.value.length + ' messages'));
+    }
+
+    onMounted(() => {
+      loadStore();
+      document.getElementById('vue-loading').style.display = 'none';
+      scrollBottom();
+    });
+
+    return {
+      CHIPS, messages, level, draft, busy, chatEl, hasKey,
+      showSettings, aiPref, gKeyInput, qKeyInput, oKeyInput, oModelInput,
+      openSettings, savePrefs, saveKeys, saveStore,
+      send, sendChip, clearConversation, copyConversation,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>

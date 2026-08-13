@@ -31,6 +31,9 @@
     'playground.v1',
     'winnerpicker.v1',
     'vocab.v1',
+    'tutor.v1',
+    'reading.v1',
+    'entrans.v1',
   ];
 
   // Local sync bookkeeping (never synced themselves)
