@@ -30,6 +30,7 @@
     'expense.v1',
     'playground.v1',
     'winnerpicker.v1',
+    'vocab.v1',
   ];
 
   // Local sync bookkeeping (never synced themselves)

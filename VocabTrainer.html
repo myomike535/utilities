@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vocabulary Trainer · ဝေါဟာရ လေ့ကျင့်ခန်း</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#8b5cf6">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#8b5cf6; --accent-2:#6366f1;
+    --ok:#22c55e; --bad:#ef4444;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#8b5cf6;
+    --el-color-primary-light-3:#a78bfa;
+    --el-color-primary-dark-2:#7c3aed;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(139,92,246,.14), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(99,102,241,.11), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:900px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(139,92,246,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .stats { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:10px; margin-bottom:18px; }
+  .stat { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px; padding:13px 16px; }
+  .stat .n { font-size:1.5rem; font-weight:800; color:var(--accent); }
+  .stat .l { font-size:.74rem; color:var(--muted); margin-top:2px; }
+
+  .decks { display:grid; grid-template-columns:repeat(auto-fill,minmax(270px,1fr)); gap:12px; }
+  .deck {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:15px 17px; display:flex; flex-direction:column; gap:9px; transition:all .18s;
+  }
+  .deck:hover { transform:translateY(-2px); border-color:color-mix(in srgb, var(--accent) 40%, transparent);
+    box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  .deck .nm { font-weight:700; font-size:1rem; }
+  .deck .meta { display:flex; gap:6px; flex-wrap:wrap; }
+  .deck .btns { display:flex; gap:7px; flex-wrap:wrap; margin-top:2px; }
+
+  .panel { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:15px; padding:20px; }
+  .topline { display:flex; align-items:center; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .topline .sp { flex:1; }
+
+  .flashcard {
+    background:linear-gradient(160deg, var(--card2), var(--card)); border:1px solid var(--field-border);
+    border-radius:17px; min-height:250px; display:flex; flex-direction:column; align-items:center;
+    justify-content:center; gap:12px; padding:26px; cursor:pointer; text-align:center;
+    box-shadow:0 10px 30px rgba(0,0,0,.3); transition:transform .15s; user-select:none;
+  }
+  .flashcard:hover { transform:scale(1.01); }
+  .flashcard .side-tag { font-size:.68rem; letter-spacing:.12em; color:var(--faint); text-transform:uppercase; }
+  .flashcard .term { font-size:1.9rem; font-weight:800; }
+  .flashcard .mm { font-size:1.15rem; line-height:1.9; color:var(--text); max-width:560px; }
+  .flashcard .ex { font-size:.85rem; color:var(--muted); font-style:italic; max-width:540px; line-height:1.7; }
+  .flashcard .hint { font-size:.72rem; color:var(--faint); }
+  .grades { display:grid; grid-template-columns:repeat(4,1fr); gap:9px; margin-top:15px; }
+  .grades button {
+    border:1px solid var(--field-border); background:var(--field); color:var(--text);
+    border-radius:11px; padding:11px 6px; cursor:pointer; font-family:var(--sans); font-size:.83rem;
+    transition:all .15s;
+  }
+  .grades button:hover { transform:translateY(-2px); border-color:var(--accent); }
+  .grades button small { display:block; color:var(--faint); font-size:.64rem; margin-top:3px; }
+
+  .donebox { text-align:center; padding:35px 10px; }
+  .donebox .big { font-size:2.5rem; }
+  .donebox h2 { margin:8px 0 16px; }
+  .done-stats { display:flex; gap:10px; justify-content:center; flex-wrap:wrap; margin-bottom:20px; }
+
+  .quiz-q { text-align:center; margin:22px 0 20px; }
+  .quiz-q .term { font-size:1.8rem; font-weight:800; }
+  .quiz-opts { display:flex; flex-direction:column; gap:9px; max-width:620px; margin:0 auto; }
+  .quiz-opt {
+    border:1px solid var(--field-border); background:var(--field); color:var(--text);
+    border-radius:11px; padding:13px 16px; cursor:pointer; font-family:var(--sans); font-size:.95rem;
+    text-align:left; line-height:1.7; transition:all .15s;
+  }
+  .quiz-opt:hover:not(:disabled) { border-color:var(--accent); transform:translateX(3px); }
+  .quiz-opt:disabled { cursor:default; opacity:.85; }
+  .quiz-opt.correct { border-color:var(--ok); background:rgba(34,197,94,.14); }
+  .quiz-opt.wrong { border-color:var(--bad); background:rgba(239,68,68,.14); }
+
+  .cardrow { display:flex; align-items:center; gap:10px; padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.06); }
+  .cardrow:hover { background:rgba(139,92,246,.06); }
+  .cardrow .fr { font-weight:700; min-width:110px; }
+  .cardrow .bk { flex:1; color:var(--muted); font-size:.86rem; line-height:1.7; }
+  .cardrow .sr { font-size:.68rem; color:var(--faint); white-space:nowrap; }
+  .empty { text-align:center; color:var(--faint); padding:40px 0; font-size:.9rem; }
+
+  .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🎓</div>
+    <div class="title">
+      <h1>Vocabulary Trainer</h1>
+      <div class="sub">ဝေါဟာရ လေ့ကျင့်ခန်း — Tech terms EN↔MM · spaced repetition</div>
+    </div>
+    <el-button v-if="mode!=='home'" @click="goHome">🏠 ပင်မ</el-button>
+    <el-button v-if="mode==='home'" @click="importEl && importEl.click()">⬆ Import</el-button>
+    <el-button v-if="mode==='home'" type="primary" @click="openNewDeck">＋ Deck</el-button>
+    <input type="file" ref="importEl" accept=".json" style="display:none" @change="doImport">
+  </header>
+
+  <!-- ============ HOME / DASHBOARD ============ -->
+  <div v-if="mode==='home'">
+    <div class="stats">
+      <div class="stat"><div class="n">{{ dueTotal }}</div><div class="l">📅 ယနေ့ ကျက်ရန် (due today)</div></div>
+      <div class="stat"><div class="n">🔥 {{ streak }}</div><div class="l">ဆက်တိုက် လေ့လာသည့်ရက် (streak)</div></div>
+      <div class="stat"><div class="n">{{ learnedTotal }}</div><div class="l">🏆 ရပြီးသား ဝေါဟာရ (learned)</div></div>
+    </div>
+
+    <div class="decks" v-if="store.decks.length">
+      <div v-for="d in store.decks" :key="d.id" class="deck">
+        <div class="nm">📚 {{ d.name }}</div>
+        <div class="meta">
+          <el-tag size="small" effect="plain">{{ d.cards.length }} ကတ်</el-tag>
+          <el-tag size="small" type="warning" effect="plain">ကျက်ရန် {{ deckDue(d) }}</el-tag>
+          <el-tag size="small" type="success" effect="plain">ရပြီး {{ deckLearned(d) }}</el-tag>
+        </div>
+        <div class="btns">
+          <el-button size="small" type="primary" class="btn-study" @click="startStudy(d)">📖 လေ့လာမည်</el-button>
+          <el-button size="small" type="success" class="btn-quiz" @click="startQuiz(d)">🎯 Quiz</el-button>
+          <el-button size="small" class="btn-manage" @click="openManage(d)">⚙ စီမံမည်</el-button>
+        </div>
+      </div>
+    </div>
+    <div v-else class="empty">Deck မရှိသေးပါ — ＋ Deck ဖြင့် စတင်ပါ</div>
+  </div>
+
+  <!-- ============ STUDY MODE ============ -->
+  <div v-if="mode==='study'" class="panel">
+    <div v-if="!studyDone">
+      <div class="topline">
+        <b>📖 {{ curDeck.name }}</b>
+        <span class="sp"></span>
+        <el-tag effect="plain">{{ studyIdx + 1 }} / {{ queue.length }}</el-tag>
+      </div>
+      <el-progress :percentage="Math.round(studyIdx / queue.length * 100)" :show-text="false" :stroke-width="8"></el-progress>
+
+      <div class="flashcard" style="margin-top:16px" @click="flipped = !flipped">
+        <template v-if="!flipped">
+          <div class="side-tag">English · ရှေ့ဘက်</div>
+          <div class="term">{{ curCard.front }}</div>
+          <div class="hint">👆 နှိပ်ပါ (သို့) Space — အဖြေကြည့်ရန်</div>
+        </template>
+        <template v-else>
+          <div class="side-tag">မြန်မာ · အဓိပ္ပာယ်</div>
+          <div class="term" style="font-size:1.2rem; color:var(--accent)">{{ curCard.front }}</div>
+          <div class="mm">{{ curCard.back }}</div>
+          <div class="ex" v-if="curCard.ex">💬 {{ curCard.ex }}</div>
+        </template>
+      </div>
+
+      <div class="grades" v-if="flipped">
+        <button class="g-again" @click="grade('again')">❌ မရသေး<small>မနက်ဖြန် ပြန်မေး</small></button>
+        <button class="g-hard" @click="grade('hard')">😐 ခက်သည်<small>{{ preview('hard') }} ရက်</small></button>
+        <button class="g-good" @click="grade('good')">✅ ရပြီ<small>{{ preview('good') }} ရက်</small></button>
+        <button class="g-easy" @click="grade('easy')">🌟 လွယ်<small>{{ preview('easy') }} ရက်</small></button>
+      </div>
+    </div>
+
+    <div v-else class="donebox">
+      <div class="big">🎉</div>
+      <h2>ယနေ့အတွက် ပြီးပါပြီ!</h2>
+      <div class="done-stats">
+        <el-tag type="danger" effect="plain">❌ {{ results.again }}</el-tag>
+        <el-tag type="warning" effect="plain">😐 {{ results.hard }}</el-tag>
+        <el-tag type="success" effect="plain">✅ {{ results.good }}</el-tag>
+        <el-tag effect="plain">🌟 {{ results.easy }}</el-tag>
+      </div>
+      <div style="color:var(--muted); font-size:.85rem; margin-bottom:18px">
+        ကတ် {{ queue.length }} ခု လေ့လာပြီး · Streak 🔥 {{ streak }} ရက်
+      </div>
+      <el-button type="primary" @click="goHome">🏠 ပင်မသို့ ပြန်သွားမည်</el-button>
+    </div>
+  </div>
+
+  <!-- ============ QUIZ MODE ============ -->
+  <div v-if="mode==='quiz'" class="panel">
+    <div v-if="!qz.done">
+      <div class="topline">
+        <b>🎯 Quiz — {{ curDeck.name }}</b>
+        <span class="sp"></span>
+        <el-tag type="success" effect="plain" class="quiz-score">အမှတ်: {{ qz.score }}</el-tag>
+        <el-tag effect="plain">{{ qz.i + 1 }} / {{ qz.qs.length }}</el-tag>
+      </div>
+      <el-progress :percentage="Math.round(qz.i / qz.qs.length * 100)" :show-text="false" :stroke-width="8"></el-progress>
+
+      <div class="quiz-q">
+        <div style="font-size:.75rem; color:var(--faint); margin-bottom:8px">အဓိပ္ပာယ်မှန်ကို ရွေးပါ</div>
+        <div class="term">{{ qz.qs[qz.i].card.front }}</div>
+      </div>
+      <div class="quiz-opts">
+        <button v-for="(opt, oi) in qz.qs[qz.i].opts" :key="oi" class="quiz-opt"
+          :class="{ correct: qz.picked !== null && opt === qz.qs[qz.i].card.back,
+                    wrong: qz.picked === opt && opt !== qz.qs[qz.i].card.back }"
+          :disabled="qz.picked !== null" @click="answer(opt)">{{ opt }}</button>
+      </div>
+      <div style="text-align:center; margin-top:16px" v-if="qz.picked !== null">
+        <div style="margin-bottom:10px; font-size:.9rem">
+          <span v-if="qz.picked === qz.qs[qz.i].card.back" style="color:var(--ok)">✅ မှန်ပါသည်!</span>
+          <span v-else style="color:var(--bad)">❌ မှားပါသည် — အဖြေမှန်ကို အစိမ်းရောင်ဖြင့် ပြထားသည်</span>
+        </div>
+        <el-button type="primary" class="btn-next" @click="nextQ">{{ qz.i + 1 >= qz.qs.length ? '🏁 ရလဒ်ကြည့်မည်' : '➡ ရှေ့ဆက်မည်' }}</el-button>
+      </div>
+    </div>
+
+    <div v-else class="donebox">
+      <div class="big">{{ qz.score >= qz.qs.length * 0.8 ? '🏆' : qz.score >= qz.qs.length * 0.5 ? '👍' : '💪' }}</div>
+      <h2>Quiz ပြီးပါပြီ — {{ qz.score }} / {{ qz.qs.length }} မှတ်</h2>
+      <div style="color:var(--muted); font-size:.85rem; margin-bottom:18px">
+        {{ qz.score >= qz.qs.length * 0.8 ? 'အရမ်းတော်ပါသည်!' : qz.score >= qz.qs.length * 0.5 ? 'ကောင်းပါသည် — ဆက်ကြိုးစားပါ' : 'ထပ်လေ့ကျင့်ကြည့်ပါ' }}
+      </div>
+      <el-button @click="startQuiz(curDeck)">🔁 ထပ်ဖြေမည်</el-button>
+      <el-button type="primary" @click="goHome">🏠 ပင်မသို့</el-button>
+    </div>
+  </div>
+
+  <!-- ============ MANAGE MODE ============ -->
+  <div v-if="mode==='manage'" class="panel">
+    <div class="topline">
+      <b>⚙ {{ curDeck.name }}</b>
+      <el-tag size="small" effect="plain">{{ curDeck.cards.length }} ကတ် · ကျက်ရန် {{ deckDue(curDeck) }} · ရပြီး {{ deckLearned(curDeck) }}</el-tag>
+      <span class="sp"></span>
+      <el-button size="small" @click="exportDeck(curDeck)">⬇ Export</el-button>
+      <el-button size="small" @click="renameDeck">✏️ အမည်ပြောင်း</el-button>
+      <el-popconfirm title="Deck တစ်ခုလုံး ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delDeck">
+        <template #reference><el-button size="small" type="danger" plain>🗑</el-button></template>
+      </el-popconfirm>
+      <el-button size="small" type="primary" class="btn-addcard" @click="openNewCard">＋ ကတ်အသစ်</el-button>
+    </div>
+
+    <div v-if="curDeck.cards.length">
+      <div v-for="c in curDeck.cards" :key="c.id" class="cardrow">
+        <span class="fr">{{ c.front }}</span>
+        <span class="bk">{{ c.back }}</span>
+        <span class="sr">ivl {{ c.sr.ivl }}d · reps {{ c.sr.reps }}{{ c.sr.ivl >= 21 ? ' · 🏆' : '' }}</span>
+        <el-button size="small" @click="openEditCard(c)">✏️</el-button>
+      </div>
+    </div>
+    <div v-else class="empty">ကတ် မရှိသေးပါ — ＋ ကတ်အသစ် ဖြင့် ထည့်ပါ</div>
+  </div>
+
+  <!-- ============ CARD DIALOG ============ -->
+  <el-dialog v-model="showCard" :title="editing.id ? '✏️ ကတ် ပြင်ဆင်ရန်' : '＋ ကတ်အသစ်'" width="min(560px, 96vw)">
+    <label class="fl">ရှေ့ဘက် — English term</label>
+    <el-input v-model="editing.front" placeholder="e.g. variable" clearable></el-input>
+    <label class="fl">နောက်ဘက် — မြန်မာ အဓိပ္ပာယ်</label>
+    <el-input v-model="editing.back" type="textarea" :rows="3" placeholder="မြန်မာလို ရှင်းလင်းချက်…"></el-input>
+    <label class="fl">ဥပမာ ဝါကျ (optional)</label>
+    <el-input v-model="editing.ex" placeholder="e.g. A variable stores a value."></el-input>
+    <template #footer>
+      <div style="display:flex; gap:8px; width:100%">
+        <el-popconfirm v-if="editing.id" title="ဒီကတ်ကို ဖျက်မှာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delCard">
+          <template #reference><el-button type="danger" plain>🗑 ဖျက်မည်</el-button></template>
+        </el-popconfirm>
+        <span style="flex:1"></span>
+        <el-button @click="showCard=false">မလုပ်တော့ပါ</el-button>
+        <el-button type="primary" class="btn-savecard" @click="saveCard">💾 သိမ်းမည်</el-button>
+      </div>
+    </template>
+  </el-dialog>
+
+  <!-- ============ NEW DECK DIALOG ============ -->
+  <el-dialog v-model="showDeck" title="＋ Deck အသစ်" width="min(420px, 96vw)">
+    <label class="fl">Deck အမည်</label>
+    <el-input v-model="deckName" placeholder="e.g. CSS Advanced" clearable @keyup.enter="saveDeck"></el-input>
+    <template #footer>
+      <el-button @click="showDeck=false">မလုပ်တော့ပါ</el-button>
+      <el-button type="primary" @click="saveDeck">💾 ဖန်တီးမည်</el-button>
+    </template>
+  </el-dialog>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted, onUnmounted } = Vue;
+const STORE = 'vocab.v1';
+
+function pad(n) { return String(n).padStart(2, '0'); }
+function fmtDate(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
+function today() { return fmtDate(new Date()); }
+function addDays(n) { const d = new Date(); d.setDate(d.getDate() + n); return fmtDate(d); }
+function newSr() { return { ease: 2.5, ivl: 0, due: '', reps: 0 }; }
+function shuffle(a) { const x = [...a]; for (let i = x.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [x[i], x[j]] = [x[j], x[i]]; } return x; }
+
+// ---- Starter deck: Web Dev Basics (40 cards) ----
+const SEED = [
+  ['variable', 'တန်ဖိုးများကို သိမ်းဆည်းရန် အမည်ပေးထားသော နေရာ', 'A variable stores a value you can change later.'],
+  ['function', 'အလုပ်တစ်ခုကို လုပ်ဆောင်ပေးသည့် ပြန်သုံးနိုင်သော ကုဒ်အစု', 'This function calculates the total price.'],
+  ['array', 'တန်ဖိုးများစွာကို အစဉ်လိုက် သိမ်းထားသော စာရင်း', 'Store the user names in an array.'],
+  ['loop', 'အလုပ်တစ်ခုကို ထပ်ခါထပ်ခါ လုပ်ဆောင်စေသော ကုဒ်ဖွဲ့စည်းပုံ', 'Use a loop to print each item in the list.'],
+  ['responsive', 'မျက်နှာပြင်အရွယ်အစားအလိုက် အလိုအလျောက် ညှိပေးသော ဒီဇိုင်း', 'A responsive site works well on phones and desktops.'],
+  ['database', 'အချက်အလက်များကို စနစ်တကျ သိမ်းဆည်းထားသော နေရာ', 'User records are saved in the database.'],
+  ['deploy', 'ရေးပြီးသော app ကို server ပေါ်တင်၍ အသုံးပြုနိုင်အောင် လုပ်ခြင်း', 'We deploy the app to the server every Friday.'],
+  ['component', 'ပြန်သုံးနိုင်သော UI အစိတ်အပိုင်းငယ် တစ်ခု', 'The navbar is a reusable component.'],
+  ['prop', 'Parent component မှ child သို့ ပေးပို့သော အချက်အလက်', 'Pass the title as a prop to the child component.'],
+  ['state', 'Component အတွင်း ပြောင်းလဲနိုင်သော လက်ရှိအခြေအနေ ဒေတာ', 'Clicking the button updates the component state.'],
+  ['API', 'Program နှစ်ခုကြား အချက်အလက် ဖလှယ်ရန် သတ်မှတ်ထားသော နည်းလမ်း', 'The app fetches weather data from an API.'],
+  ['request', 'Client မှ server သို့ တောင်းဆိုချက် ပေးပို့ခြင်း', 'The browser sends a request to the server.'],
+  ['response', 'တောင်းဆိုချက်အတွက် server မှ ပြန်ပေးသော အဖြေ', 'The server returns a JSON response.'],
+  ['cache', 'မြန်ဆန်စေရန် ဒေတာကို ယာယီ သိမ်းထားခြင်း', 'Images load faster from the cache.'],
+  ['framework', 'App တည်ဆောက်ရန် အခြေခံဖွဲ့စည်းပုံပါ ပေးထားသော ကိရိယာစုံ', 'Vue is a popular JavaScript framework.'],
+  ['library', 'ပြန်သုံးနိုင်သော function များ စုစည်းထားသည့် ကုဒ်အစု', 'Lodash is a useful utility library.'],
+  ['debug', 'ကုဒ်ထဲရှိ အမှားများကို ရှာဖွေ ပြင်ဆင်ခြင်း', 'I spent an hour debugging this error.'],
+  ['syntax', 'Programming ဘာသာစကား၏ ရေးထုံး စည်းမျဉ်း', 'A missing bracket causes a syntax error.'],
+  ['attribute', 'HTML tag တွင် ထပ်ဆောင်းအချက်အလက် ပေးသော ဂုဏ်သတ္တိ', 'The href attribute sets the link URL.'],
+  ['selector', 'CSS တွင် ပြင်လိုသော element ကို ရွေးချယ်ပေးသည့် အညွှန်း', 'The class selector styles all matching elements.'],
+  ['margin', 'Element ၏ အပြင်ဘက် ကွက်လပ်နေရာ', 'Add margin to create space outside the box.'],
+  ['padding', 'Element ၏ ဘောင်အတွင်းဘက် ကွက်လပ်နေရာ', 'Padding adds space inside the button.'],
+  ['flexbox', 'Element များကို တစ်တန်းတည်း လွယ်ကူစွာ စီစဉ်နိုင်သော CSS layout စနစ်', 'Use flexbox to center the items in a row.'],
+  ['grid', 'အတန်းနှင့် ကော်လံဖြင့် layout ဆွဲနိုင်သော CSS စနစ်', 'CSS grid arranges the cards in three columns.'],
+  ['breakpoint', 'မျက်နှာပြင်အကျယ်အလိုက် ဒီဇိုင်းပြောင်းလဲသည့် အမှတ်', 'The layout changes at the 768px breakpoint.'],
+  ['commit', 'ကုဒ်ပြောင်းလဲမှုကို git တွင် မှတ်တမ်းတင် သိမ်းဆည်းခြင်း', 'Commit your changes with a clear message.'],
+  ['branch', 'ပင်မကုဒ်မှ ခွဲထွက်၍ သီးခြားလုပ်ဆောင်နိုင်သော လမ်းကြောင်း', 'Create a new branch for this feature.'],
+  ['merge', 'Branch နှစ်ခု၏ ပြောင်းလဲမှုများကို ပေါင်းစည်းခြင်း', 'Merge the feature branch into main.'],
+  ['repository', 'Project ကုဒ်နှင့် မှတ်တမ်းအားလုံး သိမ်းထားသော နေရာ', 'Clone the repository from GitHub.'],
+  ['server', 'Client များ၏ တောင်းဆိုချက်ကို ဝန်ဆောင်မှုပေးသော ကွန်ပျူတာ', 'The server handles thousands of requests.'],
+  ['client', 'Server ထံ ဝန်ဆောင်မှု တောင်းဆိုသောဘက် (browser စသည်)', 'The client renders the HTML in the browser.'],
+  ['domain', 'Website ၏ လိပ်စာအမည် (ဥပမာ google.com)', 'We bought the domain example.com.'],
+  ['hosting', 'Website ဖိုင်များကို အင်တာနက်ပေါ် တင်ထားပေးသော ဝန်ဆောင်မှု', 'Free hosting is enough for a small site.'],
+  ['query', 'Database မှ အချက်အလက် တောင်းဆိုသော မေးခွန်းကုဒ်', 'Run a query to find all active users.'],
+  ['index', 'ရှာဖွေမှု မြန်ဆန်စေရန် database တွင် ပြုလုပ်ထားသော အညွှန်း', 'An index makes the search much faster.'],
+  ['backup', 'ဒေတာပျက်လျှင် ပြန်ယူနိုင်ရန် မိတ္တူ သိမ်းထားခြင်း', 'Always keep a backup before upgrading.'],
+  ['encryption', 'ဒေတာကို လျှို့ဝှက်ကုဒ်အဖြစ် ပြောင်း၍ ကာကွယ်ခြင်း', 'Encryption protects passwords in the database.'],
+  ['algorithm', 'ပြဿနာဖြေရှင်းရန် အဆင့်လိုက် သတ်မှတ်ထားသော နည်းလမ်း', 'The sorting algorithm arranges items by price.'],
+  ['callback', 'အလုပ်တစ်ခုပြီးမှ ပြန်ခေါ်ပေးရန် ထည့်ပေးထားသော function', 'The callback runs after the data loads.'],
+  ['async', 'အလုပ်ပြီးဆုံးမှုကို မစောင့်ဘဲ ဆက်လုပ်နိုင်သော ပုံစံ', 'Async code lets the page stay responsive.'],
+];
+function starterDeck() {
+  return {
+    id: 'webdev-basics',
+    name: 'Web Dev Basics',
+    cards: SEED.map((s, i) => ({ id: 'wb' + (i + 1), front: s[0], back: s[1], ex: s[2], sr: newSr() })),
+  };
+}
+
+const app = createApp({
+  setup() {
+    const store = ref({ decks: [], days: [] });
+    const mode = ref('home');
+    const curDeckId = ref('');
+    const importEl = ref(null);
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2800 });
+
+    // study session
+    const queue = ref([]);
+    const studyIdx = ref(0);
+    const flipped = ref(false);
+    const studyDone = ref(false);
+    const results = ref({ again: 0, hard: 0, good: 0, easy: 0 });
+
+    // quiz session
+    const qz = ref({ qs: [], i: 0, score: 0, picked: null, done: false });
+
+    // dialogs
+    const showCard = ref(false);
+    const showDeck = ref(false);
+    const deckName = ref('');
+    const blankCard = () => ({ id: null, front: '', back: '', ex: '' });
+    const editing = ref(blankCard());
+
+    function load() {
+      try {
+        const d = JSON.parse(localStorage.getItem(STORE) || 'null');
+        if (d && Array.isArray(d.decks)) { store.value = { decks: d.decks, days: d.days || [] }; return; }
+      } catch (e) {}
+      store.value = { decks: [starterDeck()], days: [] };
+      save();
+    }
+    function save() { localStorage.setItem(STORE, JSON.stringify(store.value)); }
+
+    const curDeck = computed(() => store.value.decks.find(d => d.id === curDeckId.value) || { name: '', cards: [] });
+    const curCard = computed(() => queue.value[studyIdx.value] || { front: '', back: '', ex: '', sr: newSr() });
+
+    function isDue(c) { return !c.sr.due || c.sr.due <= today(); }
+    function deckDue(d) { return d.cards.filter(isDue).length; }
+    function deckLearned(d) { return d.cards.filter(c => c.sr.ivl >= 21).length; }
+    const dueTotal = computed(() => store.value.decks.reduce((n, d) => n + deckDue(d), 0));
+    const learnedTotal = computed(() => store.value.decks.reduce((n, d) => n + deckLearned(d), 0));
+    const streak = computed(() => {
+      const set = new Set(store.value.days || []);
+      const d = new Date();
+      if (!set.has(fmtDate(d))) d.setDate(d.getDate() - 1);
+      let n = 0;
+      while (set.has(fmtDate(d))) { n++; d.setDate(d.getDate() - 1); }
+      return n;
+    });
+
+    function markStudied() {
+      const t = today();
+      if (!store.value.days.includes(t)) store.value.days.push(t);
+    }
+
+    // ---- Study (SM-2-lite) ----
+    function startStudy(d) {
+      const due = d.cards.filter(isDue);
+      if (!due.length) { toast('🎉 "' + d.name + '" တွင် ယနေ့ ကျက်ရန် ကတ်မရှိတော့ပါ', 'info'); return; }
+      curDeckId.value = d.id;
+      queue.value = shuffle(due);
+      studyIdx.value = 0; flipped.value = false; studyDone.value = false;
+      results.value = { again: 0, hard: 0, good: 0, easy: 0 };
+      mode.value = 'study';
+    }
+    function nextIvl(sr, g) {
+      const base = sr.ivl > 0 ? sr.ivl : 1;
+      if (g === 'again') return 0;
+      if (g === 'hard') return Math.max(1, Math.round(base * 1.2));
+      if (g === 'good') return sr.ivl > 0 ? Math.max(sr.ivl + 1, Math.round(base * sr.ease)) : 1;
+      return sr.ivl > 0 ? Math.max(sr.ivl + 2, Math.round(base * sr.ease * 1.3)) : 2; // easy
+    }
+    function preview(g) { return Math.max(1, nextIvl(curCard.value.sr, g)); }
+    function grade(g) {
+      const c = queue.value[studyIdx.value]; if (!c) return;
+      const sr = c.sr;
+      if (g === 'again') { sr.ivl = 0; sr.due = addDays(1); sr.ease = Math.max(1.3, sr.ease - 0.2); }
+      else {
+        if (g === 'easy') sr.ease = Math.round((sr.ease + 0.05) * 100) / 100;
+        sr.ivl = nextIvl(sr, g);
+        sr.due = addDays(sr.ivl);
+      }
+      sr.reps = (sr.reps || 0) + 1;
+      results.value[g]++;
+      markStudied(); save();
+      flipped.value = false;
+      if (studyIdx.value + 1 >= queue.value.length) studyDone.value = true;
+      else studyIdx.value++;
+    }
+
+    // ---- Quiz ----
+    function startQuiz(d) {
+      if (d.cards.length < 4) { toast('Quiz အတွက် ကတ် အနည်းဆုံး ၄ ခု လိုအပ်ပါသည်', 'warning'); return; }
+      curDeckId.value = d.id;
+      const picked = shuffle(d.cards).slice(0, 10);
+      const qs = picked.map(card => {
+        const wrongs = shuffle(d.cards.filter(c => c.id !== card.id).map(c => c.back)).slice(0, 3);
+        return { card, opts: shuffle([card.back, ...wrongs]) };
+      });
+      qz.value = { qs, i: 0, score: 0, picked: null, done: false };
+      mode.value = 'quiz';
+    }
+    function answer(opt) {
+      if (qz.value.picked !== null) return;
+      qz.value.picked = opt;
+      if (opt === qz.value.qs[qz.value.i].card.back) qz.value.score++;
+      markStudied(); save();
+    }
+    function nextQ() {
+      if (qz.value.i + 1 >= qz.value.qs.length) { qz.value.done = true; return; }
+      qz.value.i++; qz.value.picked = null;
+    }
+
+    // ---- Manage ----
+    function openManage(d) { curDeckId.value = d.id; mode.value = 'manage'; }
+    function openNewCard() { editing.value = blankCard(); showCard.value = true; }
+    function openEditCard(c) { editing.value = { id: c.id, front: c.front, back: c.back, ex: c.ex || '' }; showCard.value = true; }
+    function saveCard() {
+      const e = editing.value;
+      if (!e.front.trim() || !e.back.trim()) { toast('ရှေ့ဘက်နှင့် နောက်ဘက် နှစ်ခုလုံး လိုအပ်ပါသည်', 'warning'); return; }
+      const d = store.value.decks.find(x => x.id === curDeckId.value); if (!d) return;
+      if (e.id) {
+        const c = d.cards.find(x => x.id === e.id);
+        if (c) { c.front = e.front.trim(); c.back = e.back.trim(); c.ex = e.ex.trim(); }
+      } else {
+        d.cards.push({ id: 'c' + Date.now(), front: e.front.trim(), back: e.back.trim(), ex: e.ex.trim(), sr: newSr() });
+      }
+      save(); showCard.value = false; toast('💾 သိမ်းပြီးပါပြီ');
+    }
+    function delCard() {
+      const d = store.value.decks.find(x => x.id === curDeckId.value); if (!d) return;
+      d.cards = d.cards.filter(c => c.id !== editing.value.id);
+      save(); showCard.value = false; toast('🗑 ဖျက်ပြီးပါပြီ');
+    }
+    function openNewDeck() { deckName.value = ''; showDeck.value = true; }
+    function saveDeck() {
+      const n = deckName.value.trim();
+      if (!n) { toast('Deck အမည် ထည့်ပါ', 'warning'); return; }
+      store.value.decks.push({ id: 'd' + Date.now(), name: n, cards: [] });
+      save(); showDeck.value = false; toast('📚 Deck အသစ် ဖန်တီးပြီးပါပြီ');
+    }
+    function renameDeck() {
+      ElementPlus.ElMessageBox.prompt('Deck အမည်အသစ်', '✏️ အမည်ပြောင်းရန်', {
+        inputValue: curDeck.value.name, confirmButtonText: 'သိမ်းမည်', cancelButtonText: 'မလုပ်တော့ပါ',
+      }).then(({ value }) => {
+        if (value && value.trim()) {
+          const d = store.value.decks.find(x => x.id === curDeckId.value);
+          if (d) { d.name = value.trim(); save(); toast('💾 ပြောင်းပြီးပါပြီ'); }
+        }
+      }).catch(() => {});
+    }
+    function delDeck() {
+      store.value.decks = store.value.decks.filter(d => d.id !== curDeckId.value);
+      save(); mode.value = 'home'; toast('🗑 Deck ဖျက်ပြီးပါပြီ');
+    }
+
+    // ---- Import / Export ----
+    function exportDeck(d) {
+      const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), name: d.name, cards: d.cards }, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'vocab-' + d.name.replace(/\s+/g, '-').toLowerCase() + '-' + Date.now() + '.json';
+      a.click(); URL.revokeObjectURL(a.href);
+      toast('⬇ "' + d.name + '" — ကတ် ' + d.cards.length + ' ခု export ပြီးပါပြီ');
+    }
+    function doImport(ev) {
+      const f = ev.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const d = JSON.parse(r.result);
+          const incoming = Array.isArray(d.decks) ? d.decks : [{ name: d.name || f.name.replace(/\.json$/i, ''), cards: d.cards || [] }];
+          let added = 0;
+          incoming.forEach((dk, k) => {
+            const cards = (dk.cards || []).filter(c => c && c.front && c.back)
+              .map((c, i) => ({ id: 'i' + Date.now() + '_' + k + '_' + i, front: c.front, back: c.back, ex: c.ex || '', sr: c.sr && typeof c.sr.ease === 'number' ? c.sr : newSr() }));
+            if (cards.length) { store.value.decks.push({ id: 'd' + Date.now() + '_' + k, name: dk.name || 'Imported', cards }); added += cards.length; }
+          });
+          if (added) { save(); toast('⬆ ကတ် ' + added + ' ခု import ပြီးပါပြီ'); }
+          else toast('⚠ Import လုပ်နိုင်သော ကတ် မတွေ့ပါ', 'warning');
+        } catch (e) { toast('⚠ Invalid JSON', 'error'); }
+        ev.target.value = '';
+      };
+      r.readAsText(f);
+    }
+
+    function goHome() { mode.value = 'home'; }
+
+    function onKey(e) {
+      if (mode.value !== 'study' || studyDone.value || showCard.value) return;
+      if (e.code === 'Space') { e.preventDefault(); flipped.value = !flipped.value; return; }
+      if (flipped.value) {
+        const map = { '1': 'again', '2': 'hard', '3': 'good', '4': 'easy' };
+        if (map[e.key]) grade(map[e.key]);
+      }
+    }
+
+    onMounted(() => {
+      load();
+      document.addEventListener('keydown', onKey);
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+    onUnmounted(() => document.removeEventListener('keydown', onKey));
+
+    return {
+      store, mode, importEl, curDeck, curCard,
+      queue, studyIdx, flipped, studyDone, results,
+      qz, showCard, showDeck, deckName, editing,
+      dueTotal, learnedTotal, streak, deckDue, deckLearned,
+      startStudy, grade, preview, startQuiz, answer, nextQ,
+      openManage, openNewCard, openEditCard, saveCard, delCard,
+      openNewDeck, saveDeck, renameDeck, delDeck,
+      exportDeck, doImport, goHome,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>
