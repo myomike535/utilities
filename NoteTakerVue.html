@@ -157,10 +157,10 @@
           <button class="mic-btn" style="background:#2980b9" @click="$refs.audioFile.click()">📁 Audio</button>
           <input type="file" ref="audioFile" accept="audio/*" @change="onAudioFile">
           <el-select v-model="lang">
-            <el-option value="my-MM" label="🇲🇲 မြန်မာ"/>
-            <el-option value="en-US" label="🇺🇸 English"/>
-            <el-option value="zh-CN" label="🇨🇳 中文"/>
-            <el-option value="th-TH" label="🇹🇭 ไทย"/>
+            <el-option value="my-MM" label="🇲🇲 မြန်မာ"></el-option>
+            <el-option value="en-US" label="🇺🇸 English"></el-option>
+            <el-option value="zh-CN" label="🇨🇳 中文"></el-option>
+            <el-option value="th-TH" label="🇹🇭 ไทย"></el-option>
           </el-select>
           <span class="mic-status" v-html="status"></span>
         </div>
@@ -174,10 +174,10 @@
           <div class="trans-group">
             <el-button @click="run('translate')" :disabled="busy">🌐 ဘာသာပြန်</el-button>
             <el-select v-model="transTarget">
-              <el-option value="Myanmar (Burmese)" label="မြန်မာ"/>
-              <el-option value="English" label="English"/>
-              <el-option value="Chinese" label="中文"/>
-              <el-option value="Thai" label="ไทย"/>
+              <el-option value="Myanmar (Burmese)" label="မြန်မာ"></el-option>
+              <el-option value="English" label="English"></el-option>
+              <el-option value="Chinese" label="中文"></el-option>
+              <el-option value="Thai" label="ไทย"></el-option>
             </el-select>
           </div>
           <el-button @click="clearText">🗑 ရှင်း</el-button>
@@ -217,11 +217,11 @@
       <p style="color:var(--text-dim);font-size:0.85rem;margin-bottom:4px;">Gemini (audio + all) သို့ Groq (text သာ) — free key ရယူ၍ ထည့်ပါ။</p>
       <label class="klabel">Provider</label>
       <el-select v-model="provider" style="width:100%">
-        <el-option value="gemini" label="🟢 Google Gemini (audio + text)"/>
-        <el-option value="groq" label="🚀 Groq (text only, fast)"/>
+        <el-option value="gemini" label="🟢 Google Gemini (audio + text)"></el-option>
+        <el-option value="groq" label="🚀 Groq (text only, fast)"></el-option>
       </el-select>
       <label class="klabel">API Key</label>
-      <el-input v-model="keyInput" type="password" show-password :placeholder="provider==='gemini'?'AIza...':'gsk_...'" autocomplete="off"/>
+      <el-input v-model="keyInput" type="password" show-password :placeholder="provider==='gemini'?'AIza...':'gsk_...'" autocomplete="off"></el-input>
       <p style="font-size:0.72rem;color:var(--text-mute);font-style:italic;margin-top:8px;">Free key: <a :href="provider==='gemini'?'https://aistudio.google.com/apikey':'https://console.groq.com/keys'" target="_blank" style="color:var(--accent);">{{ provider==='gemini'?'aistudio.google.com':'console.groq.com' }}</a> · audio transcribe needs Gemini</p>
       <template #footer>
         <el-button @click="keyModal=false">Cancel</el-button>

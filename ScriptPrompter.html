@@ -135,19 +135,19 @@
     </div>
     <label class="fl">Provider</label>
     <el-select v-model="aiPref" @change="savePrefs" style="width:100%">
-      <el-option value="auto" label="🔄 Auto — Gemini → Groq → OpenRouter"/>
-      <el-option value="gemini" label="✨ Gemini only"/>
-      <el-option value="groq" label="⚡ Groq only"/>
-      <el-option value="openrouter" label="🌐 OpenRouter only"/>
+      <el-option value="auto" label="🔄 Auto — Gemini → Groq → OpenRouter"></el-option>
+      <el-option value="gemini" label="✨ Gemini only"></el-option>
+      <el-option value="groq" label="⚡ Groq only"></el-option>
+      <el-option value="openrouter" label="🌐 OpenRouter only"></el-option>
     </el-select>
     <label class="fl">Gemini API key</label>
-    <el-input v-model="gKeyInput" type="password" show-password placeholder="AIza…" autocomplete="off"/>
+    <el-input v-model="gKeyInput" type="password" show-password placeholder="AIza…" autocomplete="off"></el-input>
     <label class="fl">Groq API key</label>
-    <el-input v-model="qKeyInput" type="password" show-password placeholder="gsk_…" autocomplete="off"/>
+    <el-input v-model="qKeyInput" type="password" show-password placeholder="gsk_…" autocomplete="off"></el-input>
     <label class="fl">OpenRouter API key</label>
-    <el-input v-model="oKeyInput" type="password" show-password placeholder="sk-or-…" autocomplete="off"/>
+    <el-input v-model="oKeyInput" type="password" show-password placeholder="sk-or-…" autocomplete="off"></el-input>
     <label class="fl">OpenRouter model</label>
-    <el-input v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off"/>
+    <el-input v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off"></el-input>
     <template #footer>
       <el-button @click="showSettings=false">Cancel</el-button>
       <el-button type="primary" @click="saveKeys">💾 Save</el-button>
@@ -156,31 +156,31 @@
 
   <div class="card">
     <label class="fl">💡 Video topic</label>
-    <el-input v-model="cur.topic" placeholder="e.g. JavaScript array methods ၅ ခု — beginner များအတွက်" clearable/>
+    <el-input v-model="cur.topic" placeholder="e.g. JavaScript array methods ၅ ခု — beginner များအတွက်" clearable></el-input>
     <div class="r3">
       <div>
         <label class="fl">⏱ Length</label>
         <el-select v-model="cur.dur" style="width:100%">
-          <el-option value="30s" label="30 စက္ကန့် (Reel/Short)"/>
-          <el-option value="1min" label="1 မိနစ်"/>
-          <el-option value="3min" label="3 မိနစ်"/>
-          <el-option value="5min" label="5 မိနစ်"/>
+          <el-option value="30s" label="30 စက္ကန့် (Reel/Short)"></el-option>
+          <el-option value="1min" label="1 မိနစ်"></el-option>
+          <el-option value="3min" label="3 မိနစ်"></el-option>
+          <el-option value="5min" label="5 မိနစ်"></el-option>
         </el-select>
       </div>
       <div>
         <label class="fl">🗣 Language</label>
         <el-select v-model="cur.lang" style="width:100%">
-          <el-option value="mm" label="မြန်မာ"/>
-          <el-option value="mixed" label="မြန်မာ + English terms"/>
-          <el-option value="en" label="English"/>
+          <el-option value="mm" label="မြန်မာ"></el-option>
+          <el-option value="mixed" label="မြန်မာ + English terms"></el-option>
+          <el-option value="en" label="English"></el-option>
         </el-select>
       </div>
       <div>
         <label class="fl">🎭 Style</label>
         <el-select v-model="cur.style" style="width:100%">
-          <el-option value="edu" label="📚 Educational"/>
-          <el-option value="energetic" label="⚡ Energetic"/>
-          <el-option value="story" label="📖 Storytelling"/>
+          <el-option value="edu" label="📚 Educational"></el-option>
+          <el-option value="energetic" label="⚡ Energetic"></el-option>
+          <el-option value="story" label="📖 Storytelling"></el-option>
         </el-select>
       </div>
     </div>
@@ -189,7 +189,7 @@
 
   <div class="card">
     <label class="fl">📝 Script (Hook → Body → CTA) — ပြင်ဆင်နိုင်သည်</label>
-    <el-input v-model="cur.text" type="textarea" :rows="14" placeholder="Script ဒီမှာ ရေးပါ သို့မဟုတ် AI ကို ရေးခိုင်းပါ…"/>
+    <el-input v-model="cur.text" type="textarea" :rows="14" placeholder="Script ဒီမှာ ရေးပါ သို့မဟုတ် AI ကို ရေးခိုင်းပါ…"></el-input>
     <div style="margin-top:6px;font-size:.72rem;color:var(--faint)">
       {{ wordInfo }}
     </div>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Certificate Maker · အောင်လက်မှတ်</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#b8860b">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#b8860b; --accent-2:#d4a017;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#b8860b;
+    --el-color-primary-light-3:#d4a017;
+    --el-color-primary-dark-2:#96700a;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(184,134,11,.14), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(212,160,23,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1280px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(184,134,11,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .cols { display:grid; grid-template-columns:380px 1fr; gap:16px; align-items:start; }
+  @media (max-width: 900px) { .cols { grid-template-columns:1fr; } }
+  .card {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px;
+    padding:16px 18px; margin-bottom:16px;
+  }
+  .card h2 { margin:0 0 10px; font-size:.95rem; display:flex; align-items:center; gap:8px; }
+  .card h2 .en { color:var(--faint); font-weight:400; font-size:.75rem; }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
+  .row2 { display:flex; gap:10px; }
+  .row2 > div { flex:1; min-width:0; }
+  .logo-row { display:flex; gap:8px; align-items:center; }
+  .logo-thumb { width:38px; height:38px; object-fit:contain; border-radius:8px; background:#fff; padding:3px; }
+
+  .preview-card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:14px; }
+  .preview-card canvas {
+    width:100%; height:auto; display:block; border-radius:8px;
+    box-shadow:0 10px 34px rgba(0,0,0,.5);
+  }
+  .actions { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; align-items:center; }
+  .batch-progress { font-size:.85rem; color:var(--accent-2); font-weight:700; min-height:1.2em; margin-top:8px; }
+  .hint { font-size:.72rem; color:var(--faint); margin-top:6px; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🏅</div>
+    <div class="title">
+      <h1>Certificate Maker</h1>
+      <div class="sub">အောင်လက်မှတ် ဖန်တီးရန် — Myo's Learing Lab and WebDev Academy</div>
+    </div>
+  </header>
+
+  <div class="cols">
+    <div>
+      <!-- Inputs card -->
+      <div class="card">
+        <h2>📝 အချက်အလက်များ <span class="en">Certificate details</span></h2>
+
+        <label class="fl">ကျောင်းသား အမည် · Student name</label>
+        <el-input v-model="studentName" placeholder="ကျောင်းသား အမည် — Student name" clearable></el-input>
+
+        <label class="fl">သင်တန်း အမည် · Course name</label>
+        <el-input v-model="courseName" placeholder="သင်တန်း အမည် — Course name" clearable></el-input>
+
+        <div class="row2">
+          <div>
+            <label class="fl">ပြီးဆုံးသည့်ရက် · Completion date</label>
+            <el-date-picker v-model="certDate" type="date" value-format="YYYY-MM-DD"
+              placeholder="ရက်စွဲ ရွေးပါ" style="width:100%"></el-date-picker>
+          </div>
+          <div>
+            <label class="fl">ဘောင်အရောင် · Border color</label>
+            <div style="display:flex;align-items:center;gap:8px">
+              <el-color-picker v-model="borderColor"></el-color-picker>
+              <el-button size="small" @click="borderColor='#b8860b'">↺ Gold</el-button>
+            </div>
+          </div>
+        </div>
+
+        <label class="fl">ထုတ်ပေးသူ အမည် · Issuer name</label>
+        <el-input v-model="issuerName" placeholder="ထုတ်ပေးသူ — Issuer / signatory" clearable></el-input>
+
+        <label class="fl">လိုဂို · Logo (optional)</label>
+        <div class="logo-row">
+          <img v-if="logoData" :src="logoData" class="logo-thumb" alt="logo">
+          <el-button @click="logoEl && logoEl.click()">🖼 Logo တင်ရန်</el-button>
+          <el-button v-if="logoData" size="small" type="danger" plain @click="clearLogo">✕ ဖယ်ရန်</el-button>
+          <input type="file" ref="logoEl" accept="image/*" style="display:none" @change="onLogo">
+        </div>
+
+        <div class="actions">
+          <el-button type="primary" @click="downloadOne">⬇ Download PNG</el-button>
+        </div>
+      </div>
+
+      <!-- Batch card -->
+      <div class="card">
+        <h2>👥 အစုလိုက် ထုတ်ရန် <span class="en">Batch mode</span></h2>
+        <label class="fl">နာမည်စာရင်း · Names — တစ်ကြောင်းလျှင် တစ်ယောက်</label>
+        <el-input v-model="batchNames" type="textarea" :rows="7"
+          placeholder="တစ်ကြောင်းလျှင် နာမည်တစ်ခု — one name per line"></el-input>
+        <div class="actions">
+          <el-button type="primary" :disabled="batchBusy" @click="generateAll">⬇ Generate All</el-button>
+          <span style="color:var(--muted);font-size:.78rem" v-if="batchCount">{{ batchCount }} ယောက်</span>
+        </div>
+        <div class="batch-progress">{{ batchProgress }}</div>
+        <div class="hint">PNG ဖိုင်များကို နာမည်အလိုက် တစ်ခုချင်း download လုပ်ပေးပါမည်။</div>
+      </div>
+    </div>
+
+    <!-- Preview -->
+    <div class="preview-card">
+      <h2 style="margin:0 0 10px;font-size:.95rem">👁 Preview <span style="color:var(--faint);font-weight:400;font-size:.75rem">1600 × 1130 px</span></h2>
+      <canvas ref="canvasEl" width="1600" height="1130"></canvas>
+    </div>
+  </div>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, watch, onMounted } = Vue;
+const STORE = 'certmaker.v1';
+const W = 1600, H = 1130;
+const ACADEMY = "Myo's Learing Lab and WebDev Academy";
+const SERIF = 'Georgia, "Pyidaungsu", "Padauk", "Myanmar Text", serif';
+
+const app = createApp({
+  setup() {
+    const studentName = ref('');
+    const courseName = ref('');
+    const certDate = ref(new Date().toISOString().slice(0, 10));
+    const issuerName = ref('Myo Min Tun');
+    const borderColor = ref('#b8860b');
+    const logoData = ref('');
+    const batchNames = ref('');
+    const batchProgress = ref('');
+    const batchBusy = ref(false);
+    const canvasEl = ref(null);
+    const logoEl = ref(null);
+    let logoImg = null;
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2800 });
+
+    const batchCount = computed(() => batchNames.value.split('\n').map(s => s.trim()).filter(Boolean).length);
+
+    // ---------- settings persistence (names are NOT saved) ----------
+    function saveSettings() {
+      try {
+        localStorage.setItem(STORE, JSON.stringify({
+          courseName: courseName.value, certDate: certDate.value,
+          issuerName: issuerName.value, borderColor: borderColor.value,
+          logoData: logoData.value.length < 400000 ? logoData.value : '',
+        }));
+      } catch (e) {}
+    }
+    function loadSettings() {
+      try {
+        const d = JSON.parse(localStorage.getItem(STORE) || '{}');
+        if (d.courseName) courseName.value = d.courseName;
+        if (d.certDate) certDate.value = d.certDate;
+        if (d.issuerName) issuerName.value = d.issuerName;
+        if (d.borderColor) borderColor.value = d.borderColor;
+        if (d.logoData) setLogo(d.logoData);
+      } catch (e) {}
+    }
+
+    // ---------- logo ----------
+    function setLogo(dataUrl) {
+      const img = new Image();
+      img.onload = () => { logoImg = img; logoData.value = dataUrl; draw(); };
+      img.src = dataUrl;
+    }
+    function onLogo(ev) {
+      const f = ev.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = () => setLogo(r.result);
+      r.readAsDataURL(f);
+      ev.target.value = '';
+    }
+    function clearLogo() { logoImg = null; logoData.value = ''; draw(); }
+
+    // ---------- helpers ----------
+    function shade(hex, f) { // darken (f<1) / lighten (f>1) a #rrggbb color
+      const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+      if (!m) return hex;
+      const n = parseInt(m[1], 16);
+      const c = v => Math.max(0, Math.min(255, Math.round(v * f)));
+      return '#' + [c(n >> 16 & 255), c(n >> 8 & 255), c(n & 255)].map(v => v.toString(16).padStart(2, '0')).join('');
+    }
+    function fmtDate(iso) {
+      const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso || '');
+      if (!m) return iso || '';
+      return new Date(+m[1], +m[2] - 1, +m[3]).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' });
+    }
+    function fitFont(ctx, text, maxW, startPx, minPx, mk) {
+      let px = startPx;
+      ctx.font = mk(px);
+      while (px > minPx && ctx.measureText(text).width > maxW) { px -= 2; ctx.font = mk(px); }
+      return px;
+    }
+
+    // ---------- drawing ----------
+    function flourish(ctx, x, y, sx, sy, col) {
+      // corner flourish: L-arms + curl + diamond, drawn in unit space then mirrored via sx/sy
+      ctx.save();
+      ctx.translate(x, y); ctx.scale(sx, sy);
+      ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 3; ctx.lineCap = 'round';
+      ctx.beginPath(); ctx.moveTo(0, 34); ctx.lineTo(0, 84); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(34, 0); ctx.lineTo(84, 0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, 34); ctx.quadraticCurveTo(2, 6, 34, 0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(14, 48); ctx.quadraticCurveTo(16, 18, 48, 14); ctx.stroke();
+      ctx.beginPath(); // diamond
+      ctx.moveTo(26, 16); ctx.lineTo(36, 26); ctx.lineTo(26, 36); ctx.lineTo(16, 26); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+    function rule(ctx, cx, y, w, col) { // decorative divider with center diamond
+      ctx.save();
+      ctx.strokeStyle = col; ctx.fillStyle = col; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(cx - w / 2, y); ctx.lineTo(cx - 16, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx + 16, y); ctx.lineTo(cx + w / 2, y); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(cx, y - 9); ctx.lineTo(cx + 9, y); ctx.lineTo(cx, y + 9); ctx.lineTo(cx - 9, y); ctx.closePath(); ctx.fill();
+      ctx.restore();
+    }
+
+    function draw(nameOverride) {
+      const cv = canvasEl.value; if (!cv) return;
+      const ctx = cv.getContext('2d');
+      const gold = borderColor.value || '#b8860b';
+      const goldDark = shade(gold, 0.72);
+      const ink = '#33260f', mut = '#6b5a35';
+      const name = (nameOverride !== undefined ? nameOverride : studentName.value).trim() || 'Student Name';
+      const course = courseName.value.trim() || 'Course Name';
+      const cx = W / 2;
+
+      // parchment-cream background + soft vignette
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#faf4e3'; ctx.fillRect(0, 0, W, H);
+      let g = ctx.createRadialGradient(cx, H / 2, 200, cx, H / 2, 1050);
+      g.addColorStop(0, 'rgba(255,252,240,.65)'); g.addColorStop(1, 'rgba(184,134,11,.10)');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+
+      // double border frame
+      ctx.strokeStyle = gold; ctx.lineWidth = 12;
+      ctx.strokeRect(34, 34, W - 68, H - 68);
+      ctx.strokeStyle = goldDark; ctx.lineWidth = 3;
+      ctx.strokeRect(58, 58, W - 116, H - 116);
+
+      // corner flourishes just inside inner frame
+      flourish(ctx, 74, 74, 1, 1, goldDark);
+      flourish(ctx, W - 74, 74, -1, 1, goldDark);
+      flourish(ctx, 74, H - 74, 1, -1, goldDark);
+      flourish(ctx, W - 74, H - 74, -1, -1, goldDark);
+
+      // optional logo top-center
+      let top = 0;
+      if (logoImg) {
+        const lh = 110, lw = lh * (logoImg.width / logoImg.height || 1);
+        ctx.drawImage(logoImg, cx - lw / 2, 92, lw, lh);
+        top = 96;
+      }
+
+      try { ctx.letterSpacing = '8px'; } catch (e) {}
+      ctx.textAlign = 'center'; ctx.textBaseline = 'alphabetic';
+      ctx.fillStyle = ink;
+      ctx.font = 'bold 62px ' + SERIF;
+      ctx.fillText('CERTIFICATE OF COMPLETION', cx, 200 + top);
+      try { ctx.letterSpacing = '0px'; } catch (e) {}
+
+      ctx.fillStyle = goldDark;
+      ctx.font = '600 36px ' + SERIF;
+      ctx.fillText('အောင်လက်မှတ်', cx, 256 + top);
+
+      rule(ctx, cx, 296 + top, 560, gold);
+
+      ctx.fillStyle = mut;
+      ctx.font = '26px ' + SERIF;
+      ctx.fillText('ဤအောင်လက်မှတ်ကို ဂုဏ်ယူစွာ အပ်နှင်းအပ်ပါသည်  ·  This certificate is proudly presented to', cx, 372 + top);
+
+      // recipient name — auto-fit so long names never overflow
+      ctx.fillStyle = '#2c2008';
+      fitFont(ctx, name, 1260, 96, 34, px => 'italic ' + px + 'px ' + SERIF);
+      ctx.fillText(name, cx, 492 + top);
+      ctx.strokeStyle = gold; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(cx - 280, 522 + top); ctx.lineTo(cx + 280, 522 + top); ctx.stroke();
+      ctx.fillStyle = gold;
+      [-280, 280].forEach(dx => {
+        ctx.beginPath();
+        ctx.moveTo(cx + dx, 516 + top); ctx.lineTo(cx + dx + 6, 522 + top);
+        ctx.lineTo(cx + dx, 528 + top); ctx.lineTo(cx + dx - 6, 522 + top);
+        ctx.closePath(); ctx.fill();
+      });
+
+      ctx.fillStyle = mut;
+      ctx.font = '26px ' + SERIF;
+      ctx.fillText('အောက်ပါသင်တန်းကို အောင်မြင်စွာ ပြီးဆုံးခဲ့ပါသည်  ·  has successfully completed', cx, 596 + top);
+
+      ctx.fillStyle = goldDark;
+      fitFont(ctx, course, 1260, 54, 26, px => 'bold ' + px + 'px ' + SERIF);
+      ctx.fillText(course, cx, 672 + top);
+
+      // bottom: date line (left) + signature line (right)
+      const by = 958;
+      ctx.strokeStyle = ink; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(200, by); ctx.lineTo(600, by); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(1000, by); ctx.lineTo(1400, by); ctx.stroke();
+
+      ctx.fillStyle = ink;
+      ctx.font = 'italic 30px ' + SERIF;
+      ctx.fillText(fmtDate(certDate.value), 400, by - 14);
+      const issuer = issuerName.value.trim();
+      if (issuer) {
+        fitFont(ctx, issuer, 380, 34, 18, px => 'italic ' + px + 'px ' + SERIF);
+        ctx.fillText(issuer, 1200, by - 14);
+      }
+
+      ctx.fillStyle = mut; ctx.font = '22px ' + SERIF;
+      ctx.fillText('ရက်စွဲ · Date', 400, by + 34);
+      fitFont(ctx, ACADEMY, 390, 22, 14, px => px + 'px ' + SERIF);
+      ctx.fillStyle = mut;
+      ctx.fillText(ACADEMY, 1200, by + 34);
+    }
+
+    // ---------- downloads ----------
+    function safeName(s) { return s.replace(/[\\/:*?"<>|]/g, '').trim() || 'certificate'; }
+    function canvasBlob() { return new Promise(res => canvasEl.value.toBlob(res, 'image/png')); }
+    async function saveCanvasAs(fname) {
+      const blob = await canvasBlob(); if (!blob) return;
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = fname; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+    async function downloadOne() {
+      draw();
+      await saveCanvasAs(safeName(studentName.value || 'certificate') + '_certificate.png');
+      toast('⬇ PNG ထုတ်ပြီးပါပြီ');
+    }
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+    async function generateAll() {
+      const names = batchNames.value.split('\n').map(s => s.trim()).filter(Boolean);
+      if (!names.length) { toast('နာမည်စာရင်း ထည့်ပါ — one name per line', 'warning'); return; }
+      batchBusy.value = true;
+      try {
+        for (let i = 0; i < names.length; i++) {
+          batchProgress.value = (i + 1) + '/' + names.length + '…';
+          draw(names[i]);
+          await saveCanvasAs(safeName(names[i]) + '_certificate.png');
+          await sleep(400);
+        }
+        batchProgress.value = names.length + '/' + names.length + ' ✓ ပြီးပါပြီ';
+        toast('⬇ ' + names.length + ' စောင် ထုတ်ပြီးပါပြီ');
+      } finally {
+        batchBusy.value = false;
+        draw();
+      }
+    }
+
+    watch([studentName, courseName, certDate, issuerName, borderColor], () => { draw(); saveSettings(); });
+    onMounted(() => {
+      loadSettings();
+      draw();
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+
+    return {
+      studentName, courseName, certDate, issuerName, borderColor, logoData,
+      batchNames, batchProgress, batchBusy, batchCount,
+      canvasEl, logoEl,
+      onLogo, clearLogo, downloadOne, generateAll,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>

@@ -129,7 +129,7 @@
   <!-- Quick add -->
   <div class="card">
     <label class="fl">{{ addType==='out' ? '💸 ထွက်ငွေ ထည့်ရန်' : '💵 ဝင်ငွေ ထည့်ရန်' }}</label>
-    <el-segmented v-model="addType" :options="[{label:'💸 ထွက်ငွေ',value:'out'},{label:'💵 ဝင်ငွေ',value:'in'}]" block/>
+    <el-segmented v-model="addType" :options="[{label:'💸 ထွက်ငွေ',value:'out'},{label:'💵 ဝင်ငွေ',value:'in'}]" block></el-segmented>
     <div class="cat-chips">
       <el-tag v-for="c in (addType==='out'?CATS_OUT:CATS_IN)" :key="c.k" size="large"
         :effect="addCat===c.k ? 'dark' : 'plain'" style="cursor:pointer"
@@ -139,7 +139,7 @@
       <el-input class="amt" v-model="addAmt" placeholder="ပမာဏ (Ks)" @keyup.enter="addEntry">
         <template #suffix>Ks</template>
       </el-input>
-      <el-input class="note-in" v-model="addNote" placeholder="မှတ်ချက် (optional)" @keyup.enter="addEntry"/>
+      <el-input class="note-in" v-model="addNote" placeholder="မှတ်ချက် (optional)" @keyup.enter="addEntry"></el-input>
       <el-button type="primary" @click="addEntry">＋ ထည့်မည်</el-button>
     </div>
   </div>
@@ -176,7 +176,7 @@
   <!-- Budget dialog -->
   <el-dialog v-model="showBudget" title="🎯 လစဉ် Budget" width="min(380px, 94vw)">
     <label class="fl">လစဉ် သုံးစွဲရန် သတ်မှတ်ငွေ (Ks) — 0 = မသတ်မှတ်</label>
-    <el-input v-model="budgetInput" placeholder="500000"/>
+    <el-input v-model="budgetInput" placeholder="500000"></el-input>
     <template #footer>
       <el-button @click="showBudget=false">Cancel</el-button>
       <el-button type="primary" @click="saveBudget">💾 Save</el-button>

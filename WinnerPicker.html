@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Winner Picker · ကံစမ်းမဲ</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#ec4899">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#ec4899; --accent-2:#f472b6;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#ec4899;
+    --el-color-primary-light-3:#f472b6;
+    --el-color-primary-dark-2:#db2777;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(236,72,153,.14), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(244,114,182,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1060px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(236,72,153,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .cols { display:grid; grid-template-columns:minmax(280px,5fr) minmax(300px,7fr); gap:14px; align-items:start; }
+  @media (max-width:820px){ .cols { grid-template-columns:1fr; } }
+  .card {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:16px 18px; display:flex; flex-direction:column; gap:10px;
+  }
+  .card h2 { margin:0; font-size:.95rem; }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:4px 0 2px; font-weight:600; }
+  .count-line { font-size:.8rem; color:var(--muted); }
+  .count-line b { color:var(--accent-2); font-size:.95rem; }
+  .opts { display:flex; flex-direction:column; gap:6px; }
+  .fair { font-size:.7rem; color:var(--faint); }
+
+  /* ── stage ── */
+  .stage {
+    position:relative; overflow:hidden; min-height:190px; border-radius:12px;
+    background:var(--field); border:1px solid var(--field-border);
+    display:flex; align-items:center; justify-content:center; text-align:center; padding:18px;
+  }
+  .stage .idle { color:var(--faint); font-size:.9rem; }
+  .cycling { font-size:1.9rem; font-weight:800; color:var(--text); word-break:break-word; }
+  .winner-name {
+    font-size:2.3rem; font-weight:800; word-break:break-word; line-height:1.35;
+    background:linear-gradient(90deg,#ec4899,#f472b6,#facc15,#f472b6,#ec4899);
+    background-size:300% auto; -webkit-background-clip:text; background-clip:text; color:transparent;
+    animation: gradmove 2.2s linear infinite, winpop .55s cubic-bezier(.2,1.6,.4,1);
+  }
+  @keyframes gradmove { to { background-position:300% center; } }
+  @keyframes winpop { 0% { transform:scale(.3); opacity:0; } 100% { transform:scale(1); opacity:1; } }
+  .winner-sub { font-size:.85rem; color:var(--muted); margin-top:6px; animation: winpop .7s ease; }
+
+  .confetti-piece {
+    position:absolute; top:-24px; width:9px; height:14px; border-radius:2px; opacity:.95;
+    animation-name:confFall; animation-timing-function:linear; animation-fill-mode:forwards;
+  }
+  @keyframes confFall {
+    0%   { transform:translateY(0) rotate(0deg); }
+    100% { transform:translateY(260px) rotate(680deg); opacity:0; }
+  }
+
+  .win-list { display:flex; flex-direction:column; gap:7px; }
+  .win-row {
+    display:flex; align-items:center; gap:10px; padding:9px 13px; border-radius:10px;
+    background:var(--card2); border:1px solid rgba(236,72,153,.25);
+    animation: winpop .4s ease;
+  }
+  .win-row .rank { font-weight:800; color:var(--accent-2); white-space:nowrap; }
+  .win-row .nm { flex:1; font-weight:700; word-break:break-word; }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; }
+
+  .hist-row { display:flex; align-items:center; gap:10px; padding:7px 4px; border-bottom:1px solid var(--field-border); font-size:.85rem; }
+  .hist-row .nm { flex:1; font-weight:600; word-break:break-word; }
+  .hist-row .when { color:var(--faint); font-size:.72rem; white-space:nowrap; }
+  .hist-empty { color:var(--faint); text-align:center; padding:24px 0; font-size:.85rem; }
+
+  .el-textarea__inner { font-family:var(--sans); font-size:.9rem; line-height:1.8; }
+  .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🎲</div>
+    <div class="title">
+      <h1>Winner Picker · ကံစမ်းမဲ</h1>
+      <div class="sub">Facebook giveaway — comment နာမည်များထဲမှ ကံထူးရှင် ရွေးချယ်ရန်</div>
+    </div>
+    <el-button @click="showHist = true">🕘 မှတ်တမ်း ({{ history.length }})</el-button>
+  </header>
+
+  <div class="cols">
+    <!-- ── left: input ── -->
+    <div class="card">
+      <h2>👥 နာမည်စာရင်း</h2>
+      <label class="fl">တစ်ကြောင်းလျှင် တစ်ယောက် (FB comment နာမည်များ paste လုပ်ပါ)</label>
+      <el-input v-model="raw" type="textarea" :rows="12"
+        placeholder="ဥပမာ —&#10;Aung Aung&#10;မိုးမိုး&#10;Kyaw Kyaw"></el-input>
+      <div class="count-line">ပါဝင်သူ — <b>{{ pool.length }} ယောက်</b><span v-if="excludedCount"> · ယခင်အနိုင်ရသူ {{ excludedCount }} ယောက် ချန်ထားသည်</span></div>
+      <div class="opts">
+        <el-checkbox v-model="dedupe">ထပ်နေသော နာမည်များ ဖယ်ရှားမည် (dedupe)</el-checkbox>
+        <el-checkbox v-model="dropShort">အလွတ် / တိုလွန်းသော စာကြောင်းများ ဖယ်ရှားမည်</el-checkbox>
+        <el-checkbox v-model="excludePast">ယခင် အနိုင်ရသူများ ချန်ထားမည်</el-checkbox>
+      </div>
+      <label class="fl">အနိုင်ရသူ အရေအတွက်</label>
+      <el-select v-model="winnerCount" style="width:120px">
+        <el-option v-for="n in 10" :key="n" :value="n" :label="n + ' ယောက်'"></el-option>
+      </el-select>
+      <el-button type="primary" size="large" :loading="drawing" :disabled="!pool.length"
+        style="font-size:1.05rem; font-weight:700" @click="draw">🎲 မဲနှိုက်မည်</el-button>
+      <div class="fair">🔐 တရားမျှတမှု — crypto.getRandomValues (cryptographic random) ဖြင့် ရွေးချယ်သည်</div>
+    </div>
+
+    <!-- ── right: stage + winners ── -->
+    <div class="card">
+      <h2>🏆 ကံထူးရှင်</h2>
+      <div class="stage">
+        <div v-for="c in confetti" :key="c.id" class="confetti-piece"
+          :style="{ left:c.left, background:c.color, animationDuration:c.dur, animationDelay:c.delay }"></div>
+        <div v-if="phase==='idle'" class="idle">နာမည်များ ထည့်ပြီး 🎲 မဲနှိုက်မည် ကို နှိပ်ပါ</div>
+        <div v-else-if="phase==='cycling'" class="cycling">{{ cycleName }}</div>
+        <div v-else>
+          <div class="winner-name" :key="revealName">{{ revealName }}</div>
+          <div class="winner-sub">🎉 ဂုဏ်ယူပါတယ်!</div>
+        </div>
+      </div>
+
+      <div class="win-list" v-if="winners.length">
+        <div v-for="(w, i) in winners" :key="i" class="win-row">
+          <span class="rank">🏆 {{ i + 1 }}</span>
+          <span class="nm">{{ w }}</span>
+        </div>
+      </div>
+
+      <div class="actions" v-if="winners.length && !drawing">
+        <el-button type="primary" plain @click="copyWinners">📋 အနိုင်ရသူများ ကူးယူမည်</el-button>
+        <el-button @click="draw">🔁 ထပ်မဲနှိုက်မည်</el-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── history dialog ── -->
+  <el-dialog v-model="showHist" title="🕘 ယခင် အနိုင်ရသူများ" width="min(480px, 96vw)">
+    <div v-if="history.length">
+      <div v-for="(h, i) in [...history].reverse()" :key="i" class="hist-row">
+        <span>🏆</span>
+        <span class="nm">{{ h.name }}</span>
+        <span class="when">{{ new Date(h.at).toLocaleString() }}</span>
+      </div>
+    </div>
+    <div v-else class="hist-empty">မှတ်တမ်း မရှိသေးပါ</div>
+    <template #footer>
+      <div style="display:flex; width:100%">
+        <el-popconfirm v-if="history.length" title="မှတ်တမ်း အားလုံး ဖျက်မှာ သေချာလား?"
+          confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="clearHistory">
+          <template #reference><el-button type="danger" plain>🗑 အားလုံး ဖျက်မည်</el-button></template>
+        </el-popconfirm>
+        <span style="flex:1"></span>
+        <el-button @click="showHist=false">ပိတ်မည်</el-button>
+      </div>
+    </template>
+  </el-dialog>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted } = Vue;
+const STORE = 'winnerpicker.v1';
+const CONF_COLORS = ['#ec4899', '#f472b6', '#facc15', '#34d399', '#60a5fa', '#c084fc', '#fb923c'];
+
+const app = createApp({
+  setup() {
+    const raw = ref('');
+    const dedupe = ref(true);
+    const dropShort = ref(true);
+    const excludePast = ref(false);
+    const winnerCount = ref(1);
+    const drawing = ref(false);
+    const phase = ref('idle');           // idle | cycling | reveal
+    const cycleName = ref('');
+    const revealName = ref('');
+    const winners = ref([]);
+    const confetti = ref([]);
+    const history = ref([]);
+    const showHist = ref(false);
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2800 });
+
+    function loadHist() {
+      try {
+        const d = JSON.parse(localStorage.getItem(STORE) || '{}');
+        history.value = Array.isArray(d.history) ? d.history : [];
+      } catch (e) { history.value = []; }
+    }
+    function saveHist() { localStorage.setItem(STORE, JSON.stringify({ history: history.value })); }
+    function clearHistory() { history.value = []; saveHist(); toast('🗑 မှတ်တမ်း ဖျက်ပြီး'); }
+
+    const parsed = computed(() => {
+      let lines = raw.value.split(/\r?\n/).map(s => s.trim());
+      lines = dropShort.value ? lines.filter(s => s.length >= 2) : lines.filter(s => s.length > 0);
+      if (dedupe.value) {
+        const seen = new Set();
+        lines = lines.filter(s => {
+          const k = s.toLowerCase();
+          if (seen.has(k)) return false;
+          seen.add(k); return true;
+        });
+      }
+      return lines;
+    });
+    const pool = computed(() => {
+      if (!excludePast.value) return parsed.value;
+      const past = new Set(history.value.map(h => h.name.trim().toLowerCase()));
+      return parsed.value.filter(n => !past.has(n.toLowerCase()));
+    });
+    const excludedCount = computed(() => excludePast.value ? parsed.value.length - pool.value.length : 0);
+
+    // uniform random int in [0, n) via crypto.getRandomValues (rejection sampling — no modulo bias)
+    function randInt(n) {
+      const limit = Math.floor(0x100000000 / n) * n;
+      const a = new Uint32Array(1);
+      do { crypto.getRandomValues(a); } while (a[0] >= limit);
+      return a[0] % n;
+    }
+    const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+    function burstConfetti() {
+      const pieces = [];
+      for (let i = 0; i < 42; i++) {
+        pieces.push({
+          id: Date.now() + '-' + i,
+          left: (Math.random() * 100).toFixed(1) + '%',
+          color: CONF_COLORS[i % CONF_COLORS.length],
+          dur: (1.4 + Math.random() * 1.6).toFixed(2) + 's',
+          delay: (Math.random() * 0.35).toFixed(2) + 's',
+        });
+      }
+      confetti.value = pieces;
+    }
+
+    async function draw() {
+      if (drawing.value) return;
+      const p = pool.value;
+      if (!p.length) { toast('နာမည်စာရင်း ထည့်ပါ (ရွေးချယ်နိုင်သူ မရှိပါ)', 'warning'); return; }
+      const k = Math.min(winnerCount.value, p.length);
+      if (k < winnerCount.value) toast('ပါဝင်သူ ' + p.length + ' ယောက်သာ ရှိ၍ ' + k + ' ယောက် ရွေးပါမည်', 'warning');
+
+      // fair pick FIRST — cryptographic random, no repeats within a draw
+      const bag = [...p];
+      const picked = [];
+      for (let i = 0; i < k; i++) picked.push(bag.splice(randInt(bag.length), 1)[0]);
+
+      drawing.value = true;
+      winners.value = [];
+      confetti.value = [];
+      const fast = !!window.__wpTest;            // test hook — shortens animation for automation
+
+      // cycle phase (~2.5s, decelerating)
+      phase.value = 'cycling';
+      let delay = fast ? 8 : 42;
+      const endAt = performance.now() + (fast ? 250 : 2500);
+      while (performance.now() < endAt) {
+        cycleName.value = p[randInt(p.length)];
+        await sleep(delay);
+        delay = Math.min(delay * 1.09, fast ? 30 : 260);
+      }
+
+      // reveal winners one by one
+      phase.value = 'reveal';
+      for (const name of picked) {
+        revealName.value = name;
+        burstConfetti();
+        winners.value.push(name);
+        await sleep(fast ? 60 : 1200);
+      }
+
+      // append to history
+      const at = Date.now();
+      picked.forEach(name => history.value.push({ name, at }));
+      saveHist();
+      drawing.value = false;
+      toast('🎉 ကံထူးရှင် ' + picked.length + ' ယောက် ရွေးချယ်ပြီးပါပြီ');
+    }
+
+    function copyWinners() {
+      const txt = winners.value.map((w, i) => '🏆 ' + (i + 1) + '. ' + w).join('\n');
+      navigator.clipboard.writeText(txt).then(
+        () => toast('📋 အနိုင်ရသူ ' + winners.value.length + ' ယောက် ကူးယူပြီး'),
+        () => toast('⚠ ကူးယူ၍ မရပါ', 'error'));
+    }
+
+    onMounted(() => { loadHist(); document.getElementById('vue-loading').style.display = 'none'; });
+
+    return {
+      raw, dedupe, dropShort, excludePast, winnerCount, drawing, phase,
+      cycleName, revealName, winners, confetti, history, showHist,
+      pool, excludedCount, draw, copyWinners, clearHistory,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>

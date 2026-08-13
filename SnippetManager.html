@@ -94,11 +94,11 @@
   </header>
 
   <div class="toolbar">
-    <el-input class="search" v-model="q" placeholder="🔍 ရှာရန် — title, code, tags…" clearable/>
+    <el-input class="search" v-model="q" placeholder="🔍 ရှာရန် — title, code, tags…" clearable></el-input>
     <el-select v-model="sortBy" style="width:140px">
-      <el-option value="recent" label="🕒 Recent"/>
-      <el-option value="name" label="🔤 Name"/>
-      <el-option value="copies" label="📋 Most copied"/>
+      <el-option value="recent" label="🕒 Recent"></el-option>
+      <el-option value="name" label="🔤 Name"></el-option>
+      <el-option value="copies" label="📋 Most copied"></el-option>
     </el-select>
   </div>
 
@@ -127,23 +127,23 @@
   <!-- Edit dialog -->
   <el-dialog v-model="showEdit" :title="editing.id ? '✏️ Edit Snippet' : '＋ New Snippet'" width="min(640px, 96vw)">
     <label class="fl">Title</label>
-    <el-input v-model="editing.title" placeholder="e.g. WSDE screen fields query" clearable/>
+    <el-input v-model="editing.title" placeholder="e.g. WSDE screen fields query" clearable></el-input>
     <div style="display:flex; gap:10px; margin-top:4px">
       <div style="flex:1">
         <label class="fl">Language</label>
         <el-select v-model="editing.lang" filterable allow-create default-first-option style="width:100%">
-          <el-option v-for="l in LANGS" :key="l" :value="l" :label="l"/>
+          <el-option v-for="l in LANGS" :key="l" :value="l" :label="l"></el-option>
         </el-select>
       </div>
       <div style="flex:1">
         <label class="fl">Tags (comma)</label>
-        <el-input v-model="editing.tagsStr" placeholder="wsde, lowcode"/>
+        <el-input v-model="editing.tagsStr" placeholder="wsde, lowcode"></el-input>
       </div>
     </div>
     <label class="fl">Code</label>
-    <el-input v-model="editing.code" type="textarea" :rows="12" placeholder="paste code here…"/>
+    <el-input v-model="editing.code" type="textarea" :rows="12" placeholder="paste code here…"></el-input>
     <label class="fl">Note (optional)</label>
-    <el-input v-model="editing.note" placeholder="what/when to use"/>
+    <el-input v-model="editing.note" placeholder="what/when to use"></el-input>
     <template #footer>
       <div style="display:flex; gap:8px; width:100%">
         <el-popconfirm v-if="editing.id" title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delSnip">

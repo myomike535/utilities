@@ -110,19 +110,19 @@
     </div>
     <label class="fl">Provider</label>
     <el-select v-model="aiPref" @change="savePrefs" style="width:100%">
-      <el-option value="auto" label="🔄 Auto — Gemini → Groq → OpenRouter"/>
-      <el-option value="gemini" label="✨ Gemini only"/>
-      <el-option value="groq" label="⚡ Groq only"/>
-      <el-option value="openrouter" label="🌐 OpenRouter only"/>
+      <el-option value="auto" label="🔄 Auto — Gemini → Groq → OpenRouter"></el-option>
+      <el-option value="gemini" label="✨ Gemini only"></el-option>
+      <el-option value="groq" label="⚡ Groq only"></el-option>
+      <el-option value="openrouter" label="🌐 OpenRouter only"></el-option>
     </el-select>
     <label class="fl">Gemini API key <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent-2)">aistudio.google.com/apikey</a></label>
-    <el-input v-model="gKeyInput" type="password" show-password placeholder="AIza…" autocomplete="off"/>
+    <el-input v-model="gKeyInput" type="password" show-password placeholder="AIza…" autocomplete="off"></el-input>
     <label class="fl">Groq API key <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent-2)">console.groq.com/keys</a></label>
-    <el-input v-model="qKeyInput" type="password" show-password placeholder="gsk_…" autocomplete="off"/>
+    <el-input v-model="qKeyInput" type="password" show-password placeholder="gsk_…" autocomplete="off"></el-input>
     <label class="fl">OpenRouter API key <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent-2)">openrouter.ai/keys</a></label>
-    <el-input v-model="oKeyInput" type="password" show-password placeholder="sk-or-…" autocomplete="off"/>
+    <el-input v-model="oKeyInput" type="password" show-password placeholder="sk-or-…" autocomplete="off"></el-input>
     <label class="fl">OpenRouter model (Myanmar အတွက် Gemini-family အကြံပြု)</label>
-    <el-input v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off"/>
+    <el-input v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off"></el-input>
     <template #footer>
       <el-button @click="showSettings=false">Cancel</el-button>
       <el-button type="primary" @click="saveKeys">💾 Save</el-button>
@@ -134,7 +134,7 @@
       <!-- Composer -->
       <div class="card">
         <label class="fl">💡 Topic / အကြောင်းအရာ</label>
-        <el-input v-model="cur.topic" placeholder="e.g. CSS Grid vs Flexbox — ဘယ်အချိန် ဘာသုံးမလဲ" clearable/>
+        <el-input v-model="cur.topic" placeholder="e.g. CSS Grid vs Flexbox — ဘယ်အချိန် ဘာသုံးမလဲ" clearable></el-input>
         <label class="fl">🎭 Style</label>
         <el-segmented v-model="cur.template" :options="TEMPLATES.map(t=>({label:t.label, value:t.k}))" size="default" block/>
         <div class="ai-row">
@@ -155,7 +155,7 @@
                 <el-button size="small" @click="copy(cur.en)">📋</el-button>
               </el-button-group>
             </div>
-            <el-input v-model="cur.en" type="textarea" :rows="10" placeholder="English version…"/>
+            <el-input v-model="cur.en" type="textarea" :rows="10" placeholder="English version…"></el-input>
             <div style="margin-top:4px">
               <span class="cnt" :class="{over:cur.en.length>280}">X/Twitter: {{ cur.en.length }}/280</span> ·
               <span class="cnt" :class="{over:cur.en.length>2200}">IG: {{ cur.en.length }}/2200</span>
@@ -170,12 +170,12 @@
                 <el-button size="small" @click="copy(cur.mm)">📋</el-button>
               </el-button-group>
             </div>
-            <el-input v-model="cur.mm" type="textarea" :rows="10" placeholder="မြန်မာ ဗားရှင်း…"/>
+            <el-input v-model="cur.mm" type="textarea" :rows="10" placeholder="မြန်မာ ဗားရှင်း…"></el-input>
             <div style="margin-top:4px"><span class="cnt">{{ cur.mm.length }} chars</span></div>
           </div>
         </div>
         <label class="fl"># Hashtags</label>
-        <el-input v-model="cur.tags" placeholder="#webdev #coding #myanmar"/>
+        <el-input v-model="cur.tags" placeholder="#webdev #coding #myanmar"></el-input>
         <div class="ai-row">
           <el-button @click="copyAll">📋 EN + MM + tags</el-button>
           <el-button @click="copyMmFirst">📋 MM + EN + tags</el-button>
@@ -196,8 +196,8 @@
           <el-button size="small" text @click="tagSets.splice(i,1); save()" title="Delete">✕</el-button>
         </div>
         <div style="display:flex; gap:6px; margin-top:8px">
-          <el-input v-model="newSetName" placeholder="Name" style="flex:0 0 90px"/>
-          <el-input v-model="newSetTags" placeholder="#tags…"/>
+          <el-input v-model="newSetName" placeholder="Name" style="flex:0 0 90px"></el-input>
+          <el-input v-model="newSetTags" placeholder="#tags…"></el-input>
           <el-button @click="addTagSet">＋</el-button>
         </div>
       </div>

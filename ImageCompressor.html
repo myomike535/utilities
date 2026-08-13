@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Image Compressor · Batch Resize</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#a78bfa">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#a78bfa; --accent-2:#8b5cf6;
+    --good:#34d399; --bad:#f87171;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#a78bfa;
+    --el-color-primary-light-3:#c4b5fd;
+    --el-color-primary-dark-2:#7c3aed;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(167,139,250,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(139,92,246,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1000px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(167,139,250,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .settings {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:14px 16px; margin-bottom:14px;
+    display:flex; gap:16px; flex-wrap:wrap; align-items:flex-end;
+  }
+  .settings .set { display:flex; flex-direction:column; gap:5px; }
+  .settings .set label { font-size:.72rem; color:var(--muted); font-weight:600; }
+  .settings .qual { min-width:190px; flex:1; max-width:280px; }
+  .settings .qual .el-slider { padding:0 6px; }
+
+  .drop {
+    border:2px dashed var(--field-border); border-radius:14px; background:var(--field);
+    padding:34px 16px; text-align:center; cursor:pointer; margin-bottom:14px;
+    transition:all .18s; color:var(--muted); font-size:.9rem;
+  }
+  .drop:hover, .drop.over { border-color:var(--accent); color:var(--text);
+    background:color-mix(in srgb, var(--accent) 8%, var(--field)); }
+  .drop .big { font-size:1.8rem; display:block; margin-bottom:6px; }
+  .drop .hint { font-size:.72rem; color:var(--faint); margin-top:6px; }
+
+  .summary {
+    display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:14px;
+    background:var(--card2); border:1px solid rgba(255,255,255,.07); border-radius:11px;
+    padding:10px 14px; font-size:.85rem;
+  }
+  .summary b.save { color:var(--good); }
+  .summary .n { color:var(--muted); }
+  .summary .spacer { flex:1; }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:12px; }
+  .imgcard {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    overflow:hidden; display:flex; flex-direction:column;
+    transition:all .18s;
+  }
+  .imgcard:hover { transform:translateY(-2px); border-color:color-mix(in srgb, var(--accent) 40%, transparent);
+    box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  .thumb {
+    height:150px; background:
+      repeating-conic-gradient(#1b2130 0% 25%, #12161f 0% 50%) 0 0/18px 18px;
+    display:grid; place-items:center; position:relative;
+  }
+  .thumb img { max-width:100%; max-height:150px; object-fit:contain; display:block; }
+  .thumb .spin { position:absolute; inset:0; display:grid; place-items:center;
+    background:rgba(7,10,15,.6); font-size:1.3rem; }
+  .spin span { display:inline-block; animation:rot 1s linear infinite; }
+  @keyframes rot { to { transform:rotate(360deg); } }
+  .meta { padding:11px 13px 13px; display:flex; flex-direction:column; gap:6px; }
+  .meta .nm { font-weight:700; font-size:.82rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .meta .row { display:flex; align-items:center; gap:6px; font-size:.75rem; color:var(--muted); flex-wrap:wrap; }
+  .meta .pct { font-weight:700; }
+  .meta .pct.ok { color:var(--good); }
+  .meta .pct.no { color:var(--bad); }
+  .meta .dims { font-family:var(--mono); font-size:.7rem; color:var(--faint); }
+  .meta .acts { display:flex; gap:6px; margin-top:3px; align-items:center; }
+  .meta .acts .x { margin-left:auto; }
+  .empty { text-align:center; color:var(--faint); padding:40px 0 20px; font-size:.9rem; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🖼️</div>
+    <div class="title">
+      <h1>Image Compressor</h1>
+      <div class="sub">ဓာတ်ပုံ ချုံ့/ချုံးတိုက် — offline · FB upload မတိုင်ခင်</div>
+    </div>
+    <el-button type="primary" :disabled="!doneItems.length" @click="downloadAll">⬇ Download All</el-button>
+    <el-popconfirm v-if="items.length" title="အားလုံး ရှင်းမှာ သေချာလား?" confirm-button-text="ရှင်းမည်" cancel-button-text="မရှင်းပါ" @confirm="clearAll">
+      <template #reference><el-button type="danger" plain>🗑 Clear</el-button></template>
+    </el-popconfirm>
+  </header>
+
+  <div class="settings">
+    <div class="set">
+      <label>Max dimension</label>
+      <el-select v-model="prefs.maxDim" style="width:130px">
+        <el-option value="480" label="480 px"></el-option>
+        <el-option value="720" label="720 px"></el-option>
+        <el-option value="1080" label="1080 px"></el-option>
+        <el-option value="1600" label="1600 px"></el-option>
+        <el-option value="1920" label="1920 px"></el-option>
+        <el-option value="orig" label="Original"></el-option>
+      </el-select>
+    </div>
+    <div class="set">
+      <label>Format</label>
+      <el-select v-model="prefs.format" style="width:110px">
+        <el-option value="jpeg" label="JPEG"></el-option>
+        <el-option value="webp" label="WebP"></el-option>
+        <el-option value="png" label="PNG"></el-option>
+      </el-select>
+    </div>
+    <div class="set qual" v-if="prefs.format !== 'png'">
+      <label>Quality — {{ prefs.quality.toFixed(2) }}</label>
+      <el-slider v-model="prefs.quality" :min="0.5" :max="0.95" :step="0.05"></el-slider>
+    </div>
+    <div class="set">
+      <label>Filename suffix</label>
+      <el-input v-model="prefs.suffix" placeholder="-min" style="width:110px"></el-input>
+    </div>
+  </div>
+
+  <div class="drop" :class="{ over: dragOver }"
+       @click="fileEl && fileEl.click()"
+       @dragover.prevent="dragOver = true" @dragleave="dragOver = false"
+       @drop.prevent="onDrop">
+    <span class="big">📥</span>
+    ဓာတ်ပုံများကို ဤနေရာသို့ ဆွဲချပါ — သို့မဟုတ် နှိပ်၍ ရွေးပါ
+    <div class="hint">Ctrl+V paste လည်း ရသည် · အားလုံး browser ထဲမှာပဲ — ဘာမှ upload မတင်ပါ 🔒</div>
+    <input type="file" ref="fileEl" accept="image/*" multiple style="display:none" @change="onPick">
+  </div>
+
+  <div class="summary" v-if="items.length">
+    <span><b>{{ items.length }}</b> <span class="n">ပုံ</span></span>
+    <span class="n">·</span>
+    <span>{{ fmtSize(totals.before) }} → <b>{{ fmtSize(totals.after) }}</b></span>
+    <span class="n">·</span>
+    <b class="save" v-if="totals.pct > 0">−{{ totals.pct }}% 🎉</b>
+    <span class="n" v-else>ချုံ့၍ မရသေးပါ</span>
+    <span class="spacer"></span>
+    <span class="n" v-if="busyCount">⏳ {{ busyCount }} ခု ချုံ့နေသည်…</span>
+  </div>
+
+  <div class="grid" v-if="items.length">
+    <div v-for="it in items" :key="it.id" class="imgcard">
+      <div class="thumb">
+        <img v-if="it.url" :src="it.url" :alt="it.name">
+        <div v-if="it.busy" class="spin"><span>⏳</span></div>
+      </div>
+      <div class="meta">
+        <div class="nm" :title="it.name">{{ it.name }}</div>
+        <template v-if="!it.busy && !it.error">
+          <div class="row">
+            <span>{{ fmtSize(it.origSize) }} → <b>{{ fmtSize(it.outSize) }}</b></span>
+            <span v-if="!it.kept" class="pct ok">−{{ savedPct(it) }}%</span>
+            <el-tag v-else size="small" type="warning" effect="plain">ပိုကြီးသွား၍ မူရင်းအတိုင်း ထားသည်</el-tag>
+          </div>
+          <div class="dims">{{ it.origW }}×{{ it.origH }} → {{ it.outW }}×{{ it.outH }}</div>
+          <div class="acts">
+            <el-button size="small" type="primary" @click="downloadOne(it)">⬇ Download</el-button>
+            <el-button size="small" class="x" text @click="removeOne(it)">✕</el-button>
+          </div>
+        </template>
+        <template v-else-if="it.error">
+          <div class="row"><el-tag size="small" type="danger" effect="plain">⚠ ဖတ်၍ မရပါ</el-tag></div>
+          <div class="acts"><el-button size="small" class="x" text @click="removeOne(it)">✕</el-button></div>
+        </template>
+        <div v-else class="row"><span class="dims">ချုံ့နေသည်…</span></div>
+      </div>
+    </div>
+  </div>
+  <div v-else class="empty">ပုံ မရှိသေးပါ — အပေါ်က drop zone ထဲ ထည့်ပါ</div>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, reactive, watch, onMounted, onBeforeUnmount } = Vue;
+const PREFS = 'imgcomp.prefs';
+const DEFAULTS = { maxDim: '1080', format: 'jpeg', quality: 0.8, suffix: '-min' };
+
+const app = createApp({
+  setup() {
+    const prefs = reactive({ ...DEFAULTS });
+    try {
+      const saved = JSON.parse(localStorage.getItem(PREFS) || '{}');
+      ['maxDim', 'format', 'suffix'].forEach(k => { if (typeof saved[k] === 'string') prefs[k] = saved[k]; });
+      if (typeof saved.quality === 'number' && saved.quality >= 0.5 && saved.quality <= 0.95) prefs.quality = saved.quality;
+    } catch (e) {}
+
+    const items = ref([]);
+    const dragOver = ref(false);
+    const fileEl = ref(null);
+    let seq = 0;
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2800 });
+
+    const fmtSize = (b) => {
+      if (!b && b !== 0) return '—';
+      if (b < 1024) return b + ' B';
+      if (b < 1024 * 1024) return (b / 1024).toFixed(1) + ' KB';
+      return (b / (1024 * 1024)).toFixed(2) + ' MB';
+    };
+    const savedPct = (it) => Math.round((1 - it.outSize / it.origSize) * 100);
+    const extFor = (it) => it.kept
+      ? (it.name.match(/\.([a-zA-Z0-9]+)$/) || [, 'png'])[1].toLowerCase()
+      : (prefs.format === 'jpeg' ? 'jpg' : prefs.format);
+    const outName = (it) => it.name.replace(/\.[^.]+$/, '') + (prefs.suffix || '') + '.' + extFor(it);
+
+    const doneItems = computed(() => items.value.filter(it => !it.busy && !it.error && it.outBlob));
+    const busyCount = computed(() => items.value.filter(it => it.busy).length);
+    const totals = computed(() => {
+      const done = doneItems.value;
+      const before = done.reduce((s, it) => s + it.origSize, 0);
+      const after = done.reduce((s, it) => s + it.outSize, 0);
+      return { before, after, pct: before ? Math.round((1 - after / before) * 100) : 0 };
+    });
+
+    const loadImage = (file) => new Promise((res, rej) => {
+      const u = URL.createObjectURL(file);
+      const img = new Image();
+      img.onload = () => { URL.revokeObjectURL(u); res(img); };
+      img.onerror = () => { URL.revokeObjectURL(u); rej(new Error('decode failed')); };
+      img.src = u;
+    });
+
+    async function processItem(it) {
+      it.busy = true; it.error = false;
+      try {
+        const img = await loadImage(it.file);
+        it.origW = img.naturalWidth; it.origH = img.naturalHeight;
+        const maxD = prefs.maxDim === 'orig' ? Infinity : Number(prefs.maxDim);
+        const scale = Math.min(1, maxD / Math.max(it.origW, it.origH)); // never upscale
+        const w = Math.max(1, Math.round(it.origW * scale));
+        const h = Math.max(1, Math.round(it.origH * scale));
+        const c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        const ctx = c.getContext('2d');
+        if (prefs.format === 'jpeg') { ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, w, h); }
+        ctx.imageSmoothingQuality = 'high';
+        ctx.drawImage(img, 0, 0, w, h);
+        const mime = 'image/' + prefs.format;
+        const blob = await new Promise(res => c.toBlob(res, mime, prefs.format === 'png' ? undefined : prefs.quality));
+        if (blob && blob.size < it.file.size) {
+          it.kept = false; it.outBlob = blob; it.outSize = blob.size; it.outW = w; it.outH = h;
+        } else {
+          // result bigger than source — keep the original untouched
+          it.kept = true; it.outBlob = it.file; it.outSize = it.file.size; it.outW = it.origW; it.outH = it.origH;
+        }
+        if (it.url) URL.revokeObjectURL(it.url);
+        it.url = URL.createObjectURL(it.outBlob);
+      } catch (e) {
+        it.error = true;
+      }
+      it.busy = false;
+    }
+
+    function addFiles(list) {
+      const files = Array.from(list || []).filter(f => f && f.type && f.type.startsWith('image/'));
+      if (!files.length) { toast('ဓာတ်ပုံ file မတွေ့ပါ', 'warning'); return; }
+      files.forEach(f => {
+        const it = {
+          id: ++seq, file: f, name: f.name || ('pasted-' + seq + '.png'), origSize: f.size,
+          origW: 0, origH: 0, outW: 0, outH: 0, outSize: 0,
+          outBlob: null, url: '', kept: false, busy: true, error: false,
+        };
+        items.value.push(it);
+        processItem(items.value[items.value.length - 1]);
+      });
+      toast('📥 ' + files.length + ' ပုံ ထည့်ပြီး');
+    }
+
+    function onPick(ev) { addFiles(ev.target.files); ev.target.value = ''; }
+    function onDrop(ev) { dragOver.value = false; addFiles(ev.dataTransfer && ev.dataTransfer.files); }
+    function onPaste(ev) {
+      const files = ev.clipboardData && ev.clipboardData.files;
+      if (files && files.length) addFiles(files);
+    }
+
+    function saveBlob(blob, name) {
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = name;
+      a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    }
+    function downloadOne(it) { saveBlob(it.outBlob, outName(it)); }
+    async function downloadAll() {
+      const done = doneItems.value;
+      for (const it of done) {
+        saveBlob(it.outBlob, outName(it));
+        await new Promise(r => setTimeout(r, 300)); // sequential, avoid browser blocking
+      }
+      toast('⬇ ' + done.length + ' ပုံ download ပြီး');
+    }
+    function removeOne(it) {
+      if (it.url) URL.revokeObjectURL(it.url);
+      items.value = items.value.filter(x => x.id !== it.id);
+    }
+    function clearAll() {
+      items.value.forEach(it => { if (it.url) URL.revokeObjectURL(it.url); });
+      items.value = [];
+      toast('🗑 ရှင်းပြီး');
+    }
+
+    let debTimer = null;
+    watch(prefs, () => {
+      localStorage.setItem(PREFS, JSON.stringify({ maxDim: prefs.maxDim, format: prefs.format, quality: prefs.quality, suffix: prefs.suffix }));
+      clearTimeout(debTimer);
+      debTimer = setTimeout(() => { items.value.forEach(it => processItem(it)); }, 500);
+    }, { deep: true });
+
+    onMounted(() => {
+      window.addEventListener('paste', onPaste);
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+    onBeforeUnmount(() => window.removeEventListener('paste', onPaste));
+
+    return {
+      prefs, items, dragOver, fileEl, doneItems, busyCount, totals,
+      fmtSize, savedPct, onPick, onDrop, downloadOne, downloadAll, removeOne, clearAll,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>

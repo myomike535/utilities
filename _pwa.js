@@ -33,10 +33,13 @@
         .catch(err => console.warn('[PWA] SW registration failed:', err.message));
     });
 
-    // When the new worker takes control, reload once to run the fresh code
+    // When a NEW worker replaces an old one, reload once to run the fresh code.
+    // Skip on the very first install (no prior controller) — reloading then would
+    // wipe anything the user already typed on their first visit.
+    const hadController = !!navigator.serviceWorker.controller;
     let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing) return;
+      if (!hadController || refreshing) return;
       refreshing = true;
       window.location.reload();
     });

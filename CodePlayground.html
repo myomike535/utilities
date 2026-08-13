@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Playground · စမ်းကွင်း</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#0ea5e9">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#0ea5e9; --accent-2:#38bdf8;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#0ea5e9;
+    --el-color-primary-light-3:#38bdf8;
+    --el-color-primary-dark-2:#0284c7;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(14,165,233,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(56,189,248,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1400px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:16px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(14,165,233,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+  .autorun { display:flex; align-items:center; gap:6px; font-size:.78rem; color:var(--muted); }
+
+  .play { display:grid; grid-template-columns:45% 1fr; gap:12px; align-items:start; }
+  .editors { display:flex; flex-direction:column; gap:10px; }
+  .pane {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:10px 12px 12px;
+  }
+  .pane-label { display:flex; align-items:center; gap:7px; font-size:.72rem; font-weight:700;
+    letter-spacing:.06em; color:var(--muted); margin-bottom:7px; }
+  .pane-label .dot { width:9px; height:9px; border-radius:50%; }
+  .dot.html { background:#f97316; } .dot.css { background:#38bdf8; } .dot.js { background:#facc15; }
+  .pane textarea {
+    width:100%; height:200px; resize:vertical; min-height:90px;
+    background:var(--field); color:#c9d4e3; border:1px solid var(--field-border); border-radius:9px;
+    font-family:var(--mono); font-size:.8rem; line-height:1.65; padding:10px 12px;
+    outline:none; tab-size:2; white-space:pre; overflow:auto;
+  }
+  .pane textarea:focus { border-color:var(--accent); box-shadow:0 0 0 2px rgba(14,165,233,.18); }
+
+  .stage { display:flex; flex-direction:column; gap:10px; }
+  .preview-card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:10px 12px 12px; display:flex; flex-direction:column; }
+  .preview-card .pane-label { margin-bottom:7px; }
+  iframe.preview { width:100%; height:430px; border:1px solid var(--field-border); border-radius:9px;
+    background:#fff; }
+  .console-card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:10px 12px 12px; }
+  .console-head { display:flex; align-items:center; gap:8px; margin-bottom:7px; }
+  .console-head .pane-label { margin:0; flex:1; }
+  .console-body {
+    background:#0a0d13; border:1px solid var(--field-border); border-radius:9px;
+    height:150px; overflow:auto; font-family:var(--mono); font-size:.74rem; line-height:1.7;
+    padding:8px 12px;
+  }
+  .console-body .empty { color:var(--faint); }
+  .cline { white-space:pre-wrap; word-break:break-all; border-bottom:1px solid rgba(255,255,255,.04); }
+  .cline.log { color:#c9d4e3; }
+  .cline.info { color:#7dd3fc; }
+  .cline.warn { color:#fbbf24; }
+  .cline.error { color:#f87171; }
+
+  .ex-list { display:flex; flex-direction:column; gap:8px; max-height:50vh; overflow:auto; }
+  .ex-row { display:flex; align-items:center; gap:10px; background:var(--field); border:1px solid var(--field-border);
+    border-radius:10px; padding:9px 12px; }
+  .ex-row .n { flex:1; font-weight:600; font-size:.88rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .ex-row .when { font-size:.68rem; color:var(--faint); }
+  .empty-list { text-align:center; color:var(--faint); padding:28px 0; font-size:.85rem; }
+
+  .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
+
+  @media (max-width:860px) {
+    .play { grid-template-columns:1fr; }
+    iframe.preview { height:340px; }
+  }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🧪</div>
+    <div class="title">
+      <h1>Code Playground</h1>
+      <div class="sub">စမ်းကွင်း — HTML · CSS · JS ကို တိုက်ရိုက် ရေးပြီး စမ်းကြည့်ရန်</div>
+    </div>
+    <span class="autorun"><el-switch v-model="autoRun" size="small"></el-switch> Auto-run</span>
+    <el-button type="primary" @click="run">▶ Run</el-button>
+    <el-button @click="openSave">💾 Save</el-button>
+    <el-button @click="showLoad = true">📂 Examples</el-button>
+    <el-popconfirm title="လက်ရှိ code ကို ဖျက်ပြီး starter အသစ်စမလား?" confirm-button-text="စမည်" cancel-button-text="မစပါ" @confirm="resetStarter" width="240">
+      <template #reference><el-button>＋ New</el-button></template>
+    </el-popconfirm>
+    <el-button @click="exportFile">⬇ Export</el-button>
+  </header>
+
+  <div class="play">
+    <div class="editors">
+      <div class="pane">
+        <div class="pane-label"><span class="dot html"></span> HTML</div>
+        <textarea v-model="code.html" spellcheck="false" data-pane="html"
+          @keydown.tab.prevent="onTab($event,'html')" @input="onInput"></textarea>
+      </div>
+      <div class="pane">
+        <div class="pane-label"><span class="dot css"></span> CSS</div>
+        <textarea v-model="code.css" spellcheck="false" data-pane="css"
+          @keydown.tab.prevent="onTab($event,'css')" @input="onInput"></textarea>
+      </div>
+      <div class="pane">
+        <div class="pane-label"><span class="dot js"></span> JS</div>
+        <textarea v-model="code.js" spellcheck="false" data-pane="js"
+          @keydown.tab.prevent="onTab($event,'js')" @input="onInput"></textarea>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="preview-card">
+        <div class="pane-label">👁 Preview — ရလဒ်</div>
+        <iframe class="preview" ref="frameEl" :srcdoc="previewSrc" sandbox="allow-scripts allow-modals" title="preview"></iframe>
+      </div>
+      <div class="console-card">
+        <div class="console-head">
+          <div class="pane-label">📟 Console — {{ logs.length }}</div>
+          <el-button size="small" @click="logs = []">🧹 Clear</el-button>
+        </div>
+        <div class="console-body" ref="consoleEl">
+          <div v-if="!logs.length" class="empty">console.log() ရလဒ်များ ဒီမှာပေါ်ပါမည်…</div>
+          <div v-for="(l, i) in logs" :key="i" class="cline" :class="l.kind">{{ prefix(l.kind) }}{{ l.text }}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Save dialog -->
+  <el-dialog v-model="showSave" title="💾 Example သိမ်းရန်" width="min(420px, 96vw)">
+    <label class="fl">အမည် (Name)</label>
+    <el-input v-model="saveName" placeholder="e.g. Counter button demo" clearable @keyup.enter="saveExample"></el-input>
+    <template #footer>
+      <el-button @click="showSave=false">Cancel</el-button>
+      <el-button type="primary" @click="saveExample">💾 သိမ်းမည်</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Load dialog -->
+  <el-dialog v-model="showLoad" title="📂 သိမ်းထားသော Examples" width="min(520px, 96vw)">
+    <div v-if="examples.length" class="ex-list">
+      <div v-for="ex in examples" :key="ex.id" class="ex-row">
+        <span class="n">{{ ex.name }}</span>
+        <span class="when">{{ new Date(ex.t).toLocaleDateString() }}</span>
+        <el-button size="small" type="primary" @click="loadExample(ex)">📂 ဖွင့်မည်</el-button>
+        <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delExample(ex)">
+          <template #reference><el-button size="small" type="danger" plain>🗑</el-button></template>
+        </el-popconfirm>
+      </div>
+    </div>
+    <div v-else class="empty-list">Example မရှိသေးပါ — 💾 Save ဖြင့် စတင်သိမ်းပါ</div>
+  </el-dialog>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
+const STORE = 'playground.v1';
+const CURRENT = 'playground.current';
+
+const STARTER = {
+  html: [
+    '<!-- မင်္ဂလာပါ — ဒီနေရာမှာ HTML ရေးပါ -->',
+    '<h1>မင်္ဂလာပါ 👋</h1>',
+    '<p>Code Playground (စမ်းကွင်း) မှ ကြိုဆိုပါတယ်။</p>',
+    '<button id="btn">နှိပ်ကြည့်ပါ</button>',
+  ].join('\n'),
+  css: [
+    '/* CSS ကို ဒီမှာရေးပါ */',
+    "body { font-family: 'Pyidaungsu', 'Padauk', sans-serif; padding: 24px; }",
+    'h1 { color: #0ea5e9; }',
+    'button { padding: 8px 18px; border-radius: 8px; border: 1px solid #0ea5e9;',
+    '  background: #e0f2fe; cursor: pointer; font-size: 1rem; }',
+  ].join('\n'),
+  js: [
+    '// JavaScript ကို ဒီမှာရေးပါ',
+    "const btn = document.getElementById('btn');",
+    'let count = 0;',
+    "btn.addEventListener('click', () => {",
+    '  count++;',
+    "  console.log('နှိပ်လိုက်သည် — ' + count + ' ကြိမ်');",
+    '});',
+    "console.log('Playground အသင့်ဖြစ်ပါပြီ ✅');",
+  ].join('\n'),
+};
+
+// Console bridge injected into the preview iframe (postMessage back to parent).
+const BRIDGE = '<script>(function(){function s(k,a){try{parent.postMessage({__pg:1,kind:k,text:a.map(function(x){try{return typeof x==="object"?JSON.stringify(x):String(x)}catch(e){return String(x)}}).join(" ")},"*")}catch(e){}}'
+  + '["log","info","warn","error"].forEach(function(k){var o=console[k];console[k]=function(){s(k,[].slice.call(arguments));o&&o.apply(console,arguments)}});'
+  + 'window.onerror=function(m,u,l){s("error",[String(m)+(l?" (line "+l+")":"")]);return true};'
+  + 'window.addEventListener("unhandledrejection",function(e){s("error",["Unhandled promise rejection: "+e.reason])});'
+  + '})();<\/script>';
+
+const app = createApp({
+  setup() {
+    const code = reactive({ html: '', css: '', js: '' });
+    const autoRun = ref(true);
+    const previewSrc = ref('');
+    const logs = ref([]);
+    const examples = ref([]);
+    const showSave = ref(false); const showLoad = ref(false);
+    const saveName = ref('');
+    const frameEl = ref(null); const consoleEl = ref(null);
+    let debounceT = null;
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2800 });
+
+    function loadExamples() { try { examples.value = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (e) {} }
+    function persistExamples() { localStorage.setItem(STORE, JSON.stringify(examples.value)); }
+    function autosave() { localStorage.setItem(CURRENT, JSON.stringify({ html: code.html, css: code.css, js: code.js })); }
+
+    function safeJs(js) { return js.replace(/<\/script/gi, '<\\/script'); }
+    function buildDoc(withBridge) {
+      return '<!DOCTYPE html><html><head><meta charset="UTF-8">'
+        + '<meta name="viewport" content="width=device-width, initial-scale=1.0">'
+        + (withBridge ? BRIDGE : '')
+        + '<style>' + code.css + '<\/style><\/head><body>'
+        + code.html
+        + '<script>' + safeJs(code.js) + '<\/script><\/body><\/html>';
+    }
+
+    function run() {
+      logs.value = [];
+      previewSrc.value = buildDoc(true);
+    }
+
+    function onInput() {
+      clearTimeout(debounceT);
+      debounceT = setTimeout(() => {
+        autosave();
+        if (autoRun.value) run();
+      }, 500);
+    }
+
+    function onTab(e, key) {
+      const el = e.target;
+      const s = el.selectionStart, en = el.selectionEnd;
+      el.value = el.value.slice(0, s) + '  ' + el.value.slice(en);
+      el.selectionStart = el.selectionEnd = s + 2;
+      code[key] = el.value;
+      onInput();
+    }
+
+    function prefix(kind) {
+      return kind === 'error' ? '✖ ' : kind === 'warn' ? '⚠ ' : kind === 'info' ? 'ℹ ' : '› ';
+    }
+
+    function onMessage(e) {
+      const d = e.data;
+      if (!d || d.__pg !== 1) return;
+      logs.value.push({ kind: d.kind || 'log', text: d.text || '' });
+      if (logs.value.length > 300) logs.value.splice(0, logs.value.length - 300);
+      nextTick(() => { if (consoleEl.value) consoleEl.value.scrollTop = consoleEl.value.scrollHeight; });
+    }
+
+    function openSave() { saveName.value = ''; showSave.value = true; }
+    function saveExample() {
+      const name = saveName.value.trim();
+      if (!name) { toast('အမည် ထည့်ပါ', 'warning'); return; }
+      examples.value.unshift({ id: Date.now(), name, html: code.html, css: code.css, js: code.js, t: Date.now() });
+      persistExamples();
+      showSave.value = false;
+      toast('💾 သိမ်းပြီး — ' + name);
+    }
+    function loadExample(ex) {
+      code.html = ex.html || ''; code.css = ex.css || ''; code.js = ex.js || '';
+      showLoad.value = false;
+      autosave(); run();
+      toast('📂 ဖွင့်ပြီး — ' + ex.name);
+    }
+    function delExample(ex) {
+      examples.value = examples.value.filter(x => x.id !== ex.id);
+      persistExamples();
+      toast('🗑 ဖျက်ပြီး — ' + ex.name);
+    }
+
+    function resetStarter() {
+      code.html = STARTER.html; code.css = STARTER.css; code.js = STARTER.js;
+      autosave(); run();
+      toast('＋ Starter template အသစ် စတင်ပြီး');
+    }
+
+    function exportFile() {
+      const blob = new Blob([buildDoc(false)], { type: 'text/html' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'playground-' + Date.now() + '.html'; a.click();
+      URL.revokeObjectURL(a.href);
+      toast('⬇ Export ပြီး — .html ဖိုင်တစ်ခုတည်း');
+    }
+
+    onMounted(() => {
+      loadExamples();
+      let cur = null;
+      try { cur = JSON.parse(localStorage.getItem(CURRENT) || 'null'); } catch (e) {}
+      if (cur && (cur.html || cur.css || cur.js)) {
+        code.html = cur.html || ''; code.css = cur.css || ''; code.js = cur.js || '';
+      } else {
+        code.html = STARTER.html; code.css = STARTER.css; code.js = STARTER.js;
+      }
+      window.addEventListener('message', onMessage);
+      run();
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+
+    return {
+      code, autoRun, previewSrc, logs, examples,
+      showSave, showLoad, saveName, frameEl, consoleEl,
+      run, onInput, onTab, prefix,
+      openSave, saveExample, loadExample, delExample, resetStarter, exportFile,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>
