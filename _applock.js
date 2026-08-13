@@ -57,11 +57,21 @@
   `;
   document.head.appendChild(style);
 
-  // ---- lock overlay ----
-  function showLock() {
+  // ---- lock overlay: 'enter' mode (PIN exists) or 'create' mode (first visit) ----
+  function showLock(mode) {
     const bd = document.createElement('div');
     bd.className = 'al-backdrop';
-    bd.innerHTML = `
+    bd.innerHTML = mode === 'create' ? `
+      <div class="al-card">
+        <div class="al-ico">🔐</div>
+        <div class="al-title">MyoMT Utilities</div>
+        <div class="al-sub">ပထမဆုံးအကြိမ် — PIN သတ်မှတ်ပါ (အနည်းဆုံး ၄ လုံး)</div>
+        <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN အသစ်" aria-label="New PIN">
+        <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="ထပ်မံ အတည်ပြုပါ" aria-label="Confirm PIN" style="margin-top:8px">
+        <button class="al-btn">🔒 သတ်မှတ်မည် · Set PIN</button>
+        <div class="al-err"></div>
+        <button class="al-reset">PIN မလိုပါ — ဆက်သွားမည် (skip)</button>
+      </div>` : `
       <div class="al-card">
         <div class="al-ico">🔒</div>
         <div class="al-title">MyoMT Utilities</div>
@@ -72,28 +82,48 @@
         <button class="al-reset">PIN မေ့သွားလား? — Lock ဖြုတ်ရန် (data မပျက်ပါ)</button>
       </div>`;
     document.documentElement.appendChild(bd);
-    const input = bd.querySelector('.al-input');
+    const inputs = bd.querySelectorAll('.al-input');
+    const input = inputs[0];
     const err = bd.querySelector('.al-err');
     const card = bd.querySelector('.al-card');
     setTimeout(() => input.focus(), 80);
 
-    async function tryUnlock() {
+    function fail(msg) {
+      err.textContent = msg;
+      card.classList.remove('al-shake'); void card.offsetWidth; card.classList.add('al-shake');
+    }
+    function done() {
+      sessionStorage.setItem(SESSION, '1');
+      bd.style.transition = 'opacity 0.25s'; bd.style.opacity = '0';
+      setTimeout(() => bd.remove(), 260);
+    }
+    async function submit() {
+      if (mode === 'create') {
+        const p1 = inputs[0].value, p2 = inputs[1].value;
+        if (p1.length < 4) { fail('PIN သည် အနည်းဆုံး ၄ လုံး ရှိရပါမည်'); return; }
+        if (p1 !== p2) { fail('⚠ PIN နှစ်ခု မတူပါ'); inputs[1].value = ''; return; }
+        const salt = [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(16).padStart(2, '0')).join('');
+        localStorage.setItem(KEY, JSON.stringify({ salt, hash: await pinHash(salt, p1) }));
+        localStorage.removeItem('applock.skip');
+        done();
+        return;
+      }
       const cfg = getCfg();
       if (!cfg) { bd.remove(); return; }
       const h = await pinHash(cfg.salt, input.value);
-      if (h === cfg.hash) {
-        sessionStorage.setItem(SESSION, '1');
-        bd.style.transition = 'opacity 0.25s'; bd.style.opacity = '0';
-        setTimeout(() => bd.remove(), 260);
-      } else {
-        err.textContent = '⚠ PIN မှားနေပါသည်';
-        card.classList.remove('al-shake'); void card.offsetWidth; card.classList.add('al-shake');
-        input.value = ''; input.focus();
-      }
+      if (h === cfg.hash) done();
+      else { fail('⚠ PIN မှားနေပါသည်'); input.value = ''; input.focus(); }
     }
-    bd.querySelector('.al-btn').addEventListener('click', tryUnlock);
-    input.addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
+    bd.querySelector('.al-btn').addEventListener('click', submit);
+    inputs.forEach(el => el.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); }));
     bd.querySelector('.al-reset').addEventListener('click', () => {
+      if (mode === 'create') {
+        // Visitor chose no PIN — remember and never ask again (re-enable via ⚙ App Lock)
+        localStorage.setItem('applock.skip', '1');
+        sessionStorage.setItem(SESSION, '1');
+        bd.remove();
+        return;
+      }
       if (confirm('Lock ကို ဖြုတ်မည် — သင့် data အားလုံး ဒီအတိုင်း ကျန်ပါမည်။ (privacy screen သာ ဖြုတ်ခြင်း ဖြစ်သည်)\n\nဆက်လုပ်မလား?')) {
         localStorage.removeItem(KEY); localStorage.removeItem('applock.enabled');
         sessionStorage.removeItem(SESSION);
@@ -121,7 +151,7 @@
     if (p2 !== p1) { alert('⚠ PIN နှစ်ခု မတူပါ'); return; }
     const salt = [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(16).padStart(2, '0')).join('');
     localStorage.setItem(KEY, JSON.stringify({ salt, hash: await pinHash(salt, p1) }));
-    localStorage.setItem('applock.enabled', '1');
+    localStorage.removeItem('applock.skip');
     sessionStorage.setItem(SESSION, '1');
     alert('🔒 App Lock သတ်မှတ်ပြီး — နောက်ဖွင့်တိုင်း PIN မေးပါမည်');
   }
@@ -149,6 +179,10 @@
   }
   window.addEventListener('load', () => { setTimeout(hookSettings, 600); });
 
-  // ---- gate on load ----
-  if (getCfg() && localStorage.getItem('applock.enabled') === '1' && sessionStorage.getItem(SESSION) !== '1') showLock();
+  // ---- gate on load: login page by default ----
+  // PIN exists → enter mode. No PIN and never skipped → create mode (first visit).
+  if (sessionStorage.getItem(SESSION) !== '1') {
+    if (getCfg()) showLock('enter');
+    else if (localStorage.getItem('applock.skip') !== '1') showLock('create');
+  }
 })();
