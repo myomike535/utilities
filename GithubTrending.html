@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark" class="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>GitHub Trending &mdash; Web Dev &amp; Marketing</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#a78bfa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
 <link rel="stylesheet" href="_motion.css">
 <script defer src="_motion.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
@@ -747,14 +754,73 @@
   }
   .share-stage .sc-footer .url { font-size: 14px; color: #58a6ff; word-break: break-all; }
   .share-stage .sc-footer .tags { font-size: 12px; color: #6b6b82; }
+
+  /* ------------ Vue / Element Plus integration (added by the Vue rewrite) ------------ */
+  [v-cloak] { display: none !important; }
+  #vue-loading {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 60vh; color: var(--text-dim); font-size: 14px;
+  }
+  /* Map Element Plus theme vars onto the tool's existing palette */
+  :root {
+    --el-color-primary: var(--accent);
+    --el-color-primary-light-3: #818cf8;
+    --el-color-primary-light-5: #a5b4fc;
+    --el-color-primary-dark-2: #4f46e5;
+    --el-color-success: var(--success);
+    --el-color-warning: var(--warn);
+    --el-color-danger: var(--danger);
+    --el-color-error: var(--danger);
+    --el-font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+    --el-border-radius-base: 6px;
+    --el-font-size-base: 13px;
+  }
+  html.dark {
+    --el-bg-color: var(--panel);
+    --el-bg-color-overlay: var(--panel-2);
+    --el-fill-color-blank: var(--bg-1);
+    --el-border-color: var(--border);
+    --el-border-color-light: var(--border);
+    --el-border-color-lighter: var(--border-soft);
+    --el-text-color-primary: var(--text);
+    --el-text-color-regular: var(--text);
+    --el-text-color-secondary: var(--text-dim);
+    --el-text-color-placeholder: var(--text-mute);
+  }
+  .controls .el-select { width: 158px; }
+  .controls .el-select__wrapper, .controls-2 .el-input__wrapper,
+  .course-form .el-input__wrapper, .course-form .el-textarea__inner,
+  .course-form .el-select__wrapper {
+    background: var(--bg-1);
+  }
+  [data-theme="light"] .controls .el-select__wrapper,
+  [data-theme="light"] .controls-2 .el-input__wrapper,
+  [data-theme="light"] .course-form .el-input__wrapper,
+  [data-theme="light"] .course-form .el-textarea__inner,
+  [data-theme="light"] .course-form .el-select__wrapper { background: #fff; }
+  /* Topic chips rendered with el-tag but keeping the original .topic look */
+  .card .topics .el-tag.topic {
+    background: rgba(99,102,241,0.15); color: var(--accent);
+    border: none; border-radius: 10px; height: auto;
+    padding: 2px 7px; font-size: 10.5px; line-height: 1.5;
+  }
+  .card .topics .el-tag.topic.marketing { background: rgba(227,179,65,0.18); color: var(--star); }
+  .el-dialog { --el-dialog-bg-color: var(--panel); border-radius: 12px; border: 1px solid var(--border); }
+  .el-dialog .el-dialog__title { color: var(--text-dim); font-size: 13px; font-weight: 600; }
+  .el-message-box { --el-messagebox-width: 460px; border: 1px solid var(--border); }
+  .el-message-box__message { white-space: pre-line; }
+  .pp-dialog .pp-title { font-weight: 600; font-size: 13px; color: var(--text-dim); }
+  .pp-dialog .el-dialog__body { padding-top: 4px; }
+  .hist-dialog .el-dialog__body { padding: 0 0 8px; }
+  .hist-toolbar {
+    display: flex; gap: 8px; padding: 4px 0 10px; flex-wrap: wrap; align-items: center;
+  }
+  .hist-toolbar .el-input { flex: 1; max-width: 400px; }
+  .hist-toolbar .el-select { width: 150px; }
 </style>
-  <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <meta name="theme-color" content="#a78bfa">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
+<div id="app" v-cloak>
 <header>
   <div class="header-top">
     <h1>
@@ -765,232 +831,390 @@
       <span style="color:var(--text-dim); font-weight:400; font-size:14px;">&mdash; Web Dev &amp; Marketing</span>
     </h1>
     <a class="icon-btn" href="index.html" title="Back to utility hub">←</a>
-    <button class="icon-btn" id="historyBtn" title="View post history — every copy and image is logged here">📜<span id="historyCount" class="hist-count" style="display:none;"></span></button>
-    <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+    <button class="icon-btn" @click="openHistory" title="View post history — every copy and image is logged here">📜<span v-if="histCount > 0" class="hist-count">{{ histCount > 99 ? '99+' : histCount }}</span></button>
+    <button class="icon-btn" @click="toggleTheme" title="Toggle theme">{{ theme === 'light' ? '☀' : '🌙' }}</button>
   </div>
   <div class="controls">
     <label>Category
-      <select id="category">
-        <option value="webdev" selected>Web Development</option>
-        <option value="marketing">Digital Marketing</option>
-        <option value="both">Both</option>
-        <option value="favorites">★ Favorites</option>
-        <option value="courses">📚 Courses</option>
-        <option value="lessons">🎓 Web Lessons</option>
-      </select>
+      <el-select v-model="category">
+        <el-option value="webdev" label="Web Development"></el-option>
+        <el-option value="marketing" label="Digital Marketing"></el-option>
+        <el-option value="both" label="Both"></el-option>
+        <el-option value="favorites" label="★ Favorites"></el-option>
+        <el-option value="courses" label="📚 Courses"></el-option>
+        <el-option value="lessons" label="🎓 Web Lessons"></el-option>
+      </el-select>
     </label>
     <label>Language
-      <select id="language">
-        <option value="">Any</option>
-        <option value="javascript">JavaScript</option>
-        <option value="typescript">TypeScript</option>
-        <option value="html">HTML</option>
-        <option value="css">CSS</option>
-        <option value="vue">Vue</option>
-        <option value="python">Python</option>
-        <option value="php">PHP</option>
-        <option value="go">Go</option>
-        <option value="ruby">Ruby</option>
-      </select>
+      <el-select v-model="language">
+        <el-option value="" label="Any"></el-option>
+        <el-option value="javascript" label="JavaScript"></el-option>
+        <el-option value="typescript" label="TypeScript"></el-option>
+        <el-option value="html" label="HTML"></el-option>
+        <el-option value="css" label="CSS"></el-option>
+        <el-option value="vue" label="Vue"></el-option>
+        <el-option value="python" label="Python"></el-option>
+        <el-option value="php" label="PHP"></el-option>
+        <el-option value="go" label="Go"></el-option>
+        <el-option value="ruby" label="Ruby"></el-option>
+      </el-select>
     </label>
     <label>Time range
-      <select id="range">
-        <option value="1">Today</option>
-        <option value="7" selected>This week</option>
-        <option value="30">This month</option>
-        <option value="90">Last 3 months</option>
-        <option value="365">This year</option>
-      </select>
+      <el-select v-model="range">
+        <el-option value="1" label="Today"></el-option>
+        <el-option value="7" label="This week"></el-option>
+        <el-option value="30" label="This month"></el-option>
+        <el-option value="90" label="Last 3 months"></el-option>
+        <el-option value="365" label="This year"></el-option>
+      </el-select>
     </label>
     <label>Min stars
-      <select id="minStars">
-        <option value="10">10+</option>
-        <option value="50">50+</option>
-        <option value="100" selected>100+</option>
-        <option value="500">500+</option>
-        <option value="1000">1000+</option>
-      </select>
+      <el-select v-model="minStars">
+        <el-option value="10" label="10+"></el-option>
+        <el-option value="50" label="50+"></el-option>
+        <el-option value="100" label="100+"></el-option>
+        <el-option value="500" label="500+"></el-option>
+        <el-option value="1000" label="1000+"></el-option>
+      </el-select>
     </label>
     <label>Sort by
-      <select id="sort">
-        <option value="velocity" selected>Trending (★/day)</option>
-        <option value="stars">Total stars</option>
-        <option value="newest">Newest</option>
-        <option value="forks">Forks</option>
-      </select>
+      <el-select v-model="sort">
+        <el-option value="velocity" label="Trending (★/day)"></el-option>
+        <el-option value="stars" label="Total stars"></el-option>
+        <el-option value="newest" label="Newest"></el-option>
+        <el-option value="forks" label="Forks"></el-option>
+      </el-select>
     </label>
     <label>Auto refresh
-      <select id="refresh">
-        <option value="0">Off</option>
-        <option value="300" selected>5 min</option>
-        <option value="600">10 min</option>
-        <option value="1800">30 min</option>
-      </select>
+      <el-select v-model="refreshSel">
+        <el-option value="0" label="Off"></el-option>
+        <el-option value="300" label="5 min"></el-option>
+        <el-option value="600" label="10 min"></el-option>
+        <el-option value="1800" label="30 min"></el-option>
+      </el-select>
     </label>
     <label title="Bilingual review-post draft written in your page's voice from real repo data.">Review post
-      <select id="reviews">
-        <option value="on" selected>Show (collapsed)</option>
-        <option value="expanded">Show (expanded)</option>
-        <option value="off">Hide</option>
-      </select>
+      <el-select v-model="reviews">
+        <el-option value="on" label="Show (collapsed)"></el-option>
+        <el-option value="expanded" label="Show (expanded)"></el-option>
+        <el-option value="off" label="Hide"></el-option>
+      </el-select>
     </label>
     <label title="Auto-generated GitHub preview image showing repo name, description, stars, and contributors — perfect for Facebook post previews.">Repo preview
-      <select id="preview">
-        <option value="on" selected>Show image</option>
-        <option value="off">Hide</option>
-      </select>
+      <el-select v-model="preview">
+        <el-option value="on" label="Show image"></el-option>
+        <el-option value="off" label="Hide"></el-option>
+      </el-select>
     </label>
     <label title="Language order in reviews and README summary. Myanmar-first shows မြန်မာ before English throughout.">Language
-      <select id="langOrder">
-        <option value="my-first" selected>🇲🇲 Myanmar first</option>
-        <option value="en-first">🇬🇧 English first</option>
-        <option value="my-only">🇲🇲 Myanmar only</option>
-        <option value="en-only">🇬🇧 English only</option>
-      </select>
+      <el-select v-model="langOrder">
+        <el-option value="my-first" label="🇲🇲 Myanmar first"></el-option>
+        <el-option value="en-first" label="🇬🇧 English first"></el-option>
+        <el-option value="my-only" label="🇲🇲 Myanmar only"></el-option>
+        <el-option value="en-only" label="🇬🇧 English only"></el-option>
+      </el-select>
     </label>
-    <button class="primary" id="searchBtn">🔄 Refresh</button>
-    <div class="status" id="status"><span class="dot"></span><span id="statusText">Loading…</span></div>
+    <el-button type="primary" @click="search({ force: true })">🔄 Refresh</el-button>
+    <div class="status" :class="statusCls"><span class="dot"></span><span>{{ statusText }}</span></div>
   </div>
   <div class="controls-2">
     <label style="flex:1;">Filter results
-      <input id="filterBox" type="search" placeholder="Filter by name, owner, description…" />
+      <el-input ref="filterEl" v-model="filter" clearable placeholder="Filter by name, owner, description…"></el-input>
     </label>
     <label>Extra query
-      <input id="extraQuery" type="text" placeholder="e.g. topic:ai" />
+      <el-input v-model="extra" style="width:170px" placeholder="e.g. topic:ai" @keydown.enter="search()"></el-input>
     </label>
     <label title="Optional GitHub Personal Access Token — raises search rate limit from 10/min to 30/min. Stored only in this browser's localStorage.">GitHub token (optional)
       <span style="display:flex; gap:4px;">
-        <input id="token" type="password" placeholder="ghp_…" autocomplete="off" style="flex:1;" />
-        <button id="testTokenBtn" title="Test the token against GitHub" style="padding:6px 8px; font-size:11px;">Test</button>
+        <el-input v-model="token" type="password" show-password placeholder="ghp_…" autocomplete="off" style="flex:1; min-width:180px;" @change="onTokenChange"></el-input>
+        <el-button :loading="testingToken" @click="testToken" title="Test the token against GitHub">Test</el-button>
       </span>
     </label>
     <label title="Your Facebook / social page name. Review-post drafts are written and signed in your page's voice — set it so every post builds YOUR page's brand.">Your page name
-      <input id="pageName" type="text" placeholder="e.g. Tech Reviews MM" maxlength="60" />
+      <el-input v-model="pageName" maxlength="60" style="width:180px" placeholder="e.g. Tech Reviews MM"></el-input>
     </label>
     <label title="Hide repos you've already marked as posted (📤 button on each card) so you never cover the same repo twice.">Posted repos
       <span style="display:flex; align-items:center; gap:6px; height:31px;">
-        <input type="checkbox" id="hidePosted" style="width:15px; height:15px; accent-color:var(--accent); margin:0;" />
-        <span style="font-size:12.5px;">Hide posted</span>
+        <el-checkbox v-model="hidePosted">Hide posted</el-checkbox>
       </span>
     </label>
   </div>
 </header>
-<div id="banner" style="display:none"></div>
+<div v-show="banner.visible" class="banner">
+  <span v-html="banner.html"></span>
+  <button @click="banner.visible = false">Dismiss</button>
+</div>
 <main>
-  <div id="coursePanel" class="course-panel" style="display:none;">
+  <div v-show="category === 'courses'" ref="coursePanelEl" class="course-panel">
     <div class="course-form-header">
       <h2>📚 Add a Course to Review</h2>
       <p>Paste any course URL — Tutorialspoint, freeCodeCamp, Udemy, Coursera, YouTube. Same bilingual review, image and AI workflow.</p>
     </div>
-    <form id="courseForm" class="course-form" onsubmit="return false;">
+    <form class="course-form" @submit.prevent="submitCourse">
       <label>Course title *
-        <input id="cfTitle" type="text" required maxlength="120" placeholder="e.g. React Complete Guide" />
+        <el-input ref="cfTitleEl" v-model="cfTitle" maxlength="120" placeholder="e.g. React Complete Guide"></el-input>
       </label>
       <label>Course URL *
-        <input id="cfUrl" type="url" required placeholder="https://www.tutorialspoint.com/react/index.htm" />
+        <el-input v-model="cfUrl" placeholder="https://www.tutorialspoint.com/react/index.htm"></el-input>
       </label>
       <label>Description
-        <textarea id="cfDesc" rows="2" maxlength="500" placeholder="What does this course cover?"></textarea>
+        <el-input v-model="cfDesc" type="textarea" :rows="2" maxlength="500" placeholder="What does this course cover?"></el-input>
       </label>
       <div class="course-form-row">
         <label>Level
-          <select id="cfLevel">
-            <option value="Beginner">Beginner</option>
-            <option value="Intermediate" selected>Intermediate</option>
-            <option value="Advanced">Advanced</option>
-            <option value="All levels">All levels</option>
-          </select>
+          <el-select v-model="cfLevel">
+            <el-option value="Beginner" label="Beginner"></el-option>
+            <el-option value="Intermediate" label="Intermediate"></el-option>
+            <el-option value="Advanced" label="Advanced"></el-option>
+            <el-option value="All levels" label="All levels"></el-option>
+          </el-select>
         </label>
         <label>Duration
-          <input id="cfDuration" type="text" placeholder="e.g. 15 hours" />
+          <el-input v-model="cfDuration" placeholder="e.g. 15 hours"></el-input>
         </label>
         <label>Topics (comma-separated)
-          <input id="cfTopics" type="text" placeholder="react, hooks, frontend" />
+          <el-input v-model="cfTopics" placeholder="react, hooks, frontend"></el-input>
         </label>
       </div>
       <div class="course-form-actions">
-        <button type="submit" id="cfAdd" class="primary">➕ Add course</button>
-        <span id="cfMsg" class="course-form-msg"></span>
+        <el-button type="primary" native-type="submit">➕ Add course</el-button>
       </div>
     </form>
   </div>
-  <div class="grid" id="results"></div>
-</main>
-<div class="lightbox" id="lightbox">
-  <button class="close" id="lightboxClose" title="Close">✕</button>
-  <img id="lightboxImg" alt="Repo preview" />
-</div>
-
-<div class="pp-overlay" id="postPreview">
-  <div class="pp-modal">
-    <div class="pp-head">
-      <span class="pp-title">Post preview — exactly what 📋 copies</span>
-      <button id="ppImage">📸 Save as image</button>
-      <button id="ppAi">🤖 Rewrite with AI</button>
-      <button id="ppCopy" class="primary" data-motion="celebrate">📋 Copy post</button>
-      <button id="ppClose">✕</button>
-    </div>
-    <div class="pp-body">
-      <div class="pp-fb">
-        <div class="pp-fb-head">
-          <div class="avatar" id="ppAvatar"></div>
-          <div class="who">
-            <div class="nm" id="ppName"></div>
-            <div class="sub">Just now · 🌐 Public</div>
+  <div class="grid">
+    <!-- Rate-limit / generic error states -->
+    <template v-if="errorState && errorState.type === 'rate' && errorState.hasToken">
+      <div class="error" style="text-align:left; max-width:640px; margin:0 auto;">
+        <div style="font-size:16px; text-align:center; margin-bottom:14px;">⏳ Authed rate limit hit (30/min for search)</div>
+        <div style="color:var(--text-dim); font-size:13px; line-height:1.7;">
+          Your token is being sent but the 30 requests/min cap is exceeded. This usually clears within ~60 seconds.
+          <ul style="margin:8px 0 8px 20px; padding:0;">
+            <li>Wait 60s, then click <b>🔄 Refresh</b></li>
+            <li>Click <b>Test</b> next to the token field to see the exact reset time</li>
+            <li>Prefer <b>Web Development</b> or <b>Digital Marketing</b> single category (2 requests) over <b>Both</b> (4 requests) to stretch the budget</li>
+          </ul>
+        </div>
+      </div>
+    </template>
+    <template v-else-if="errorState && errorState.type === 'rate'">
+      <div class="error" style="text-align:left; max-width:640px; margin:0 auto;">
+        <div style="font-size:16px; text-align:center; margin-bottom:14px;">⏳ GitHub API rate limit exceeded</div>
+        <div style="color:var(--text-dim); font-size:13px; line-height:1.7;">
+          <b>Option 1 (permanent fix):</b> Add a GitHub Personal Access Token.
+          <ol style="margin:6px 0 12px 20px; padding:0;">
+            <li>Open <a href="https://github.com/settings/tokens/new?description=Trending%20Dashboard" target="_blank" rel="noopener" style="color:var(--accent);">github.com/settings/tokens/new</a></li>
+            <li>No scopes needed — just click <b>Generate token</b></li>
+            <li>Paste it into the <b>GitHub token</b> field above &rarr; auto re-searches</li>
+          </ol>
+          This raises search from 10 → 30 req/min.<br><br>
+          <b>Option 2:</b> Wait ~1 minute for the anon limit to reset, then click <b>🔄 Refresh</b>.
+        </div>
+      </div>
+    </template>
+    <template v-else-if="errorState">
+      <div class="error">Error: {{ errorState.message }}<br><small>{{ errorState.hint }}</small></div>
+    </template>
+    <!-- Loading skeletons -->
+    <template v-else-if="showSkeleton">
+      <div v-for="i in 9" :key="'sk' + i" class="skeleton"></div>
+    </template>
+    <!-- Empty states -->
+    <template v-else-if="!displayItems.length && filter.trim()">
+      <div class="empty">
+        <div class="m-lottie lg" data-src="https://assets2.lottiefiles.com/packages/lf20_ydo1amjm.json" data-loop="true"></div>
+        <div style="margin-top:8px;">No results match your local filter. <a href="#" style="color:var(--accent)" @click.prevent="filter = ''">Clear filter</a></div>
+      </div>
+    </template>
+    <template v-else-if="!displayItems.length">
+      <div class="empty">
+        <div class="m-lottie lg" data-src="https://assets2.lottiefiles.com/packages/lf20_ydo1amjm.json" data-loop="true"></div>
+        <div style="font-size:15px; margin: 8px 0;">No {{ catName }} repos with {{ minStars }}+ stars in {{ rangeName }}.</div>
+        <div style="font-size:12px; color:var(--text-mute); margin-bottom:14px;">Repos need to explicitly self-tag with our topic filters. Many good ones don't.</div>
+        <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
+          <el-button type="primary" @click="tryNoTopics">🌐 Search without topic filter (broadest)</el-button>
+          <el-button @click="tryLoosenStars">Lower min stars → 10+</el-button>
+          <el-button @click="tryLongerRange">Wider range → 1 year</el-button>
+        </div>
+      </div>
+    </template>
+    <!-- Repo / course / lesson cards (custom-styled, matching the vanilla look) -->
+    <template v-else>
+      <div v-for="(r, i) in displayItems" :key="r.id" class="card" :class="{ posted: postedAtR(r.full_name) }" :data-name="r.full_name">
+        <div class="card-head">
+          <img v-if="r.owner && r.owner.avatar_url" :src="r.owner.avatar_url + '&s=64'" alt="" loading="lazy"/>
+          <div class="title-block">
+            <div class="rank">#{{ i + 1 }} · {{ r.owner ? r.owner.login : '' }}</div>
+            <h3><a :href="r.html_url" target="_blank" rel="noopener">{{ (r.full_name || '').split('/').pop() || r.full_name }}</a></h3>
+          </div>
+          <div class="actions">
+            <button class="copy-btn" :class="{ done: flash['copy:' + r.full_name] }" @click="copyRepoUrl(r)" title="Copy URL">{{ flash['copy:' + r.full_name] ? '✓' : '⧉' }}</button>
+            <button class="posted-btn" :class="{ on: postedAtR(r.full_name) }" @click="onTogglePosted(r)" :title="postedAtR(r.full_name) ? 'Posted ' + timeAgo(postedAtR(r.full_name)) + ' — click to unmark' : 'Mark as posted to your page'">{{ postedAtR(r.full_name) ? '✅' : '📤' }}</button>
+            <template v-if="r._isCourse">
+              <button class="fav-btn" @click="cloneCourse(r._course.id)" title="Duplicate this course into the form (edit before saving)">🧬</button>
+              <el-popconfirm title="Remove this course from your list?" confirm-button-text="Remove" cancel-button-text="Keep" @confirm="onDeleteCourse(r._course.id)">
+                <template #reference>
+                  <button class="fav-btn" title="Remove this course from your list">🗑</button>
+                </template>
+              </el-popconfirm>
+            </template>
+            <button v-else class="fav-btn" :class="{ on: isFavR(r) }" @click="onToggleFav(r)" :title="isFavR(r) ? 'Remove from favorites' : 'Save to favorites'">{{ isFavR(r) ? '★' : '☆' }}</button>
           </div>
         </div>
-        <div class="pp-text" id="ppText"></div>
-        <div class="pp-img" id="ppImg"></div>
+        <div class="desc"><template v-if="r.description">{{ r.description }}</template><em v-else style="opacity:0.6">No description</em></div>
+        <div v-if="cardTopics(r).length" class="topics">
+          <el-tag v-for="t in cardTopics(r)" :key="t" size="small" disable-transitions class="topic" :class="{ marketing: isMarketingTopic(t) }">{{ t }}</el-tag>
+        </div>
+        <a v-if="preview === 'on' && !r._isCourse && !r._isLesson" class="preview-wrap" @click.prevent="openLightbox(r)">
+          <img :src="previewUrl(r)" :alt="r.full_name + ' preview'" loading="lazy"/>
+          <div class="preview-actions">
+            <button :class="{ done: flash['pv:' + r.full_name] }" @click.stop.prevent="copyPreviewUrl(r)" title="Copy image URL for sharing">{{ flash['pv:' + r.full_name] ? '✓ Copied' : '📷 URL' }}</button>
+            <button @click.stop.prevent="downloadPreview(r)" title="Download screenshot">⬇</button>
+          </div>
+        </a>
+        <div v-if="reviews !== 'off'" class="fb-review" :class="{ collapsed: !isExpanded(r) }" :data-name="r.full_name">
+          <div class="avatar">{{ postFor(r).initial }}</div>
+          <div class="body">
+            <div class="header-row">
+              <span class="name">{{ postFor(r).author }}</span>
+              <span v-if="postFor(r).isPage" title="Signed by your page" style="font-size:10px; padding:1px 5px; background:rgba(24,119,242,0.15); color:#1877f2; border-radius:3px; margin-left:2px;">Page</span>
+              <span v-else title='Set "Your page name" above so drafts are signed by your page' style="font-size:10px; padding:1px 5px; background:rgba(245,158,11,0.15); color:var(--warn); border-radius:3px; margin-left:2px;">set page name</span>
+              <span class="rating" title="Editor's rating — derived from real star count and growth rate">{{ ratingStars(postFor(r).rating) }}</span>
+              <span class="when" title="Draft — review before you publish">· draft</span>
+              <span v-if="isSmartLoaded(r)" class="edited-tag" style="color:var(--success)" title="Draft rewritten using README-derived facts">· smart</span>
+              <span v-if="isEdited(r)" class="edited-tag" title="You edited this draft — 🔀 resets it">· edited</span>
+              <span class="fb-icon" title="Facebook post draft">ⓕ</span>
+              <button class="copy-btn" @click="shufflePost(r)" title="Try a different template (resets your edits)">🔀</button>
+              <button class="copy-btn" @click="openPostPreview(r)" title="Preview the full assembled post">👁</button>
+              <button class="copy-btn" :class="{ done: imgBusy[r.full_name] === 'done' }" :disabled="imgBusy[r.full_name] === 'wait'" @click="onSaveImage(r)" title="Save this review as a Facebook-ready image (PNG)">{{ imgBusy[r.full_name] === 'wait' ? '⏳' : imgBusy[r.full_name] === 'done' ? '✓' : imgBusy[r.full_name] === 'fail' ? '✗' : '📸' }}</button>
+              <button class="copy-btn" :class="{ done: aiBusy[r.full_name] === 'done' }" :disabled="aiBusy[r.full_name] === 'wait'" @click="onAiRewrite(r)" title="Copy AI rewrite prompt + open Gemini in a new tab">{{ aiBusy[r.full_name] === 'wait' ? '⏳' : aiBusy[r.full_name] === 'done' ? '✓' : aiBusy[r.full_name] === 'fail' ? '✗' : '🤖' }}</button>
+              <button class="copy-btn" :class="{ done: copyBusy[r.full_name] === 'done' }" :disabled="copyBusy[r.full_name] === 'wait'" @click="onCopyReview(r)" title="Copy post text for sharing">{{ copyBusy[r.full_name] === 'wait' ? '⏳' : copyBusy[r.full_name] === 'done' ? '✓' : '📋' }}</button>
+            </div>
+            <template v-if="myFirstC">
+              <div v-if="showMyC" class="comment-my" contenteditable="true" spellcheck="false" lang="my" title="Click to edit this draft before copying" v-text="draftMy(r)" @input="onDraftInput(r, 'my', $event)" @focus="expandOnFocus(r)"></div>
+              <div v-if="showEnC" class="comment" contenteditable="true" spellcheck="false" title="Click to edit this draft before copying" v-text="draftEn(r)" @input="onDraftInput(r, 'en', $event)" @focus="expandOnFocus(r)"></div>
+            </template>
+            <template v-else>
+              <div v-if="showEnC" class="comment" contenteditable="true" spellcheck="false" title="Click to edit this draft before copying" v-text="draftEn(r)" @input="onDraftInput(r, 'en', $event)" @focus="expandOnFocus(r)"></div>
+              <div v-if="showMyC" class="comment-my" contenteditable="true" spellcheck="false" lang="my" title="Click to edit this draft before copying" v-text="draftMy(r)" @input="onDraftInput(r, 'my', $event)" @focus="expandOnFocus(r)"></div>
+            </template>
+            <button class="toggle" @click="toggleReview(r)">{{ isExpanded(r) ? 'See less ▴' : 'See more ▾' }}</button>
+            <div v-if="!r._isCourse && !r._isLesson" class="readme" :class="{ loading: readmeStatus(r) === 'loading', error: readmeStatus(r) === 'error' }">
+              <div class="readme-label"><span>📄 README Summary</span><span class="readme-count">{{ readmeCount(r) }}</span></div>
+              <div v-if="readmeStatus(r) === 'ok'" class="readme-content" v-html="readmeHtml(r)"></div>
+              <div v-else-if="readmeStatus(r) === 'error'" class="readme-content">{{ readmeErr(r) }}</div>
+              <div v-else class="readme-content"></div>
+            </div>
+          </div>
+        </div>
+        <div class="meta">
+          <span v-if="r.language"><span class="lang-dot" :style="{ background: langColor(r) }"></span>{{ r.language }}</span>
+          <span class="star-icon">★ {{ fmtNum(r.stargazers_count) }}</span>
+          <span>⑂ {{ fmtNum(r.forks_count) }}</span>
+          <span v-if="r.open_issues_count" title="Open issues">◉ {{ fmtNum(r.open_issues_count) }}</span>
+          <span v-if="sort === 'velocity' || velocityOf(r) >= 5" class="velocity" title="Stars per day since creation">↗ {{ fmtVelocity(velocityOf(r)) }}/d</span>
+          <span :title="r.created_at">🆕 {{ timeAgo(r.created_at) }}</span>
+          <span v-if="postedAtR(r.full_name)" class="posted-tag" title="You marked this repo as posted">✔ posted {{ timeAgo(postedAtR(r.full_name)) }}</span>
+        </div>
+      </div>
+    </template>
+  </div>
+</main>
+
+<!-- Lightbox for full-size preview -->
+<div class="lightbox" :class="{ open: lightbox.open }" @click.self="lightbox.open = false">
+  <button class="close" @click="lightbox.open = false" title="Close">✕</button>
+  <img :src="lightbox.src" :alt="lightbox.name + ' preview'"/>
+</div>
+
+<!-- Post preview dialog — shows the final assembled post before copying -->
+<el-dialog v-model="ppOpen" class="pp-dialog" width="min(560px, 96vw)" top="4vh">
+  <template #header><span class="pp-title">Post preview — exactly what 📋 copies</span></template>
+  <div class="pp-fb">
+    <div class="pp-fb-head">
+      <div class="avatar">{{ ppPost ? ppPost.initial : '' }}</div>
+      <div class="who">
+        <div class="nm">{{ ppPost ? ppPost.author : '' }}</div>
+        <div class="sub">Just now · 🌐 Public</div>
+      </div>
+    </div>
+    <div class="pp-text">{{ ppText }}</div>
+    <div v-if="ppRepo && ppImgOk && previewUrl(ppRepo)" class="pp-img">
+      <img :src="previewUrl(ppRepo)" alt="Repo preview image" loading="lazy" @error="ppImgOk = false"/>
+    </div>
+  </div>
+  <template #footer>
+    <el-button :loading="imgBusy['pp'] === 'wait'" @click="ppSaveImage">📸 Save as image</el-button>
+    <el-button :loading="aiBusy['pp'] === 'wait'" @click="ppAiRewrite">🤖 Rewrite with AI</el-button>
+    <el-button type="primary" data-motion="celebrate" @click="ppCopyPost">{{ flash['ppCopy'] ? '✓ Copied' : '📋 Copy post' }}</el-button>
+  </template>
+</el-dialog>
+
+<!-- Post history dialog -->
+<el-dialog v-model="histOpen" class="hist-dialog" title="📜 Post history" width="min(900px, 96vw)" top="4vh">
+  <div class="hist-toolbar">
+    <el-input v-model="histSearch" clearable placeholder="Filter by repo, text, or platform…"></el-input>
+    <el-select v-model="histFilter">
+      <el-option value="all" label="All actions"></el-option>
+      <el-option value="copy" label="📋 Copies only"></el-option>
+      <el-option value="image" label="📸 Images only"></el-option>
+    </el-select>
+    <el-button @click="exportHistory" title="Download the history as JSON">⬇ Export</el-button>
+    <el-popconfirm :title="'Delete all ' + historyAll.length + ' history entries? This cannot be undone.'" confirm-button-text="Delete all" cancel-button-text="Cancel" width="260" @confirm="onClearHistory">
+      <template #reference>
+        <el-button title="Delete all history entries">🗑 Clear</el-button>
+      </template>
+    </el-popconfirm>
+  </div>
+  <div class="hist-stats">
+    <span><b>{{ histStats.total }}</b> total entries</span>
+    <span><b>{{ histStats.weekCount }}</b> this week</span>
+    <span><b>{{ histStats.uniqueRepos }}</b> unique repos</span>
+    <span>📋 <b>{{ histStats.copies }}</b> copies</span>
+    <span>📸 <b>{{ histStats.images }}</b> images</span>
+    <span v-if="histFiltered.length !== histStats.total" style="margin-left:auto;">Showing <b>{{ histFiltered.length }}</b> after filter</span>
+  </div>
+  <div class="pp-body hist-body">
+    <div v-if="!histFiltered.length" class="hist-empty">{{ historyAll.length ? 'Nothing matches your filter.' : 'No history yet — copies and images get logged here automatically.' }}</div>
+    <div v-for="e in histFiltered" :key="e.id" class="hist-entry" :class="[e.action, { expanded: histExpanded[e.id] }]">
+      <div class="h-icon">{{ e.action === 'image' ? '📸' : '📋' }}</div>
+      <div class="h-body">
+        <div class="h-top">
+          <span class="h-repo"><a :href="e.html_url || '#'" target="_blank" rel="noopener">{{ e.full_name }}</a></span>
+          <span v-if="e.isCourse" class="h-badge">📚 {{ e.platform || 'course' }}</span>
+          <span v-if="e.language" class="h-badge">{{ e.language }}</span>
+          <span class="h-when" :title="new Date(e.ts).toLocaleString()">{{ timeAgo(e.ts) }}</span>
+        </div>
+        <div class="h-text">{{ (e.text || '(no text)').replace(/\n/g, ' ') }}</div>
+      </div>
+      <div class="h-actions">
+        <button @click="histExpanded[e.id] = !histExpanded[e.id]" title="Show / hide the full copied text">↕</button>
+        <button :class="{ done: flash['hc:' + e.id] }" @click="recopyHistory(e)" title="Copy this exact text again">{{ flash['hc:' + e.id] ? '✓' : '📋' }}</button>
+        <el-popconfirm title="Remove this entry?" confirm-button-text="Remove" cancel-button-text="Keep" @confirm="onDeleteHistoryEntry(e.id)">
+          <template #reference>
+            <button title="Remove this entry">🗑</button>
+          </template>
+        </el-popconfirm>
       </div>
     </div>
   </div>
+</el-dialog>
 </div>
+<div id="vue-loading">⏳ Loading…</div>
 
-<div class="pp-overlay" id="historyModal">
-  <div class="pp-modal hist-modal">
-    <div class="pp-head">
-      <span class="pp-title">📜 Post history</span>
-      <input id="histSearch" type="search" placeholder="Filter by repo, text, or platform…" style="flex:1; max-width:400px;" />
-      <select id="histFilter">
-        <option value="all">All actions</option>
-        <option value="copy">📋 Copies only</option>
-        <option value="image">📸 Images only</option>
-      </select>
-      <button id="histExport" title="Download the history as JSON">⬇ Export</button>
-      <button id="histClear" title="Delete all history entries">🗑 Clear</button>
-      <button id="histClose">✕</button>
-    </div>
-    <div class="hist-stats" id="histStats"></div>
-    <div class="pp-body hist-body" id="histList"></div>
-  </div>
-</div>
-
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script defer src="_prompts.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
 <script>
-(() => {
-  const $ = (id) => document.getElementById(id);
-  const els = {
-    category: $('category'),
-    language: $('language'),
-    range: $('range'),
-    minStars: $('minStars'),
-    sort: $('sort'),
-    extra: $('extraQuery'),
-    refresh: $('refresh'),
-    token: $('token'),
-    filter: $('filterBox'),
-    reviews: $('reviews'),
-    preview: $('preview'),
-    langOrder: $('langOrder'),
-    pageName: $('pageName'),
-    hidePosted: $('hidePosted'),
-    search: $('searchBtn'),
-    results: $('results'),
-    status: $('status'),
-    statusText: $('statusText'),
-    banner: $('banner'),
-    themeBtn: $('themeBtn'),
-  };
-
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue / Element Plus failed to load — refresh to retry';
+} else {
   // NOTE on OR semantics: GitHub Search API's qualifiers (topic:, language:) AND
   // together by default and OR-grouping with parentheses SILENTLY returns 0.
   // The correct pattern is one request per topic, merged client-side.
@@ -1019,53 +1243,22 @@
   const CACHE_TTL_MS = 5 * 60 * 1000;
   const EMPTY_CACHE_TTL_MS = 60 * 1000;  // Empty responses expire quickly
 
-  // ---- Theme (synced with utility hub) ----
-  const applyTheme = (t) => {
-    document.documentElement.dataset.theme = t;
-    els.themeBtn.textContent = t === 'light' ? '☀' : '🌙';
-    localStorage.setItem(THEME_KEY, t);
+
+  const isoDaysAgo = (d) => { const dt = new Date(); dt.setDate(dt.getDate() - d); return dt.toISOString().slice(0, 10); };
+  const fmtNum = (n) => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);
+  const fmtVelocity = (n) => n >= 100 ? Math.round(n) : n >= 10 ? n.toFixed(1) : n.toFixed(2);
+  const timeAgo = (iso) => {
+    const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
+    if (s < 60) return s + 's ago';
+    if (s < 3600) return Math.floor(s / 60) + 'm ago';
+    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
+    return Math.floor(s / 86400) + 'd ago';
   };
-  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
-  els.themeBtn.onclick = () => applyTheme(
-    document.documentElement.dataset.theme === 'light' ? 'dark' : 'light'
-  );
+  const daysSince = (iso) => Math.max(1, (Date.now() - new Date(iso).getTime()) / 86400000);
+  const escape = (str) => String(str || '').replace(/[&<>"']/g, c =>
+    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
-  // ---- State ----
-  let refreshTimer = null;
-  let currentRequest = 0;
-  let lastRawItems = [];   // last successful merged items (before filter/sort)
-
-  try {
-    const saved = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
-    for (const k of ['category','language','range','minStars','sort','refresh','reviews','preview','langOrder']) {
-      if (saved[k] !== undefined && els[k]) els[k].value = saved[k];
-    }
-    if (saved.extra) els.extra.value = saved.extra;
-    if (saved.filter) els.filter.value = saved.filter;
-    if (saved.pageName) els.pageName.value = saved.pageName;
-    if (saved.hidePosted) els.hidePosted.checked = true;
-  } catch {}
-  els.token.value = localStorage.getItem(TOKEN_KEY) || '';
-
-  const saveState = () => {
-    localStorage.setItem(STATE_KEY, JSON.stringify({
-      category: els.category.value,
-      language: els.language.value,
-      range: els.range.value,
-      minStars: els.minStars.value,
-      sort: els.sort.value,
-      extra: els.extra.value,
-      filter: els.filter.value,
-      refresh: els.refresh.value,
-      reviews: els.reviews.value,
-      preview: els.preview.value,
-      langOrder: els.langOrder.value,
-      pageName: els.pageName.value,
-      hidePosted: els.hidePosted.checked,
-    }));
-    const t = els.token.value.trim();
-    if (t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY);
-  };
 
   // ---- Favorites (stores full repo snapshots so favorites view works offline) ----
   const loadFavs = () => { try { return JSON.parse(localStorage.getItem(FAV_KEY) || '{}'); } catch { return {}; } };
@@ -1085,6 +1278,7 @@
     owner: r.owner ? { login: r.owner.login, avatar_url: r.owner.avatar_url } : null,
     saved_at: Date.now(),
   });
+
 
   // ---- Courses (user-entered course reviews — reuses the repo review pipeline) ----
   const loadCourses = () => { try { return JSON.parse(localStorage.getItem(COURSES_KEY) || '{}'); } catch { return {}; } };
@@ -1154,6 +1348,7 @@
     _isCourse: true,
     _course: course,
   });
+
 
   // ---- Web Lessons (bilingual daily lesson content for the page) ----
   // Each lesson: title, one-line concept, why it matters, code example,
@@ -1452,6 +1647,7 @@
     };
   };
 
+
   // ---- Post history log (every copy/image action, browsable) ----
   const MAX_HISTORY = 500;
   const loadHistory = () => { try { return JSON.parse(localStorage.getItem(POST_HISTORY_KEY) || '[]'); } catch { return []; } };
@@ -1501,21 +1697,6 @@
       imageCount: entries.filter(e => e.action === 'image').length,
     };
   };
-  // Returns true if user chose to proceed, false to abort
-  const confirmDuplicate = (repo, upcomingAction) => {
-    const dup = checkDuplicate(repo);
-    if (!dup) return true;
-    const daysAgo = Math.floor((Date.now() - dup.lastTs) / (24 * 60 * 60 * 1000));
-    const hoursAgo = Math.floor((Date.now() - dup.lastTs) / (60 * 60 * 1000));
-    const whenText = daysAgo >= 1 ? `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago` : `${hoursAgo} hour${hoursAgo === 1 ? '' : 's'} ago`;
-    const parts = [];
-    parts.push(`⚠ You already posted about "${repo.full_name}" ${whenText}.`);
-    parts.push('');
-    parts.push(`Total actions on this repo: ${dup.totalCount} (📋 ${dup.copyCount} copies, 📸 ${dup.imageCount} images)`);
-    parts.push('');
-    parts.push(`Continue with this ${upcomingAction === 'image' ? '📸 image' : '📋 copy'} anyway?`);
-    return confirm(parts.join('\n'));
-  };
 
   // ---- Posted tracker (repos already published to the page) ----
   const POSTED_KEY = 'gh-trending-posted';
@@ -1528,9 +1709,6 @@
     savePosted(p);
   };
 
-  // ---- Per-repo draft tweaks (session-only, survive re-renders) ----
-  const draftEdits = new Map();  // full_name -> { en?, my? } manual edits
-  const tplPicks = new Map();    // full_name -> template offset from 🔀 shuffle
 
   // ---- Cache ----
   const loadCache = () => { try { return JSON.parse(localStorage.getItem(CACHE_KEY) || '{}'); } catch { return {}; } };
@@ -1568,36 +1746,6 @@
     if (dirty) saveCache(c);
   })();
 
-  // ---- Utils ----
-  const setStatus = (text, cls = '') => {
-    els.status.classList.remove('live', 'error', 'stale');
-    if (cls) els.status.classList.add(cls);
-    els.statusText.textContent = text;
-  };
-  const showBanner = (html, kind = 'warn') => {
-    els.banner.innerHTML = html;
-    els.banner.style.display = 'flex';
-    els.banner.className = 'banner';
-  };
-  const hideBanner = () => { els.banner.style.display = 'none'; };
-  const isoDaysAgo = (d) => { const dt = new Date(); dt.setDate(dt.getDate() - d); return dt.toISOString().slice(0, 10); };
-  const fmtNum = (n) => n >= 1000 ? (n / 1000).toFixed(1).replace(/\.0$/, '') + 'k' : String(n);
-  const fmtVelocity = (n) => n >= 100 ? Math.round(n) : n >= 10 ? n.toFixed(1) : n.toFixed(2);
-  const timeAgo = (iso) => {
-    const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-    if (s < 60) return s + 's ago';
-    if (s < 3600) return Math.floor(s / 60) + 'm ago';
-    if (s < 86400) return Math.floor(s / 3600) + 'h ago';
-    return Math.floor(s / 86400) + 'd ago';
-  };
-  const daysSince = (iso) => Math.max(1, (Date.now() - new Date(iso).getTime()) / 86400000);
-  const escape = (str) => String(str || '').replace(/[&<>"']/g, c =>
-    ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-  const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-
-  const renderSkeleton = () => {
-    els.results.innerHTML = Array(9).fill('<div class="skeleton"></div>').join('');
-  };
 
   // ---- Bilingual review-post generator (page voice) -------------------------
   // Builds an editorial Facebook post draft ABOUT the repo, signed by YOUR page
@@ -1774,70 +1922,7 @@ ${lesson.challenge.my}`;
     return { en, my };
   };
 
-  const genPost = (repo) => {
-    const seed = hashStr(repo.full_name || repo.id);
-    const pageName = els.pageName.value.trim();
-    const days = daysSince(repo.created_at);
-    const cached = readmeCacheGet(repo.full_name);
-    const summary = cached && isValidSummary(cached.summary) ? cached.summary : null;
-    const shuffle = tplPicks.get(repo.full_name) || 0;
-    const isCourse = !!repo._isCourse;
-    const isLesson = !!repo._isLesson;
-    const course = repo._course;
-    const lesson = repo._lesson;
 
-    // Lessons short-circuit the template pipeline — the lesson IS the post
-    if (isLesson) {
-      const { en, my } = buildLessonPost(lesson);
-      return {
-        author: pageName || 'Your Page',
-        isPage: !!pageName,
-        initial: pageName ? initialsOf(pageName) : '✍',
-        rating: 5,
-        en, my,
-        isSmart: true,
-      };
-    }
-    // Templates: course-specific if repo is a course, smart if README loaded, else generic
-    const canBeSmart = !isCourse && summary && (summary.tagline || summary.features?.length);
-    const bank = isCourse
-      ? { en: COURSE_EN, my: COURSE_MY }
-      : canBeSmart
-        ? { en: SMART_EN, my: SMART_MY }
-        : { en: POST_EN, my: POST_MY };
-    const idx = ((seed >> 3) + shuffle) % bank.en.length;
-    const vals = {
-      name: (repo.full_name || '').split('/').pop(),
-      ctx: ctxWord(repo),
-      stars: fmtNum(repo.stargazers_count),
-      vel: fmtVelocity(repo.stargazers_count / days),
-      desc: shortDesc(repo.description || (summary && summary.tagline) || 'a solid open-source project', 120),
-      tagline: shortDesc((summary && summary.tagline) || repo.description || (summary && summary.description) || '', 140),
-      topFeature: isCourse
-        ? shortDesc((course.topics || []).join(', ') || repo.description || 'the fundamentals you need', 160)
-        : shortDesc(summary && summary.features && summary.features[0], 160)
-                  || shortDesc((summary && summary.description) || repo.description, 140)
-                  || 'clean, thoughtful design',
-      featureCount: summary && summary.features ? summary.features.length : 'several',
-      // Course-only tokens
-      platform: isCourse ? course.platform : '',
-      level: isCourse ? course.level : '',
-      duration: isCourse ? course.duration : '',
-    };
-    const fill = (tpl, age) => tpl.replace(/\{(\w+)\}/g, (_, k) => k === 'age' ? age : (vals[k] ?? ''))
-      // Strip empty "-  — " artifacts left by absent optional fields
-      .replace(/\s*—\s*(?=[.,!?]|$)/g, '')
-      .replace(/\s{2,}/g, ' ');
-    return {
-      author: pageName || 'Your Page',
-      isPage: !!pageName,
-      initial: pageName ? initialsOf(pageName) : '✍',
-      rating: isCourse ? 5 : editorRating(repo),  // curated courses default to 5★
-      en: fill(bank.en[idx], ageEn(days)),
-      my: fill(bank.my[idx], ageMy(days)),
-      isSmart: canBeSmart || isCourse,
-    };
-  };
   // ---- README summary (lazy-fetched, cached per repo) ----
   const README_CACHE_KEY = 'gh-trending-readme-v1';
   const README_TTL_MS = 24 * 60 * 60 * 1000;  // 1 day
@@ -2061,796 +2146,6 @@ ${lesson.challenge.my}`;
     return { tagline, description, features, details };
   };
 
-  // Language-order helpers — one place decides EN/MY sequence for the whole app
-  const langMode = () => els.langOrder.value;
-  const showEn = () => langMode() !== 'my-only';
-  const showMy = () => langMode() !== 'en-only';
-  const myFirst = () => langMode() === 'my-first' || langMode() === 'my-only';
-  // In my-only mode, if the Myanmar version is missing (translation not yet
-  // loaded), fall back to English with a marker so the section isn't blank.
-  const withFallback = (myBlock, enBlock) => {
-    if (langMode() === 'my-only' && !myBlock && enBlock) return enBlock;
-    return myBlock;
-  };
-
-  const renderReadmeContent = (summary, my) => {
-    if (!summary) return 'No text summary could be extracted from the README.';
-    my = my || {};
-    const parts = [];
-    const enOn = showEn(), myOn = showMy(), first = myFirst() ? 'my' : 'en';
-
-    if (summary.tagline) {
-      const enBlock = `<div class="rd-tagline">✨ ${escape(summary.tagline)}</div>`;
-      const myBlock = my.tagline_my ? `<div class="rd-tagline rd-my" lang="my">✨ ${escape(my.tagline_my)}</div>` : '';
-      const seq = first === 'my' ? [myOn && myBlock, enOn && enBlock] : [enOn && enBlock, myOn && myBlock];
-      parts.push(...seq.filter(Boolean));
-    }
-    if (summary.description && summary.description !== summary.tagline) {
-      const enBlock = `<div class="rd-para"><span class="rd-h">📖 About (EN)</span>${escape(summary.description)}</div>`;
-      const myBlock = my.description_my ? `<div class="rd-para"><span class="rd-h">📖 မိတ်ဆက် (မြန်မာ)</span><span lang="my">${escape(my.description_my)}</span></div>` : '';
-      const seq = first === 'my' ? [myOn && myBlock, enOn && enBlock] : [enOn && enBlock, myOn && myBlock];
-      parts.push(...seq.filter(Boolean));
-    }
-    if (summary.features && summary.features.length) {
-      const enBlock = `<div class="rd-para"><span class="rd-h">🎯 Key Features (EN)</span><ul class="rd-list">${summary.features.map(f => `<li>${escape(f)}</li>`).join('')}</ul></div>`;
-      const myFeatures = (my.features_my || []).filter(Boolean);
-      const myBlock = myFeatures.length
-        ? `<div class="rd-para"><span class="rd-h">🎯 အဓိကလုပ်ဆောင်ချက်များ (မြန်မာ)</span><ul class="rd-list">${myFeatures.map(f => `<li lang="my">${escape(f)}</li>`).join('')}</ul></div>`
-        : '';
-      const seq = first === 'my' ? [myOn && myBlock, enOn && enBlock] : [enOn && enBlock, myOn && myBlock];
-      parts.push(...seq.filter(Boolean));
-    }
-    if (summary.details && summary.details.length) {
-      const detailBlocks = summary.details.map((d, i) => {
-        const myText = (my.details_my && my.details_my[i]) || '';
-        const enPara = `<p><b>💡 ${escape(d.heading)} (EN):</b> ${escape(d.text)}</p>`;
-        const myPara = myText ? `<p lang="my"><b>💡 ${escape(d.heading)} (မြန်မာ):</b> ${escape(myText)}</p>` : '';
-        const seq = first === 'my' ? [myOn && myPara, enOn && enPara] : [enOn && enPara, myOn && myPara];
-        return `<div class="rd-details">${seq.filter(Boolean).join('')}</div>`;
-      }).join('');
-      parts.push(`<div class="rd-para"><span class="rd-h">📚 Deeper Explanation</span>${detailBlocks}</div>`);
-    }
-    return parts.join('') || '<em style="opacity:0.6">Nothing to show for this language selection.</em>';
-  };
-
-  // ---- Save review as a Facebook-ready PNG image ----
-  const buildShareStage = (repo, card) => {
-    const p = genPost(repo);
-    const stars = '★'.repeat(p.rating) + '☆'.repeat(5 - p.rating);
-    const reviewEl = card ? card.querySelector('.fb-review') : null;
-    const enText = (reviewEl?.querySelector('.comment')?.textContent || p.en).trim();
-    const myText = (reviewEl?.querySelector('.comment-my')?.textContent || p.my).trim();
-    const cached = readmeCacheGet(repo.full_name);
-    const summary = cached && isValidSummary(cached.summary) ? cached.summary : null;
-    const myCached = summary ? {
-      tagline_my: translateCacheGet(summary.tagline || '') || '',
-    } : null;
-    const starsFmt = repo.stargazers_count >= 1000
-      ? (repo.stargazers_count / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
-      : repo.stargazers_count;
-    const forksFmt = repo.forks_count >= 1000
-      ? (repo.forks_count / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
-      : repo.forks_count;
-    const [owner, name] = (repo.full_name || '').split('/');
-    // Language order for blocks
-    const primary = myFirst()
-      ? { label: 'မြန်မာ', text: myText }
-      : { label: 'English', text: enText };
-    const secondary = myFirst()
-      ? (showEn() ? { label: 'English', text: enText } : null)
-      : (showMy() ? { label: 'မြန်မာ', text: myText } : null);
-
-    const stage = document.createElement('div');
-    stage.className = 'share-stage';
-    stage.innerHTML = `
-      <div class="sc-brand">
-        <div class="sc-logo">${escape(p.initial)}</div>
-        <div class="sc-brand-text">
-          <div class="name">${escape(p.author)}</div>
-          <div class="sub">GitHub Trending Pick · ${escape(new Date().toLocaleDateString())}</div>
-        </div>
-        <div class="badge">🐙 Open Source</div>
-      </div>
-      <div class="sc-repo">
-        <div class="owner">${escape(owner || '')} /</div>
-        <div class="name">${escape(name || repo.full_name)}</div>
-        ${repo.description ? `<div class="desc">${escape(repo.description)}</div>` : ''}
-        <div class="meta">
-          ${repo.language ? `<span>💻 <b>${escape(repo.language)}</b></span>` : ''}
-          <span>⭐ <b>${escape(starsFmt)}</b> stars</span>
-          <span>🍴 <b>${escape(forksFmt)}</b> forks</span>
-          <span>🔥 <b>${fmtVelocity(repo.stargazers_count / daysSince(repo.created_at))}</b>/day</span>
-        </div>
-      </div>
-      <div class="sc-stars">${stars} <span style="color:#9a9ab0; font-size:16px; margin-left:8px;">Editor's rating · ${p.rating}/5</span></div>
-      ${summary && (summary.tagline || (myCached && myCached.tagline_my)) ? `
-      <div class="sc-tag">
-        ${myFirst() && myCached && myCached.tagline_my ? `<div>✨ ${escape(myCached.tagline_my)}</div>` : ''}
-        ${summary.tagline ? `<div${myFirst() && myCached && myCached.tagline_my ? ' style="margin-top:6px; color:#9a9ab0; font-size:14px;"' : ''}>✨ ${escape(summary.tagline)}</div>` : ''}
-      </div>` : ''}
-      <div class="sc-review">
-        <div class="block">
-          <div class="lang">🇲🇲 ${escape(primary.label)}</div>
-          <div class="txt">${escape(primary.text)}</div>
-        </div>
-        ${secondary ? `
-        <div class="block">
-          <div class="lang">🇬🇧 ${escape(secondary.label)}</div>
-          <div class="txt">${escape(secondary.text)}</div>
-        </div>` : ''}
-      </div>
-      <div class="sc-footer">
-        <div class="url">🔗 github.com/${escape(repo.full_name)}</div>
-        <div class="tags">${(repo.topics || []).slice(0, 5).map(t => '#' + t.replace(/-/g, '')).join(' ')} #github #trending</div>
-      </div>
-    `;
-    return stage;
-  };
-
-  const saveReviewAsImage = async (repo, card, btn) => {
-    if (typeof html2canvas === 'undefined') {
-      alert('html2canvas library did not load. Check your internet connection.');
-      return;
-    }
-    const orig = btn.textContent;
-    btn.textContent = '⏳';
-    btn.disabled = true;
-    // Ensure README + translations before rendering so image includes tagline
-    try {
-      const summary = await fetchReadmeSummary(repo);
-      if (isValidSummary(summary)) await translateSummary(summary);
-    } catch {}
-    const stage = buildShareStage(repo, card);
-    document.body.appendChild(stage);
-    try {
-      const canvas = await html2canvas(stage, {
-        backgroundColor: null,
-        scale: 2,           // 2x for retina-quality output
-        useCORS: true,
-        logging: false,
-      });
-      canvas.toBlob((blob) => {
-        if (!blob) return;
-        logPostAction(repo, 'image', buildShareText(repo, card));
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        const safeName = (repo.full_name || 'repo').replace(/[\/\\:*?"<>|]/g, '-');
-        a.href = url;
-        a.download = `${safeName}-review.png`;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 4000);
-      }, 'image/png');
-      btn.classList.add('done');
-      btn.textContent = '✓';
-      setTimeout(() => { btn.classList.remove('done'); btn.textContent = orig; btn.disabled = false; }, 1500);
-    } catch (e) {
-      btn.textContent = '✗';
-      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
-    } finally {
-      document.body.removeChild(stage);
-    }
-  };
-
-  // ---- AI rewrite prompt (Gemini / ChatGPT / Claude — provider-agnostic) ----
-  const buildAiPrompt = (repo, card) => {
-    const p = genPost(repo);
-    const postText = buildShareText(repo, card);
-    const pageName = p.author && p.author !== 'Your Page' ? p.author : 'a bilingual open-source content page';
-    const langHint = myFirst()
-      ? 'Myanmar (မြန်မာ) is the primary language for the audience — write it naturally and colloquially, not word-for-word translation. English follows as secondary.'
-      : 'English is primary, Myanmar (မြန်မာ) is secondary. Keep Myanmar natural and idiomatic, not literal translation.';
-    return `You are a senior social media content writer for the Facebook page "${pageName}", which posts daily about trending open-source projects for web developers and digital marketers.
-
-Rewrite the GitHub Trending post below so it performs better on Facebook. Requirements:
-
-1. Keep BOTH English and Myanmar (မြန်မာ) versions. ${langHint}
-2. Preserve every factual claim exactly: repo name, star count, forks, growth rate, feature list, language, links, hashtags.
-3. Improve the writing:
-   - Stronger emotional hook in the first line (curiosity, contrarian, surprising fact)
-   - Concrete "who this is for" callout (juniors, senior devs, marketers, teams)
-   - Specific call-to-action (Follow, Save, Share, Tag a friend, Comment)
-   - Better rhythm and flow — vary sentence length
-   - Natural social-media tone, not stiff or corporate
-4. Keep or improve the emoji usage — enough for engagement, not spammy.
-5. Keep the section structure (ABOUT, REVIEW, follow CTA, link, preview URL, hashtags).
-6. Return ONLY the rewritten post text, no explanation, no preamble, no markdown code fences.
-
----
-
-${postText}`;
-  };
-
-  const aiRewritePrompt = async (repo, card, btn) => {
-    const orig = btn.textContent;
-    btn.textContent = '⏳';
-    btn.disabled = true;
-    // Ensure README + translations are loaded so the prompt includes them
-    try {
-      const summary = await fetchReadmeSummary(repo);
-      if (isValidSummary(summary)) await translateSummary(summary);
-    } catch {}
-    const prompt = buildAiPrompt(repo, card);
-    try {
-      await navigator.clipboard.writeText(prompt);
-      // Open Gemini in a new tab — user pastes into the already-focused prompt box
-      window.open('https://gemini.google.com/app', '_blank', 'noopener');
-      btn.classList.add('done');
-      btn.textContent = '✓';
-      setTimeout(() => { btn.classList.remove('done'); btn.textContent = orig; btn.disabled = false; }, 1800);
-    } catch {
-      btn.textContent = '✗';
-      setTimeout(() => { btn.textContent = orig; btn.disabled = false; }, 1500);
-    }
-  };
-
-  const readmeSummaryToShareText = (summary, my) => {
-    if (!summary) return '';
-    my = my || {};
-    const enOn = showEn(), myOn = showMy(), first = myFirst() ? 'my' : 'en';
-    const parts = [];
-    const push2 = (enBlock, myBlock) => {
-      const seq = first === 'my' ? [myOn && myBlock, enOn && enBlock] : [enOn && enBlock, myOn && myBlock];
-      seq.filter(Boolean).forEach(b => parts.push(b));
-    };
-    if (summary.tagline) {
-      push2(`✨ ${summary.tagline}`, my.tagline_my ? `✨ ${my.tagline_my}` : '');
-    }
-    if (summary.description && summary.description !== summary.tagline) {
-      push2(
-        `\n📖 About:\n${summary.description}`,
-        my.description_my ? `\n📖 မိတ်ဆက်:\n${my.description_my}` : ''
-      );
-    }
-    if (summary.features && summary.features.length) {
-      const enBlock = `\n🎯 Key Features:\n${summary.features.map(f => '  • ' + f).join('\n')}`;
-      const myFeatures = (my.features_my || []).filter(Boolean);
-      const myBlock = myFeatures.length
-        ? `\n🎯 အဓိကလုပ်ဆောင်ချက်များ:\n${myFeatures.map(f => '  • ' + f).join('\n')}`
-        : '';
-      push2(enBlock, myBlock);
-    }
-    if (summary.details && summary.details.length) {
-      parts.push(`\n📚 Deeper Explanation:`);
-      summary.details.forEach((d, i) => {
-        const myText = (my.details_my && my.details_my[i]) || '';
-        push2(
-          `\n💡 ${d.heading}:\n${d.text}`,
-          myText ? `💡 ${d.heading} (မြန်မာ):\n${myText}` : ''
-        );
-      });
-    }
-    return parts.join('\n');
-  };
-
-  const fetchReadmeSummary = async (repo) => {
-    // Courses and lessons don't have GitHub READMEs — skip fetch entirely
-    if (repo._isCourse || repo._isLesson) return null;
-    const cached = readmeCacheGet(repo.full_name);
-    if (cached && isValidSummary(cached.summary)) return cached.summary;
-    const headers = { 'Accept': 'application/vnd.github.raw' };
-    const token = els.token.value.trim();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
-    const url = `https://api.github.com/repos/${repo.full_name}/readme`;
-    const res = await fetch(url, { headers });
-    if (!res.ok) throw new Error(`README fetch failed: ${res.status}`);
-    const markdown = await res.text();
-    const summary = summarizeReadme(markdown);
-    readmeCachePut(repo.full_name, summary);
-    return summary;
-  };
-
-  const loadReadmeInto = async (reviewEl, repo) => {
-    // Courses and lessons have no README; hide the block entirely
-    if (repo._isCourse || repo._isLesson) {
-      const readmeBox = reviewEl.querySelector('.readme');
-      if (readmeBox) readmeBox.style.display = 'none';
-      return;
-    }
-    let readmeBox = reviewEl.querySelector('.readme');
-    if (readmeBox && readmeBox.dataset.loaded) return;
-    if (!readmeBox) {
-      readmeBox = document.createElement('div');
-      readmeBox.className = 'readme loading';
-      readmeBox.innerHTML = '<div class="readme-label"><span>📄 README Summary</span><span class="readme-count"></span></div><div class="readme-content"></div>';
-      reviewEl.querySelector('.body').appendChild(readmeBox);
-    }
-    readmeBox.classList.add('loading');
-    try {
-      const summary = await fetchReadmeSummary(repo);
-      readmeBox.classList.remove('loading', 'error');
-      readmeBox.dataset.loaded = '1';
-      const content = readmeBox.querySelector('.readme-content');
-      const countEl = readmeBox.querySelector('.readme-count');
-      if (isValidSummary(summary)) {
-        content.innerHTML = renderReadmeContent(summary);
-        // Kick off Myanmar translation in background; refresh render when done
-        translateSummary(summary).then(my => {
-          content.innerHTML = renderReadmeContent(summary, my);
-        }).catch(() => {});
-        const featureCount = (summary.features || []).length;
-        if (countEl) {
-          countEl.textContent = featureCount
-            ? `${featureCount} feature${featureCount === 1 ? '' : 's'} detected`
-            : '';
-        }
-        // Upgrade the review draft with smart content that references the
-        // README summary — but preserve any manual edits the user made.
-        const edited = draftEdits.get(repo.full_name) || {};
-        if (edited.en === undefined || edited.my === undefined) {
-          const p = genPost(repo);
-          if (p.isSmart) {
-            const enEl = reviewEl.querySelector('.comment');
-            const myEl = reviewEl.querySelector('.comment-my');
-            if (enEl && edited.en === undefined) enEl.textContent = p.en;
-            if (myEl && edited.my === undefined) myEl.textContent = p.my;
-            // Also add a small "smart" tag next to the timestamp
-            const hdr = reviewEl.querySelector('.header-row .when');
-            if (hdr && !reviewEl.querySelector('.smart-tag')) {
-              const tag = document.createElement('span');
-              tag.className = 'smart-tag edited-tag';
-              tag.title = 'Draft rewritten using README-derived facts';
-              tag.textContent = '· smart';
-              tag.style.color = 'var(--success)';
-              hdr.after(tag);
-            }
-          }
-        }
-      } else {
-        content.textContent = 'No text summary could be extracted from the README.';
-        readmeBox.classList.add('error');
-      }
-    } catch (e) {
-      readmeBox.classList.remove('loading');
-      readmeBox.classList.add('error');
-      readmeBox.dataset.loaded = '1';
-      readmeBox.querySelector('.readme-content').textContent = 'README unavailable (rate-limited or private).';
-    }
-  };
-
-  // ---- Repo preview image (GitHub auto-generated social card) ----
-  // Uses opengraph.githubassets.com which returns a ~1200x600 PNG showing
-  // repo name, description, contributor avatars, star/fork counts.
-  const previewUrl = (repo) => {
-    if (repo._isCourse) {
-      try {
-        const host = new URL(repo._course.url).hostname;
-        return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=256`;
-      } catch { return ''; }
-    }
-    if (repo._isLesson) return '';
-    return `https://opengraph.githubassets.com/1/${repo.full_name}`;
-  };
-  const renderPreview = (repo) => {
-    if (els.preview.value !== 'on') return '';
-    // Courses and lessons have no meaningful GitHub-style preview
-    if (repo._isCourse || repo._isLesson) return '';
-    const url = previewUrl(repo);
-    return `
-      <a class="preview-wrap" data-action="lightbox" data-src="${escape(url)}" data-name="${escape(repo.full_name)}">
-        <img src="${escape(url)}" alt="${escape(repo.full_name)} preview" loading="lazy" />
-        <div class="preview-actions">
-          <button data-action="copy-preview" data-src="${escape(url)}" title="Copy image URL for sharing">📷 URL</button>
-          <button data-action="download-preview" data-src="${escape(url)}" data-name="${escape(repo.name || repo.full_name.split('/').pop())}" title="Download screenshot">⬇</button>
-        </div>
-      </a>`;
-  };
-
-  const renderReview = (repo) => {
-    const mode = els.reviews.value;
-    if (mode === 'off') return '';
-    const startCollapsed = mode !== 'expanded';
-    const p = genPost(repo);
-    const stars = '★'.repeat(p.rating) + '☆'.repeat(5 - p.rating);
-    const pageBadge = p.isPage
-      ? '<span title="Signed by your page" style="font-size:10px; padding:1px 5px; background:rgba(24,119,242,0.15); color:#1877f2; border-radius:3px; margin-left:2px;">Page</span>'
-      : '<span title="Set &quot;Your page name&quot; above so drafts are signed by your page" style="font-size:10px; padding:1px 5px; background:rgba(245,158,11,0.15); color:var(--warn); border-radius:3px; margin-left:2px;">set page name</span>';
-    const toggleLabel = startCollapsed ? 'See more ▾' : 'See less ▴';
-    const edited = draftEdits.get(repo.full_name) || {};
-    const enText = edited.en !== undefined ? edited.en : p.en;
-    const myText = edited.my !== undefined ? edited.my : p.my;
-    const editedTag = (edited.en !== undefined || edited.my !== undefined)
-      ? '<span class="edited-tag" title="You edited this draft — 🔀 resets it">· edited</span>' : '';
-    return `
-      <div class="fb-review${startCollapsed ? ' collapsed' : ''}" data-name="${escape(repo.full_name)}">
-        <div class="avatar">${escape(p.initial)}</div>
-        <div class="body">
-          <div class="header-row">
-            <span class="name">${escape(p.author)}</span>
-            ${pageBadge}
-            <span class="rating" title="Editor's rating — derived from real star count and growth rate">${stars}</span>
-            <span class="when" title="Draft — review before you publish">· draft</span>
-            ${editedTag}
-            <span class="fb-icon" title="Facebook post draft">ⓕ</span>
-            <button class="copy-btn" data-action="shuffle-post" title="Try a different template (resets your edits)">🔀</button>
-            <button class="copy-btn" data-action="preview-post" title="Preview the full assembled post">👁</button>
-            <button class="copy-btn" data-action="save-image" title="Save this review as a Facebook-ready image (PNG)">📸</button>
-            <button class="copy-btn" data-action="ai-rewrite" title="Copy AI rewrite prompt + open Gemini in a new tab">🤖</button>
-            <button class="copy-btn" data-action="copy-review" title="Copy post text for sharing">📋</button>
-          </div>
-          ${(() => {
-            const enBlock = showEn() ? `<div class="comment" contenteditable="true" spellcheck="false" title="Click to edit this draft before copying">${escape(enText)}</div>` : '';
-            const myBlock = showMy() ? `<div class="comment-my" contenteditable="true" spellcheck="false" lang="my" title="Click to edit this draft before copying">${escape(myText)}</div>` : '';
-            return myFirst() ? myBlock + enBlock : enBlock + myBlock;
-          })()}
-          <button class="toggle" data-action="toggle-review">${toggleLabel}</button>
-          <div class="readme"><div class="readme-label"><span>📄 README Summary</span><span class="readme-count"></span></div><div class="readme-content"></div></div>
-        </div>
-      </div>`;
-  };
-
-  // ---- Final post text (single source of truth for copy AND preview) ----
-  // Reads the on-screen draft (including manual edits) when the card is given.
-  const buildShareText = (repo, card) => {
-    const p = genPost(repo);
-    const reviewEl = card ? card.querySelector('.fb-review') : null;
-    const enText = (reviewEl?.querySelector('.comment')?.textContent || p.en).trim();
-    const myText = (reviewEl?.querySelector('.comment-my')?.textContent || p.my).trim();
-    const stars = '★'.repeat(p.rating) + '☆'.repeat(5 - p.rating);
-    const starsFmt = repo.stargazers_count >= 1000
-      ? (repo.stargazers_count / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
-      : repo.stargazers_count;
-    const meta = [];
-    if (repo.language) meta.push(`💻 ${repo.language}`);
-    meta.push(`⭐ ${starsFmt} stars`);
-    if (repo.forks_count) meta.push(`🍴 ${repo.forks_count >= 1000 ? (repo.forks_count/1000).toFixed(1).replace(/\.0$/, '') + 'k' : repo.forks_count} forks`);
-    meta.push(`🔥 ${fmtVelocity(repo.stargazers_count / daysSince(repo.created_at))} stars/day`);
-    const hashtags = [
-      ...(repo.topics || []).slice(0, 4).map(t => '#' + t.replace(/-/g, '')),
-      '#github', '#opensource', '#developer', '#trending', '#coding'
-    ];
-    // Include structured README summary if already cached (loaded via expand/preview)
-    const readmeCached = readmeCacheGet(repo.full_name);
-    const readmeSummary = readmeCached && isValidSummary(readmeCached.summary) ? readmeCached.summary : null;
-    // Pull cached MY translations synchronously (populated by translateSummary
-    // during loadReadmeInto). Missing pieces just render EN-only.
-    const my = readmeSummary ? {
-      tagline_my: translateCacheGet(readmeSummary.tagline || '') || '',
-      description_my: translateCacheGet(readmeSummary.description || '') || '',
-      features_my: (readmeSummary.features || []).map(f => translateCacheGet(f) || ''),
-      details_my: (readmeSummary.details || []).map(d => translateCacheGet(d.text) || ''),
-    } : null;
-    const readmeText = readmeSummary ? readmeSummaryToShareText(readmeSummary, my) : '';
-    const featureCount = readmeSummary && readmeSummary.features ? readmeSummary.features.length : 0;
-    if (featureCount) meta.push(`🎯 ${featureCount} feature${featureCount === 1 ? '' : 's'}`);
-    const followCta = p.isPage
-      ? (myFirst()
-          ? `👉 နေ့စဉ် Open-source ရွေးချယ်မှုတွေအတွက် ${p.author} ကို Follow လုပ်ထားပါ!\n👉 Follow ${p.author} for daily open-source picks!`
-          : `👉 Follow ${p.author} for daily open-source picks!\n👉 နေ့စဉ် Open-source ရွေးချယ်မှုတွေအတွက် ${p.author} ကို Follow လုပ်ထားပါ!`)
-      : (myFirst()
-          ? `👉 နေ့စဉ် Open-source ရွေးချယ်မှုတွေအတွက် ကျွန်တော်တို့ Page ကို Follow လုပ်ထားပါ!`
-          : `👉 Follow our page for daily open-source picks!`);
-    // Assemble review block honoring language preference
-    const enReview = showEn() ? `🇬🇧 English:\n${enText}` : '';
-    const myReview = showMy() ? `🇲🇲 မြန်မာ:\n${myText}` : '';
-    const reviewParts = myFirst() ? [myReview, enReview] : [enReview, myReview];
-    const reviewBody = reviewParts.filter(Boolean).join('\n\n');
-    // Header label reflects the primary language
-    const reviewHeader = myFirst() ? '📝 သုံးသပ်ချက် / REVIEW' : '📝 REVIEW / သုံးသပ်ချက်';
-    const aboutHeader = myFirst() ? '📄 မိတ်ဆက် / ABOUT' : '📄 ABOUT / မိတ်ဆက်';
-    const readmeBlockDisplay = readmeText
-      ? `\n━━━━━━━━━━━━━━━━━━━━━\n${aboutHeader}\n━━━━━━━━━━━━━━━━━━━━━\n\n${readmeText}\n`
-      : '';
-    return `🚀 GITHUB TRENDING PICK
-
-📦 ${repo.full_name}
-${repo.description ? '💬 ' + repo.description + '\n' : ''}${meta.join('  •  ')}
-⭐ Editor's rating: ${stars} (${p.rating}/5 — based on stars & growth)
-${readmeBlockDisplay}
-━━━━━━━━━━━━━━━━━━━━━
-${reviewHeader}
-━━━━━━━━━━━━━━━━━━━━━
-
-${reviewBody}
-
-${p.isPage ? '— ' + p.author + '\n\n' : ''}${followCta}
-🔗 Try it here: ${repo.html_url}
-📸 Preview: ${previewUrl(repo)}
-
-${hashtags.join(' ')}`;
-  };
-
-  // ---- Sort / filter (client-side) ----
-  const applySortAndFilter = (items) => {
-    const sortKey = els.sort.value;
-    const filter = els.filter.value.trim().toLowerCase();
-    let out = items.slice();
-    if (els.hidePosted.checked) out = out.filter(r => !postedAt(r.full_name));
-    if (filter) {
-      out = out.filter(r =>
-        (r.full_name || '').toLowerCase().includes(filter) ||
-        (r.description || '').toLowerCase().includes(filter) ||
-        (r.owner && r.owner.login || '').toLowerCase().includes(filter) ||
-        (r.topics || []).some(t => t.toLowerCase().includes(filter))
-      );
-    }
-    if (sortKey === 'velocity') {
-      out.sort((a, b) => (b.stargazers_count / daysSince(b.created_at)) - (a.stargazers_count / daysSince(a.created_at)));
-    } else if (sortKey === 'stars') {
-      out.sort((a, b) => b.stargazers_count - a.stargazers_count);
-    } else if (sortKey === 'newest') {
-      out.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
-    } else if (sortKey === 'forks') {
-      out.sort((a, b) => b.forks_count - a.forks_count);
-    }
-    return out.slice(0, 30);
-  };
-
-  const renderResults = (rawItems) => {
-    lastRawItems = rawItems;
-    const items = applySortAndFilter(rawItems);
-    if (!items.length) {
-      const hasClientFilter = !!els.filter.value.trim();
-      const rangeName = els.range.options[els.range.selectedIndex].text;
-      const catName = els.category.options[els.category.selectedIndex].text;
-      const msg = hasClientFilter
-        ? `<div class="empty">
-             <div class="m-lottie lg" data-src="https://assets2.lottiefiles.com/packages/lf20_ydo1amjm.json" data-loop="true"></div>
-             <div style="margin-top:8px;">No results match your local filter. <a href="#" id="clearFilterLink" style="color:var(--accent)">Clear filter</a></div>
-           </div>`
-        : `<div class="empty">
-            <div class="m-lottie lg" data-src="https://assets2.lottiefiles.com/packages/lf20_ydo1amjm.json" data-loop="true"></div>
-            <div style="font-size:15px; margin: 8px 0;">No ${escape(catName)} repos with ${els.minStars.value}+ stars in ${escape(rangeName)}.</div>
-            <div style="font-size:12px; color:var(--text-mute); margin-bottom:14px;">Repos need to explicitly self-tag with our topic filters. Many good ones don't.</div>
-            <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:center;">
-              <button id="tryNoTopics" class="primary">🌐 Search without topic filter (broadest)</button>
-              <button id="tryLoosenStars">Lower min stars → 10+</button>
-              <button id="tryLongerRange">Wider range → 1 year</button>
-            </div>
-           </div>`;
-      els.results.innerHTML = msg;
-      $('clearFilterLink')?.addEventListener('click', (e) => { e.preventDefault(); els.filter.value = ''; rerender(); });
-      $('tryNoTopics')?.addEventListener('click', () => search({ force: true, noTopics: true }));
-      $('tryLoosenStars')?.addEventListener('click', () => { els.minStars.value = '10'; search({ force: true }); });
-      $('tryLongerRange')?.addEventListener('click', () => { els.range.value = '365'; search({ force: true }); });
-      return;
-    }
-    const marketingSet = new Set(CATEGORY_TOPICS.marketing);
-    const webdevSet = new Set(CATEGORY_TOPICS.webdev);
-    const sortKey = els.sort.value;
-
-    els.results.innerHTML = items.map((r, i) => {
-      const langColor = LANG_COLORS[(r.language || '').toLowerCase()] || 'var(--accent)';
-      const topics = (r.topics || [])
-        .filter(t => webdevSet.has(t) || marketingSet.has(t))
-        .slice(0, 5);
-      const topicHtml = topics.length
-        ? `<div class="topics">${topics.map(t => `<span class="topic${marketingSet.has(t) ? ' marketing' : ''}">${escape(t)}</span>`).join('')}</div>`
-        : '';
-      const velocity = r.stargazers_count / daysSince(r.created_at);
-      const showVelocity = sortKey === 'velocity' || velocity >= 5;
-      const favOn = isFav(r);
-      const posted = postedAt(r.full_name);
-      const owner = r.owner || {};
-      return `
-        <div class="card${posted ? ' posted' : ''}" data-id="${r.id}" data-name="${escape(r.full_name)}">
-          <div class="card-head">
-            ${owner.avatar_url ? `<img src="${escape(owner.avatar_url)}&s=64" alt="" loading="lazy" />` : ''}
-            <div class="title-block">
-              <div class="rank">#${i + 1} · ${escape(owner.login || '')}</div>
-              <h3><a href="${escape(r.html_url)}" target="_blank" rel="noopener">${escape((r.full_name || '').split('/').pop() || r.full_name)}</a></h3>
-            </div>
-            <div class="actions">
-              <button class="copy-btn" data-action="copy" title="Copy URL">⧉</button>
-              <button class="posted-btn ${posted ? 'on' : ''}" data-action="posted" title="${posted ? 'Posted ' + timeAgo(posted) + ' — click to unmark' : 'Mark as posted to your page'}">${posted ? '✅' : '📤'}</button>
-              ${r._isCourse
-                ? `<button class="fav-btn" data-action="clone-course" data-id="${escape(r._course.id)}" title="Duplicate this course into the form (edit before saving)">🧬</button>
-                   <button class="fav-btn" data-action="delete-course" data-id="${escape(r._course.id)}" title="Remove this course from your list">🗑</button>`
-                : `<button class="fav-btn ${favOn ? 'on' : ''}" data-action="fav" title="${favOn ? 'Remove from favorites' : 'Save to favorites'}">${favOn ? '★' : '☆'}</button>`
-              }
-            </div>
-          </div>
-          <div class="desc">${escape(r.description) || '<em style="opacity:0.6">No description</em>'}</div>
-          ${topicHtml}
-          ${renderPreview(r)}
-          ${renderReview(r)}
-          <div class="meta">
-            ${r.language ? `<span><span class="lang-dot" style="background:${langColor}"></span>${escape(r.language)}</span>` : ''}
-            <span class="star-icon">★ ${fmtNum(r.stargazers_count)}</span>
-            <span>⑂ ${fmtNum(r.forks_count)}</span>
-            ${r.open_issues_count ? `<span title="Open issues">◉ ${fmtNum(r.open_issues_count)}</span>` : ''}
-            ${showVelocity ? `<span class="velocity" title="Stars per day since creation">↗ ${fmtVelocity(velocity)}/d</span>` : ''}
-            <span title="${escape(r.created_at)}">🆕 ${timeAgo(r.created_at)}</span>
-            ${posted ? `<span class="posted-tag" title="You marked this repo as posted">✔ posted ${timeAgo(posted)}</span>` : ''}
-          </div>
-        </div>`;
-    }).join('');
-
-    // Auto-load README summaries for reviews that render already-expanded
-    // (e.g. "Show (expanded)" mode). Staggered by 120ms per card to avoid burst.
-    const expanded = els.results.querySelectorAll('.fb-review:not(.collapsed)');
-    expanded.forEach((review, i) => {
-      const name = review.closest('.card')?.dataset.name;
-      const repo = items.find(r => r.full_name === name);
-      if (!repo) return;
-      setTimeout(() => loadReadmeInto(review, repo), i * 120);
-    });
-  };
-
-  // Lightbox
-  const $lb = $('lightbox');
-  const $lbImg = $('lightboxImg');
-  $('lightboxClose').addEventListener('click', () => $lb.classList.remove('open'));
-  $lb.addEventListener('click', (e) => { if (e.target === $lb) $lb.classList.remove('open'); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $lb.classList.contains('open')) $lb.classList.remove('open'); });
-
-  // ---- Post preview modal ----
-  const $pp = $('postPreview');
-  let ppRepo = null, ppCard = null;
-  const renderPostPreview = () => {
-    if (!ppRepo) return;
-    const p = genPost(ppRepo);
-    $('ppAvatar').textContent = p.initial;
-    $('ppName').textContent = p.author;
-    $('ppText').textContent = buildShareText(ppRepo, ppCard);
-    $('ppImg').style.display = '';
-    $('ppImg').innerHTML = `<img src="${escape(previewUrl(ppRepo))}" alt="Repo preview image" loading="lazy"
-      onerror="this.parentElement.style.display='none'" />`;
-  };
-  const openPostPreview = (repo, card) => {
-    ppRepo = repo; ppCard = card;
-    renderPostPreview();
-    $pp.classList.add('open');
-    // Ensure both README summary AND Myanmar translations are loaded before
-    // the user copies. Refresh the preview after each step.
-    (async () => {
-      try {
-        const summary = await fetchReadmeSummary(repo);
-        if ($pp.classList.contains('open')) renderPostPreview();
-        if (isValidSummary(summary)) {
-          await translateSummary(summary);  // populates the translate cache
-          if ($pp.classList.contains('open')) renderPostPreview();
-        }
-      } catch {}
-    })();
-  };
-  const closePostPreview = () => { $pp.classList.remove('open'); ppRepo = null; ppCard = null; };
-  $('ppClose').addEventListener('click', closePostPreview);
-  $pp.addEventListener('click', (e) => { if (e.target === $pp) closePostPreview(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $pp.classList.contains('open')) closePostPreview(); });
-  $('ppImage').addEventListener('click', () => {
-    if (!ppRepo) return;
-    if (!confirmDuplicate(ppRepo, 'image')) return;
-    saveReviewAsImage(ppRepo, ppCard, $('ppImage'));
-  });
-  $('ppAi').addEventListener('click', () => {
-    if (!ppRepo) return;
-    aiRewritePrompt(ppRepo, ppCard, $('ppAi'));
-  });
-  $('ppCopy').addEventListener('click', () => {
-    if (!ppRepo) return;
-    if (!confirmDuplicate(ppRepo, 'copy')) return;
-    const shareText = buildShareText(ppRepo, ppCard);
-    navigator.clipboard.writeText(shareText).then(() => {
-      logPostAction(ppRepo, 'copy', shareText);
-      const b = $('ppCopy'), orig = b.textContent;
-      b.textContent = '✓ Copied'; b.classList.add('done');
-      setTimeout(() => { b.textContent = orig; b.classList.remove('done'); }, 1500);
-    }).catch(() => {});
-  });
-
-  // Card action delegation (fav / copy / preview)
-  els.results.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-action]');
-    if (!btn) return;
-    // Preview actions handled first (they may live on <a> preview-wrap)
-    if (btn.dataset.action === 'lightbox') {
-      e.preventDefault();
-      $lbImg.src = btn.dataset.src;
-      $lbImg.alt = btn.dataset.name + ' preview';
-      $lb.classList.add('open');
-      return;
-    }
-    if (btn.dataset.action === 'copy-preview') {
-      e.preventDefault(); e.stopPropagation();
-      navigator.clipboard.writeText(btn.dataset.src).then(() => {
-        btn.classList.add('done');
-        const orig = btn.textContent;
-        btn.textContent = '✓ Copied';
-        setTimeout(() => { btn.classList.remove('done'); btn.textContent = orig; }, 1500);
-      }).catch(() => {});
-      return;
-    }
-    if (btn.dataset.action === 'download-preview') {
-      e.preventDefault(); e.stopPropagation();
-      const a = document.createElement('a');
-      a.href = btn.dataset.src;
-      a.download = `${btn.dataset.name}-preview.png`;
-      a.target = '_blank';
-      a.rel = 'noopener';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      return;
-    }
-    const card = btn.closest('.card');
-    if (!card) return;
-    const name = card.dataset.name;
-    const repo = lastRawItems.find(r => r.full_name === name);
-    if (!repo) return;
-    if (btn.dataset.action === 'fav') {
-      toggleFav(repo);
-      const on = isFav(repo);
-      btn.classList.toggle('on', on);
-      btn.textContent = on ? '★' : '☆';
-      btn.title = on ? 'Remove from favorites' : 'Save to favorites';
-    } else if (btn.dataset.action === 'copy') {
-      navigator.clipboard.writeText(repo.html_url).then(() => {
-        btn.classList.add('done');
-        btn.textContent = '✓';
-        setTimeout(() => { btn.classList.remove('done'); btn.textContent = '⧉'; }, 1500);
-      }).catch(() => {});
-    } else if (btn.dataset.action === 'preview-post') {
-      openPostPreview(repo, card);
-      return;
-    } else if (btn.dataset.action === 'posted') {
-      togglePosted(repo.full_name);
-      rerender();  // updates badge; hides the card if "Hide posted" is on
-      return;
-    } else if (btn.dataset.action === 'shuffle-post') {
-      tplPicks.set(repo.full_name, ((tplPicks.get(repo.full_name) || 0) + 1) % POST_EN.length);
-      draftEdits.delete(repo.full_name);
-      rerender();
-      return;
-    } else if (btn.dataset.action === 'toggle-review') {
-      const review = btn.closest('.fb-review');
-      const collapsed = review.classList.toggle('collapsed');
-      btn.textContent = collapsed ? 'See more ▾' : 'See less ▴';
-      if (!collapsed) loadReadmeInto(review, repo);
-      return;
-    } else if (btn.dataset.action === 'save-image') {
-      if (!confirmDuplicate(repo, 'image')) return;
-      saveReviewAsImage(repo, card, btn);
-      return;
-    } else if (btn.dataset.action === 'ai-rewrite') {
-      aiRewritePrompt(repo, card, btn);
-      return;
-    } else if (btn.dataset.action === 'copy-review') {
-      if (!confirmDuplicate(repo, 'copy')) return;
-      // Ensure README summary + Myanmar translations are loaded before we copy,
-      // so the pasted post includes both languages when the user prefers MY-first.
-      (async () => {
-        const origLabel = btn.textContent;
-        btn.textContent = '⏳';
-        try {
-          const summary = await fetchReadmeSummary(repo);
-          if (isValidSummary(summary)) await translateSummary(summary);
-        } catch {}
-        try {
-          const shareText = buildShareText(repo, card);
-          await navigator.clipboard.writeText(shareText);
-          logPostAction(repo, 'copy', shareText);
-          btn.classList.add('done');
-          btn.textContent = '✓';
-          setTimeout(() => { btn.classList.remove('done'); btn.textContent = '📋'; }, 1500);
-        } catch {
-          btn.textContent = origLabel;
-        }
-      })();
-    }
-  });
-
-  // Capture manual draft edits so re-renders (sort/filter/shuffle) keep them
-  els.results.addEventListener('input', (e) => {
-    const c = e.target.closest('.fb-review .comment, .fb-review .comment-my');
-    if (!c) return;
-    const name = c.closest('.fb-review').dataset.name;
-    const cur = draftEdits.get(name) || {};
-    cur[c.classList.contains('comment-my') ? 'my' : 'en'] = c.textContent;
-    draftEdits.set(name, cur);
-  });
-  // Focusing a collapsed draft expands it so you can edit the whole text
-  els.results.addEventListener('focusin', (e) => {
-    const c = e.target.closest('.fb-review .comment, .fb-review .comment-my');
-    if (!c) return;
-    const review = c.closest('.fb-review');
-    if (review && review.classList.contains('collapsed')) {
-      review.classList.remove('collapsed');
-      const t = review.querySelector('[data-action="toggle-review"]');
-      if (t) t.textContent = 'See less ▴';
-    }
-  });
 
   // ---- URL builder — one request per topic ----
   const topicsForCategory = (cat) => {
@@ -2870,425 +2165,1131 @@ ${hashtags.join(' ')}`;
     return `https://api.github.com/search/repositories?q=${encodeURIComponent(parts.join(' '))}&sort=stars&order=desc&per_page=30`;
   };
 
-  // ---- Search ----
-  const search = async (opts = {}) => {
-    const forceFresh = !!opts.force;
-    saveState();
-    hideBanner();
 
-    // Favorites and Courses are local-only views — no API call
-    if (els.category.value === 'favorites') {
-      const favs = Object.values(loadFavs());
-      renderResults(favs);
-      setStatus(`${favs.length} favorite${favs.length === 1 ? '' : 's'} · local only`, favs.length ? 'live' : '');
-      return;
+
+  // ---- Repo preview image (GitHub auto-generated social card) ----
+  // Uses opengraph.githubassets.com which returns a ~1200x600 PNG showing
+  // repo name, description, contributor avatars, star/fork counts.
+  const previewUrl = (repo) => {
+    if (repo._isCourse) {
+      try {
+        const host = new URL(repo._course.url).hostname;
+        return `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=256`;
+      } catch { return ''; }
     }
-    if (els.category.value === 'courses') {
-      const courses = Object.values(loadCourses())
-        .sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
-        .map(courseToRepo);
-      renderResults(courses);
-      const n = courses.length;
-      setStatus(`${n} course${n === 1 ? '' : 's'} · local only · use the form above to add more`, n ? 'live' : '');
-      return;
-    }
-    if (els.category.value === 'lessons') {
-      const lessons = WEB_LESSONS.map(lessonToRepo);
-      renderResults(lessons);
-      setStatus(`${lessons.length} web lessons · one per day · pick any to post today`, 'live');
-      return;
-    }
+    if (repo._isLesson) return '';
+    return `https://opengraph.githubassets.com/1/${repo.full_name}`;
+  };
 
-    const reqId = ++currentRequest;
-    const days = els.range.value;
-    const minStars = els.minStars.value;
-    const lang = els.language.value;
-    const extra = els.extra.value.trim();
+  const CATEGORY_LABELS = {
+    webdev: 'Web Development', marketing: 'Digital Marketing', both: 'Both',
+    favorites: '★ Favorites', courses: '📚 Courses', lessons: '🎓 Web Lessons',
+  };
+  const RANGE_LABELS = { '1': 'Today', '7': 'This week', '30': 'This month', '90': 'Last 3 months', '365': 'This year' };
 
-    setStatus(forceFresh ? 'Refreshing…' : 'Loading…', 'live');
-    if (!els.results.children.length) renderSkeleton();
+  const { createApp, ref, reactive, computed, watch, onMounted, nextTick } = Vue;
+  const { ElMessage, ElMessageBox } = ElementPlus;
 
-    // noTopics fallback: one unfiltered request instead of per-topic
-    const topics = opts.noTopics ? [null] : topicsForCategory(els.category.value);
-    const urls = topics.map(topic => buildUrl({ days, minStars, lang, extra, topic }));
-    console.log('[gh-trending] fetching:', urls);
-    const headers = { 'Accept': 'application/vnd.github+json' };
-    const token = els.token.value.trim();
-    if (token) headers['Authorization'] = `Bearer ${token}`;
+  const app = createApp({
+    setup() {
+      // ---- Theme (synced with utility hub; html.dark kept in step for Element Plus) ----
+      const theme = ref(localStorage.getItem(THEME_KEY) || 'dark');
+      const applyTheme = (t) => {
+        theme.value = t;
+        document.documentElement.dataset.theme = t;
+        document.documentElement.classList.toggle('dark', t !== 'light');
+        localStorage.setItem(THEME_KEY, t);
+      };
+      applyTheme(theme.value);
+      const toggleTheme = () => applyTheme(theme.value === 'light' ? 'dark' : 'light');
 
-    try {
-      const perChunk = await Promise.all(urls.map(async (u) => {
-        const cached = forceFresh ? null : cacheGet(u);
-        if (cached) return { items: cached.items, remaining: cached.remaining, cached: true, stale: false };
-        const res = await fetch(u, { headers });
-        const remaining = res.headers.get('x-ratelimit-remaining');
-        if (!res.ok) {
-          const body = await res.json().catch(() => ({}));
-          const err = new Error(body.message || `HTTP ${res.status}`);
-          err.status = res.status;
-          err.url = u;
-          throw err;
+      // ---- Control state (persisted in the same STATE_KEY shape as before) ----
+      const category = ref('webdev');
+      const language = ref('');
+      const range = ref('7');
+      const minStars = ref('100');
+      const sort = ref('velocity');
+      const refreshSel = ref('300');
+      const reviews = ref('on');
+      const preview = ref('on');
+      const langOrder = ref('my-first');
+      const extra = ref('');
+      const filter = ref('');
+      const pageName = ref('');
+      const hidePosted = ref(false);
+      const token = ref('');
+      try {
+        const saved = JSON.parse(localStorage.getItem(STATE_KEY) || '{}');
+        const refMap = { category, language, range, minStars, sort, refresh: refreshSel, reviews, preview, langOrder };
+        for (const k of ['category', 'language', 'range', 'minStars', 'sort', 'refresh', 'reviews', 'preview', 'langOrder']) {
+          if (saved[k] !== undefined && refMap[k]) refMap[k].value = saved[k];
         }
-        const items = (await res.json()).items || [];
-        cachePut(u, items, remaining);
-        return { items, remaining, cached: false, stale: false };
-      }));
-      if (reqId !== currentRequest) return;
+        if (saved.extra) extra.value = saved.extra;
+        if (saved.filter) filter.value = saved.filter;
+        if (saved.pageName) pageName.value = saved.pageName;
+        if (saved.hidePosted) hidePosted.value = true;
+      } catch {}
+      token.value = localStorage.getItem(TOKEN_KEY) || '';
 
-      const merged = new Map();
-      let lastRemaining = null;
-      let cachedCount = 0;
-      for (const chunk of perChunk) {
-        if (chunk.remaining != null) lastRemaining = chunk.remaining;
-        if (chunk.cached) cachedCount++;
-        for (const item of chunk.items) if (!merged.has(item.id)) merged.set(item.id, item);
-      }
-      renderResults([...merged.values()]);
-      const authTag = token ? '🔓 authed' : '🔒 anon';
-      const cacheTag = cachedCount === perChunk.length ? ' · fully cached' : cachedCount ? ` · ${cachedCount}/${perChunk.length} cached` : '';
-      setStatus(`${new Date().toLocaleTimeString()} · ${merged.size} repos · ${authTag} · limit ${lastRemaining ?? '?'}${cacheTag}`,
-                els.refresh.value !== '0' ? 'live' : '');
-    } catch (err) {
-      if (reqId !== currentRequest) return;
-      // Fallback: try to serve stale cache — but only if it has actual data
-      const staleChunks = urls.map(u => cacheGet(u, true)).filter(c => c && c.items && c.items.length);
-      if (staleChunks.length) {
-        const merged = new Map();
-        let oldestAge = 0;
-        for (const c of staleChunks) {
-          oldestAge = Math.max(oldestAge, c.age);
-          for (const item of c.items) if (!merged.has(item.id)) merged.set(item.id, item);
+      const saveState = () => {
+        localStorage.setItem(STATE_KEY, JSON.stringify({
+          category: category.value,
+          language: language.value,
+          range: range.value,
+          minStars: minStars.value,
+          sort: sort.value,
+          extra: extra.value,
+          filter: filter.value,
+          refresh: refreshSel.value,
+          reviews: reviews.value,
+          preview: preview.value,
+          langOrder: langOrder.value,
+          pageName: pageName.value,
+          hidePosted: hidePosted.value,
+        }));
+        const t = token.value.trim();
+        if (t) localStorage.setItem(TOKEN_KEY, t); else localStorage.removeItem(TOKEN_KEY);
+      };
+
+      // ---- Status + banner ----
+      const statusText = ref('Loading…');
+      const statusCls = ref('');
+      const setStatus = (text, cls = '') => { statusText.value = text; statusCls.value = cls; };
+      const banner = reactive({ visible: false, html: '' });
+      const showBanner = (html) => { banner.html = html; banner.visible = true; };
+      const hideBanner = () => { banner.visible = false; };
+
+      // ---- Results state ----
+      const rawItems = ref([]);          // last successful merged items (before filter/sort)
+      const showSkeleton = ref(true);
+      const errorState = ref(null);      // null | {type:'rate',hasToken} | {type:'generic',message,hint}
+      let refreshTimer = null;
+      let currentRequest = 0;
+      let suppressSearchWatch = false;
+      const setResults = (items) => { rawItems.value = items; showSkeleton.value = false; errorState.value = null; };
+
+      // ---- Reactivity ticks over the storage-backed stores (keys/shapes unchanged) ----
+      const favTick = ref(0);
+      const postedTick = ref(0);
+      const histTick = ref(0);
+      const tplTick = ref(0);
+
+      // ---- Per-repo draft tweaks (session-only, survive re-renders) ----
+      const draftEdits = new Map();  // full_name -> { en?, my? } manual edits
+      const tplPicks = new Map();    // full_name -> template offset from 🔀 shuffle
+
+      // ---- Transient UI state ----
+      const flash = reactive({});
+      const flashKey = (k, ms = 1500) => { flash[k] = true; setTimeout(() => { delete flash[k]; }, ms); };
+      const imgBusy = reactive({});
+      const aiBusy = reactive({});
+      const copyBusy = reactive({});
+      const expandedMap = reactive({});   // full_name -> bool override of the reviews-mode default
+      const readmeState = reactive({});   // full_name -> { status:'loading'|'ok'|'error', summary, my, err }
+      const lightbox = reactive({ open: false, src: '', name: '' });
+      const testingToken = ref(false);
+      const filterEl = ref(null);
+      const coursePanelEl = ref(null);
+      const cfTitleEl = ref(null);
+
+      // ---- Language-order helpers — one place decides EN/MY sequence for the whole app ----
+      const langMode = () => langOrder.value;
+      const showEn = () => langMode() !== 'my-only';
+      const showMy = () => langMode() !== 'en-only';
+      const myFirst = () => langMode() === 'my-first' || langMode() === 'my-only';
+      const showEnC = computed(() => showEn());
+      const showMyC = computed(() => showMy());
+      const myFirstC = computed(() => myFirst());
+
+      // ---- Bilingual review-post generator (unchanged logic, reactive inputs) ----
+      const genPost = (repo) => {
+        const seed = hashStr(repo.full_name || repo.id);
+        const pgName = pageName.value.trim();
+        const days = daysSince(repo.created_at);
+        const cached = readmeCacheGet(repo.full_name);
+        const summary = cached && isValidSummary(cached.summary) ? cached.summary : null;
+        const shuffle = tplPicks.get(repo.full_name) || 0;
+        const isCourse = !!repo._isCourse;
+        const isLesson = !!repo._isLesson;
+        const course = repo._course;
+        const lesson = repo._lesson;
+
+        // Lessons short-circuit the template pipeline — the lesson IS the post
+        if (isLesson) {
+          const { en, my } = buildLessonPost(lesson);
+          return {
+            author: pgName || 'Your Page',
+            isPage: !!pgName,
+            initial: pgName ? initialsOf(pgName) : '✍',
+            rating: 5,
+            en, my,
+            isSmart: true,
+          };
         }
-        if (merged.size > 0) {
-          const ageMin = Math.round(oldestAge / 60000);
-          renderResults([...merged.values()]);
-          const isRateLimit = err.status === 403;
-          showBanner(
-            `<span>${isRateLimit ? '⏳' : '⚠'} ${escape(err.message)}. Showing cached data (${ageMin} min old).${
-              !token && isRateLimit ? ' Add a GitHub token below to raise the limit from 10→30/min.' : ''
-            }</span>
-            <button onclick="this.parentElement.style.display='none'">Dismiss</button>`
+        // Templates: course-specific if repo is a course, smart if README loaded, else generic
+        const canBeSmart = !isCourse && summary && (summary.tagline || summary.features?.length);
+        const bank = isCourse
+          ? { en: COURSE_EN, my: COURSE_MY }
+          : canBeSmart
+            ? { en: SMART_EN, my: SMART_MY }
+            : { en: POST_EN, my: POST_MY };
+        const idx = ((seed >> 3) + shuffle) % bank.en.length;
+        const vals = {
+          name: (repo.full_name || '').split('/').pop(),
+          ctx: ctxWord(repo),
+          stars: fmtNum(repo.stargazers_count),
+          vel: fmtVelocity(repo.stargazers_count / days),
+          desc: shortDesc(repo.description || (summary && summary.tagline) || 'a solid open-source project', 120),
+          tagline: shortDesc((summary && summary.tagline) || repo.description || (summary && summary.description) || '', 140),
+          topFeature: isCourse
+            ? shortDesc((course.topics || []).join(', ') || repo.description || 'the fundamentals you need', 160)
+            : shortDesc(summary && summary.features && summary.features[0], 160)
+                      || shortDesc((summary && summary.description) || repo.description, 140)
+                      || 'clean, thoughtful design',
+          featureCount: summary && summary.features ? summary.features.length : 'several',
+          // Course-only tokens
+          platform: isCourse ? course.platform : '',
+          level: isCourse ? course.level : '',
+          duration: isCourse ? course.duration : '',
+        };
+        const fill = (tpl, age) => tpl.replace(/\{(\w+)\}/g, (_, k) => k === 'age' ? age : (vals[k] ?? ''))
+          // Strip empty "-  — " artifacts left by absent optional fields
+          .replace(/\s*—\s*(?=[.,!?]|$)/g, '')
+          .replace(/\s{2,}/g, ' ');
+        return {
+          author: pgName || 'Your Page',
+          isPage: !!pgName,
+          initial: pgName ? initialsOf(pgName) : '✍',
+          rating: isCourse ? 5 : editorRating(repo),  // curated courses default to 5★
+          en: fill(bank.en[idx], ageEn(days)),
+          my: fill(bank.my[idx], ageMy(days)),
+          isSmart: canBeSmart || isCourse,
+        };
+      };
+
+      // Reactive wrapper: re-renders when a shuffle happens, the README summary
+      // lands (smart upgrade), or the page name changes.
+      const postFor = (repo) => {
+        tplTick.value;
+        readmeState[repo.full_name];
+        pageName.value;
+        return genPost(repo);
+      };
+      const ratingStars = (rating) => '★'.repeat(rating) + '☆'.repeat(5 - rating);
+      const draftEn = (repo) => {
+        const edited = draftEdits.get(repo.full_name) || {};
+        return edited.en !== undefined ? edited.en : postFor(repo).en;
+      };
+      const draftMy = (repo) => {
+        const edited = draftEdits.get(repo.full_name) || {};
+        return edited.my !== undefined ? edited.my : postFor(repo).my;
+      };
+      const isEdited = (repo) => {
+        const edited = draftEdits.get(repo.full_name) || {};
+        return edited.en !== undefined || edited.my !== undefined;
+      };
+      const isSmartLoaded = (repo) => {
+        const st = readmeState[repo.full_name];
+        return !!(st && st.status === 'ok' && postFor(repo).isSmart && !repo._isCourse && !repo._isLesson);
+      };
+      // Capture manual draft edits so re-renders (sort/filter/shuffle) keep them
+      const onDraftInput = (repo, which, e) => {
+        const cur = draftEdits.get(repo.full_name) || {};
+        cur[which] = e.target.textContent;
+        draftEdits.set(repo.full_name, cur);
+      };
+      const shufflePost = (repo) => {
+        tplPicks.set(repo.full_name, ((tplPicks.get(repo.full_name) || 0) + 1) % POST_EN.length);
+        draftEdits.delete(repo.full_name);
+        tplTick.value++;
+      };
+
+      // ---- Review expand/collapse + README summary loading ----
+      const isExpanded = (repo) => {
+        const v = expandedMap[repo.full_name];
+        return v === undefined ? reviews.value === 'expanded' : v;
+      };
+      const toggleReview = (repo) => {
+        const next = !isExpanded(repo);
+        expandedMap[repo.full_name] = next;
+        if (next) loadReadme(repo);
+      };
+      // Focusing a collapsed draft expands it so you can edit the whole text
+      const expandOnFocus = (repo) => {
+        if (!isExpanded(repo)) expandedMap[repo.full_name] = true;
+      };
+
+      const fetchReadmeSummary = async (repo) => {
+        // Courses and lessons don't have GitHub READMEs — skip fetch entirely
+        if (repo._isCourse || repo._isLesson) return null;
+        const cached = readmeCacheGet(repo.full_name);
+        if (cached && isValidSummary(cached.summary)) return cached.summary;
+        const headers = { 'Accept': 'application/vnd.github.raw' };
+        const tk = token.value.trim();
+        if (tk) headers['Authorization'] = `Bearer ${tk}`;
+        const url = `https://api.github.com/repos/${repo.full_name}/readme`;
+        const res = await fetch(url, { headers });
+        if (!res.ok) throw new Error(`README fetch failed: ${res.status}`);
+        const markdown = await res.text();
+        const summary = summarizeReadme(markdown);
+        readmeCachePut(repo.full_name, summary);
+        return summary;
+      };
+
+      const loadReadme = async (repo) => {
+        if (repo._isCourse || repo._isLesson) return;
+        const key = repo.full_name;
+        if (readmeState[key]) return;   // already loading / loaded / errored
+        readmeState[key] = { status: 'loading', summary: null, my: null, err: '' };
+        try {
+          const summary = await fetchReadmeSummary(repo);
+          if (isValidSummary(summary)) {
+            readmeState[key] = { status: 'ok', summary, my: null, err: '' };
+            // Kick off Myanmar translation in background; refresh render when done
+            translateSummary(summary).then((my) => {
+              readmeState[key] = { status: 'ok', summary, my, err: '' };
+            }).catch(() => {});
+          } else {
+            readmeState[key] = { status: 'error', summary: null, my: null, err: 'No text summary could be extracted from the README.' };
+          }
+        } catch (e) {
+          readmeState[key] = { status: 'error', summary: null, my: null, err: 'README unavailable (rate-limited or private).' };
+        }
+      };
+      const readmeStatus = (repo) => {
+        const st = readmeState[repo.full_name];
+        return st ? st.status : '';
+      };
+      const readmeHtml = (repo) => {
+        const st = readmeState[repo.full_name];
+        if (!st || st.status !== 'ok') return '';
+        return renderReadmeContent(st.summary, st.my);
+      };
+      const readmeErr = (repo) => {
+        const st = readmeState[repo.full_name];
+        return st ? st.err : '';
+      };
+      const readmeCount = (repo) => {
+        const st = readmeState[repo.full_name];
+        if (!st || st.status !== 'ok' || !st.summary) return '';
+        const featureCount = (st.summary.features || []).length;
+        return featureCount ? `${featureCount} feature${featureCount === 1 ? '' : 's'} detected` : '';
+      };
+
+      const renderReadmeContent = (summary, my) => {
+        if (!summary) return 'No text summary could be extracted from the README.';
+        my = my || {};
+        const parts = [];
+        const enOn = showEn(), myOn = showMy(), first = myFirst() ? 'my' : 'en';
+
+        if (summary.tagline) {
+          const enBlock = `<div class="rd-tagline">✨ ${escape(summary.tagline)}</div>`;
+          const myBlock = my.tagline_my ? `<div class="rd-tagline rd-my" lang="my">✨ ${escape(my.tagline_my)}</div>` : '';
+          const seq = first === 'my' ? [myOn && myBlock, enOn && enBlock] : [enOn && enBlock, myOn && myBlock];
+          parts.push(...seq.filter(Boolean));
+        }
+        if (summary.description && summary.description !== summary.tagline) {
+          const enBlock = `<div class="rd-para"><span class="rd-h">📖 About (EN)</span>${escape(summary.description)}</div>`;
+          const myBlock = my.description_my ? `<div class="rd-para"><span class="rd-h">📖 မိတ်ဆက် (မြန်မာ)</span><span lang="my">${escape(my.description_my)}</span></div>` : '';
+          const seq = first === 'my' ? [myOn && myBlock, enOn && enBlock] : [enOn && enBlock, myOn && myBlock];
+          parts.push(...seq.filter(Boolean));
+        }
+        if (summary.features && summary.features.length) {
+          const enBlock = `<div class="rd-para"><span class="rd-h">🎯 Key Features (EN)</span><ul class="rd-list">${summary.features.map(f => `<li>${escape(f)}</li>`).join('')}</ul></div>`;
+          const myFeatures = (my.features_my || []).filter(Boolean);
+          const myBlock = myFeatures.length
+            ? `<div class="rd-para"><span class="rd-h">🎯 အဓိကလုပ်ဆောင်ချက်များ (မြန်မာ)</span><ul class="rd-list">${myFeatures.map(f => `<li lang="my">${escape(f)}</li>`).join('')}</ul></div>`
+            : '';
+          const seq = first === 'my' ? [myOn && myBlock, enOn && enBlock] : [enOn && enBlock, myOn && myBlock];
+          parts.push(...seq.filter(Boolean));
+        }
+        if (summary.details && summary.details.length) {
+          const detailBlocks = summary.details.map((d, i) => {
+            const myText = (my.details_my && my.details_my[i]) || '';
+            const enPara = `<p><b>💡 ${escape(d.heading)} (EN):</b> ${escape(d.text)}</p>`;
+            const myPara = myText ? `<p lang="my"><b>💡 ${escape(d.heading)} (မြန်မာ):</b> ${escape(myText)}</p>` : '';
+            const seq = first === 'my' ? [myOn && myPara, enOn && enPara] : [enOn && enPara, myOn && myPara];
+            return `<div class="rd-details">${seq.filter(Boolean).join('')}</div>`;
+          }).join('');
+          parts.push(`<div class="rd-para"><span class="rd-h">📚 Deeper Explanation</span>${detailBlocks}</div>`);
+        }
+        return parts.join('') || '<em style="opacity:0.6">Nothing to show for this language selection.</em>';
+      };
+
+      const readmeSummaryToShareText = (summary, my) => {
+        if (!summary) return '';
+        my = my || {};
+        const enOn = showEn(), myOn = showMy(), first = myFirst() ? 'my' : 'en';
+        const parts = [];
+        const push2 = (enBlock, myBlock) => {
+          const seq = first === 'my' ? [myOn && myBlock, enOn && enBlock] : [enOn && enBlock, myOn && myBlock];
+          seq.filter(Boolean).forEach(b => parts.push(b));
+        };
+        if (summary.tagline) {
+          push2(`✨ ${summary.tagline}`, my.tagline_my ? `✨ ${my.tagline_my}` : '');
+        }
+        if (summary.description && summary.description !== summary.tagline) {
+          push2(
+            `\n📖 About:\n${summary.description}`,
+            my.description_my ? `\n📖 မိတ်ဆက်:\n${my.description_my}` : ''
           );
-          setStatus(`Stale cache · ${merged.size} repos · ${ageMin} min old`, 'stale');
+        }
+        if (summary.features && summary.features.length) {
+          const enBlock = `\n🎯 Key Features:\n${summary.features.map(f => '  • ' + f).join('\n')}`;
+          const myFeatures = (my.features_my || []).filter(Boolean);
+          const myBlock = myFeatures.length
+            ? `\n🎯 အဓိကလုပ်ဆောင်ချက်များ:\n${myFeatures.map(f => '  • ' + f).join('\n')}`
+            : '';
+          push2(enBlock, myBlock);
+        }
+        if (summary.details && summary.details.length) {
+          parts.push(`\n📚 Deeper Explanation:`);
+          summary.details.forEach((d, i) => {
+            const myText = (my.details_my && my.details_my[i]) || '';
+            push2(
+              `\n💡 ${d.heading}:\n${d.text}`,
+              myText ? `💡 ${d.heading} (မြန်မာ):\n${myText}` : ''
+            );
+          });
+        }
+        return parts.join('\n');
+      };
+
+      // ---- Final post text (single source of truth for copy AND preview) ----
+      // Reads the on-screen draft (including manual edits) via the draft getters.
+      const buildShareText = (repo) => {
+        const p = genPost(repo);
+        const enText = (draftEn(repo) || p.en).trim();
+        const myText = (draftMy(repo) || p.my).trim();
+        const stars = '★'.repeat(p.rating) + '☆'.repeat(5 - p.rating);
+        const starsFmt = repo.stargazers_count >= 1000
+          ? (repo.stargazers_count / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+          : repo.stargazers_count;
+        const meta = [];
+        if (repo.language) meta.push(`💻 ${repo.language}`);
+        meta.push(`⭐ ${starsFmt} stars`);
+        if (repo.forks_count) meta.push(`🍴 ${repo.forks_count >= 1000 ? (repo.forks_count/1000).toFixed(1).replace(/\.0$/, '') + 'k' : repo.forks_count} forks`);
+        meta.push(`🔥 ${fmtVelocity(repo.stargazers_count / daysSince(repo.created_at))} stars/day`);
+        const hashtags = [
+          ...(repo.topics || []).slice(0, 4).map(t => '#' + t.replace(/-/g, '')),
+          '#github', '#opensource', '#developer', '#trending', '#coding'
+        ];
+        // Include structured README summary if already cached (loaded via expand/preview)
+        const readmeCached = readmeCacheGet(repo.full_name);
+        const readmeSummary = readmeCached && isValidSummary(readmeCached.summary) ? readmeCached.summary : null;
+        // Pull cached MY translations synchronously (populated by translateSummary
+        // during loadReadme). Missing pieces just render EN-only.
+        const my = readmeSummary ? {
+          tagline_my: translateCacheGet(readmeSummary.tagline || '') || '',
+          description_my: translateCacheGet(readmeSummary.description || '') || '',
+          features_my: (readmeSummary.features || []).map(f => translateCacheGet(f) || ''),
+          details_my: (readmeSummary.details || []).map(d => translateCacheGet(d.text) || ''),
+        } : null;
+        const readmeText = readmeSummary ? readmeSummaryToShareText(readmeSummary, my) : '';
+        const featureCount = readmeSummary && readmeSummary.features ? readmeSummary.features.length : 0;
+        if (featureCount) meta.push(`🎯 ${featureCount} feature${featureCount === 1 ? '' : 's'}`);
+        const followCta = p.isPage
+          ? (myFirst()
+              ? `👉 နေ့စဉ် Open-source ရွေးချယ်မှုတွေအတွက် ${p.author} ကို Follow လုပ်ထားပါ!\n👉 Follow ${p.author} for daily open-source picks!`
+              : `👉 Follow ${p.author} for daily open-source picks!\n👉 နေ့စဉ် Open-source ရွေးချယ်မှုတွေအတွက် ${p.author} ကို Follow လုပ်ထားပါ!`)
+          : (myFirst()
+              ? `👉 နေ့စဉ် Open-source ရွေးချယ်မှုတွေအတွက် ကျွန်တော်တို့ Page ကို Follow လုပ်ထားပါ!`
+              : `👉 Follow our page for daily open-source picks!`);
+        // Assemble review block honoring language preference
+        const enReview = showEn() ? `🇬🇧 English:\n${enText}` : '';
+        const myReview = showMy() ? `🇲🇲 မြန်မာ:\n${myText}` : '';
+        const reviewParts = myFirst() ? [myReview, enReview] : [enReview, myReview];
+        const reviewBody = reviewParts.filter(Boolean).join('\n\n');
+        // Header label reflects the primary language
+        const reviewHeader = myFirst() ? '📝 သုံးသပ်ချက် / REVIEW' : '📝 REVIEW / သုံးသပ်ချက်';
+        const aboutHeader = myFirst() ? '📄 မိတ်ဆက် / ABOUT' : '📄 ABOUT / မိတ်ဆက်';
+        const readmeBlockDisplay = readmeText
+          ? `\n━━━━━━━━━━━━━━━━━━━━━\n${aboutHeader}\n━━━━━━━━━━━━━━━━━━━━━\n\n${readmeText}\n`
+          : '';
+        return `🚀 GITHUB TRENDING PICK
+
+📦 ${repo.full_name}
+${repo.description ? '💬 ' + repo.description + '\n' : ''}${meta.join('  •  ')}
+⭐ Editor's rating: ${stars} (${p.rating}/5 — based on stars & growth)
+${readmeBlockDisplay}
+━━━━━━━━━━━━━━━━━━━━━
+${reviewHeader}
+━━━━━━━━━━━━━━━━━━━━━
+
+${reviewBody}
+
+${p.isPage ? '— ' + p.author + '\n\n' : ''}${followCta}
+🔗 Try it here: ${repo.html_url}
+📸 Preview: ${previewUrl(repo)}
+
+${hashtags.join(' ')}`;
+      };
+
+      // ---- Save review as a Facebook-ready PNG image ----
+      const buildShareStage = (repo) => {
+        const p = genPost(repo);
+        const stars = '★'.repeat(p.rating) + '☆'.repeat(5 - p.rating);
+        const enText = (draftEn(repo) || p.en).trim();
+        const myText = (draftMy(repo) || p.my).trim();
+        const cached = readmeCacheGet(repo.full_name);
+        const summary = cached && isValidSummary(cached.summary) ? cached.summary : null;
+        const myCached = summary ? {
+          tagline_my: translateCacheGet(summary.tagline || '') || '',
+        } : null;
+        const starsFmt = repo.stargazers_count >= 1000
+          ? (repo.stargazers_count / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+          : repo.stargazers_count;
+        const forksFmt = repo.forks_count >= 1000
+          ? (repo.forks_count / 1000).toFixed(1).replace(/\.0$/, '') + 'k'
+          : repo.forks_count;
+        const [owner, name] = (repo.full_name || '').split('/');
+        // Language order for blocks
+        const primary = myFirst()
+          ? { label: 'မြန်မာ', text: myText }
+          : { label: 'English', text: enText };
+        const secondary = myFirst()
+          ? (showEn() ? { label: 'English', text: enText } : null)
+          : (showMy() ? { label: 'မြန်မာ', text: myText } : null);
+
+        const stage = document.createElement('div');
+        stage.className = 'share-stage';
+        stage.innerHTML = `
+          <div class="sc-brand">
+            <div class="sc-logo">${escape(p.initial)}</div>
+            <div class="sc-brand-text">
+              <div class="name">${escape(p.author)}</div>
+              <div class="sub">GitHub Trending Pick · ${escape(new Date().toLocaleDateString())}</div>
+            </div>
+            <div class="badge">🐙 Open Source</div>
+          </div>
+          <div class="sc-repo">
+            <div class="owner">${escape(owner || '')} /</div>
+            <div class="name">${escape(name || repo.full_name)}</div>
+            ${repo.description ? `<div class="desc">${escape(repo.description)}</div>` : ''}
+            <div class="meta">
+              ${repo.language ? `<span>💻 <b>${escape(repo.language)}</b></span>` : ''}
+              <span>⭐ <b>${escape(starsFmt)}</b> stars</span>
+              <span>🍴 <b>${escape(forksFmt)}</b> forks</span>
+              <span>🔥 <b>${fmtVelocity(repo.stargazers_count / daysSince(repo.created_at))}</b>/day</span>
+            </div>
+          </div>
+          <div class="sc-stars">${stars} <span style="color:#9a9ab0; font-size:16px; margin-left:8px;">Editor's rating · ${p.rating}/5</span></div>
+          ${summary && (summary.tagline || (myCached && myCached.tagline_my)) ? `
+          <div class="sc-tag">
+            ${myFirst() && myCached && myCached.tagline_my ? `<div>✨ ${escape(myCached.tagline_my)}</div>` : ''}
+            ${summary.tagline ? `<div${myFirst() && myCached && myCached.tagline_my ? ' style="margin-top:6px; color:#9a9ab0; font-size:14px;"' : ''}>✨ ${escape(summary.tagline)}</div>` : ''}
+          </div>` : ''}
+          <div class="sc-review">
+            <div class="block">
+              <div class="lang">🇲🇲 ${escape(primary.label)}</div>
+              <div class="txt">${escape(primary.text)}</div>
+            </div>
+            ${secondary ? `
+            <div class="block">
+              <div class="lang">🇬🇧 ${escape(secondary.label)}</div>
+              <div class="txt">${escape(secondary.text)}</div>
+            </div>` : ''}
+          </div>
+          <div class="sc-footer">
+            <div class="url">🔗 github.com/${escape(repo.full_name)}</div>
+            <div class="tags">${(repo.topics || []).slice(0, 5).map(t => '#' + t.replace(/-/g, '')).join(' ')} #github #trending</div>
+          </div>
+        `;
+        return stage;
+      };
+
+      const saveReviewAsImage = async (repo, busyKey) => {
+        busyKey = busyKey || repo.full_name;
+        if (typeof html2canvas === 'undefined') {
+          ElMessage.error('html2canvas library did not load. Check your internet connection.');
           return;
         }
-      }
-      // No useful cache to fall back on
-      if (err.status === 403) {
-        const hasToken = !!token;
-        const html = hasToken
-          ? `<div class="error" style="text-align:left; max-width:640px; margin:0 auto;">
-              <div style="font-size:16px; text-align:center; margin-bottom:14px;">⏳ Authed rate limit hit (30/min for search)</div>
-              <div style="color:var(--text-dim); font-size:13px; line-height:1.7;">
-                Your token is being sent but the 30 requests/min cap is exceeded. This usually clears within ~60 seconds.
-                <ul style="margin:8px 0 8px 20px; padding:0;">
-                  <li>Wait 60s, then click <b>🔄 Refresh</b></li>
-                  <li>Click <b>Test</b> next to the token field to see the exact reset time</li>
-                  <li>Prefer <b>Web Development</b> or <b>Digital Marketing</b> single category (2 requests) over <b>Both</b> (4 requests) to stretch the budget</li>
-                </ul>
-              </div>
-            </div>`
-          : `<div class="error" style="text-align:left; max-width:640px; margin:0 auto;">
-              <div style="font-size:16px; text-align:center; margin-bottom:14px;">⏳ GitHub API rate limit exceeded</div>
-              <div style="color:var(--text-dim); font-size:13px; line-height:1.7;">
-                <b>Option 1 (permanent fix):</b> Add a GitHub Personal Access Token.
-                <ol style="margin:6px 0 12px 20px; padding:0;">
-                  <li>Open <a href="https://github.com/settings/tokens/new?description=Trending%20Dashboard" target="_blank" rel="noopener" style="color:var(--accent);">github.com/settings/tokens/new</a></li>
-                  <li>No scopes needed — just click <b>Generate token</b></li>
-                  <li>Paste it into the <b>GitHub token</b> field above &rarr; auto re-searches</li>
-                </ol>
-                This raises search from 10 → 30 req/min.<br><br>
-                <b>Option 2:</b> Wait ~1 minute for the anon limit to reset, then click <b>🔄 Refresh</b>.
-              </div>
-            </div>`;
-        els.results.innerHTML = html;
-        setStatus(hasToken ? 'Authed rate limited · wait ~1 min' : 'Rate limited · add token or wait', 'error');
-      } else {
-        const hint = err.status === 422
-          ? 'Query rejected by GitHub. Try simpler Extra query or fewer filters.'
-          : 'GitHub search API request failed.';
-        els.results.innerHTML = `<div class="error">Error: ${escape(err.message)}<br><small>${hint}</small></div>`;
-        setStatus('Error', 'error');
-      }
-    }
-  };
+        imgBusy[busyKey] = 'wait';
+        // Ensure README + translations before rendering so image includes tagline
+        try {
+          const summary = await fetchReadmeSummary(repo);
+          if (isValidSummary(summary)) await translateSummary(summary);
+        } catch {}
+        const stage = buildShareStage(repo);
+        document.body.appendChild(stage);
+        try {
+          const canvas = await html2canvas(stage, {
+            backgroundColor: null,
+            scale: 2,           // 2x for retina-quality output
+            useCORS: true,
+            logging: false,
+          });
+          canvas.toBlob((blob) => {
+            if (!blob) return;
+            logPostAction(repo, 'image', buildShareText(repo));
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            const safeName = (repo.full_name || 'repo').replace(/[\/\\:*?"<>|]/g, '-');
+            a.href = url;
+            a.download = `${safeName}-review.png`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 4000);
+          }, 'image/png');
+          imgBusy[busyKey] = 'done';
+          setTimeout(() => { delete imgBusy[busyKey]; }, 1500);
+        } catch (e) {
+          imgBusy[busyKey] = 'fail';
+          setTimeout(() => { delete imgBusy[busyKey]; }, 1500);
+        } finally {
+          document.body.removeChild(stage);
+        }
+      };
 
-  // Expose one debug hook via keyboard: Ctrl+Shift+K clears query cache
-  document.addEventListener('keydown', (e) => {
-    if (e.ctrlKey && e.shiftKey && e.key === 'K') {
-      e.preventDefault();
-      cacheClearAll();
-      setStatus('Cache cleared · click Refresh', '');
-    }
-  });
+      // ---- AI rewrite prompt (Gemini / ChatGPT / Claude — provider-agnostic) ----
+      const buildAiPrompt = (repo) => {
+        const p = genPost(repo);
+        const postText = buildShareText(repo);
+        const pgName = p.author && p.author !== 'Your Page' ? p.author : 'a bilingual open-source content page';
+        const langHint = myFirst()
+          ? 'Myanmar (မြန်မာ) is the primary language for the audience — write it naturally and colloquially, not word-for-word translation. English follows as secondary.'
+          : 'English is primary, Myanmar (မြန်မာ) is secondary. Keep Myanmar natural and idiomatic, not literal translation.';
+        return `You are a senior social media content writer for the Facebook page "${pgName}", which posts daily about trending open-source projects for web developers and digital marketers.
 
-  // Refilter/resort locally without new API request
-  const rerender = () => { if (lastRawItems.length) renderResults(lastRawItems); saveState(); };
+Rewrite the GitHub Trending post below so it performs better on Facebook. Requirements:
 
-  const applyRefresh = () => {
-    if (refreshTimer) clearInterval(refreshTimer);
-    const seconds = parseInt(els.refresh.value, 10);
-    if (seconds > 0) refreshTimer = setInterval(search, seconds * 1000);
-  };
+1. Keep BOTH English and Myanmar (မြန်မာ) versions. ${langHint}
+2. Preserve every factual claim exactly: repo name, star count, forks, growth rate, feature list, language, links, hashtags.
+3. Improve the writing:
+   - Stronger emotional hook in the first line (curiosity, contrarian, surprising fact)
+   - Concrete "who this is for" callout (juniors, senior devs, marketers, teams)
+   - Specific call-to-action (Follow, Save, Share, Tag a friend, Comment)
+   - Better rhythm and flow — vary sentence length
+   - Natural social-media tone, not stiff or corporate
+4. Keep or improve the emoji usage — enough for engagement, not spammy.
+5. Keep the section structure (ABOUT, REVIEW, follow CTA, link, preview URL, hashtags).
+6. Return ONLY the rewritten post text, no explanation, no preamble, no markdown code fences.
 
-  // ---- Wire events ----
-  els.search.addEventListener('click', () => search({ force: true }));
-  els.refresh.addEventListener('change', () => { saveState(); applyRefresh(); });
-  els.extra.addEventListener('keydown', (e) => { if (e.key === 'Enter') search(); });
-  els.token.addEventListener('change', () => { saveState(); search(); });
-  els.filter.addEventListener('input', debounce(rerender, 200));
-  els.sort.addEventListener('change', rerender);
-  els.reviews.addEventListener('change', rerender);
-  els.preview.addEventListener('change', rerender);
-  els.langOrder.addEventListener('change', rerender);
-  els.pageName.addEventListener('input', debounce(rerender, 250));
-  els.hidePosted.addEventListener('change', () => { saveState(); rerender(); });
+---
 
-  // Test-token button — hits /rate_limit and reports auth + budget
-  $('testTokenBtn')?.addEventListener('click', async () => {
-    const tk = els.token.value.trim();
-    const btn = $('testTokenBtn');
-    const originalText = btn.textContent;
-    btn.textContent = '…';
-    btn.disabled = true;
-    try {
-      const headers = { 'Accept': 'application/vnd.github+json' };
-      if (tk) headers['Authorization'] = `Bearer ${tk}`;
-      const res = await fetch('https://api.github.com/rate_limit', { headers });
-      const data = await res.json();
-      if (res.status === 401) {
-        showBanner('<span>❌ Token rejected by GitHub (401). Check for typos or generate a new one.</span><button onclick="this.parentElement.style.display=\'none\'">Dismiss</button>');
-        setStatus('Token invalid', 'error');
-        return;
-      }
-      const search = data.resources && data.resources.search;
-      const core = data.resources && data.resources.core;
-      const isAuthed = (core && core.limit >= 1000);
-      const resetIn = search ? Math.max(0, Math.round((search.reset * 1000 - Date.now()) / 1000)) : 0;
-      showBanner(
-        `<span>${isAuthed ? '✅' : '⚠'} <b>${isAuthed ? 'Authed' : 'Anonymous'}</b> · Search budget: <b>${search?.remaining ?? '?'} / ${search?.limit ?? '?'}</b> per min${resetIn > 0 ? ` · resets in ${resetIn}s` : ''} · Core: ${core?.remaining ?? '?'} / ${core?.limit ?? '?'}</span><button onclick="this.parentElement.style.display='none'">Dismiss</button>`
-      );
-      setStatus(`${isAuthed ? '🔓 authed' : '🔒 anon'} · search ${search?.remaining ?? '?'}/${search?.limit ?? '?'}`, 'live');
-    } catch (e) {
-      showBanner(`<span>❌ Test failed: ${escape(e.message)}</span><button onclick="this.parentElement.style.display='none'">Dismiss</button>`);
-    } finally {
-      btn.textContent = originalText;
-      btn.disabled = false;
-    }
-  });
-  [els.category, els.language, els.range, els.minStars].forEach(el => el.addEventListener('change', search));
+${postText}`;
+      };
 
-  // ---- Course panel: show/hide based on category, add courses via the form ----
-  const $coursePanel = $('coursePanel');
-  const updateCoursePanelVisibility = () => {
-    $coursePanel.style.display = els.category.value === 'courses' ? 'block' : 'none';
-  };
-  updateCoursePanelVisibility();
-  els.category.addEventListener('change', updateCoursePanelVisibility);
+      const aiRewritePrompt = async (repo, busyKey) => {
+        busyKey = busyKey || repo.full_name;
+        aiBusy[busyKey] = 'wait';
+        // Ensure README + translations are loaded so the prompt includes them
+        try {
+          const summary = await fetchReadmeSummary(repo);
+          if (isValidSummary(summary)) await translateSummary(summary);
+        } catch {}
+        const prompt = buildAiPrompt(repo);
+        try {
+          await navigator.clipboard.writeText(prompt);
+          // Open Gemini in a new tab — user pastes into the already-focused prompt box
+          window.open('https://gemini.google.com/app', '_blank', 'noopener');
+          aiBusy[busyKey] = 'done';
+          setTimeout(() => { delete aiBusy[busyKey]; }, 1800);
+        } catch {
+          aiBusy[busyKey] = 'fail';
+          setTimeout(() => { delete aiBusy[busyKey]; }, 1500);
+        }
+      };
 
-  const $cfMsg = $('cfMsg');
-  const flashCourseMsg = (text, isError = false) => {
-    $cfMsg.textContent = text;
-    $cfMsg.classList.toggle('error', !!isError);
-    if (text) setTimeout(() => { if ($cfMsg.textContent === text) $cfMsg.textContent = ''; }, 3500);
-  };
-  $('courseForm').addEventListener('submit', (e) => {
-    e.preventDefault();
-    const title = $('cfTitle').value.trim();
-    const url = $('cfUrl').value.trim();
-    if (!title || !url) { flashCourseMsg('Title and URL are required.', true); return; }
-    try { new URL(url); } catch { flashCourseMsg('That URL doesn\'t look valid.', true); return; }
-    const course = addCourse({
-      title,
-      url,
-      description: $('cfDesc').value,
-      level: $('cfLevel').value,
-      duration: $('cfDuration').value,
-      topics: $('cfTopics').value,
-    });
-    // Reset form
-    ['cfTitle','cfUrl','cfDesc','cfDuration','cfTopics'].forEach(id => { $(id).value = ''; });
-    $('cfLevel').value = 'Intermediate';
-    flashCourseMsg(`Added: ${course.title}`);
-    search();  // refresh the grid to include the new course
-  });
+      // ---- Duplicate-post confirmation (ElMessageBox instead of confirm()) ----
+      const confirmDuplicate = async (repo, upcomingAction) => {
+        const dup = checkDuplicate(repo);
+        if (!dup) return true;
+        const daysAgo = Math.floor((Date.now() - dup.lastTs) / (24 * 60 * 60 * 1000));
+        const hoursAgo = Math.floor((Date.now() - dup.lastTs) / (60 * 60 * 1000));
+        const whenText = daysAgo >= 1 ? `${daysAgo} day${daysAgo === 1 ? '' : 's'} ago` : `${hoursAgo} hour${hoursAgo === 1 ? '' : 's'} ago`;
+        const parts = [];
+        parts.push(`⚠ You already posted about "${repo.full_name}" ${whenText}.`);
+        parts.push('');
+        parts.push(`Total actions on this repo: ${dup.totalCount} (📋 ${dup.copyCount} copies, 📸 ${dup.imageCount} images)`);
+        parts.push('');
+        parts.push(`Continue with this ${upcomingAction === 'image' ? '📸 image' : '📋 copy'} anyway?`);
+        try {
+          await ElMessageBox.confirm(parts.join('\n'), 'Already posted', {
+            confirmButtonText: upcomingAction === 'image' ? '📸 Save anyway' : '📋 Copy anyway',
+            cancelButtonText: 'Cancel',
+            type: 'warning',
+          });
+          return true;
+        } catch { return false; }
+      };
 
-  // ---- Post history modal ----
-  const $hist = $('historyModal');
-  const $histBtn = $('historyBtn');
-  const $histCount = $('historyCount');
-  const $histList = $('histList');
-  const $histStats = $('histStats');
-  const $histSearch = $('histSearch');
-  const $histFilter = $('histFilter');
-
-  const updateHistoryBadge = () => {
-    const n = loadHistory().length;
-    $histCount.textContent = n > 99 ? '99+' : n;
-    $histCount.style.display = n > 0 ? 'inline-flex' : 'none';
-  };
-  updateHistoryBadge();
-
-  const renderHistoryList = () => {
-    const all = loadHistory();
-    const q = $histSearch.value.trim().toLowerCase();
-    const filter = $histFilter.value;
-    const filtered = all.filter(e => {
-      if (filter !== 'all' && e.action !== filter) return false;
-      if (!q) return true;
-      return (e.full_name || '').toLowerCase().includes(q)
-        || (e.text || '').toLowerCase().includes(q)
-        || (e.platform || '').toLowerCase().includes(q)
-        || (e.language || '').toLowerCase().includes(q);
-    });
-    // Stats bar
-    const now = Date.now();
-    const week = 7 * 24 * 60 * 60 * 1000;
-    const weekCount = all.filter(e => now - e.ts < week).length;
-    const uniqueRepos = new Set(all.map(e => e.full_name)).size;
-    const copies = all.filter(e => e.action === 'copy').length;
-    const images = all.filter(e => e.action === 'image').length;
-    $histStats.innerHTML = `
-      <span><b>${all.length}</b> total entries</span>
-      <span><b>${weekCount}</b> this week</span>
-      <span><b>${uniqueRepos}</b> unique repos</span>
-      <span>📋 <b>${copies}</b> copies</span>
-      <span>📸 <b>${images}</b> images</span>
-      ${filtered.length !== all.length ? `<span style="margin-left:auto;">Showing <b>${filtered.length}</b> after filter</span>` : ''}
-    `;
-    // List
-    if (!filtered.length) {
-      $histList.innerHTML = `<div class="hist-empty">${all.length ? 'Nothing matches your filter.' : 'No history yet — copies and images get logged here automatically.'}</div>`;
-      return;
-    }
-    $histList.innerHTML = filtered.map(e => {
-      const icon = e.action === 'image' ? '📸' : '📋';
-      const when = new Date(e.ts).toLocaleString();
-      const ago = timeAgo(new Date(e.ts).toISOString());
-      return `
-        <div class="hist-entry ${e.action}" data-id="${escape(e.id)}">
-          <div class="h-icon">${icon}</div>
-          <div class="h-body">
-            <div class="h-top">
-              <span class="h-repo"><a href="${escape(e.html_url || '#')}" target="_blank" rel="noopener">${escape(e.full_name)}</a></span>
-              ${e.isCourse ? `<span class="h-badge">📚 ${escape(e.platform || 'course')}</span>` : ''}
-              ${e.language ? `<span class="h-badge">${escape(e.language)}</span>` : ''}
-              <span class="h-when" title="${escape(when)}">${escape(ago)}</span>
-            </div>
-            <div class="h-text">${escape(e.text || '(no text)').replace(/\n/g, ' ')}</div>
-          </div>
-          <div class="h-actions">
-            <button data-hist-action="expand" title="Show / hide the full copied text">↕</button>
-            <button data-hist-action="recopy" title="Copy this exact text again">📋</button>
-            <button data-hist-action="delete" title="Remove this entry">🗑</button>
-          </div>
-        </div>`;
-    }).join('');
-  };
-
-  const openHistory = () => { renderHistoryList(); $hist.classList.add('open'); };
-  const closeHistory = () => { $hist.classList.remove('open'); };
-  $histBtn.addEventListener('click', openHistory);
-  $('histClose').addEventListener('click', closeHistory);
-  $hist.addEventListener('click', (e) => { if (e.target === $hist) closeHistory(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $hist.classList.contains('open')) closeHistory(); });
-
-  $histSearch.addEventListener('input', debounce(renderHistoryList, 150));
-  $histFilter.addEventListener('change', renderHistoryList);
-
-  $('histExport').addEventListener('click', () => {
-    const blob = new Blob([JSON.stringify(loadHistory(), null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `gh-trending-history-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-    setTimeout(() => URL.revokeObjectURL(url), 4000);
-  });
-  $('histClear').addEventListener('click', () => {
-    if (confirm(`Delete all ${loadHistory().length} history entries? This cannot be undone.`)) {
-      clearHistory();
-      updateHistoryBadge();
-      renderHistoryList();
-    }
-  });
-
-  $histList.addEventListener('click', (e) => {
-    const btn = e.target.closest('[data-hist-action]');
-    if (!btn) return;
-    const entry = btn.closest('.hist-entry');
-    const id = entry?.dataset.id;
-    if (!id) return;
-    const action = btn.dataset.histAction;
-    if (action === 'expand') {
-      entry.classList.toggle('expanded');
-    } else if (action === 'recopy') {
-      const item = loadHistory().find(e => e.id === id);
-      if (item) navigator.clipboard.writeText(item.text || '').then(() => {
-        btn.classList.add('done'); btn.textContent = '✓';
-        setTimeout(() => { btn.classList.remove('done'); btn.textContent = '📋'; }, 1500);
+      // ---- Sort / filter (client-side) ----
+      const applySortAndFilter = (items) => {
+        const sortKey = sort.value;
+        const f = filter.value.trim().toLowerCase();
+        let out = items.slice();
+        if (hidePosted.value) out = out.filter(r => !postedAt(r.full_name));
+        if (f) {
+          out = out.filter(r =>
+            (r.full_name || '').toLowerCase().includes(f) ||
+            (r.description || '').toLowerCase().includes(f) ||
+            (r.owner && r.owner.login || '').toLowerCase().includes(f) ||
+            (r.topics || []).some(t => t.toLowerCase().includes(f))
+          );
+        }
+        if (sortKey === 'velocity') {
+          out.sort((a, b) => (b.stargazers_count / daysSince(b.created_at)) - (a.stargazers_count / daysSince(a.created_at)));
+        } else if (sortKey === 'stars') {
+          out.sort((a, b) => b.stargazers_count - a.stargazers_count);
+        } else if (sortKey === 'newest') {
+          out.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+        } else if (sortKey === 'forks') {
+          out.sort((a, b) => b.forks_count - a.forks_count);
+        }
+        return out.slice(0, 30);
+      };
+      const displayItems = computed(() => {
+        favTick.value; postedTick.value;
+        return applySortAndFilter(rawItems.value);
       });
-    } else if (action === 'delete') {
-      deleteHistoryEntry(id);
-      updateHistoryBadge();
-      renderHistoryList();
-    }
-  });
+      const catName = computed(() => CATEGORY_LABELS[category.value] || category.value);
+      const rangeName = computed(() => RANGE_LABELS[range.value] || range.value);
 
-  // Refresh header badge whenever a new entry is logged
-  document.addEventListener('history-updated', () => {
-    updateHistoryBadge();
-    if ($hist.classList.contains('open')) renderHistoryList();
-  });
+      // ---- Card helpers ----
+      const marketingSet = new Set(CATEGORY_TOPICS.marketing);
+      const webdevSet = new Set(CATEGORY_TOPICS.webdev);
+      const cardTopics = (r) => (r.topics || []).filter(t => webdevSet.has(t) || marketingSet.has(t)).slice(0, 5);
+      const isMarketingTopic = (t) => marketingSet.has(t);
+      const langColor = (r) => LANG_COLORS[(r.language || '').toLowerCase()] || 'var(--accent)';
+      const velocityOf = (r) => r.stargazers_count / daysSince(r.created_at);
+      const isFavR = (r) => { favTick.value; return isFav(r); };
+      const onToggleFav = (r) => { toggleFav(r); favTick.value++; };
+      const postedAtR = (name) => { postedTick.value; return postedAt(name); };
+      const onTogglePosted = (r) => { togglePosted(r.full_name); postedTick.value++; saveState(); };
+      const copyRepoUrl = (r) => {
+        navigator.clipboard.writeText(r.html_url).then(() => flashKey('copy:' + r.full_name)).catch(() => {});
+      };
+      const copyPreviewUrl = (r) => {
+        navigator.clipboard.writeText(previewUrl(r)).then(() => flashKey('pv:' + r.full_name)).catch(() => {});
+      };
+      const downloadPreview = (r) => {
+        const a = document.createElement('a');
+        a.href = previewUrl(r);
+        a.download = `${r.name || (r.full_name || '').split('/').pop()}-preview.png`;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      };
+      const openLightbox = (r) => {
+        lightbox.src = previewUrl(r);
+        lightbox.name = r.full_name;
+        lightbox.open = true;
+      };
 
-  // Delete-course and clone-course actions delegated via card action handler
-  els.results.addEventListener('click', (e) => {
-    const del = e.target.closest('[data-action="delete-course"]');
-    if (del) {
-      const id = del.dataset.id;
-      if (id && confirm('Remove this course from your list?')) {
-        removeCourse(id);
+      // ---- Card review actions ----
+      const onSaveImage = async (r) => {
+        if (!await confirmDuplicate(r, 'image')) return;
+        saveReviewAsImage(r, r.full_name);
+      };
+      const onAiRewrite = (r) => aiRewritePrompt(r, r.full_name);
+      const onCopyReview = async (r) => {
+        if (!await confirmDuplicate(r, 'copy')) return;
+        const key = r.full_name;
+        copyBusy[key] = 'wait';
+        // Ensure README summary + Myanmar translations are loaded before we copy,
+        // so the pasted post includes both languages when the user prefers MY-first.
+        try {
+          const summary = await fetchReadmeSummary(r);
+          if (isValidSummary(summary)) await translateSummary(summary);
+        } catch {}
+        try {
+          const shareText = buildShareText(r);
+          await navigator.clipboard.writeText(shareText);
+          logPostAction(r, 'copy', shareText);
+          copyBusy[key] = 'done';
+          setTimeout(() => { delete copyBusy[key]; }, 1500);
+        } catch {
+          delete copyBusy[key];
+        }
+      };
+
+      // ---- Post preview dialog ----
+      const ppOpen = ref(false);
+      const ppRepo = ref(null);
+      const ppText = ref('');
+      const ppImgOk = ref(true);
+      const ppPost = computed(() => ppRepo.value ? postFor(ppRepo.value) : null);
+      const renderPostPreview = () => { if (ppRepo.value) ppText.value = buildShareText(ppRepo.value); };
+      const openPostPreview = (repo) => {
+        ppRepo.value = repo;
+        ppImgOk.value = true;
+        renderPostPreview();
+        ppOpen.value = true;
+        // Ensure both README summary AND Myanmar translations are loaded before
+        // the user copies. Refresh the preview after each step.
+        (async () => {
+          try {
+            const summary = await fetchReadmeSummary(repo);
+            if (ppOpen.value) renderPostPreview();
+            if (isValidSummary(summary)) {
+              await translateSummary(summary);  // populates the translate cache
+              if (ppOpen.value) renderPostPreview();
+            }
+          } catch {}
+        })();
+      };
+      const ppCopyPost = async () => {
+        if (!ppRepo.value) return;
+        if (!await confirmDuplicate(ppRepo.value, 'copy')) return;
+        const shareText = buildShareText(ppRepo.value);
+        try {
+          await navigator.clipboard.writeText(shareText);
+          logPostAction(ppRepo.value, 'copy', shareText);
+          flashKey('ppCopy');
+        } catch {}
+      };
+      const ppSaveImage = async () => {
+        if (!ppRepo.value) return;
+        if (!await confirmDuplicate(ppRepo.value, 'image')) return;
+        saveReviewAsImage(ppRepo.value, 'pp');
+      };
+      const ppAiRewrite = () => { if (ppRepo.value) aiRewritePrompt(ppRepo.value, 'pp'); };
+
+      // ---- Post history ----
+      const histOpen = ref(false);
+      const histSearch = ref('');
+      const histFilter = ref('all');
+      const histExpanded = reactive({});
+      const historyAll = computed(() => { histTick.value; return loadHistory(); });
+      const histCount = computed(() => historyAll.value.length);
+      const histFiltered = computed(() => {
+        const q = histSearch.value.trim().toLowerCase();
+        const f = histFilter.value;
+        return historyAll.value.filter(e => {
+          if (f !== 'all' && e.action !== f) return false;
+          if (!q) return true;
+          return (e.full_name || '').toLowerCase().includes(q)
+            || (e.text || '').toLowerCase().includes(q)
+            || (e.platform || '').toLowerCase().includes(q)
+            || (e.language || '').toLowerCase().includes(q);
+        });
+      });
+      const histStats = computed(() => {
+        const all = historyAll.value;
+        const now = Date.now();
+        const week = 7 * 24 * 60 * 60 * 1000;
+        return {
+          total: all.length,
+          weekCount: all.filter(e => now - e.ts < week).length,
+          uniqueRepos: new Set(all.map(e => e.full_name)).size,
+          copies: all.filter(e => e.action === 'copy').length,
+          images: all.filter(e => e.action === 'image').length,
+        };
+      });
+      const openHistory = () => { histOpen.value = true; };
+      const recopyHistory = (e) => {
+        navigator.clipboard.writeText(e.text || '').then(() => flashKey('hc:' + e.id)).catch(() => {});
+      };
+      const onDeleteHistoryEntry = (id) => { deleteHistoryEntry(id); histTick.value++; };
+      const onClearHistory = () => { clearHistory(); histTick.value++; };
+      const exportHistory = () => {
+        const blob = new Blob([JSON.stringify(loadHistory(), null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `gh-trending-history-${new Date().toISOString().slice(0,10)}.json`;
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 4000);
+      };
+      // Refresh header badge whenever a new entry is logged
+      document.addEventListener('history-updated', () => { histTick.value++; });
+
+      // ---- Course form ----
+      const cfTitle = ref('');
+      const cfUrl = ref('');
+      const cfDesc = ref('');
+      const cfLevel = ref('Intermediate');
+      const cfDuration = ref('');
+      const cfTopics = ref('');
+      const submitCourse = () => {
+        const title = cfTitle.value.trim();
+        const url = cfUrl.value.trim();
+        if (!title || !url) { ElMessage.error('Title and URL are required.'); return; }
+        try { new URL(url); } catch { ElMessage.error('That URL doesn\'t look valid.'); return; }
+        const course = addCourse({
+          title,
+          url,
+          description: cfDesc.value,
+          level: cfLevel.value,
+          duration: cfDuration.value,
+          topics: cfTopics.value,
+        });
+        // Reset form
+        cfTitle.value = ''; cfUrl.value = ''; cfDesc.value = ''; cfDuration.value = ''; cfTopics.value = '';
+        cfLevel.value = 'Intermediate';
+        ElMessage.success(`Added: ${course.title}`);
+        search();  // refresh the grid to include the new course
+      };
+      const onDeleteCourse = (id) => { removeCourse(id); search(); };
+      const cloneCourse = (id) => {
+        const src = loadCourses()[id];
+        if (!src) return;
+        cfTitle.value = src.title + ' (copy)';
+        cfUrl.value = src.url;
+        cfDesc.value = src.description || '';
+        cfLevel.value = src.level || 'Intermediate';
+        cfDuration.value = src.duration || '';
+        cfTopics.value = (src.topics || []).join(', ');
+        ElMessage.success(`Cloned "${src.title}" — edit and save as new`);
+        coursePanelEl.value?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        nextTick(() => cfTitleEl.value?.focus());
+      };
+
+      // ---- Search (endpoints, per-topic requests, and stale-cache fallback unchanged) ----
+      const search = async (opts = {}) => {
+        const forceFresh = !!opts.force;
+        saveState();
+        hideBanner();
+
+        // Favorites and Courses are local-only views — no API call
+        if (category.value === 'favorites') {
+          const favs = Object.values(loadFavs());
+          setResults(favs);
+          setStatus(`${favs.length} favorite${favs.length === 1 ? '' : 's'} · local only`, favs.length ? 'live' : '');
+          return;
+        }
+        if (category.value === 'courses') {
+          const courses = Object.values(loadCourses())
+            .sort((a, b) => (b.addedAt || 0) - (a.addedAt || 0))
+            .map(courseToRepo);
+          setResults(courses);
+          const n = courses.length;
+          setStatus(`${n} course${n === 1 ? '' : 's'} · local only · use the form above to add more`, n ? 'live' : '');
+          return;
+        }
+        if (category.value === 'lessons') {
+          const lessons = WEB_LESSONS.map(lessonToRepo);
+          setResults(lessons);
+          setStatus(`${lessons.length} web lessons · one per day · pick any to post today`, 'live');
+          return;
+        }
+
+        const reqId = ++currentRequest;
+        const days = range.value;
+        const minStarsV = minStars.value;
+        const lang = language.value;
+        const extraQ = extra.value.trim();
+
+        setStatus(forceFresh ? 'Refreshing…' : 'Loading…', 'live');
+        if (!rawItems.value.length) { showSkeleton.value = true; errorState.value = null; }
+
+        // noTopics fallback: one unfiltered request instead of per-topic
+        const topics = opts.noTopics ? [null] : topicsForCategory(category.value);
+        const urls = topics.map(topic => buildUrl({ days, minStars: minStarsV, lang, extra: extraQ, topic }));
+        console.log('[gh-trending] fetching:', urls);
+        const headers = { 'Accept': 'application/vnd.github+json' };
+        const tk = token.value.trim();
+        if (tk) headers['Authorization'] = `Bearer ${tk}`;
+
+        try {
+          const perChunk = await Promise.all(urls.map(async (u) => {
+            const cached = forceFresh ? null : cacheGet(u);
+            if (cached) return { items: cached.items, remaining: cached.remaining, cached: true, stale: false };
+            const res = await fetch(u, { headers });
+            const remaining = res.headers.get('x-ratelimit-remaining');
+            if (!res.ok) {
+              const body = await res.json().catch(() => ({}));
+              const err = new Error(body.message || `HTTP ${res.status}`);
+              err.status = res.status;
+              err.url = u;
+              throw err;
+            }
+            const items = (await res.json()).items || [];
+            cachePut(u, items, remaining);
+            return { items, remaining, cached: false, stale: false };
+          }));
+          if (reqId !== currentRequest) return;
+
+          const merged = new Map();
+          let lastRemaining = null;
+          let cachedCount = 0;
+          for (const chunk of perChunk) {
+            if (chunk.remaining != null) lastRemaining = chunk.remaining;
+            if (chunk.cached) cachedCount++;
+            for (const item of chunk.items) if (!merged.has(item.id)) merged.set(item.id, item);
+          }
+          setResults([...merged.values()]);
+          const authTag = tk ? '🔓 authed' : '🔒 anon';
+          const cacheTag = cachedCount === perChunk.length ? ' · fully cached' : cachedCount ? ` · ${cachedCount}/${perChunk.length} cached` : '';
+          setStatus(`${new Date().toLocaleTimeString()} · ${merged.size} repos · ${authTag} · limit ${lastRemaining ?? '?'}${cacheTag}`,
+                    refreshSel.value !== '0' ? 'live' : '');
+        } catch (err) {
+          if (reqId !== currentRequest) return;
+          // Fallback: try to serve stale cache — but only if it has actual data
+          const staleChunks = urls.map(u => cacheGet(u, true)).filter(c => c && c.items && c.items.length);
+          if (staleChunks.length) {
+            const merged = new Map();
+            let oldestAge = 0;
+            for (const c of staleChunks) {
+              oldestAge = Math.max(oldestAge, c.age);
+              for (const item of c.items) if (!merged.has(item.id)) merged.set(item.id, item);
+            }
+            if (merged.size > 0) {
+              const ageMin = Math.round(oldestAge / 60000);
+              setResults([...merged.values()]);
+              const isRateLimit = err.status === 403;
+              showBanner(
+                `${isRateLimit ? '⏳' : '⚠'} ${escape(err.message)}. Showing cached data (${ageMin} min old).${
+                  !tk && isRateLimit ? ' Add a GitHub token below to raise the limit from 10→30/min.' : ''
+                }`
+              );
+              setStatus(`Stale cache · ${merged.size} repos · ${ageMin} min old`, 'stale');
+              return;
+            }
+          }
+          // No useful cache to fall back on
+          showSkeleton.value = false;
+          rawItems.value = [];
+          if (err.status === 403) {
+            errorState.value = { type: 'rate', hasToken: !!tk };
+            setStatus(tk ? 'Authed rate limited · wait ~1 min' : 'Rate limited · add token or wait', 'error');
+          } else {
+            errorState.value = {
+              type: 'generic',
+              message: err.message,
+              hint: err.status === 422
+                ? 'Query rejected by GitHub. Try simpler Extra query or fewer filters.'
+                : 'GitHub search API request failed.',
+            };
+            setStatus('Error', 'error');
+          }
+        }
+      };
+
+      // Empty-state recovery actions
+      const tryNoTopics = () => search({ force: true, noTopics: true });
+      const tryLoosenStars = async () => {
+        suppressSearchWatch = true; minStars.value = '10';
+        await nextTick(); suppressSearchWatch = false;
+        search({ force: true });
+      };
+      const tryLongerRange = async () => {
+        suppressSearchWatch = true; range.value = '365';
+        await nextTick(); suppressSearchWatch = false;
+        search({ force: true });
+      };
+
+      const applyRefresh = () => {
+        if (refreshTimer) clearInterval(refreshTimer);
+        const seconds = parseInt(refreshSel.value, 10);
+        if (seconds > 0) refreshTimer = setInterval(() => search(), seconds * 1000);
+      };
+
+      // Test-token button — hits /rate_limit and reports auth + budget
+      const testToken = async () => {
+        const tk = token.value.trim();
+        testingToken.value = true;
+        try {
+          const headers = { 'Accept': 'application/vnd.github+json' };
+          if (tk) headers['Authorization'] = `Bearer ${tk}`;
+          const res = await fetch('https://api.github.com/rate_limit', { headers });
+          const data = await res.json();
+          if (res.status === 401) {
+            showBanner('❌ Token rejected by GitHub (401). Check for typos or generate a new one.');
+            setStatus('Token invalid', 'error');
+            return;
+          }
+          const searchRes = data.resources && data.resources.search;
+          const core = data.resources && data.resources.core;
+          const isAuthed = (core && core.limit >= 1000);
+          const resetIn = searchRes ? Math.max(0, Math.round((searchRes.reset * 1000 - Date.now()) / 1000)) : 0;
+          showBanner(
+            `${isAuthed ? '✅' : '⚠'} <b>${isAuthed ? 'Authed' : 'Anonymous'}</b> · Search budget: <b>${searchRes?.remaining ?? '?'} / ${searchRes?.limit ?? '?'}</b> per min${resetIn > 0 ? ` · resets in ${resetIn}s` : ''} · Core: ${core?.remaining ?? '?'} / ${core?.limit ?? '?'}`
+          );
+          setStatus(`${isAuthed ? '🔓 authed' : '🔒 anon'} · search ${searchRes?.remaining ?? '?'}/${searchRes?.limit ?? '?'}`, 'live');
+        } catch (e) {
+          showBanner(`❌ Test failed: ${escape(e.message)}`);
+        } finally {
+          testingToken.value = false;
+        }
+      };
+      const onTokenChange = () => { saveState(); search(); };
+
+      // ---- Wire reactive events (same triggers as the vanilla listeners) ----
+      watch([category, language, range, minStars], () => {
+        if (suppressSearchWatch) return;
         search();
-      }
-      return;
-    }
-    const clone = e.target.closest('[data-action="clone-course"]');
-    if (clone) {
-      const id = clone.dataset.id;
-      const src = loadCourses()[id];
-      if (!src) return;
-      $('cfTitle').value = src.title + ' (copy)';
-      $('cfUrl').value = src.url;
-      $('cfDesc').value = src.description || '';
-      $('cfLevel').value = src.level || 'Intermediate';
-      $('cfDuration').value = src.duration || '';
-      $('cfTopics').value = (src.topics || []).join(', ');
-      flashCourseMsg(`Cloned "${src.title}" — edit and save as new`);
-      $coursePanel.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      $('cfTitle').focus();
-      $('cfTitle').select();
-      return;
+      });
+      watch(refreshSel, () => { saveState(); applyRefresh(); });
+      watch(reviews, () => {
+        // Mode change resets per-card expand overrides, like the old full re-render did
+        for (const k of Object.keys(expandedMap)) delete expandedMap[k];
+        saveState();
+      });
+      watch([sort, preview, langOrder, hidePosted], () => saveState());
+      watch([filter, pageName], debounce(() => saveState(), 250));
+
+      // Auto-load README summaries for reviews that render already-expanded
+      // (e.g. "Show (expanded)" mode). Staggered by 120ms per card to avoid burst.
+      watch([displayItems, reviews], () => {
+        if (reviews.value !== 'expanded') return;
+        displayItems.value.forEach((repo, i) => setTimeout(() => loadReadme(repo), i * 120));
+      });
+
+      // ---- Keyboard shortcuts ----
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && lightbox.open) lightbox.open = false;
+        // Expose one debug hook via keyboard: Ctrl+Shift+K clears query cache
+        if (e.ctrlKey && e.shiftKey && e.key === 'K') {
+          e.preventDefault();
+          cacheClearAll();
+          setStatus('Cache cleared · click Refresh', '');
+        }
+        // Keyboard: / to focus filter
+        if (e.key === '/' && !/^(input|textarea|select)$/i.test(document.activeElement.tagName) && !document.activeElement.isContentEditable) {
+          e.preventDefault();
+          filterEl.value?.focus();
+        }
+      });
+
+      onMounted(() => {
+        const loadingEl = document.getElementById('vue-loading');
+        if (loadingEl) loadingEl.style.display = 'none';
+        applyRefresh();
+        search();
+      });
+
+      return {
+        // theme + header
+        theme, toggleTheme, openHistory, histCount,
+        // controls
+        category, language, range, minStars, sort, refreshSel, reviews, preview, langOrder,
+        extra, filter, pageName, hidePosted, token, filterEl,
+        statusText, statusCls, banner, testingToken, testToken, onTokenChange,
+        // results
+        displayItems, showSkeleton, errorState, catName, rangeName,
+        search, tryNoTopics, tryLoosenStars, tryLongerRange,
+        // cards
+        cardTopics, isMarketingTopic, langColor, velocityOf, previewUrl,
+        fmtNum, fmtVelocity, timeAgo,
+        isFavR, onToggleFav, postedAtR, onTogglePosted,
+        copyRepoUrl, copyPreviewUrl, downloadPreview, openLightbox, lightbox,
+        flash, imgBusy, aiBusy, copyBusy,
+        // review drafts
+        postFor, ratingStars, draftEn, draftMy, isEdited, isSmartLoaded,
+        onDraftInput, shufflePost, isExpanded, toggleReview, expandOnFocus,
+        readmeStatus, readmeHtml, readmeErr, readmeCount,
+        showEnC, showMyC, myFirstC,
+        onSaveImage, onAiRewrite, onCopyReview,
+        // post preview
+        ppOpen, ppRepo, ppText, ppImgOk, ppPost, openPostPreview, ppCopyPost, ppSaveImage, ppAiRewrite,
+        // history
+        histOpen, histSearch, histFilter, histExpanded, historyAll, histFiltered, histStats,
+        recopyHistory, onDeleteHistoryEntry, onClearHistory, exportHistory,
+        // courses
+        cfTitle, cfUrl, cfDesc, cfLevel, cfDuration, cfTopics,
+        submitCourse, onDeleteCourse, cloneCourse, coursePanelEl, cfTitleEl,
+      };
     }
   });
+  app.use(ElementPlus);
+  app.mount('#app');
 
-  // Keyboard: / to focus filter
-  document.addEventListener('keydown', (e) => {
-    if (e.key === '/' && !/^(input|textarea|select)$/i.test(document.activeElement.tagName)) {
-      e.preventDefault();
-      els.filter.focus();
-    }
-  });
-
-  applyRefresh();
-  search();
-})();
+}
 </script>
-<script defer src="_palette.js"></script>
-<script defer src="_navrail.js"></script>
-<script defer src="_ui.js"></script>
-<script defer src="_pwa.js"></script>
-<script defer src="_cloudsync.js"></script>
-<script defer src="_prompts.js"></script>
-<script defer src="_settings.js"></script>
 </body>
 </html>

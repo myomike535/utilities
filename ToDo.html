@@ -1,11 +1,23 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Task Manager</title>
 <link rel="stylesheet" href="_motion.css">
 <script defer src="_motion.js"></script>
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<script>
+  // Apply saved theme before first paint (same key as always: tasks.theme)
+  (function () {
+    try {
+      var t = localStorage.getItem('tasks.theme') || 'dark';
+      document.documentElement.dataset.theme = t;
+      document.documentElement.classList.toggle('dark', t !== 'light');
+    } catch (e) {}
+  })();
+</script>
 <style>
   :root {
     --bg-grad-1: #1e1e2f;
@@ -24,6 +36,15 @@
     --warn: #f59e0b;
     --shadow: 0 20px 50px rgba(0,0,0,0.4);
     --code-bg: rgba(0,0,0,0.28);
+    /* Element Plus theme mapping — brand color (PostStudio pattern) */
+    --el-color-primary: #6366f1;
+    --el-color-primary-light-3: #818cf8;
+    --el-color-primary-light-5: #a5b4fc;
+    --el-color-primary-light-7: #c7d2fe;
+    --el-color-primary-light-8: #e0e7ff;
+    --el-color-primary-light-9: #eef2ff;
+    --el-color-primary-dark-2: #4f46e5;
+    --el-font-family: 'Segoe UI', system-ui, sans-serif;
   }
   [data-theme="light"] {
     --bg-grad-1: #eef2ff;
@@ -43,18 +64,51 @@
     --shadow: 0 20px 50px rgba(30,41,59,0.15);
     --code-bg: #f1f5f9;
   }
+  /* Element Plus dark surfaces mapped to the tool's own palette */
+  html.dark {
+    --el-bg-color: #27273a;
+    --el-bg-color-overlay: #1e1e2f;
+    --el-fill-color-blank: #1e1e2f;
+    --el-fill-color-light: #2f2f47;
+    --el-border-color: #3a3a52;
+    --el-border-color-light: #3a3a52;
+    --el-border-color-lighter: #2f2f47;
+    --el-border-color-hover: #6366f1;
+    --el-text-color-primary: #e4e4e7;
+    --el-text-color-regular: #c7c7d1;
+    --el-text-color-secondary: #9a9ab0;
+    --el-text-color-placeholder: #6b6b82;
+    --el-mask-color: rgba(0,0,0,0.55);
+  }
+  /* Element Plus light surfaces mapped to the tool's light palette */
+  html[data-theme="light"] {
+    --el-bg-color: #ffffff;
+    --el-bg-color-overlay: #ffffff;
+    --el-fill-color-blank: #f8fafc;
+    --el-border-color: #e2e8f0;
+    --el-border-color-light: #e2e8f0;
+    --el-border-color-lighter: #eef2f7;
+    --el-text-color-primary: #1e293b;
+    --el-text-color-regular: #334155;
+    --el-text-color-secondary: #64748b;
+    --el-text-color-placeholder: #94a3b8;
+  }
 
   * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', system-ui, sans-serif; }
   body {
     background: linear-gradient(135deg, var(--bg-grad-1), var(--bg-grad-2));
     color: var(--text);
     min-height: 100vh;
+    padding: 40px 16px;
+    transition: background 0.3s;
+  }
+  [v-cloak] { display: none !important; }
+  #vue-loading { display: flex; align-items: center; justify-content: center; min-height: 50vh; color: var(--text-mute); }
+  #app {
     display: flex;
     justify-content: center;
     align-items: flex-start;
     gap: 20px;
-    padding: 40px 16px;
-    transition: background 0.3s;
   }
 
   .side-panel {
@@ -136,7 +190,7 @@
   }
 
   @media (max-width: 1120px) {
-    body { flex-direction: column; align-items: center; }
+    #app { flex-direction: column; align-items: center; }
     .side-panel { width: 100%; max-width: 580px; order: 2; }
     .app { order: 1; }
   }
@@ -183,68 +237,20 @@
   .icon-btn:hover { color: var(--text); border-color: var(--accent); }
 
   .input-row { display: flex; gap: 8px; padding: 18px 28px 10px; flex-wrap: wrap; }
-  #taskInput {
-    flex: 1 1 100%;
-    padding: 12px 14px;
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    background: var(--card-bg);
-    color: var(--text);
-    font-size: 0.95rem;
-    outline: none;
-    transition: border-color 0.2s;
-  }
-  #taskInput:focus { border-color: var(--accent); }
+  .input-row .task-input { flex: 1 1 100%; }
+  .input-row .el-input__wrapper { border-radius: 10px; background-color: var(--card-bg); padding: 4px 14px; }
+  .input-row .el-input__inner { font-size: 0.95rem; }
 
   .meta-row { display: flex; gap: 8px; padding: 0 28px 14px; }
-  .meta-row select, .meta-row input[type="date"], .meta-row input[type="text"] {
-    flex: 1;
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--card-bg);
-    color: var(--text);
-    font-size: 0.85rem;
-    outline: none;
-    cursor: pointer;
-  }
-  .meta-row input[type="text"]:focus,
-  .meta-row input[type="date"]:focus { border-color: var(--accent); }
-  .meta-row #addBtn {
-    padding: 8px 18px;
-    border: none;
-    border-radius: 8px;
-    background: var(--accent);
-    color: #fff;
-    font-size: 0.9rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
-  .meta-row #addBtn:hover { background: var(--accent-hover); }
+  .meta-row .priority-select { flex: 1; }
+  .meta-row .el-date-editor.el-input { flex: 1; width: auto; }
+  .meta-row .estimate-input { max-width: 90px; flex: 0 0 90px; }
+  .meta-row .el-select__wrapper, .meta-row .el-input__wrapper { background-color: var(--card-bg); border-radius: 8px; }
 
   .toolbar { padding: 0 28px 14px; display: flex; gap: 8px; align-items: center; }
-  #searchInput {
-    flex: 1;
-    padding: 8px 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--card-bg);
-    color: var(--text);
-    font-size: 0.85rem;
-    outline: none;
-  }
-  #searchInput:focus { border-color: var(--accent); }
-  #sortInput {
-    padding: 8px 10px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--card-bg);
-    color: var(--text);
-    font-size: 0.8rem;
-    outline: none;
-    cursor: pointer;
-  }
+  .toolbar .search-input { flex: 1; }
+  .toolbar .sort-select { width: 180px; flex-shrink: 0; }
+  .toolbar .el-select__wrapper, .toolbar .el-input__wrapper { background-color: var(--card-bg); border-radius: 8px; }
 
   .filters { display: flex; gap: 6px; padding: 0 28px 14px; flex-wrap: wrap; }
   .filter-btn {
@@ -260,11 +266,11 @@
   .filter-btn:hover { color: var(--text); }
   .filter-btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
 
-  ul { list-style: none; padding: 0 28px; max-height: 460px; overflow-y: auto; }
-  ul::-webkit-scrollbar { width: 8px; }
-  ul::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ul.task-list { list-style: none; padding: 0 28px; max-height: 460px; overflow-y: auto; }
+  ul.task-list::-webkit-scrollbar { width: 8px; }
+  ul.task-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
-  li {
+  ul.task-list li {
     display: flex;
     align-items: flex-start;
     gap: 10px;
@@ -277,7 +283,7 @@
     transition: transform 0.15s, opacity 0.15s, border-color 0.2s, background 0.2s;
     cursor: grab;
   }
-  li:hover { border-color: var(--border); }
+  ul.task-list li:hover { border-color: var(--border); }
   li.dragging { opacity: 0.4; cursor: grabbing; }
   li.drag-over { border-top: 2px solid var(--accent); }
   li.priority-low { border-left-color: var(--success); }
@@ -343,30 +349,14 @@
     font-family: 'Consolas','Monaco',monospace;
   }
 
-  .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.55);
-    display: none; align-items: flex-start; justify-content: center;
-    padding: 60px 20px 40px; z-index: 900; overflow-y: auto;
-  }
-  .modal-backdrop.show { display: flex; }
-  .modal {
-    background: var(--app-bg); color: var(--text);
-    border-radius: 16px; padding: 22px 26px 26px;
-    max-width: 660px; width: 100%;
-    box-shadow: var(--shadow);
+  /* Element Plus dialog tuned to the tool's modal look */
+  .el-dialog {
+    --el-dialog-bg-color: var(--app-bg);
+    border-radius: 16px;
     border: 1px solid var(--border);
   }
-  .modal-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 14px; padding-bottom: 12px;
-    border-bottom: 1px solid var(--border);
-  }
-  .modal-header h2 { font-size: 1.15rem; font-weight: 600; }
-  .modal-close {
-    background: transparent; border: none; color: var(--text-dim);
-    font-size: 1.35rem; cursor: pointer; padding: 0 6px; line-height: 1;
-  }
-  .modal-close:hover { color: var(--text); }
+  .el-dialog__title { color: var(--text); font-weight: 600; }
+  .el-popper.is-light { background: var(--app-bg); border-color: var(--border); }
 
   .timeline-row {
     display: grid;
@@ -401,6 +391,7 @@
     padding: 10px 12px; margin-bottom: 12px;
     background: var(--card-bg); border-radius: 8px;
     font-size: 0.82rem;
+    color: var(--text);
   }
   .timeline-summary span b { color: var(--accent); font-weight: 600; }
 
@@ -475,22 +466,6 @@
     letter-spacing: 0.05em;
     user-select: none;
   }
-
-  .toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
-    background: var(--app-bg); color: var(--text);
-    border: 1px solid var(--border); border-radius: 10px;
-    padding: 10px 16px; display: flex; gap: 14px; align-items: center;
-    box-shadow: var(--shadow); font-size: 0.88rem;
-    opacity: 0; pointer-events: none; transition: all 0.25s;
-    z-index: 1000;
-  }
-  .toast.show { transform: translateX(-50%) translateY(0); opacity: 1; pointer-events: auto; }
-  .toast button {
-    background: var(--accent); color: #fff; border: none; padding: 6px 12px;
-    border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600;
-  }
-  .toast button:hover { background: var(--accent-hover); }
 
   li .del {
     background: transparent;
@@ -624,44 +599,42 @@
   @media (max-width: 480px) {
     header { padding: 20px 20px 14px; }
     .input-row, .meta-row, .toolbar, .filters, .footer, .hint { padding-left: 20px; padding-right: 20px; }
-    ul { padding-left: 20px; padding-right: 20px; }
+    ul.task-list { padding-left: 20px; padding-right: 20px; }
   }
 
-  /* ===== Element-style polish (CSS only — no logic changes) ===== */
-  /* Focus rings — soft glow instead of bare border swap */
-  #taskInput:focus, #searchInput:focus,
-  .meta-row select:focus, .meta-row input[type="text"]:focus, .meta-row input[type="date"]:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
+  /* ===== Element-style polish (focus rings, press feedback) ===== */
+  .el-input__wrapper.is-focus, .el-select__wrapper.is-focused, .el-textarea__inner:focus {
+    box-shadow: 0 0 0 1px var(--accent) inset, 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent);
   }
   li .blocked-reason:focus { box-shadow: 0 0 0 3px color-mix(in srgb, var(--danger) 18%, transparent); }
-  /* Keyboard focus visibility on every button */
   button:focus-visible { outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 30%, transparent); }
-  /* Buttons — subtle depth + press feedback */
   .icon-btn { transition: all 0.18s; }
   .icon-btn:hover { background: color-mix(in srgb, var(--accent) 10%, transparent); transform: translateY(-1px); }
   .icon-btn:active { transform: translateY(0) scale(0.95); }
   .filter-btn { transition: all 0.18s; }
   .filter-btn:hover { border-color: var(--accent); transform: translateY(-1px); }
   .filter-btn:active { transform: translateY(0) scale(0.97); }
-  .meta-row #addBtn {
+  .meta-row .el-button--primary {
     background: linear-gradient(135deg, var(--accent), var(--accent-hover));
+    border: none;
+    font-weight: 600;
     box-shadow: 0 4px 12px color-mix(in srgb, var(--accent) 35%, transparent);
     transition: all 0.18s;
   }
-  .meta-row #addBtn:hover { filter: brightness(1.1); transform: translateY(-1px); }
-  .meta-row #addBtn:active { transform: translateY(0) scale(0.97); }
-  /* Toast — ElMessage-style pill with accent edge */
-  .toast {
-    border-radius: 12px;
-    border-left: 3px solid var(--accent);
-    backdrop-filter: blur(10px);
-    box-shadow: 0 10px 32px rgba(0,0,0,0.45);
+  .meta-row .el-button--primary:hover { filter: brightness(1.1); transform: translateY(-1px); }
+  .meta-row .el-button--primary:active { transform: translateY(0) scale(0.97); }
+  .meta-row .el-select__wrapper:hover, .meta-row .el-input__wrapper:hover {
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--accent) 50%, var(--border)) inset;
   }
-  .toast button { transition: all 0.15s; }
-  .toast button:active { transform: scale(0.95); }
-  /* Selects — consistent hover */
-  .meta-row select:hover, .meta-row input:hover { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); }
+  /* ElMessage toast — pill with accent edge + undo button */
+  .el-message { border-radius: 12px; backdrop-filter: blur(10px); border-left: 3px solid var(--accent); }
+  .toast-undo-btn {
+    background: var(--accent); color: #fff; border: none; padding: 5px 12px;
+    margin-left: 12px; border-radius: 6px; cursor: pointer; font-size: 0.82rem; font-weight: 600;
+    transition: all 0.15s;
+  }
+  .toast-undo-btn:hover { background: var(--accent-hover); }
+  .toast-undo-btn:active { transform: scale(0.95); }
 </style>
   <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -670,130 +643,232 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
-  <aside class="side-panel side-left">
-    <h3>Today's Focus</h3>
-    <div id="focusContent"></div>
-  </aside>
-
-  <div class="app">
-    <header>
-      <div class="title">
-        <h1>📋 <span class="m-scramble">Task Manager</span></h1>
-        <p>Stay organized, one task at a time.</p>
-        <div class="progress"><div class="progress-bar" id="progressBar"></div></div>
+  <div id="app" v-cloak>
+    <aside class="side-panel side-left">
+      <h3>Today's Focus</h3>
+      <div id="focusContent">
+        <div v-for="sec in focusSections" :key="sec.title" class="focus-section">
+          <div class="focus-title">{{ sec.title }}</div>
+          <div v-if="sec.items.length === 0" class="focus-empty">{{ sec.empty }}</div>
+          <template v-else>
+            <div v-for="t in sec.items.slice(0, 5)" :key="t.id" class="focus-item" :class="sec.cls">
+              {{ t.text }}
+              <div v-if="sec.sub && sec.sub(t)" class="item-sub">{{ sec.sub(t) }}</div>
+            </div>
+            <div v-if="sec.items.length > 5" class="focus-more">+{{ sec.items.length - 5 }} more</div>
+          </template>
+        </div>
       </div>
-      <div class="header-actions">
-        <button class="icon-btn" id="todayBtn" title="Today's timeline">📅</button>
-        <button class="icon-btn" id="standupBtn" title="Copy standup to clipboard">🎙</button>
-        <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
-        <button class="icon-btn" id="exportBtn" title="Export tasks">⬇</button>
-        <button class="icon-btn" id="importBtn" title="Import tasks">⬆</button>
-        <input type="file" id="importFile" accept="application/json">
+    </aside>
+
+    <div class="app">
+      <header>
+        <div class="title">
+          <h1>📋 <span class="m-scramble">Task Manager</span></h1>
+          <p>Stay organized, one task at a time.</p>
+          <div class="progress"><div class="progress-bar" id="progressBar" :style="{ width: stats.pct + '%' }"></div></div>
+        </div>
+        <div class="header-actions">
+          <button class="icon-btn" id="todayBtn" title="Today's timeline" @click="showToday = true">📅</button>
+          <button class="icon-btn" id="standupBtn" title="Copy standup to clipboard" @click="copyStandup">🎙</button>
+          <button class="icon-btn" id="themeBtn" title="Toggle theme" @click="toggleTheme">{{ theme === 'light' ? '☀' : '🌙' }}</button>
+          <button class="icon-btn" id="exportBtn" title="Export tasks" @click="exportTasks">⬇</button>
+          <button class="icon-btn" id="importBtn" title="Import tasks" @click="$refs.importFile.click()">⬆</button>
+          <input type="file" id="importFile" ref="importFile" accept="application/json" @change="importTasks">
+        </div>
+      </header>
+
+      <div class="input-row">
+        <el-input ref="taskInputRef" v-model="newText" class="task-input" size="large" maxlength="200"
+                  placeholder="Add a new task…" @keyup.enter="addTask"></el-input>
       </div>
-    </header>
-
-    <div class="input-row">
-      <input type="text" id="taskInput" placeholder="Add a new task…" maxlength="200">
-    </div>
-    <div class="meta-row">
-      <select id="priorityInput" title="Priority">
-        <option value="low">Low</option>
-        <option value="med" selected>Medium</option>
-        <option value="high">High</option>
-      </select>
-      <input type="date" id="dueInput" title="Due date">
-      <input type="text" id="estimateInput" title="Estimate (e.g. 30m, 1h30m, 2h)" placeholder="Est. 30m" style="max-width: 90px;">
-      <button id="addBtn">Add</button>
-    </div>
-
-    <div class="toolbar">
-      <input type="text" id="searchInput" placeholder="🔍 Search tasks…">
-      <select id="sortInput" title="Sort by">
-        <option value="manual">Manual order</option>
-        <option value="status">Status (Doing first)</option>
-        <option value="due">Due date</option>
-        <option value="priority">Priority</option>
-        <option value="created">Created (newest)</option>
-        <option value="alpha">A → Z</option>
-      </select>
-    </div>
-
-    <div class="filters">
-      <button class="filter-btn active" data-filter="all">All</button>
-      <button class="filter-btn" data-filter="active">Active</button>
-      <button class="filter-btn" data-filter="doing">▶ Doing</button>
-      <button class="filter-btn" data-filter="blocked">⛔ Blocked</button>
-      <button class="filter-btn" data-filter="done">✓ Done</button>
-      <button class="filter-btn" data-filter="high">🔴 High</button>
-      <button class="filter-btn" data-filter="overdue">⚠ Overdue</button>
-      <div style="flex:1"></div>
-      <button class="filter-btn view-toggle" id="viewToggle" title="Toggle List / Kanban view">📋 List</button>
-    </div>
-
-    <div class="hint">
-      <kbd>n</kbd> new · <kbd>/</kbd> search · <kbd>v</kbd> toggle view · click status chip to cycle
-    </div>
-
-    <ul id="taskList"></ul>
-    <div id="kanbanBoard" style="display:none"></div>
-
-    <div class="footer">
-      <div class="stats">
-        <span><b id="statActive">0</b> active</span>
-        <span><b id="statDoing">0</b> doing</span>
-        <span><b id="statBlocked">0</b> blocked</span>
-        <span><b id="statDone">0</b> done</span>
+      <div class="meta-row">
+        <el-select v-model="newPriority" class="priority-select" title="Priority">
+          <el-option value="low" label="Low"></el-option>
+          <el-option value="med" label="Medium"></el-option>
+          <el-option value="high" label="High"></el-option>
+        </el-select>
+        <el-date-picker v-model="newDue" type="date" value-format="YYYY-MM-DD" placeholder="Due date"></el-date-picker>
+        <el-input v-model="newEstimate" class="estimate-input" placeholder="Est. 30m"
+                  title="Estimate (e.g. 30m, 1h30m, 2h)" @keyup.enter="addTask"></el-input>
+        <el-button type="primary" id="addBtn" @click="addTask">Add</el-button>
       </div>
-      <button id="clearBtn">Clear done</button>
+
+      <div class="toolbar">
+        <el-input ref="searchInputRef" v-model="searchRaw" class="search-input" placeholder="🔍 Search tasks…" clearable></el-input>
+        <el-select v-model="sortMode" class="sort-select" title="Sort by">
+          <el-option value="manual" label="Manual order"></el-option>
+          <el-option value="status" label="Status (Doing first)"></el-option>
+          <el-option value="due" label="Due date"></el-option>
+          <el-option value="priority" label="Priority"></el-option>
+          <el-option value="created" label="Created (newest)"></el-option>
+          <el-option value="alpha" label="A → Z"></el-option>
+        </el-select>
+      </div>
+
+      <div class="filters">
+        <button v-for="f in FILTERS" :key="f.key" class="filter-btn"
+                :class="{ active: filter === f.key }" :data-filter="f.key"
+                @click="filter = f.key">{{ f.label }}</button>
+        <div style="flex:1"></div>
+        <button class="filter-btn view-toggle" id="viewToggle"
+                :title="'Switch to ' + (viewMode === 'kanban' ? 'List' : 'Kanban') + ' view'"
+                @click="toggleView">{{ viewMode === 'kanban' ? '📊 Kanban' : '📋 List' }}</button>
+      </div>
+
+      <div class="hint">
+        <kbd>n</kbd> new · <kbd>/</kbd> search · <kbd>v</kbd> toggle view · click status chip to cycle
+      </div>
+
+      <ul id="taskList" class="task-list" v-show="viewMode === 'list'">
+        <div v-if="visibleTasks.length === 0" class="empty">Nothing here. Press <kbd>n</kbd> to add a task.</div>
+        <li v-for="task in visibleTasks" :key="task.id"
+            :data-id="task.id"
+            :draggable="sortMode === 'manual'"
+            :class="['priority-' + task.priority, 'status-' + task.status,
+                     { dragging: dragId === task.id, 'drag-over': dragOverId === task.id && dragId !== task.id }]"
+            :style="sortMode !== 'manual' ? { cursor: 'default' } : null"
+            @dragstart="onDragStart(task)"
+            @dragend="onDragEnd"
+            @dragover.prevent="onDragOver(task)"
+            @dragleave="onDragLeave(task)"
+            @drop.prevent="onDrop(task)">
+          <div class="status-chip" :class="task.status" draggable="false"
+               :title="'Status: ' + task.status + '. Click to cycle (Todo → Doing → Blocked → Done).'"
+               @click.stop="cycleStatus(task)">{{ STATUS_LABEL[task.status] }}</div>
+
+          <div class="body">
+            <span class="text" title="Double-click to edit" v-richtext="task.text"
+                  @dblclick="beginEditText(task, $event)"
+                  @blur="endEditText(task, $event)"
+                  @keydown="onTextKeydown(task, $event)"></span>
+
+            <div class="sub">
+              <span>● {{ task.priority.toUpperCase() }}</span>
+              <span v-if="task.due" class="due" :class="dueClassFor(task)">📅 {{ dueLabel(task.due) }}</span>
+              <span v-if="task.status === 'doing'" class="time-badge live" :data-task-id="task.id">▶ {{ formatDuration(totalActiveMs(task), true) }}</span>
+              <span v-else-if="totalActiveMs(task) > 300000" class="time-badge" :class="timeBadgeClass(task)">⏱ {{ formatDuration(totalActiveMs(task)) }}</span>
+              <span v-if="task.estimateMinutes" class="estimate-badge" title="Estimated time">⏰ {{ formatDuration(task.estimateMinutes * 60000) }}</span>
+              <button v-if="task.status !== 'done'" class="snooze-btn" title="Snooze +1 day (Shift+click = +1 week)"
+                      @click.stop="snoozeTask(task, $event.shiftKey ? 7 : 1)">💤</button>
+              <button class="note-toggle" @click.stop="toggleNote(task, $event)">{{ task.note ? '📝 Note' : '＋ Note' }}</button>
+            </div>
+
+            <input v-if="task.status === 'blocked'" type="text" class="blocked-reason"
+                   placeholder="Waiting on… (e.g. code review, CI, colleague)"
+                   :value="task.blockedReason"
+                   @blur="setBlockedReason(task, $event)"
+                   @keydown.enter="$event.target.blur()">
+
+            <div class="note" :class="{ open: task.noteOpen, empty: !task.note }" v-richnote="task.note"
+                 title="Click to edit note. Supports URLs, JIRA-XXX, and ```lang code``` fences."
+                 @click="beginEditNote(task, $event.currentTarget)"
+                 @blur="endEditNote(task, $event)"
+                 @keydown="onNoteKeydown(task, $event)"></div>
+          </div>
+
+          <el-popconfirm title="Delete this task?" confirm-button-text="Delete" cancel-button-text="Cancel"
+                         confirm-button-type="danger" width="200" @confirm="deleteTask(task)">
+            <template #reference>
+              <button class="del" title="Delete" @click.stop>✕</button>
+            </template>
+          </el-popconfirm>
+        </li>
+      </ul>
+
+      <div id="kanbanBoard" :class="{ on: viewMode === 'kanban' }">
+        <div v-for="col in KANBAN_COLS" :key="col.key" class="kb-col" :data-status="col.key"
+             :class="{ dragover: dragOverCol === col.key }"
+             @dragover.prevent="dragOverCol = col.key"
+             @dragleave="onColDragLeave(col, $event)"
+             @drop.prevent="onColDrop(col)">
+          <div class="kb-col-head"><span>{{ col.icon }} {{ col.label }}</span><span class="cnt">{{ kanbanItems(col.key).length }}</span></div>
+          <div class="kb-list">
+            <div v-if="kanbanItems(col.key).length === 0" class="kb-empty">—</div>
+            <div v-for="t in kanbanItems(col.key)" :key="t.id"
+                 class="kb-card" :class="['priority-' + t.priority, { dragging: dragId === t.id }]"
+                 draggable="true" :data-id="t.id"
+                 @dragstart="onCardDragStart(t, $event)"
+                 @dragend="onCardDragEnd"
+                 @click="jumpToList(t)">
+              <div class="kb-text">{{ t.text }}</div>
+              <div class="kb-meta">
+                <span>● {{ t.priority.toUpperCase() }}</span>
+                <span v-if="t.due" class="kb-due" :class="kbDueClass(t)">📅 {{ dueLabel(t.due) }}</span>
+                <span v-if="t.status === 'doing'" class="time-badge live" :data-task-id="t.id">▶ {{ formatDuration(totalActiveMs(t), true) }}</span>
+                <span v-else-if="totalActiveMs(t) > 300000" class="time-badge">⏱ {{ formatDuration(totalActiveMs(t)) }}</span>
+                <span v-if="t.note">📝</span>
+                <span v-if="t.blockedReason" :title="t.blockedReason" style="color:var(--danger)">⛔</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer">
+        <div class="stats">
+          <span><b id="statActive">{{ stats.active }}</b> active</span>
+          <span><b id="statDoing">{{ stats.doing }}</b> doing</span>
+          <span><b id="statBlocked">{{ stats.blocked }}</b> blocked</span>
+          <span><b id="statDone">{{ stats.done }}</b> done</span>
+        </div>
+        <button id="clearBtn" @click="clearDone">Clear done</button>
+      </div>
     </div>
+
+    <aside class="side-panel side-right">
+      <h3>Quick Links</h3>
+      <ul class="links">
+        <li>
+          <a href="index.html" title="Dashboard">
+            <span class="link-ico">🏠</span><span>Dashboard</span>
+          </a>
+        </li>
+        <li>
+          <a href="PasswordManager.html" title="PasswordManager.html">
+            <span class="link-ico">🔐</span><span>Password Manager</span>
+          </a>
+        </li>
+        <li>
+          <a href="AINoteTaker.html" title="AINoteTaker.html">
+            <span class="link-ico">🎙</span><span>AI Note Taker</span>
+          </a>
+        </li>
+        <li>
+          <a href="SqlFormatter.html" title="SqlFormatter.html">
+            <span class="link-ico">🔧</span><span>SQL Formatter</span>
+          </a>
+        </li>
+        <li>
+          <a href="RecapAudioMaker.html" title="RecapAudioMaker.html">
+            <span class="link-ico">🎧</span><span>Recap Audio Maker</span>
+          </a>
+        </li>
+      </ul>
+      <p class="links-hint">Same folder. All tools share one localStorage → stats show on Dashboard.</p>
+    </aside>
+
+    <el-dialog v-model="showToday" title="📅 Today's Timeline" width="min(660px, 94vw)" top="60px">
+      <div class="timeline-summary">
+        <span>⏱ <b>{{ formatDuration(todayData.totalMs) }}</b> tracked</span>
+        <span>📌 <b>{{ todayData.uniqueCount }}</b> task{{ todayData.uniqueCount === 1 ? '' : 's' }} touched</span>
+        <span>✓ <b>{{ todayData.doneToday }}</b> completed today</span>
+        <span>▶ <b>{{ todayData.doingNow }}</b> in progress now</span>
+      </div>
+      <div v-if="todayData.events.length === 0" class="timeline-empty">
+        No time tracked today. Move a task to Doing to start the timer.
+      </div>
+      <template v-else>
+        <div v-for="(ev, i) in todayData.events" :key="i" class="timeline-row" :class="{ live: ev.live }">
+          <span class="timeline-time">{{ fmtTimeOfDay(ev.start) }} → {{ ev.live ? 'now' : fmtTimeOfDay(ev.end) }}</span>
+          <span class="timeline-dur">{{ formatDuration(ev.end - ev.start) }}</span>
+          <span class="timeline-task">{{ (ev.live ? '▶ ' : '') + ev.text }}</span>
+        </div>
+        <div class="timeline-total"><span>Total tracked today</span><span><b>{{ formatDuration(todayData.totalMs) }}</b></span></div>
+      </template>
+    </el-dialog>
   </div>
-
-  <aside class="side-panel side-right">
-    <h3>Quick Links</h3>
-    <ul class="links">
-      <li>
-        <a href="index.html" title="Dashboard">
-          <span class="link-ico">🏠</span><span>Dashboard</span>
-        </a>
-      </li>
-      <li>
-        <a href="PasswordManager.html" title="PasswordManager.html">
-          <span class="link-ico">🔐</span><span>Password Manager</span>
-        </a>
-      </li>
-      <li>
-        <a href="AINoteTaker.html" title="AINoteTaker.html">
-          <span class="link-ico">🎙</span><span>AI Note Taker</span>
-        </a>
-      </li>
-      <li>
-        <a href="SqlFormatter.html" title="SqlFormatter.html">
-          <span class="link-ico">🔧</span><span>SQL Formatter</span>
-        </a>
-      </li>
-      <li>
-        <a href="RecapAudioMaker.html" title="RecapAudioMaker.html">
-          <span class="link-ico">🎧</span><span>Recap Audio Maker</span>
-        </a>
-      </li>
-    </ul>
-    <p class="links-hint">Same folder. All tools share one localStorage → stats show on Dashboard.</p>
-  </aside>
-
-  <div class="toast" id="toast">
-    <span id="toastMsg"></span>
-    <button id="toastAction">Undo</button>
-  </div>
-
-  <div class="modal-backdrop" id="todayModal">
-    <div class="modal" role="dialog" aria-labelledby="todayModalTitle">
-      <div class="modal-header">
-        <h2 id="todayModalTitle">📅 Today's Timeline</h2>
-        <button class="modal-close" id="todayModalClose" aria-label="Close">✕</button>
-      </div>
-      <div id="todayModalBody"></div>
-    </div>
-  </div>
+  <div id="vue-loading">⏳ Loading…</div>
 
 <script defer src="_palette.js"></script>
 <script defer src="_navrail.js"></script>
@@ -802,45 +877,17 @@
 <script defer src="_cloudsync.js"></script>
 <script defer src="_prompts.js"></script>
 <script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
 <script>
+  // ==== data-core (pure data functions — storage keys + task shape are FROZEN; used by node round-trip test) ====
   const STORAGE_KEY = 'tasks.v3';
   const THEME_KEY = 'tasks.theme';
   const SORT_KEY = 'tasks.sort';
+  const VIEW_KEY = 'tasks.view';
   const STATUS_ORDER = ['todo', 'doing', 'blocked', 'done'];
-  const STATUS_LABEL = { todo: 'T', doing: '▶', blocked: '!', done: '✓' };
-  const PRIORITY_RANK = { high: 0, med: 1, low: 2 };
-  const STATUS_RANK = { doing: 0, blocked: 1, todo: 2, done: 3 };
 
-  let tasks = loadTasks();
-  let filter = 'all';
-  let search = '';
-  let sortMode = localStorage.getItem(SORT_KEY) || 'manual';
-  let viewMode = localStorage.getItem('tasks.view') || 'list';
-  let dragId = null;
-  let undoState = null;
-  let toastTimer = null;
-
-  const $ = id => document.getElementById(id);
-  const input = $('taskInput');
-  const priorityInput = $('priorityInput');
-  const dueInput = $('dueInput');
-  const estimateInput = $('estimateInput');
-  const searchInput = $('searchInput');
-  const sortInput = $('sortInput');
-  const list = $('taskList');
-  sortInput.value = sortMode;
-
-  // ---- data ----
-  function loadTasks() {
-    try {
-      const v3 = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
-      if (Array.isArray(v3)) return v3.map(normalize);
-      const v2 = JSON.parse(localStorage.getItem('tasks.v2') || 'null');
-      if (Array.isArray(v2)) return v2.map(migrateV2);
-      const legacy = JSON.parse(localStorage.getItem('tasks') || '[]');
-      return legacy.map(migrateV2);
-    } catch { return []; }
-  }
   function migrateV2(t) {
     return normalize({
       ...t,
@@ -869,77 +916,44 @@
       estimateMinutes: (typeof t.estimateMinutes === 'number' && t.estimateMinutes > 0) ? t.estimateMinutes : null,
     };
   }
-  function save() { localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks)); }
+  function loadTasksFrom(storage) {
+    try {
+      const v3 = JSON.parse(storage.getItem(STORAGE_KEY) || 'null');
+      if (Array.isArray(v3)) return v3.map(normalize);
+      const v2 = JSON.parse(storage.getItem('tasks.v2') || 'null');
+      if (Array.isArray(v2)) return v2.map(migrateV2);
+      const legacy = JSON.parse(storage.getItem('tasks') || '[]');
+      return legacy.map(migrateV2);
+    } catch { return []; }
+  }
+  function serializeTasks(arr) { return JSON.stringify(arr); }
+  // ==== end data-core ====
 
-  // ---- theme ----
-  function applyTheme(t) {
-    document.documentElement.dataset.theme = t;
-    $('themeBtn').textContent = t === 'light' ? '☀' : '🌙';
-    localStorage.setItem(THEME_KEY, t);
-  }
-  applyTheme(localStorage.getItem(THEME_KEY) || 'dark');
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus not available — try refreshing.';
+} else {
+  const { createApp, ref, computed, watch, onMounted, nextTick, h } = Vue;
 
-  // ---- dates ----
-  function daysUntil(dateStr) {
-    if (!dateStr) return null;
-    const today = new Date(); today.setHours(0,0,0,0);
-    const d = new Date(dateStr); d.setHours(0,0,0,0);
-    return Math.round((d - today) / 86400000);
-  }
-  function dueLabel(dateStr) {
-    const d = daysUntil(dateStr);
-    if (d === null) return '';
-    if (d < 0) return `Overdue ${-d}d`;
-    if (d === 0) return 'Due today';
-    if (d === 1) return 'Due tomorrow';
-    if (d <= 7) return `Due in ${d}d`;
-    return new Date(dateStr).toLocaleDateString();
-  }
+  const STATUS_LABEL = { todo: 'T', doing: '▶', blocked: '!', done: '✓' };
+  const PRIORITY_RANK = { high: 0, med: 1, low: 2 };
+  const STATUS_RANK = { doing: 0, blocked: 1, todo: 2, done: 3 };
+  const KANBAN_COLS = [
+    { key: 'todo',    label: 'Todo',    icon: '○' },
+    { key: 'doing',   label: 'Doing',   icon: '▶' },
+    { key: 'blocked', label: 'Blocked', icon: '⛔' },
+    { key: 'done',    label: 'Done',    icon: '✓' },
+  ];
+  const FILTERS = [
+    { key: 'all',     label: 'All' },
+    { key: 'active',  label: 'Active' },
+    { key: 'doing',   label: '▶ Doing' },
+    { key: 'blocked', label: '⛔ Blocked' },
+    { key: 'done',    label: '✓ Done' },
+    { key: 'high',    label: '🔴 High' },
+    { key: 'overdue', label: '⚠ Overdue' },
+  ];
 
-  // ---- filter + sort ----
-  function matches(task) {
-    if (search && !task.text.toLowerCase().includes(search) && !task.note.toLowerCase().includes(search)) return false;
-    switch (filter) {
-      case 'active': return task.status !== 'done';
-      case 'doing': return task.status === 'doing';
-      case 'blocked': return task.status === 'blocked';
-      case 'done': return task.status === 'done';
-      case 'high': return task.priority === 'high' && task.status !== 'done';
-      case 'overdue': {
-        const d = daysUntil(task.due);
-        return d !== null && d < 0 && task.status !== 'done';
-      }
-      default: return true;
-    }
-  }
-  function sortTasks(arr) {
-    if (sortMode === 'manual') return arr;
-    const copy = [...arr];
-    const FAR = 9e15;
-    copy.sort((a, b) => {
-      switch (sortMode) {
-        case 'status':
-          return (STATUS_RANK[a.status] ?? 4) - (STATUS_RANK[b.status] ?? 4);
-        case 'due': {
-          const av = a.due ? new Date(a.due).getTime() : FAR;
-          const bv = b.due ? new Date(b.due).getTime() : FAR;
-          return av - bv;
-        }
-        case 'priority':
-          return (PRIORITY_RANK[a.priority] ?? 3) - (PRIORITY_RANK[b.priority] ?? 3);
-        case 'created':
-          return (b.id || 0) - (a.id || 0);
-        case 'alpha':
-          return a.text.localeCompare(b.text);
-      }
-      return 0;
-    });
-    return copy;
-  }
-
-  // ---- rendering: autolinks + code fences ----
-  const URL_RE = /https?:\/\/[^\s<>"')]+/g;
-  const TICKET_RE = /\b[A-Z]{2,10}-\d+\b/g;
+  // ---- rich text rendering: autolinks + ticket chips + code fences (DOM-built, XSS-safe) ----
   const COMBINED_RE = /(https?:\/\/[^\s<>"')]+)|(\b[A-Z]{2,10}-\d+\b)/g;
   const FENCE_RE = /```([a-zA-Z0-9_+\-]*)\n?([\s\S]*?)```/g;
 
@@ -965,7 +979,6 @@
     }
     if (last < text.length) el.appendChild(document.createTextNode(text.slice(last)));
   }
-
   function renderNote(el, text) {
     el.textContent = '';
     if (!text) return;
@@ -994,790 +1007,647 @@
     el.appendChild(span);
   }
 
-  // ---- render ----
-  function render() {
-    const board = $('kanbanBoard');
-    if (viewMode === 'kanban') {
-      list.style.display = 'none';
-      board.classList.add('on');
-      renderKanban();
-    } else {
-      board.classList.remove('on');
-      list.style.display = '';
-      list.innerHTML = '';
-      const filtered = sortTasks(tasks.filter(matches));
-      if (filtered.length === 0) {
-        list.innerHTML = '<div class="empty">Nothing here. Press <kbd>n</kbd> to add a task.</div>';
+  const app = createApp({
+    setup() {
+      // ---- state ----
+      const tasks = ref(loadTasksFrom(localStorage));
+      const filter = ref('all');
+      const searchRaw = ref('');
+      const search = computed(() => searchRaw.value.toLowerCase().trim());
+      const sortMode = ref(localStorage.getItem(SORT_KEY) || 'manual');
+      const viewMode = ref(localStorage.getItem(VIEW_KEY) || 'list');
+      const theme = ref(localStorage.getItem(THEME_KEY) || 'dark');
+      const now = ref(Date.now());
+      const dragId = ref(null);
+      const dragOverId = ref(null);
+      const dragOverCol = ref(null);
+      const showToday = ref(false);
+      const newText = ref('');
+      const newPriority = ref('med');
+      const newDue = ref('');
+      const newEstimate = ref('');
+      const taskInputRef = ref(null);
+      const searchInputRef = ref(null);
+
+      function save() { localStorage.setItem(STORAGE_KEY, serializeTasks(tasks.value)); }
+      watch(sortMode, v => localStorage.setItem(SORT_KEY, v));
+
+      // ---- theme ----
+      function applyTheme(t) {
+        theme.value = t;
+        document.documentElement.dataset.theme = t;
+        document.documentElement.classList.toggle('dark', t !== 'light');
+        localStorage.setItem(THEME_KEY, t);
       }
-      filtered.forEach(task => list.appendChild(renderItem(task)));
-    }
+      applyTheme(theme.value);
+      function toggleTheme() { applyTheme(theme.value === 'light' ? 'dark' : 'light'); }
 
-    const doing = tasks.filter(t => t.status === 'doing').length;
-    const blocked = tasks.filter(t => t.status === 'blocked').length;
-    const done = tasks.filter(t => t.status === 'done').length;
-    const active = tasks.length - done;
-    $('statActive').textContent = active;
-    $('statDoing').textContent = doing;
-    $('statBlocked').textContent = blocked;
-    $('statDone').textContent = done;
-    const pct = tasks.length ? Math.round((done / tasks.length) * 100) : 0;
-    $('progressBar').style.width = pct + '%';
-
-    renderFocusPanel();
-  }
-
-  const KANBAN_COLS = [
-    { key: 'todo',    label: 'Todo',    icon: '○' },
-    { key: 'doing',   label: 'Doing',   icon: '▶' },
-    { key: 'blocked', label: 'Blocked', icon: '⛔' },
-    { key: 'done',    label: 'Done',    icon: '✓' },
-  ];
-  function renderKanban() {
-    const board = $('kanbanBoard');
-    board.textContent = '';
-    // Filter by search + non-status filters; ignore the status filter tabs since kanban shows all statuses
-    const visible = tasks.filter(t => {
-      if (search && !t.text.toLowerCase().includes(search) && !t.note.toLowerCase().includes(search)) return false;
-      if (filter === 'high' && t.priority !== 'high') return false;
-      if (filter === 'overdue') {
-        const d = daysUntil(t.due);
-        if (!(d !== null && d < 0 && t.status !== 'done')) return false;
+      // ---- dates ----
+      function daysUntil(dateStr) {
+        if (!dateStr) return null;
+        const today = new Date(); today.setHours(0,0,0,0);
+        const d = new Date(dateStr); d.setHours(0,0,0,0);
+        return Math.round((d - today) / 86400000);
       }
-      return true;
-    });
-    KANBAN_COLS.forEach(col => {
-      const colEl = document.createElement('div');
-      colEl.className = 'kb-col';
-      colEl.dataset.status = col.key;
-      const items = visible.filter(t => t.status === col.key);
-      colEl.innerHTML = `<div class="kb-col-head"><span>${col.icon} ${col.label}</span><span class="cnt">${items.length}</span></div>`;
-      const listEl = document.createElement('div');
-      listEl.className = 'kb-list';
-      if (!items.length) {
-        listEl.innerHTML = `<div class="kb-empty">—</div>`;
-      } else {
-        items.forEach(t => listEl.appendChild(renderKanbanCard(t)));
+      function dueLabel(dateStr) {
+        const d = daysUntil(dateStr);
+        if (d === null) return '';
+        if (d < 0) return `Overdue ${-d}d`;
+        if (d === 0) return 'Due today';
+        if (d === 1) return 'Due tomorrow';
+        if (d <= 7) return `Due in ${d}d`;
+        return new Date(dateStr).toLocaleDateString();
       }
-      colEl.appendChild(listEl);
+      function dueClassFor(task) {
+        const d = daysUntil(task.due);
+        if (task.status === 'done' || d === null) return '';
+        if (d < 0) return 'overdue';
+        if (d <= 1) return 'soon';
+        return '';
+      }
+      function kbDueClass(task) {
+        if (task.status === 'done') return '';
+        const d = daysUntil(task.due);
+        if (d === null) return '';
+        return d < 0 ? 'overdue' : (d <= 1 ? 'soon' : '');
+      }
 
-      // Column drop target
-      colEl.addEventListener('dragover', e => { e.preventDefault(); colEl.classList.add('dragover'); });
-      colEl.addEventListener('dragleave', e => { if (e.target === colEl || e.target === listEl) colEl.classList.remove('dragover'); });
-      colEl.addEventListener('drop', e => {
-        e.preventDefault();
-        colEl.classList.remove('dragover');
-        if (dragId == null) return;
-        const t = tasks.find(x => x.id === dragId);
-        if (t && t.status !== col.key) setStatus(t, col.key);
-      });
-      board.appendChild(colEl);
-    });
-  }
-  function renderKanbanCard(task) {
-    const c = document.createElement('div');
-    c.className = `kb-card priority-${task.priority}`;
-    c.draggable = true;
-    c.dataset.id = task.id;
-    const text = document.createElement('div');
-    text.className = 'kb-text';
-    text.textContent = task.text;
-    c.appendChild(text);
-
-    const meta = document.createElement('div');
-    meta.className = 'kb-meta';
-    meta.innerHTML = `<span>● ${task.priority.toUpperCase()}</span>`;
-    if (task.due) {
-      const d = daysUntil(task.due);
-      const cls = (task.status !== 'done') ? (d < 0 ? 'overdue' : d <= 1 ? 'soon' : '') : '';
-      meta.innerHTML += `<span class="kb-due ${cls}">📅 ${dueLabel(task.due)}</span>`;
-    }
-    const totalMs = totalActiveMs(task);
-    if (task.status === 'doing') {
-      meta.innerHTML += `<span class="time-badge live" data-task-id="${task.id}">▶ ${formatDuration(totalMs, true)}</span>`;
-    } else if (totalMs > 5 * 60 * 1000) {
-      meta.innerHTML += `<span class="time-badge">⏱ ${formatDuration(totalMs)}</span>`;
-    }
-    if (task.note) meta.innerHTML += `<span>📝</span>`;
-    if (task.blockedReason) meta.innerHTML += `<span title="${task.blockedReason.replace(/"/g,'&quot;')}" style="color:var(--danger)">⛔</span>`;
-    c.appendChild(meta);
-
-    c.addEventListener('dragstart', e => {
-      dragId = task.id;
-      c.classList.add('dragging');
-      e.dataTransfer.effectAllowed = 'move';
-    });
-    c.addEventListener('dragend', () => {
-      dragId = null;
-      c.classList.remove('dragging');
-      document.querySelectorAll('.kb-col.dragover').forEach(el => el.classList.remove('dragover'));
-    });
-    c.addEventListener('click', () => {
-      viewMode = 'list';
-      localStorage.setItem('tasks.view', 'list');
-      updateViewToggle();
-      render();
-      setTimeout(() => {
-        const li = document.querySelector(`li[data-id="${task.id}"]`);
-        if (li) { li.scrollIntoView({ behavior: 'smooth', block: 'center' }); li.style.outline = '2px solid var(--accent)'; setTimeout(() => li.style.outline = '', 1200); }
-      }, 50);
-    });
-    return c;
-  }
-  function updateViewToggle() {
-    const btn = $('viewToggle');
-    btn.textContent = viewMode === 'kanban' ? '📊 Kanban' : '📋 List';
-    btn.title = `Switch to ${viewMode === 'kanban' ? 'List' : 'Kanban'} view`;
-  }
-  updateViewToggle();
-  $('viewToggle').onclick = () => {
-    viewMode = viewMode === 'kanban' ? 'list' : 'kanban';
-    localStorage.setItem('tasks.view', viewMode);
-    updateViewToggle();
-    render();
-  };
-
-  function renderFocusPanel() {
-    const el = $('focusContent');
-    if (!el) return;
-    el.textContent = '';
-    const doing = tasks.filter(t => t.status === 'doing');
-    const blocked = tasks.filter(t => t.status === 'blocked');
-    const overdue = tasks.filter(t => {
-      const d = daysUntil(t.due);
-      return d !== null && d < 0 && t.status !== 'done';
-    });
-    el.append(
-      buildFocusSection('▶ Doing', doing, 'Nothing in progress', ''),
-      buildFocusSection('⛔ Blocked', blocked, 'None', 'blocked', t => t.blockedReason ? `— ${t.blockedReason}` : ''),
-      buildFocusSection('⚠ Overdue', overdue, 'None', 'overdue', t => dueLabel(t.due))
-    );
-  }
-  function buildFocusSection(title, items, emptyMsg, cls, subFn) {
-    const wrap = document.createElement('div');
-    wrap.className = 'focus-section';
-    const h = document.createElement('div');
-    h.className = 'focus-title';
-    h.textContent = title;
-    wrap.appendChild(h);
-    if (items.length === 0) {
-      const em = document.createElement('div');
-      em.className = 'focus-empty';
-      em.textContent = emptyMsg;
-      wrap.appendChild(em);
-    } else {
-      items.slice(0, 5).forEach(t => {
-        const it = document.createElement('div');
-        it.className = 'focus-item' + (cls ? ' ' + cls : '');
-        it.textContent = t.text;
-        if (subFn) {
-          const sub = subFn(t);
-          if (sub) {
-            const s = document.createElement('div');
-            s.className = 'item-sub';
-            s.textContent = sub;
-            it.appendChild(s);
+      // ---- filter + sort ----
+      function matches(task) {
+        if (search.value && !task.text.toLowerCase().includes(search.value) && !task.note.toLowerCase().includes(search.value)) return false;
+        switch (filter.value) {
+          case 'active': return task.status !== 'done';
+          case 'doing': return task.status === 'doing';
+          case 'blocked': return task.status === 'blocked';
+          case 'done': return task.status === 'done';
+          case 'high': return task.priority === 'high' && task.status !== 'done';
+          case 'overdue': {
+            const d = daysUntil(task.due);
+            return d !== null && d < 0 && task.status !== 'done';
           }
+          default: return true;
         }
-        wrap.appendChild(it);
-      });
-      if (items.length > 5) {
-        const more = document.createElement('div');
-        more.className = 'focus-more';
-        more.textContent = `+${items.length - 5} more`;
-        wrap.appendChild(more);
       }
-    }
-    return wrap;
-  }
-
-  function renderItem(task) {
-    const li = document.createElement('li');
-    li.dataset.id = task.id;
-    li.draggable = sortMode === 'manual';
-    if (sortMode !== 'manual') li.style.cursor = 'default';
-    li.classList.add(`priority-${task.priority}`);
-    li.classList.add(`status-${task.status}`);
-
-    // status chip
-    const chip = document.createElement('div');
-    chip.className = `status-chip ${task.status}`;
-    chip.textContent = STATUS_LABEL[task.status];
-    chip.title = `Status: ${task.status}. Click to cycle (Todo → Doing → Blocked → Done).`;
-    chip.onclick = e => { e.stopPropagation(); cycleStatus(task); };
-    chip.draggable = false;
-
-    // body
-    const body = document.createElement('div');
-    body.className = 'body';
-
-    // text
-    const span = document.createElement('span');
-    span.className = 'text';
-    span.title = 'Double-click to edit';
-    renderRichText(span, task.text);
-    span.ondblclick = () => {
-      span.textContent = task.text;
-      span.contentEditable = 'true';
-      span.focus();
-      document.getSelection().selectAllChildren(span);
-    };
-    span.onblur = () => {
-      span.contentEditable = 'false';
-      const v = span.textContent.trim();
-      if (v) task.text = v;
-      renderRichText(span, task.text);
-      save();
-    };
-    span.onkeydown = e => {
-      if (e.key === 'Enter') { e.preventDefault(); span.blur(); }
-      if (e.key === 'Escape') { span.textContent = task.text; span.blur(); }
-    };
-
-    // sub row
-    const sub = document.createElement('div');
-    sub.className = 'sub';
-    const pri = document.createElement('span');
-    pri.textContent = `● ${task.priority.toUpperCase()}`;
-    sub.appendChild(pri);
-    if (task.due) {
-      const due = document.createElement('span');
-      due.className = 'due';
-      const d = daysUntil(task.due);
-      if (d < 0 && task.status !== 'done') due.classList.add('overdue');
-      else if (d <= 1 && task.status !== 'done') due.classList.add('soon');
-      due.textContent = `📅 ${dueLabel(task.due)}`;
-      sub.appendChild(due);
-    }
-    // time badge
-    const totalMs = totalActiveMs(task);
-    const estMs = task.estimateMinutes ? task.estimateMinutes * 60 * 1000 : 0;
-    if (task.status === 'doing') {
-      const tb = document.createElement('span');
-      tb.className = 'time-badge live';
-      tb.dataset.taskId = task.id;
-      tb.textContent = `▶ ${formatDuration(totalMs, true)}`;
-      sub.appendChild(tb);
-    } else if (totalMs > 5 * 60 * 1000) {
-      const tb = document.createElement('span');
-      tb.className = 'time-badge';
-      if (estMs > 0) {
-        if (totalMs > estMs * 1.25) tb.classList.add('over');
-        else if (task.status === 'done' && totalMs < estMs * 0.9) tb.classList.add('under');
-      }
-      tb.textContent = `⏱ ${formatDuration(totalMs)}`;
-      sub.appendChild(tb);
-    }
-    if (task.estimateMinutes) {
-      const eb = document.createElement('span');
-      eb.className = 'estimate-badge';
-      eb.textContent = `⏰ ${formatDuration(estMs)}`;
-      eb.title = 'Estimated time';
-      sub.appendChild(eb);
-    }
-
-    // snooze
-    if (task.status !== 'done') {
-      const snoozeBtn = document.createElement('button');
-      snoozeBtn.className = 'snooze-btn';
-      snoozeBtn.textContent = '💤';
-      snoozeBtn.title = 'Snooze +1 day (Shift+click = +1 week)';
-      snoozeBtn.onclick = e => {
-        e.stopPropagation();
-        snoozeTask(task, e.shiftKey ? 7 : 1);
-      };
-      sub.appendChild(snoozeBtn);
-    }
-
-    const noteBtn = document.createElement('button');
-    noteBtn.className = 'note-toggle';
-    noteBtn.textContent = task.note ? '📝 Note' : '＋ Note';
-    noteBtn.onclick = e => {
-      e.stopPropagation();
-      task.noteOpen = !task.noteOpen;
-      noteEl.classList.toggle('open', task.noteOpen);
-      if (task.noteOpen && !task.note) noteEl.click();
-      save();
-    };
-    sub.appendChild(noteBtn);
-
-    // blocked reason
-    let blockedInput;
-    if (task.status === 'blocked') {
-      blockedInput = document.createElement('input');
-      blockedInput.type = 'text';
-      blockedInput.className = 'blocked-reason';
-      blockedInput.placeholder = 'Waiting on… (e.g. code review, CI, colleague)';
-      blockedInput.value = task.blockedReason;
-      blockedInput.onblur = () => { task.blockedReason = blockedInput.value.trim(); save(); };
-      blockedInput.onkeydown = e => { if (e.key === 'Enter') blockedInput.blur(); };
-    }
-
-    // note
-    const noteEl = document.createElement('div');
-    noteEl.className = 'note';
-    if (!task.note) noteEl.classList.add('empty');
-    else renderNote(noteEl, task.note);
-    noteEl.title = 'Click to edit note. Supports URLs, JIRA-XXX, and ```lang code``` fences.';
-    noteEl.onclick = () => {
-      if (noteEl.contentEditable === 'true') return;
-      noteEl.classList.remove('empty');
-      noteEl.textContent = task.note;
-      noteEl.contentEditable = 'true';
-      noteEl.focus();
-    };
-    noteEl.onblur = () => {
-      noteEl.contentEditable = 'false';
-      const v = noteEl.textContent.trim();
-      task.note = v;
-      if (!v) noteEl.classList.add('empty');
-      renderNote(noteEl, task.note);
-      save();
-    };
-    noteEl.onkeydown = e => {
-      if (e.key === 'Escape') {
-        noteEl.contentEditable = 'false';
-        renderNote(noteEl, task.note);
-      }
-    };
-    if (task.noteOpen) noteEl.classList.add('open');
-
-    body.append(span, sub);
-    if (blockedInput) body.append(blockedInput);
-    body.append(noteEl);
-
-    // delete
-    const del = document.createElement('button');
-    del.className = 'del';
-    del.innerHTML = '✕';
-    del.title = 'Delete';
-    del.onclick = () => {
-      const idx = tasks.findIndex(t => t.id === task.id);
-      if (idx < 0) return;
-      const removed = tasks.splice(idx, 1)[0];
-      save(); render();
-      showToast('Task deleted', 'Undo', () => { tasks.splice(idx, 0, removed); save(); render(); });
-    };
-
-    li.append(chip, body, del);
-
-    // drag & drop
-    li.addEventListener('dragstart', () => { dragId = task.id; li.classList.add('dragging'); });
-    li.addEventListener('dragend', () => { dragId = null; li.classList.remove('dragging'); document.querySelectorAll('li.drag-over').forEach(el => el.classList.remove('drag-over')); });
-    li.addEventListener('dragover', e => { e.preventDefault(); li.classList.add('drag-over'); });
-    li.addEventListener('dragleave', () => li.classList.remove('drag-over'));
-    li.addEventListener('drop', e => {
-      e.preventDefault();
-      li.classList.remove('drag-over');
-      if (dragId == null || dragId === task.id) return;
-      const from = tasks.findIndex(t => t.id === dragId);
-      const to = tasks.findIndex(t => t.id === task.id);
-      if (from < 0 || to < 0) return;
-      const [moved] = tasks.splice(from, 1);
-      tasks.splice(to, 0, moved);
-      save(); render();
-    });
-
-    return li;
-  }
-
-  // ---- status ----
-  function cycleStatus(task) {
-    const idx = STATUS_ORDER.indexOf(task.status);
-    setStatus(task, STATUS_ORDER[(idx + 1) % STATUS_ORDER.length]);
-  }
-  function setStatus(task, next) {
-    if (task.status === 'doing' && next !== 'doing') closeSession(task);
-    if (task.status !== 'doing' && next === 'doing') startSession(task);
-    task.status = next;
-    task.doneAt = next === 'done' ? Date.now() : null;
-    if (next !== 'blocked') task.blockedReason = '';
-    save(); render();
-  }
-
-  // ---- time tracking ----
-  function startSession(task) {
-    const last = task.sessions[task.sessions.length - 1];
-    if (last && !last.end) return;
-    task.sessions.push({ start: Date.now(), end: null });
-  }
-  function closeSession(task) {
-    const last = task.sessions[task.sessions.length - 1];
-    if (last && !last.end) last.end = Date.now();
-  }
-  function totalActiveMs(task) {
-    const now = Date.now();
-    return task.sessions.reduce((sum, s) => sum + ((s.end || now) - s.start), 0);
-  }
-  function activeMsInRange(task, startMs, endMs) {
-    const now = Date.now();
-    return task.sessions.reduce((sum, s) => {
-      const sStart = s.start;
-      const sEnd = s.end || now;
-      if (sEnd <= startMs || sStart >= endMs) return sum;
-      return sum + (Math.min(sEnd, endMs) - Math.max(sStart, startMs));
-    }, 0);
-  }
-  function formatDuration(ms, compact = false) {
-    const total = Math.max(0, Math.floor(ms / 1000));
-    const h = Math.floor(total / 3600);
-    const m = Math.floor((total % 3600) / 60);
-    const s = total % 60;
-    if (compact) return `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    if (h > 0) return m > 0 ? `${h}h ${m}m` : `${h}h`;
-    if (m > 0) return `${m}m`;
-    return `${s}s`;
-  }
-  function parseEstimate(str) {
-    if (!str) return null;
-    const s = String(str).toLowerCase().trim();
-    if (!s) return null;
-    let mins = 0;
-    const hMatch = s.match(/(\d+(?:\.\d+)?)\s*h/);
-    const mMatch = s.match(/(\d+)\s*m/);
-    if (hMatch) mins += parseFloat(hMatch[1]) * 60;
-    if (mMatch) mins += parseInt(mMatch[1], 10);
-    if (!hMatch && !mMatch && /^\d+$/.test(s)) mins = parseInt(s, 10);
-    return mins > 0 ? Math.round(mins) : null;
-  }
-  function fmtTimeOfDay(ms) {
-    const d = new Date(ms);
-    return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-  }
-  function startOfToday() {
-    const d = new Date(); d.setHours(0,0,0,0); return d.getTime();
-  }
-  function startOfYesterday() {
-    return startOfToday() - 86400000;
-  }
-
-  // ---- snooze ----
-  function snoozeTask(task, days) {
-    const base = task.due ? new Date(task.due + 'T00:00:00') : new Date();
-    // If snoozing without a due date, snooze from today
-    if (!task.due) base.setHours(0,0,0,0);
-    base.setDate(base.getDate() + days);
-    const iso = `${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}-${String(base.getDate()).padStart(2,'0')}`;
-    const prev = task.due;
-    task.due = iso;
-    save(); render();
-    const label = days === 1 ? 'Snoozed +1 day' : `Snoozed +${days} days`;
-    showToast(`${label} (→ ${iso})`, 'Undo', () => { task.due = prev; save(); render(); });
-  }
-
-  // ---- live timer for Doing rows ----
-  setInterval(() => {
-    if (document.hidden) return;
-    document.querySelectorAll('.time-badge.live').forEach(el => {
-      const id = el.dataset.taskId;
-      const task = tasks.find(t => String(t.id) === id);
-      if (task) el.textContent = `▶ ${formatDuration(totalActiveMs(task), true)}`;
-    });
-  }, 1000);
-
-  // ---- add ----
-  function addTask() {
-    const text = input.value.trim();
-    if (!text) return;
-    tasks.push(normalize({
-      id: Date.now() + Math.random(),
-      text,
-      priority: priorityInput.value,
-      due: dueInput.value || '',
-      status: 'todo',
-      estimateMinutes: parseEstimate(estimateInput.value),
-    }));
-    input.value = '';
-    dueInput.value = '';
-    estimateInput.value = '';
-    priorityInput.value = 'med';
-    save(); render();
-    input.focus();
-  }
-  $('addBtn').onclick = addTask;
-  input.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
-  estimateInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
-  dueInput.addEventListener('keypress', e => { if (e.key === 'Enter') addTask(); });
-
-  // ---- search / sort / filter ----
-  searchInput.addEventListener('input', e => { search = e.target.value.toLowerCase().trim(); render(); });
-  sortInput.addEventListener('change', e => {
-    sortMode = e.target.value;
-    localStorage.setItem(SORT_KEY, sortMode);
-    render();
-  });
-  document.querySelectorAll('.filter-btn').forEach(btn => {
-    btn.onclick = () => {
-      document.querySelector('.filter-btn.active').classList.remove('active');
-      btn.classList.add('active');
-      filter = btn.dataset.filter;
-      render();
-    };
-  });
-
-  // ---- clear ----
-  $('clearBtn').onclick = () => {
-    const done = tasks.filter(t => t.status === 'done');
-    if (!done.length) return;
-    const snapshot = [...tasks];
-    tasks = tasks.filter(t => t.status !== 'done');
-    save(); render();
-    showToast(`Cleared ${done.length} done`, 'Undo', () => { tasks = snapshot; save(); render(); });
-  };
-
-  // ---- toast ----
-  function showToast(msg, actionLabel, onAction) {
-    if (toastTimer) clearTimeout(toastTimer);
-    undoState = onAction || null;
-    $('toastMsg').textContent = msg;
-    const btn = $('toastAction');
-    if (onAction) {
-      btn.style.display = '';
-      btn.textContent = actionLabel || 'Undo';
-    } else {
-      btn.style.display = 'none';
-    }
-    $('toast').classList.add('show');
-    toastTimer = setTimeout(() => { $('toast').classList.remove('show'); undoState = null; }, 5000);
-  }
-  $('toastAction').onclick = () => {
-    if (undoState) undoState();
-    $('toast').classList.remove('show');
-    undoState = null;
-    if (toastTimer) clearTimeout(toastTimer);
-  };
-
-  // ---- theme / export / import ----
-  $('themeBtn').onclick = () => applyTheme(document.documentElement.dataset.theme === 'light' ? 'dark' : 'light');
-
-  $('exportBtn').onclick = () => {
-    const blob = new Blob([JSON.stringify(tasks, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `tasks-${new Date().toISOString().slice(0,10)}.json`;
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-  $('importBtn').onclick = () => $('importFile').click();
-  $('importFile').addEventListener('change', e => {
-    const file = e.target.files[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = ev => {
-      try {
-        const data = JSON.parse(ev.target.result);
-        if (!Array.isArray(data)) throw new Error('Not an array');
-        tasks = data.map(t => normalize(migrateV2(t))).filter(t => t.text);
-        save(); render();
-        showToast(`Imported ${tasks.length} tasks`, null, null);
-      } catch (err) {
-        alert('Import failed: ' + err.message);
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = '';
-  });
-
-  // ---- Today timeline modal ----
-  function openTodayModal() {
-    renderTodayTimeline();
-    $('todayModal').classList.add('show');
-  }
-  function closeTodayModal() {
-    $('todayModal').classList.remove('show');
-  }
-  $('todayBtn').onclick = openTodayModal;
-  $('todayModalClose').onclick = closeTodayModal;
-  $('todayModal').addEventListener('click', e => {
-    if (e.target === $('todayModal')) closeTodayModal();
-  });
-
-  function renderTodayTimeline() {
-    const body = $('todayModalBody');
-    body.textContent = '';
-    const startMs = startOfToday();
-    const endMs = startMs + 86400000;
-    const now = Date.now();
-
-    const events = [];
-    tasks.forEach(task => {
-      task.sessions.forEach(s => {
-        const sEnd = s.end || now;
-        if (sEnd <= startMs || s.start >= endMs) return;
-        events.push({
-          start: Math.max(s.start, startMs),
-          end: Math.min(sEnd, endMs),
-          task,
-          live: !s.end,
+      function sortTasks(arr) {
+        if (sortMode.value === 'manual') return arr;
+        const copy = [...arr];
+        const FAR = 9e15;
+        copy.sort((a, b) => {
+          switch (sortMode.value) {
+            case 'status':
+              return (STATUS_RANK[a.status] ?? 4) - (STATUS_RANK[b.status] ?? 4);
+            case 'due': {
+              const av = a.due ? new Date(a.due).getTime() : FAR;
+              const bv = b.due ? new Date(b.due).getTime() : FAR;
+              return av - bv;
+            }
+            case 'priority':
+              return (PRIORITY_RANK[a.priority] ?? 3) - (PRIORITY_RANK[b.priority] ?? 3);
+            case 'created':
+              return (b.id || 0) - (a.id || 0);
+            case 'alpha':
+              return a.text.localeCompare(b.text);
+          }
+          return 0;
         });
+        return copy;
+      }
+      const visibleTasks = computed(() => sortTasks(tasks.value.filter(matches)));
+
+      // Kanban: filter by search + non-status filters; status tabs ignored since columns show statuses
+      const kanbanVisible = computed(() => tasks.value.filter(t => {
+        if (search.value && !t.text.toLowerCase().includes(search.value) && !t.note.toLowerCase().includes(search.value)) return false;
+        if (filter.value === 'high' && t.priority !== 'high') return false;
+        if (filter.value === 'overdue') {
+          const d = daysUntil(t.due);
+          if (!(d !== null && d < 0 && t.status !== 'done')) return false;
+        }
+        return true;
+      }));
+      function kanbanItems(status) { return kanbanVisible.value.filter(t => t.status === status); }
+
+      // ---- stats + progress ----
+      const stats = computed(() => {
+        const doing = tasks.value.filter(t => t.status === 'doing').length;
+        const blocked = tasks.value.filter(t => t.status === 'blocked').length;
+        const done = tasks.value.filter(t => t.status === 'done').length;
+        const active = tasks.value.length - done;
+        const pct = tasks.value.length ? Math.round((done / tasks.value.length) * 100) : 0;
+        return { doing, blocked, done, active, pct };
       });
-    });
-    events.sort((a, b) => a.start - b.start);
 
-    // summary
-    const uniqueTasks = new Set(events.map(e => e.task.id));
-    const totalMs = events.reduce((sum, e) => sum + (e.end - e.start), 0);
-    const doingNow = tasks.filter(t => t.status === 'doing').length;
-    const doneToday = tasks.filter(t => t.status === 'done' && t.doneAt && t.doneAt >= startMs).length;
-    const summary = document.createElement('div');
-    summary.className = 'timeline-summary';
-    summary.innerHTML = `
-      <span>⏱ <b>${formatDuration(totalMs)}</b> tracked</span>
-      <span>📌 <b>${uniqueTasks.size}</b> task${uniqueTasks.size === 1 ? '' : 's'} touched</span>
-      <span>✓ <b>${doneToday}</b> completed today</span>
-      <span>▶ <b>${doingNow}</b> in progress now</span>
-    `;
-    body.appendChild(summary);
-
-    if (!events.length) {
-      const em = document.createElement('div');
-      em.className = 'timeline-empty';
-      em.textContent = 'No time tracked today. Move a task to Doing to start the timer.';
-      body.appendChild(em);
-      return;
-    }
-
-    events.forEach(ev => {
-      const row = document.createElement('div');
-      row.className = 'timeline-row' + (ev.live ? ' live' : '');
-      const dur = ev.end - ev.start;
-      const time = document.createElement('span');
-      time.className = 'timeline-time';
-      time.textContent = `${fmtTimeOfDay(ev.start)} → ${ev.live ? 'now' : fmtTimeOfDay(ev.end)}`;
-      const durEl = document.createElement('span');
-      durEl.className = 'timeline-dur';
-      durEl.textContent = formatDuration(dur);
-      const taskEl = document.createElement('span');
-      taskEl.className = 'timeline-task';
-      taskEl.textContent = `${ev.live ? '▶ ' : ''}${ev.task.text}`;
-      row.append(time, durEl, taskEl);
-      body.appendChild(row);
-    });
-
-    const total = document.createElement('div');
-    total.className = 'timeline-total';
-    total.innerHTML = `<span>Total tracked today</span><span><b>${formatDuration(totalMs)}</b></span>`;
-    body.appendChild(total);
-  }
-
-  document.addEventListener('keydown', e => {
-    if (e.key === 'Escape' && $('todayModal').classList.contains('show')) closeTodayModal();
-  });
-
-  // ---- standup export ----
-  function generateStandup() {
-    const now = Date.now();
-    const dayMs = 24 * 60 * 60 * 1000;
-    const yStart = startOfYesterday();
-    const yEnd = startOfToday();
-    const tStart = startOfToday();
-    const tEnd = tStart + dayMs;
-
-    // Yesterday: things done in last 24h OR any task touched yesterday (session in yesterday's range)
-    const doneRecent = tasks.filter(t => t.status === 'done' && t.doneAt && (now - t.doneAt) <= dayMs);
-    const touchedYesterday = tasks.filter(t => activeMsInRange(t, yStart, yEnd) >= 60000 && !doneRecent.includes(t));
-
-    const doing = tasks.filter(t => t.status === 'doing');
-    const dueOrHigh = tasks.filter(t =>
-      t.status === 'todo' &&
-      (t.priority === 'high' || (t.due && (daysUntil(t.due) ?? 999) <= 0))
-    );
-    const blocked = tasks.filter(t => t.status === 'blocked');
-
-    const dateStr = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
-    const out = [`📋 Standup — ${dateStr}`, ''];
-
-    out.push('✅ Yesterday');
-    if (doneRecent.length || touchedYesterday.length) {
-      doneRecent.forEach(t => {
-        const ms = activeMsInRange(t, yStart, yEnd) || activeMsInRange(t, tStart, tEnd);
-        out.push(`- ${t.text}${ms >= 60000 ? ` — ${formatDuration(ms)}` : ''} ✓`);
+      // ---- focus panel ----
+      const focusSections = computed(() => {
+        const doing = tasks.value.filter(t => t.status === 'doing');
+        const blocked = tasks.value.filter(t => t.status === 'blocked');
+        const overdue = tasks.value.filter(t => {
+          const d = daysUntil(t.due);
+          return d !== null && d < 0 && t.status !== 'done';
+        });
+        return [
+          { title: '▶ Doing',   items: doing,   empty: 'Nothing in progress', cls: '',        sub: null },
+          { title: '⛔ Blocked', items: blocked, empty: 'None',                cls: 'blocked', sub: t => t.blockedReason ? `— ${t.blockedReason}` : '' },
+          { title: '⚠ Overdue', items: overdue, empty: 'None',                cls: 'overdue', sub: t => dueLabel(t.due) },
+        ];
       });
-      touchedYesterday.forEach(t => {
-        const ms = activeMsInRange(t, yStart, yEnd);
-        out.push(`- ${t.text} — ${formatDuration(ms)} (WIP)`);
-      });
-    } else out.push('- (nothing logged in the last 24h)');
-    out.push('');
 
-    out.push('🎯 Today');
-    if (doing.length || dueOrHigh.length) {
-      doing.forEach(t => {
-        const ms = totalActiveMs(t);
-        out.push(`- ▶ ${t.text}${ms >= 60000 ? ` (${formatDuration(ms)} so far)` : ''}`);
-      });
-      dueOrHigh.forEach(t => out.push(`- ${t.text}${t.due ? ` (due ${dueLabel(t.due).toLowerCase()})` : ''}${t.priority === 'high' ? ' 🔴' : ''}`));
-    } else out.push('- (nothing queued)');
-    out.push('');
+      // ---- status + time tracking ----
+      function cycleStatus(task) {
+        const idx = STATUS_ORDER.indexOf(task.status);
+        setStatus(task, STATUS_ORDER[(idx + 1) % STATUS_ORDER.length]);
+      }
+      function setStatus(task, next) {
+        if (task.status === 'doing' && next !== 'doing') closeSession(task);
+        if (task.status !== 'doing' && next === 'doing') startSession(task);
+        task.status = next;
+        task.doneAt = next === 'done' ? Date.now() : null;
+        if (next !== 'blocked') task.blockedReason = '';
+        save();
+      }
+      function startSession(task) {
+        const last = task.sessions[task.sessions.length - 1];
+        if (last && !last.end) return;
+        task.sessions.push({ start: Date.now(), end: null });
+      }
+      function closeSession(task) {
+        const last = task.sessions[task.sessions.length - 1];
+        if (last && !last.end) last.end = Date.now();
+      }
+      function totalActiveMs(task) {
+        const nowMs = now.value;
+        return task.sessions.reduce((sum, s) => sum + ((s.end || nowMs) - s.start), 0);
+      }
+      function activeMsInRange(task, startMs, endMs) {
+        const nowMs = Date.now();
+        return task.sessions.reduce((sum, s) => {
+          const sStart = s.start;
+          const sEnd = s.end || nowMs;
+          if (sEnd <= startMs || sStart >= endMs) return sum;
+          return sum + (Math.min(sEnd, endMs) - Math.max(sStart, startMs));
+        }, 0);
+      }
+      function formatDuration(ms, compact = false) {
+        const total = Math.max(0, Math.floor(ms / 1000));
+        const hh = Math.floor(total / 3600);
+        const mm = Math.floor((total % 3600) / 60);
+        const ss = total % 60;
+        if (compact) return `${String(hh).padStart(2,'0')}:${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`;
+        if (hh > 0) return mm > 0 ? `${hh}h ${mm}m` : `${hh}h`;
+        if (mm > 0) return `${mm}m`;
+        return `${ss}s`;
+      }
+      function timeBadgeClass(task) {
+        const totalMs = totalActiveMs(task);
+        const estMs = task.estimateMinutes ? task.estimateMinutes * 60 * 1000 : 0;
+        if (estMs > 0) {
+          if (totalMs > estMs * 1.25) return 'over';
+          if (task.status === 'done' && totalMs < estMs * 0.9) return 'under';
+        }
+        return '';
+      }
+      function parseEstimate(str) {
+        if (!str) return null;
+        const s = String(str).toLowerCase().trim();
+        if (!s) return null;
+        let mins = 0;
+        const hMatch = s.match(/(\d+(?:\.\d+)?)\s*h/);
+        const mMatch = s.match(/(\d+)\s*m/);
+        if (hMatch) mins += parseFloat(hMatch[1]) * 60;
+        if (mMatch) mins += parseInt(mMatch[1], 10);
+        if (!hMatch && !mMatch && /^\d+$/.test(s)) mins = parseInt(s, 10);
+        return mins > 0 ? Math.round(mins) : null;
+      }
+      function fmtTimeOfDay(ms) {
+        const d = new Date(ms);
+        return `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+      }
+      function startOfToday() {
+        const d = new Date(); d.setHours(0,0,0,0); return d.getTime();
+      }
+      function startOfYesterday() {
+        return startOfToday() - 86400000;
+      }
 
-    out.push('⛔ Blocked');
-    if (blocked.length) blocked.forEach(t => out.push(`- ${t.text}${t.blockedReason ? ` — ${t.blockedReason}` : ''}`));
-    else out.push('- (none)');
+      // ---- toast (ElementPlus.ElMessage, with optional Undo action) ----
+      function showToast(msg, actionLabel, onAction) {
+        if (!onAction) {
+          ElementPlus.ElMessage({ message: msg, duration: 3200, grouping: false });
+          return;
+        }
+        let inst = null;
+        inst = ElementPlus.ElMessage({
+          duration: 6000,
+          grouping: false,
+          message: h('span', { style: 'display:inline-flex;align-items:center' }, [
+            h('span', msg),
+            h('button', {
+              class: 'toast-undo-btn',
+              onClick: () => { onAction(); if (inst) inst.close(); },
+            }, actionLabel || 'Undo'),
+          ]),
+        });
+      }
 
-    return out.join('\n');
-  }
-  $('standupBtn').onclick = async () => {
-    const text = generateStandup();
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast('🎙 Standup copied to clipboard', null, null);
-    } catch {
-      prompt('Copy standup (Ctrl+C, Enter):', text);
-    }
-  };
+      // ---- snooze ----
+      function snoozeTask(task, days) {
+        const base = task.due ? new Date(task.due + 'T00:00:00') : new Date();
+        if (!task.due) base.setHours(0,0,0,0);
+        base.setDate(base.getDate() + days);
+        const iso = `${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}-${String(base.getDate()).padStart(2,'0')}`;
+        const prev = task.due;
+        task.due = iso;
+        save();
+        const label = days === 1 ? 'Snoozed +1 day' : `Snoozed +${days} days`;
+        showToast(`${label} (→ ${iso})`, 'Undo', () => { task.due = prev; save(); });
+      }
 
-  // ---- keyboard shortcuts ----
-  document.addEventListener('keydown', e => {
-    const a = document.activeElement;
-    const inField = a && (a.tagName === 'INPUT' || a.tagName === 'SELECT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
-    if (inField) {
-      if (e.key === 'Escape') a.blur();
-      return;
-    }
-    if (e.ctrlKey || e.metaKey || e.altKey) return;
-    if (e.key === 'n') { e.preventDefault(); input.focus(); }
-    else if (e.key === '/') { e.preventDefault(); searchInput.focus(); }
-    else if (e.key === 'v') { e.preventDefault(); $('viewToggle').click(); }
-  });
-
-  // ---- import via URL hash (from AI Note Taker etc.) ----
-  (function handleImportHash() {
-    const m = location.hash.match(/#import-tasks=([^&]+)/);
-    if (!m) return;
-    try {
-      const decoded = decodeURIComponent(escape(atob(m[1])));
-      const payload = JSON.parse(decoded);
-      const incoming = Array.isArray(payload.tasks) ? payload.tasks : [];
-      if (!incoming.length) return;
-      history.replaceState(null, '', location.pathname + location.search);
-      const snapshot = JSON.parse(JSON.stringify(tasks));
-      let added = 0;
-      incoming.forEach(t => {
-        const text = String(t.text || '').trim();
+      // ---- add / delete / clear ----
+      function addTask() {
+        const text = newText.value.trim();
         if (!text) return;
-        tasks.push(normalize({
+        tasks.value.push(normalize({
           id: Date.now() + Math.random(),
           text,
-          priority: t.priority || 'med',
-          status: t.status || 'todo',
-          due: t.due || '',
-          note: t.note || '',
+          priority: newPriority.value,
+          due: newDue.value || '',
+          status: 'todo',
+          estimateMinutes: parseEstimate(newEstimate.value),
         }));
-        added++;
-      });
-      if (!added) return;
-      save();
-      setTimeout(() => showToast(
-        `📥 ${added} task${added===1?'':'s'} from ${payload.source || 'external'}`,
-        'Undo',
-        () => { tasks = snapshot.map(normalize); save(); render(); }
-      ), 100);
-    } catch (err) {
-      console.error('Import hash decode failed:', err);
-    }
-  })();
+        newText.value = '';
+        newDue.value = '';
+        newEstimate.value = '';
+        newPriority.value = 'med';
+        save();
+        nextTick(() => { if (taskInputRef.value) taskInputRef.value.focus(); });
+      }
+      function deleteTask(task) {
+        const idx = tasks.value.findIndex(t => t.id === task.id);
+        if (idx < 0) return;
+        const removed = tasks.value.splice(idx, 1)[0];
+        save();
+        showToast('Task deleted', 'Undo', () => { tasks.value.splice(idx, 0, removed); save(); });
+      }
+      function clearDone() {
+        const done = tasks.value.filter(t => t.status === 'done');
+        if (!done.length) return;
+        const snapshot = [...tasks.value];
+        tasks.value = tasks.value.filter(t => t.status !== 'done');
+        save();
+        showToast(`Cleared ${done.length} done`, 'Undo', () => { tasks.value = snapshot; save(); });
+      }
 
-  render();
+      // ---- inline editing: task text (contenteditable, state updated on blur only) ----
+      function beginEditText(task, e) {
+        const el = e.currentTarget;
+        el.textContent = task.text;
+        el.contentEditable = 'true';
+        el.focus();
+        document.getSelection().selectAllChildren(el);
+      }
+      function endEditText(task, e) {
+        const el = e.currentTarget || e.target;
+        if (el.contentEditable !== 'true') return;
+        el.contentEditable = 'false';
+        const v = el.textContent.trim();
+        if (v) task.text = v;
+        renderRichText(el, task.text);
+        save();
+      }
+      function onTextKeydown(task, e) {
+        if (e.key === 'Enter') { e.preventDefault(); e.currentTarget.blur(); }
+        if (e.key === 'Escape') { e.currentTarget.textContent = task.text; e.currentTarget.blur(); }
+      }
+
+      // ---- inline editing: note ----
+      function beginEditNote(task, el) {
+        if (el.contentEditable === 'true') return;
+        el.textContent = task.note;
+        el.contentEditable = 'true';
+        el.focus();
+      }
+      function endEditNote(task, e) {
+        const el = e.currentTarget || e.target;
+        if (el.contentEditable !== 'true') return;
+        el.contentEditable = 'false';
+        task.note = el.textContent.trim();
+        renderNote(el, task.note);
+        save();
+      }
+      function onNoteKeydown(task, e) {
+        if (e.key === 'Escape') {
+          const el = e.currentTarget;
+          el.contentEditable = 'false';
+          renderNote(el, task.note);
+        }
+      }
+      function toggleNote(task, e) {
+        task.noteOpen = !task.noteOpen;
+        save();
+        if (task.noteOpen && !task.note) {
+          const li = e.currentTarget.closest('li');
+          nextTick(() => {
+            const el = li && li.querySelector('.note');
+            if (el) beginEditNote(task, el);
+          });
+        }
+      }
+      function setBlockedReason(task, e) {
+        task.blockedReason = e.target.value.trim();
+        save();
+      }
+
+      // ---- drag & drop: list reorder (native HTML5 events through Vue) ----
+      function onDragStart(task) {
+        if (sortMode.value !== 'manual') return;
+        dragId.value = task.id;
+      }
+      function onDragEnd() {
+        dragId.value = null;
+        dragOverId.value = null;
+        dragOverCol.value = null;
+      }
+      function onDragOver(task) {
+        if (dragId.value == null) return;
+        dragOverId.value = task.id;
+      }
+      function onDragLeave(task) {
+        if (dragOverId.value === task.id) dragOverId.value = null;
+      }
+      function onDrop(task) {
+        dragOverId.value = null;
+        if (dragId.value == null || dragId.value === task.id) return;
+        const from = tasks.value.findIndex(t => t.id === dragId.value);
+        const to = tasks.value.findIndex(t => t.id === task.id);
+        if (from < 0 || to < 0) return;
+        const [moved] = tasks.value.splice(from, 1);
+        tasks.value.splice(to, 0, moved);
+        save();
+      }
+
+      // ---- drag & drop: kanban ----
+      function onCardDragStart(task, e) {
+        dragId.value = task.id;
+        if (e.dataTransfer) e.dataTransfer.effectAllowed = 'move';
+      }
+      function onCardDragEnd() {
+        dragId.value = null;
+        dragOverCol.value = null;
+      }
+      function onColDragLeave(col, e) {
+        if (e.target === e.currentTarget || (e.target.classList && e.target.classList.contains('kb-list'))) {
+          if (dragOverCol.value === col.key) dragOverCol.value = null;
+        }
+      }
+      function onColDrop(col) {
+        dragOverCol.value = null;
+        if (dragId.value == null) return;
+        const t = tasks.value.find(x => x.id === dragId.value);
+        if (t && t.status !== col.key) setStatus(t, col.key);
+      }
+
+      // ---- view toggle + kanban card jump ----
+      function toggleView() {
+        viewMode.value = viewMode.value === 'kanban' ? 'list' : 'kanban';
+        localStorage.setItem(VIEW_KEY, viewMode.value);
+      }
+      function jumpToList(task) {
+        viewMode.value = 'list';
+        localStorage.setItem(VIEW_KEY, 'list');
+        nextTick(() => {
+          setTimeout(() => {
+            const li = document.querySelector(`li[data-id="${task.id}"]`);
+            if (li) {
+              li.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              li.style.outline = '2px solid var(--accent)';
+              setTimeout(() => li.style.outline = '', 1200);
+            }
+          }, 50);
+        });
+      }
+
+      // ---- export / import ----
+      function exportTasks() {
+        const blob = new Blob([JSON.stringify(tasks.value, null, 2)], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `tasks-${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+      function importTasks(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = ev => {
+          try {
+            const data = JSON.parse(ev.target.result);
+            if (!Array.isArray(data)) throw new Error('Not an array');
+            tasks.value = data.map(t => normalize(migrateV2(t))).filter(t => t.text);
+            save();
+            showToast(`Imported ${tasks.value.length} tasks`, null, null);
+          } catch (err) {
+            ElementPlus.ElMessage({ message: 'Import failed: ' + err.message, type: 'error', duration: 5000 });
+          }
+        };
+        reader.readAsText(file);
+        e.target.value = '';
+      }
+
+      // ---- Today timeline (computed so the open dialog stays live) ----
+      const todayData = computed(() => {
+        const startMs = startOfToday();
+        const endMs = startMs + 86400000;
+        const nowMs = now.value;
+        const events = [];
+        tasks.value.forEach(task => {
+          task.sessions.forEach(s => {
+            const sEnd = s.end || nowMs;
+            if (sEnd <= startMs || s.start >= endMs) return;
+            events.push({
+              start: Math.max(s.start, startMs),
+              end: Math.min(sEnd, endMs),
+              text: task.text,
+              id: task.id,
+              live: !s.end,
+            });
+          });
+        });
+        events.sort((a, b) => a.start - b.start);
+        const uniqueTasks = new Set(events.map(ev => ev.id));
+        const totalMs = events.reduce((sum, ev) => sum + (ev.end - ev.start), 0);
+        const doingNow = tasks.value.filter(t => t.status === 'doing').length;
+        const doneToday = tasks.value.filter(t => t.status === 'done' && t.doneAt && t.doneAt >= startMs).length;
+        return { events, totalMs, uniqueCount: uniqueTasks.size, doingNow, doneToday };
+      });
+
+      // ---- standup export ----
+      function generateStandup() {
+        const nowMs = Date.now();
+        const dayMs = 24 * 60 * 60 * 1000;
+        const yStart = startOfYesterday();
+        const yEnd = startOfToday();
+        const tStart = startOfToday();
+        const tEnd = tStart + dayMs;
+
+        const doneRecent = tasks.value.filter(t => t.status === 'done' && t.doneAt && (nowMs - t.doneAt) <= dayMs);
+        const touchedYesterday = tasks.value.filter(t => activeMsInRange(t, yStart, yEnd) >= 60000 && !doneRecent.includes(t));
+
+        const doing = tasks.value.filter(t => t.status === 'doing');
+        const dueOrHigh = tasks.value.filter(t =>
+          t.status === 'todo' &&
+          (t.priority === 'high' || (t.due && (daysUntil(t.due) ?? 999) <= 0))
+        );
+        const blocked = tasks.value.filter(t => t.status === 'blocked');
+
+        const dateStr = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'short', day: 'numeric' });
+        const out = [`📋 Standup — ${dateStr}`, ''];
+
+        out.push('✅ Yesterday');
+        if (doneRecent.length || touchedYesterday.length) {
+          doneRecent.forEach(t => {
+            const ms = activeMsInRange(t, yStart, yEnd) || activeMsInRange(t, tStart, tEnd);
+            out.push(`- ${t.text}${ms >= 60000 ? ` — ${formatDuration(ms)}` : ''} ✓`);
+          });
+          touchedYesterday.forEach(t => {
+            const ms = activeMsInRange(t, yStart, yEnd);
+            out.push(`- ${t.text} — ${formatDuration(ms)} (WIP)`);
+          });
+        } else out.push('- (nothing logged in the last 24h)');
+        out.push('');
+
+        out.push('🎯 Today');
+        if (doing.length || dueOrHigh.length) {
+          doing.forEach(t => {
+            const ms = totalActiveMs(t);
+            out.push(`- ▶ ${t.text}${ms >= 60000 ? ` (${formatDuration(ms)} so far)` : ''}`);
+          });
+          dueOrHigh.forEach(t => out.push(`- ${t.text}${t.due ? ` (due ${dueLabel(t.due).toLowerCase()})` : ''}${t.priority === 'high' ? ' 🔴' : ''}`));
+        } else out.push('- (nothing queued)');
+        out.push('');
+
+        out.push('⛔ Blocked');
+        if (blocked.length) blocked.forEach(t => out.push(`- ${t.text}${t.blockedReason ? ` — ${t.blockedReason}` : ''}`));
+        else out.push('- (none)');
+
+        return out.join('\n');
+      }
+      async function copyStandup() {
+        const text = generateStandup();
+        try {
+          await navigator.clipboard.writeText(text);
+          showToast('🎙 Standup copied to clipboard', null, null);
+        } catch {
+          prompt('Copy standup (Ctrl+C, Enter):', text);
+        }
+      }
+
+      // ---- mounted: timer, shortcuts, import-hash ----
+      onMounted(() => {
+        document.getElementById('vue-loading').style.display = 'none';
+
+        // live timer tick for Doing rows + timeline
+        setInterval(() => {
+          if (document.hidden) return;
+          now.value = Date.now();
+        }, 1000);
+
+        // keyboard shortcuts
+        document.addEventListener('keydown', e => {
+          const a = document.activeElement;
+          const inField = a && (a.tagName === 'INPUT' || a.tagName === 'SELECT' || a.tagName === 'TEXTAREA' || a.isContentEditable);
+          if (inField) {
+            if (e.key === 'Escape') a.blur();
+            return;
+          }
+          if (e.ctrlKey || e.metaKey || e.altKey) return;
+          if (e.key === 'n') { e.preventDefault(); if (taskInputRef.value) taskInputRef.value.focus(); }
+          else if (e.key === '/') { e.preventDefault(); if (searchInputRef.value) searchInputRef.value.focus(); }
+          else if (e.key === 'v') { e.preventDefault(); toggleView(); }
+        });
+
+        // import via URL hash (from AI Note Taker etc.)
+        (function handleImportHash() {
+          const m = location.hash.match(/#import-tasks=([^&]+)/);
+          if (!m) return;
+          try {
+            const decoded = decodeURIComponent(escape(atob(m[1])));
+            const payload = JSON.parse(decoded);
+            const incoming = Array.isArray(payload.tasks) ? payload.tasks : [];
+            if (!incoming.length) return;
+            history.replaceState(null, '', location.pathname + location.search);
+            const snapshot = JSON.parse(JSON.stringify(tasks.value));
+            let added = 0;
+            incoming.forEach(t => {
+              const text = String(t.text || '').trim();
+              if (!text) return;
+              tasks.value.push(normalize({
+                id: Date.now() + Math.random(),
+                text,
+                priority: t.priority || 'med',
+                status: t.status || 'todo',
+                due: t.due || '',
+                note: t.note || '',
+              }));
+              added++;
+            });
+            if (!added) return;
+            save();
+            setTimeout(() => showToast(
+              `📥 ${added} task${added === 1 ? '' : 's'} from ${payload.source || 'external'}`,
+              'Undo',
+              () => { tasks.value = snapshot.map(normalize); save(); }
+            ), 100);
+          } catch (err) {
+            console.error('Import hash decode failed:', err);
+          }
+        })();
+      });
+
+      return {
+        // constants
+        STATUS_LABEL, KANBAN_COLS, FILTERS,
+        // state
+        tasks, filter, searchRaw, sortMode, viewMode, theme, showToday,
+        dragId, dragOverId, dragOverCol,
+        newText, newPriority, newDue, newEstimate,
+        taskInputRef, searchInputRef,
+        // computed
+        visibleTasks, stats, focusSections, todayData,
+        // methods
+        kanbanItems, dueLabel, dueClassFor, kbDueClass, formatDuration, totalActiveMs, timeBadgeClass, fmtTimeOfDay,
+        cycleStatus, snoozeTask, addTask, deleteTask, clearDone,
+        beginEditText, endEditText, onTextKeydown,
+        beginEditNote, endEditNote, onNoteKeydown, toggleNote, setBlockedReason,
+        onDragStart, onDragEnd, onDragOver, onDragLeave, onDrop,
+        onCardDragStart, onCardDragEnd, onColDragLeave, onColDrop,
+        toggleView, jumpToList, toggleTheme, exportTasks, importTasks, copyStandup,
+      };
+    }
+  });
+
+  // contenteditable-safe rich text directives: render initial value, re-render only on
+  // external value changes while NOT editing — Vue never fights the caret.
+  app.directive('richtext', {
+    mounted(el, binding) { renderRichText(el, String(binding.value ?? '')); },
+    updated(el, binding) {
+      if (el.isContentEditable) return;
+      if (binding.value === binding.oldValue) return;
+      renderRichText(el, String(binding.value ?? ''));
+    },
+  });
+  app.directive('richnote', {
+    mounted(el, binding) { renderNote(el, String(binding.value ?? '')); },
+    updated(el, binding) {
+      if (el.isContentEditable) return;
+      if (binding.value === binding.oldValue) return;
+      renderNote(el, String(binding.value ?? ''));
+    },
+  });
+
+  app.use(ElementPlus);
+  app.mount('#app');
+}
 </script>
 </body>
 </html>
