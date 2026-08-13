@@ -177,6 +177,26 @@
     transition: all 0.18s;
   }
   .cat-head:hover { border-color: var(--accent, #6366f1); transform: translateY(-1px); }
+  /* Category menu bar */
+  .cat-menu { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 18px; }
+  .cat-btn {
+    padding: 9px 16px; border-radius: 999px; cursor: pointer;
+    font-size: 0.86rem; font-weight: 600; font-family: inherit;
+    color: var(--text-dim, #9a9ab0);
+    background: var(--card-bg, rgba(255,255,255,0.04));
+    border: 1px solid var(--border, rgba(255,255,255,0.1));
+    transition: all 0.18s; display: inline-flex; align-items: center; gap: 7px;
+  }
+  .cat-btn:hover { border-color: var(--accent, #6366f1); color: var(--text, #e4e4e7); transform: translateY(-1px); }
+  .cat-btn.on {
+    background: linear-gradient(135deg, var(--accent, #6366f1), #a78bfa);
+    color: #fff; border-color: transparent; font-weight: 700;
+    box-shadow: 0 4px 14px rgba(99,102,241,0.35);
+  }
+  .cat-btn .cb-n {
+    font-size: 0.68rem; background: rgba(255,255,255,0.14); border-radius: 99px; padding: 1px 7px;
+  }
+  .cat-btn.on .cb-n { background: rgba(0,0,0,0.18); }
   .cat-head .cat-count {
     margin-left: auto; font-size: 0.72rem; font-weight: 600;
     color: var(--text-dim, #9a9ab0);
@@ -2203,44 +2223,52 @@
 </script>
 
 <script>
-// ===== Collapsible categories — dashboard shows category headers first =====
+// ===== Category menu buttons — pick a category, its tools show =====
 (function () {
   'use strict';
-  const KEY = 'dash.cats.open';
-  let open;
-  try { open = new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch (e) { open = new Set(); }
+  const KEY = 'dash.cat.sel';
 
   const heads = [...document.querySelectorAll('.cat-head')];
-  heads.forEach(h => {
-    // Collect this category's cards (siblings until the next header)
+  if (!heads.length) return;
+  const groups = heads.map(h => {
     const cards = [];
     let n = h.nextElementSibling;
     while (n && !n.classList.contains('cat-head')) {
       if (n.classList.contains('tool-card')) cards.push(n);
       n = n.nextElementSibling;
     }
-    const name = h.textContent.trim();
-    // Chevron + tool count chip
-    const chev = document.createElement('span');
-    chev.className = 'cat-chev'; chev.textContent = '▶';
-    h.prepend(chev);
-    const cnt = document.createElement('span');
-    cnt.className = 'cat-count'; cnt.textContent = cards.length + ' tools';
-    h.appendChild(cnt);
-
-    function apply(isOpen) {
-      h.classList.toggle('open', isOpen);
-      cards.forEach(c => c.classList.toggle('cat-hidden', !isOpen));
-    }
-    apply(open.has(name));
-
-    h.addEventListener('click', () => {
-      const isOpen = !h.classList.contains('open');
-      isOpen ? open.add(name) : open.delete(name);
-      localStorage.setItem(KEY, JSON.stringify([...open]));
-      apply(isOpen);
-    });
+    h.style.display = 'none';               // headers replaced by the menu bar
+    return { name: h.textContent.trim(), cards };
   });
+
+  // Build the menu bar above the tools grid
+  const grid = heads[0].parentElement;
+  const bar = document.createElement('div');
+  bar.className = 'cat-menu';
+  const btns = groups.map(g => {
+    const b = document.createElement('button');
+    b.className = 'cat-btn';
+    b.innerHTML = g.name + ' <span class="cb-n">' + g.cards.length + '</span>';
+    bar.appendChild(b);
+    return b;
+  });
+  const allBtn = document.createElement('button');
+  allBtn.className = 'cat-btn'; allBtn.innerHTML = '⊞ All <span class="cb-n">' + groups.reduce((a, g) => a + g.cards.length, 0) + '</span>';
+  bar.appendChild(allBtn);
+  grid.parentElement.insertBefore(bar, grid);
+
+  function select(idx) {                     // idx = group index, -1 = All
+    groups.forEach((g, i) => g.cards.forEach(c => c.classList.toggle('cat-hidden', idx !== -1 && i !== idx)));
+    btns.forEach((b, i) => b.classList.toggle('on', i === idx));
+    allBtn.classList.toggle('on', idx === -1);
+    localStorage.setItem(KEY, String(idx));
+  }
+  btns.forEach((b, i) => b.addEventListener('click', () => select(i)));
+  allBtn.addEventListener('click', () => select(-1));
+
+  let saved = parseInt(localStorage.getItem(KEY), 10);
+  if (isNaN(saved) || saved < -1 || saved >= groups.length) saved = 0;
+  select(saved);
 })();
 </script>
 </body>
