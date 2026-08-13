@@ -51,6 +51,7 @@
     { href: 'EnglishTutor.html',                   icon: 'sparkles',   label: 'English Tutor',  color: '#0ea5e9' },
     { href: 'Translator.html',                     icon: 'palette',    label: 'Translator',     color: '#6366f1' },
     { href: 'GradedReading.html',                  icon: 'book',       label: 'Reading',        color: '#10b981' },
+    { href: 'PronunciationLab.html',               icon: 'headphones', label: 'Pronunciation',  color: '#f59e0b' },
     { href: 'CodePlayground.html',                 icon: 'braces',     label: 'Playground',     color: '#0ea5e9' },
     { href: 'ImageCompressor.html',                icon: 'bookmark',   label: 'Img Compress',   color: '#a78bfa' },
     { href: 'WinnerPicker.html',                   icon: 'sparkles',   label: 'ကံစမ်းမဲ',        color: '#ec4899' },

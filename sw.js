@@ -3,7 +3,7 @@
 // offline fallback for navigation to any cached tool.
 // Bump CACHE_VERSION to force clients to fetch fresh copies.
 
-const CACHE_VERSION = 'utilities-v56';
+const CACHE_VERSION = 'utilities-v57';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -31,6 +31,7 @@ const PRECACHE_URLS = [
   './EnglishTutor.html',
   './Translator.html',
   './GradedReading.html',
+  './PronunciationLab.html',
   './CodePlayground.html',
   './ImageCompressor.html',
   './WinnerPicker.html',

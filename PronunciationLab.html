@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pronunciation Lab · အသံထွက် လေ့ကျင့်ခန်း</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#f472b6">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#f472b6; --accent-2:#a855f7;
+    --ok:#34d399; --bad:#f87171;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#f472b6;
+    --el-color-primary-light-3:#f9a8d4;
+    --el-color-primary-dark-2:#db2777;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(244,114,182,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(168,85,247,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:860px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:14px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(244,114,182,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:200px; }
+
+  .stats { display:flex; gap:14px; flex-wrap:wrap; font-size:.76rem; color:var(--muted); margin-bottom:16px;
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:11px; padding:9px 14px; }
+  .stats b { color:var(--accent); font-weight:700; }
+
+  .controls { display:flex; flex-direction:column; gap:12px; margin-bottom:16px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+  .row .lbl { font-size:.76rem; color:var(--muted); min-width:64px; }
+
+  .card {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px;
+    padding:20px 22px; margin-bottom:14px;
+  }
+  .sent {
+    font-size:1.28rem; line-height:1.7; font-weight:600; margin:6px 0 12px;
+  }
+  .sent-hidden {
+    font-size:1.05rem; color:var(--faint); background:var(--field); border:1px dashed var(--field-border);
+    border-radius:10px; padding:16px; text-align:center; margin:6px 0 12px;
+  }
+  .my-line {
+    background:rgba(244,114,182,.08); border:1px solid rgba(244,114,182,.25); border-radius:10px;
+    padding:10px 14px; font-size:.98rem; line-height:1.9; margin:10px 0; color:#fbcfe8;
+  }
+  .meta { font-size:.72rem; color:var(--faint); margin-bottom:4px; }
+  .btns { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin:10px 0; }
+
+  .rate { display:flex; align-items:center; gap:12px; margin-top:8px; }
+  .rate .el-slider { flex:1; max-width:260px; }
+  .rate span { font-size:.74rem; color:var(--muted); white-space:nowrap; }
+
+  .diff { line-height:2.3; font-size:1.05rem; margin:10px 0; }
+  .diff .w { padding:2px 7px; border-radius:7px; margin:0 2px; display:inline-block; }
+  .diff .ok { background:rgba(52,211,153,.15); color:var(--ok); border:1px solid rgba(52,211,153,.35); }
+  .diff .miss { background:rgba(248,113,113,.14); color:var(--bad); border:1px solid rgba(248,113,113,.35); }
+  .diff .extra { background:rgba(248,113,113,.08); color:#fca5a5; border:1px dashed rgba(248,113,113,.3); text-decoration:line-through; opacity:.8; }
+  .scoreline { font-size:1.05rem; font-weight:700; margin:8px 0; }
+  .scoreline .pct { font-size:1.5rem; color:var(--accent); }
+  .heard { font-size:.85rem; color:var(--muted); background:var(--field); border-radius:9px; padding:9px 12px; margin:8px 0; }
+  .notice {
+    background:rgba(248,113,113,.09); border:1px solid rgba(248,113,113,.3); border-radius:10px;
+    padding:12px 15px; font-size:.88rem; line-height:1.9; color:#fecaca; margin:10px 0;
+  }
+  .listening { animation:pulse 1.1s ease-in-out infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+  .hist { display:flex; gap:5px; flex-wrap:wrap; margin-top:6px; }
+  .hist .chip { font-size:.68rem; padding:2px 8px; border-radius:99px; background:var(--field); color:var(--muted); border:1px solid var(--field-border); }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🎤</div>
+    <div class="title">
+      <h1>Pronunciation Lab · အသံထွက် လေ့ကျင့်ခန်း</h1>
+      <div class="sub">အင်္ဂလိပ် နားထောင် / ရေးမှတ် / အသံထွက် — AI key မလို၊ browser သီးသန့်</div>
+    </div>
+  </header>
+
+  <div class="stats">
+    <span>🔊 နားထောင် ပျမ်းမျှ — <b>{{ avg.listen }}</b></span>
+    <span>✍️ ရေးမှတ် ပျမ်းမျှ — <b>{{ avg.dictation }}</b></span>
+    <span>🎤 အသံထွက် ပျမ်းမျှ — <b>{{ avg.pron }}</b></span>
+    <span style="margin-left:auto">📈 လေ့ကျင့်ပြီး {{ history.length }} ကြိမ်</span>
+  </div>
+
+  <div class="controls">
+    <div class="row">
+      <span class="lbl">အဆင့်</span>
+      <el-radio-group v-model="level" data-test="level">
+        <el-radio-button label="beginner">🟢 အခြေခံ · Beginner</el-radio-button>
+        <el-radio-button label="intermediate">🟡 အလယ်အလတ် · Intermediate</el-radio-button>
+        <el-radio-button label="advanced">🔴 အဆင့်မြင့် · Advanced</el-radio-button>
+      </el-radio-group>
+    </div>
+    <div class="row">
+      <span class="lbl">Mode</span>
+      <el-radio-group v-model="mode" data-test="mode">
+        <el-radio-button label="listen">🔊 နားထောင် (Listen)</el-radio-button>
+        <el-radio-button label="dictation">✍️ ရေးမှတ် (Dictation)</el-radio-button>
+        <el-radio-button label="pron">🎤 အသံထွက် (Speak)</el-radio-button>
+      </el-radio-group>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="meta">စာကြောင်း {{ idx + 1 }} / {{ bank.length }} · {{ levelLabel }}</div>
+
+    <!-- ================= LISTEN ================= -->
+    <div v-if="mode === 'listen'">
+      <div class="sent" data-test="sentence">{{ cur.en }}</div>
+      <div class="btns">
+        <el-button type="primary" @click="speak()">🔊 နားထောင်မည်</el-button>
+        <el-button @click="speak()">↻ ပြန်ဖွင့်မည်</el-button>
+        <el-button @click="showMy = !showMy">{{ showMy ? 'အဓိပ္ပာယ် ဖျောက်ရန်' : 'အဓိပ္ပာယ် ပြရန်' }}</el-button>
+      </div>
+      <div v-if="showMy" class="my-line">🇲🇲 {{ cur.my }}</div>
+      <div v-if="!ttsOk" class="notice">🔇 ဤ browser တွင် အသံဖတ်စနစ် (speechSynthesis) မရရှိပါ။</div>
+    </div>
+
+    <!-- ================= DICTATION ================= -->
+    <div v-if="mode === 'dictation'">
+      <div v-if="!dictDone" class="sent-hidden">🙈 စာကြောင်းကို ဖျောက်ထားသည် — 🔊 နားထောင်ပြီး ကြားသည့်အတိုင်း ရိုက်ပါ</div>
+      <div v-else class="sent">{{ cur.en }}</div>
+      <div class="btns">
+        <el-button type="primary" @click="speak()">🔊 နားထောင်မည်</el-button>
+        <el-button @click="speak()">↻ ပြန်ဖွင့်မည်</el-button>
+      </div>
+      <el-input v-model="dictText" type="textarea" :rows="3" data-test="dict-input"
+        placeholder="ကြားရသည့် အင်္ဂလိပ်စာကြောင်းကို ဤနေရာတွင် ရိုက်ပါ…" :disabled="dictDone"></el-input>
+      <div class="btns">
+        <el-button type="primary" :disabled="dictDone || !dictText.trim()" @click="submitDict" data-test="dict-submit">✔ စစ်ဆေးမည်</el-button>
+        <el-button @click="nextSentence()">▶ နောက်တစ်ကြောင်း</el-button>
+        <el-button @click="nextSentence(true)">🔀 ကျပန်း</el-button>
+      </div>
+      <div v-if="dictDone" data-test="dict-result">
+        <div class="scoreline">ရမှတ် — <span class="pct" data-test="dict-score">{{ dictScore }}%</span>
+          <span style="font-size:.78rem;color:var(--muted)"> ({{ dictHit }} / {{ dictTotal }} လုံး မှန်သည်)</span>
+        </div>
+        <div class="diff">
+          <span v-for="(p, i) in dictParts" :key="i" class="w" :class="p.status"
+            :title="p.status === 'miss' ? 'မှန်ကန်သောစာလုံး (လွတ်/မှား)' : p.status === 'extra' ? 'ပိုနေသောစာလုံး' : 'မှန်သည်'">{{ p.text }}</span>
+        </div>
+        <div class="my-line">🇲🇲 {{ cur.my }}</div>
+      </div>
+    </div>
+
+    <!-- ================= PRONUNCIATION ================= -->
+    <div v-if="mode === 'pron'">
+      <div class="sent" data-test="sentence-pron">
+        <template v-if="pronParts">
+          <span v-for="(p, i) in pronParts" :key="i" class="w" :class="p.status"
+            style="padding:1px 5px;border-radius:6px;margin:0 1px">{{ p.text }}</span>
+        </template>
+        <template v-else>{{ cur.en }}</template>
+      </div>
+      <div class="btns">
+        <el-button type="primary" :class="{ listening: recListening }" :disabled="!recOk" @click="toggleRec">
+          {{ recListening ? '⏹ နားထောင်နေသည်… ရပ်မည်' : '🎤 စတင် ဖတ်ပြပါ' }}
+        </el-button>
+        <el-button @click="speak()">🔊 နမူနာ နားထောင်မည်</el-button>
+        <el-button @click="showMy = !showMy">{{ showMy ? 'အဓိပ္ပာယ် ဖျောက်ရန်' : 'အဓိပ္ပာယ် ပြရန်' }}</el-button>
+        <el-button @click="nextSentence()">▶ နောက်တစ်ကြောင်း</el-button>
+        <el-button @click="nextSentence(true)">🔀 ကျပန်း</el-button>
+      </div>
+      <div v-if="showMy" class="my-line">🇲🇲 {{ cur.my }}</div>
+      <div v-if="!recOk" class="notice">
+        🎤 ဤ browser တွင် အသံမှတ်သားစနစ် (Speech Recognition) မရရှိပါ။<br>
+        Chrome/Edge browser နှင့် အင်တာနက်ချိတ်ဆက်မှု လိုအပ်ပါသည်။ 🔊 နားထောင် နှင့် ✍️ ရေးမှတ် mode များကိုတော့ ဆက်လက် အသုံးပြုနိုင်ပါသည်။
+      </div>
+      <div v-if="recError" class="notice">⚠ {{ recError }}</div>
+      <div v-if="pronHeard" class="heard">👂 ကြားရသည် — “{{ pronHeard }}”</div>
+      <div v-if="pronScore !== null" class="scoreline">ရမှတ် — <span class="pct">{{ pronScore }}%</span>
+        <span style="font-size:.78rem;color:var(--muted)"> (အစိမ်း = မှန်သည် · အနီ = လွတ်/မှားသည်)</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" v-if="history.length" style="padding:14px 18px">
+    <div class="meta">🕒 နောက်ဆုံး လေ့ကျင့်မှုများ</div>
+    <div class="hist">
+      <span v-for="(h, i) in recent" :key="i" class="chip">{{ modeIcon(h.mode) }} {{ h.score }}%</span>
+    </div>
+  </div>
+
+  <div class="rate">
+    <span>🐢 အသံနှုန်း (Speed) {{ rate.toFixed(2) }}×</span>
+    <el-slider v-model="rate" :min="0.5" :max="1.2" :step="0.05" :show-tooltip="false"></el-slider>
+  </div>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, watch, onMounted } = Vue;
+const STORE = 'pronlab.v1';
+const RATE_KEY = 'pronlab.rate';
+
+const BANK = {
+  beginner: [
+    { en: 'Good morning, how are you today?', my: 'မင်္ဂလာနံနက်ခင်းပါ၊ ဒီနေ့ နေကောင်းလား။' },
+    { en: 'I am going to the office now.', my: 'ကျွန်တော် အခု ရုံးကို သွားနေပါတယ်။' },
+    { en: 'Please send me the file.', my: 'ကျေးဇူးပြု၍ ဖိုင်ကို ပို့ပေးပါ။' },
+    { en: 'The meeting starts at ten o\'clock.', my: 'အစည်းအဝေးက ဆယ်နာရီမှာ စတင်ပါမယ်။' },
+    { en: 'Can you help me with this task?', my: 'ဒီအလုပ်ကို ကူညီပေးနိုင်မလား။' },
+    { en: 'I will finish the report today.', my: 'အစီရင်ခံစာကို ဒီနေ့ ပြီးအောင် လုပ်ပါမယ်။' },
+    { en: 'Where is the nearest bus stop?', my: 'အနီးဆုံး ဘတ်စ်ကားမှတ်တိုင်က ဘယ်မှာလဲ။' },
+    { en: 'I would like a cup of coffee.', my: 'ကော်ဖီတစ်ခွက် လိုချင်ပါတယ်။' },
+    { en: 'See you tomorrow at work.', my: 'မနက်ဖြန် အလုပ်မှာ တွေ့မယ်နော်။' },
+    { en: 'The weather is very hot today.', my: 'ဒီနေ့ ရာသီဥတုက အရမ်း ပူပါတယ်။' },
+    { en: 'Please call me back later.', my: 'နောက်မှ ပြန်ခေါ်ပေးပါ။' },
+    { en: 'I do not understand this sentence.', my: 'ဒီစာကြောင်းကို နားမလည်ပါဘူး။' },
+  ],
+  intermediate: [
+    { en: 'Could you review my code before the deployment this afternoon?', my: 'ဒီနေ့မွန်းလွဲ deploy မလုပ်ခင် ကျွန်တော့် code ကို စစ်ဆေးပေးနိုင်မလား။' },
+    { en: 'The customer reported a problem with the login page yesterday.', my: 'မနေ့က customer က login စာမျက်နှာမှာ ပြဿနာရှိတယ်လို့ အကြောင်းကြားခဲ့ပါတယ်။' },
+    { en: 'We need to update the database before releasing the new version.', my: 'ဗားရှင်းအသစ် မထုတ်ခင် database ကို update လုပ်ဖို့ လိုပါတယ်။' },
+    { en: 'I will share the meeting notes with the whole team by email.', my: 'အစည်းအဝေး မှတ်စုများကို အီးမေးလ်ဖြင့် အဖွဲ့တစ်ဖွဲ့လုံးကို မျှဝေပေးပါမယ်။' },
+    { en: 'Please make sure the backup runs every night at midnight.', my: 'Backup က ညတိုင်း သန်းခေါင်ယံမှာ အလုပ်လုပ်နေကြောင်း သေချာအောင် လုပ်ပါ။' },
+    { en: 'The server was down for two hours because of a network issue.', my: 'Network ပြဿနာကြောင့် server က နှစ်နာရီကြာ ရပ်သွားခဲ့ပါတယ်။' },
+    { en: 'Let me know if you have any questions about the new feature.', my: 'Feature အသစ်နဲ့ ပတ်သက်ပြီး မေးစရာရှိရင် ပြောပါ။' },
+    { en: 'We should test the application on both mobile and desktop.', my: 'Application ကို မိုဘိုင်းရော desktop မှာပါ စမ်းသပ်သင့်ပါတယ်။' },
+    { en: 'The manager asked us to finish the project before Friday.', my: 'Manager က project ကို သောကြာနေ့ မတိုင်ခင် ပြီးအောင်လုပ်ဖို့ ပြောခဲ့ပါတယ်။' },
+    { en: 'I fixed the bug and pushed the changes to the repository.', my: 'Bug ကို ပြင်ပြီး ပြောင်းလဲမှုများကို repository ထဲ တင်လိုက်ပါပြီ။' },
+    { en: 'Our team meets online every Monday morning to plan the week.', my: 'ကျွန်တော်တို့အဖွဲ့က တနင်္လာနေ့မနက်တိုင်း အွန်လိုင်းမှာတွေ့ပြီး တစ်ပတ်စာ စီစဉ်ကြပါတယ်။' },
+    { en: 'The report shows that sales increased by ten percent last month.', my: 'အစီရင်ခံစာအရ ပြီးခဲ့တဲ့လမှာ ရောင်းအား ဆယ်ရာခိုင်နှုန်း တိုးလာပါတယ်။' },
+  ],
+  advanced: [
+    { en: 'Can you explain the difference between synchronous and asynchronous programming?', my: 'Synchronous နဲ့ asynchronous programming ကြား ကွာခြားချက်ကို ရှင်းပြနိုင်မလား။' },
+    { en: 'Describe a challenging bug you solved and how you approached it.', my: 'သင်ဖြေရှင်းခဲ့ရတဲ့ ခက်ခဲတဲ့ bug တစ်ခုနဲ့ ဘယ်လိုချဉ်းကပ်ခဲ့သလဲဆိုတာ ပြောပြပါ။' },
+    { en: 'How would you design a system that handles millions of requests per day?', my: 'တစ်ရက်ကို request သန်းချီ ကိုင်တွယ်နိုင်တဲ့ system ကို ဘယ်လို ဒီဇိုင်းဆွဲမလဲ။' },
+    { en: 'Optimizing database queries often requires understanding indexes and execution plans.', my: 'Database query များ မြန်ဆန်အောင် ပြုလုပ်ရာတွင် index နှင့် execution plan များကို နားလည်ရန် လိုအပ်တတ်ပါသည်။' },
+    { en: 'Microservices improve scalability but increase the complexity of deployment and monitoring.', my: 'Microservices က scalability ကို တိုးတက်စေသော်လည်း deployment နှင့် monitoring ကို ပိုမို ရှုပ်ထွေးစေပါသည်။' },
+    { en: 'What strategies do you use to ensure code quality in a large team?', my: 'အဖွဲ့ကြီးတစ်ခုတွင် code အရည်အသွေး သေချာစေရန် မည်သည့်နည်းလမ်းများ အသုံးပြုပါသလဲ။' },
+    { en: 'Caching frequently accessed data can significantly reduce the load on the database.', my: 'မကြာခဏ အသုံးပြုသော data ကို cache လုပ်ခြင်းဖြင့် database ပေါ်ရှိ ဝန်ကို သိသိသာသာ လျှော့ချနိုင်ပါသည်။' },
+    { en: 'Tell me about a time you disagreed with a technical decision and how you handled it.', my: 'နည်းပညာဆိုင်ရာ ဆုံးဖြတ်ချက်တစ်ခုကို သဘောမတူခဲ့သည့် အချိန်တစ်ခုနှင့် ၎င်းကို ဘယ်လိုကိုင်တွယ်ခဲ့သလဲ ပြောပြပါ။' },
+    { en: 'Continuous integration helps teams detect integration problems early in the development cycle.', my: 'Continuous integration က ဖွံ့ဖြိုးရေး လုပ်ငန်းစဉ် အစောပိုင်းမှာ ပေါင်းစပ်မှုပြဿနာများကို အဖွဲ့များ စောစီးစွာ တွေ့ရှိနိုင်အောင် ကူညီပေးပါသည်။' },
+    { en: 'How do you balance technical debt against the pressure to deliver features quickly?', my: 'Feature များ မြန်မြန်ထုတ်ရန် ဖိအားနှင့် technical debt ကြားတွင် ဘယ်လို ချိန်ညှိပါသလဲ။' },
+    { en: 'Security should be considered at every stage of the software development lifecycle.', my: 'Software ဖွံ့ဖြိုးရေး သက်တမ်းတစ်လျှောက် အဆင့်တိုင်းတွင် လုံခြုံရေးကို ထည့်သွင်း စဉ်းစားသင့်ပါသည်။' },
+    { en: 'Explain how you would migrate a legacy application to the cloud with minimal downtime.', my: 'Downtime အနည်းဆုံးဖြင့် legacy application ကို cloud ပေါ်သို့ ဘယ်လို ရွှေ့ပြောင်းမည်ကို ရှင်းပြပါ။' },
+  ],
+};
+
+const LEVEL_LABELS = {
+  beginner: '🟢 အခြေခံ · Beginner',
+  intermediate: '🟡 အလယ်အလတ် · Intermediate',
+  advanced: '🔴 အဆင့်မြင့် · Advanced',
+};
+
+function tokenize(s) {
+  return String(s || '').split(/\s+/).map(function (raw) {
+    return { raw: raw, norm: raw.toLowerCase().replace(/[^a-z0-9']/g, '') };
+  }).filter(function (t) { return t.norm.length > 0; });
+}
+
+// Word-level LCS diff: expected vs actual.
+// parts: {text, status} where status = ok (matched) | miss (expected word missing/wrong) | extra (typed word not in sentence)
+function diffWords(expectedStr, actualStr) {
+  const exp = tokenize(expectedStr);
+  const act = tokenize(actualStr);
+  const n = exp.length, m = act.length;
+  const dp = [];
+  for (let i = 0; i <= n; i++) dp.push(new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      dp[i][j] = exp[i].norm === act[j].norm ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    }
+  }
+  const parts = [];
+  let i = 0, j = 0, hit = 0;
+  while (i < n && j < m) {
+    if (exp[i].norm === act[j].norm) { parts.push({ text: exp[i].raw, status: 'ok' }); hit++; i++; j++; }
+    else if (dp[i + 1][j] >= dp[i][j + 1]) { parts.push({ text: exp[i].raw, status: 'miss' }); i++; }
+    else { parts.push({ text: act[j].raw, status: 'extra' }); j++; }
+  }
+  while (i < n) { parts.push({ text: exp[i].raw, status: 'miss' }); i++; }
+  while (j < m) { parts.push({ text: act[j].raw, status: 'extra' }); j++; }
+  return { parts: parts, hit: hit, total: n, score: n ? Math.round(hit / n * 100) : 0 };
+}
+
+const app = createApp({
+  setup() {
+    const level = ref('beginner');
+    const mode = ref('listen');
+    const idx = ref(0);
+    const showMy = ref(false);
+    const rate = ref(parseFloat(localStorage.getItem(RATE_KEY) || '0.9') || 0.9);
+
+    const dictText = ref('');
+    const dictDone = ref(false);
+    const dictParts = ref([]);
+    const dictScore = ref(0);
+    const dictHit = ref(0);
+    const dictTotal = ref(0);
+
+    const pronParts = ref(null);
+    const pronScore = ref(null);
+    const pronHeard = ref('');
+    const recListening = ref(false);
+    const recError = ref('');
+
+    const history = ref([]);
+    try { history.value = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (e) { history.value = []; }
+    if (!Array.isArray(history.value)) history.value = [];
+
+    const toast = function (m, type) { ElementPlus.ElMessage({ message: m, type: type || 'success', duration: 2600 }); };
+
+    const bank = computed(function () { return BANK[level.value] || []; });
+    const cur = computed(function () { return bank.value[idx.value] || { en: '', my: '' }; });
+    const levelLabel = computed(function () { return LEVEL_LABELS[level.value] || level.value; });
+    const recent = computed(function () { return history.value.slice(-12).reverse(); });
+    const avg = computed(function () {
+      const out = {};
+      ['listen', 'dictation', 'pron'].forEach(function (md) {
+        const rows = history.value.filter(function (h) { return h.mode === md; });
+        out[md] = rows.length ? Math.round(rows.reduce(function (s, h) { return s + (h.score || 0); }, 0) / rows.length) + '%' : '—';
+      });
+      return out;
+    });
+
+    function modeIcon(md) { return md === 'listen' ? '🔊' : md === 'dictation' ? '✍️' : '🎤'; }
+
+    function record(md, score) {
+      history.value.push({ mode: md, level: level.value, score: score, at: Date.now() });
+      if (history.value.length > 50) history.value = history.value.slice(-50);
+      localStorage.setItem(STORE, JSON.stringify(history.value));
+    }
+
+    function resetResults() {
+      showMy.value = false;
+      dictText.value = ''; dictDone.value = false; dictParts.value = []; dictScore.value = 0; dictHit.value = 0; dictTotal.value = 0;
+      pronParts.value = null; pronScore.value = null; pronHeard.value = ''; recError.value = '';
+      stopRec();
+    }
+
+    function nextSentence(random) {
+      const len = bank.value.length;
+      if (!len) return;
+      if (random && len > 1) {
+        let n = idx.value;
+        while (n === idx.value) n = Math.floor(Math.random() * len);
+        idx.value = n;
+      } else {
+        idx.value = (idx.value + 1) % len;
+      }
+      resetResults();
+    }
+
+    watch(level, function () { idx.value = 0; resetResults(); });
+    watch(mode, function () { resetResults(); });
+    watch(rate, function (v) { localStorage.setItem(RATE_KEY, String(v)); });
+
+    // ---------- TTS ----------
+    const ttsOk = typeof window.speechSynthesis !== 'undefined' && typeof window.SpeechSynthesisUtterance !== 'undefined';
+    let voices = [];
+    function loadVoices() { try { voices = window.speechSynthesis.getVoices() || []; } catch (e) { voices = []; } }
+    if (ttsOk) {
+      loadVoices();
+      try { window.speechSynthesis.onvoiceschanged = loadVoices; } catch (e) {}
+    }
+    function pickVoice() {
+      if (!voices.length) loadVoices();
+      return voices.find(function (v) { return v.lang === 'en-US'; })
+        || voices.find(function (v) { return (v.lang || '').indexOf('en-US') === 0; })
+        || voices.find(function (v) { return (v.lang || '').indexOf('en') === 0; })
+        || null;
+    }
+    function speak() {
+      if (!ttsOk) { toast('🔇 ဤ browser တွင် အသံဖတ်စနစ် မရရှိပါ', 'warning'); return; }
+      try {
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(cur.value.en);
+        u.lang = 'en-US';
+        u.rate = rate.value;
+        const v = pickVoice();
+        if (v) u.voice = v;
+        window.speechSynthesis.speak(u);
+      } catch (e) { toast('🔇 အသံဖွင့်၍ မရပါ', 'warning'); }
+    }
+
+    // ---------- Dictation ----------
+    function submitDict() {
+      if (!dictText.value.trim() || dictDone.value) return;
+      const d = diffWords(cur.value.en, dictText.value);
+      dictParts.value = d.parts;
+      dictScore.value = d.score;
+      dictHit.value = d.hit;
+      dictTotal.value = d.total;
+      dictDone.value = true;
+      record('dictation', d.score);
+      toast(d.score >= 80 ? '🎉 အလွန်ကောင်းပါသည် — ' + d.score + '%' : '💪 ဆက်ကြိုးစားပါ — ' + d.score + '%', d.score >= 80 ? 'success' : 'warning');
+    }
+
+    // ---------- Pronunciation (SpeechRecognition) ----------
+    const SR = window.SpeechRecognition || window.webkitSpeechRecognition || null;
+    const recOk = !!SR;
+    let rec = null;
+    function stopRec() {
+      if (rec) { try { rec.abort(); } catch (e) {} rec = null; }
+      recListening.value = false;
+    }
+    function scorePron(transcript) {
+      pronHeard.value = transcript;
+      const d = diffWords(cur.value.en, transcript);
+      pronParts.value = d.parts.filter(function (p) { return p.status !== 'extra'; });
+      pronScore.value = d.score;
+      record('pron', d.score);
+      toast(d.score >= 80 ? '🎉 အသံထွက် ကောင်းပါသည် — ' + d.score + '%' : '💪 ထပ်ဖတ်ကြည့်ပါ — ' + d.score + '%', d.score >= 80 ? 'success' : 'warning');
+    }
+    function toggleRec() {
+      if (!recOk) return;
+      if (recListening.value) { stopRec(); return; }
+      recError.value = '';
+      pronParts.value = null; pronScore.value = null; pronHeard.value = '';
+      try {
+        rec = new SR();
+        rec.lang = 'en-US';
+        rec.continuous = false;
+        rec.interimResults = false;
+        rec.maxAlternatives = 1;
+        rec.onresult = function (e) {
+          let text = '';
+          for (let k = 0; k < e.results.length; k++) text += e.results[k][0].transcript + ' ';
+          scorePron(text.trim());
+        };
+        rec.onerror = function (e) {
+          recListening.value = false;
+          const kind = e && e.error ? e.error : 'unknown';
+          recError.value = 'အသံမှတ်သားမှု မအောင်မြင်ပါ (' + kind + ') — Chrome/Edge တွင် အင်တာနက်ချိတ်ဆက်မှုနှင့် mic ခွင့်ပြုချက် လိုအပ်ပါသည်။ Listen နှင့် Dictation ကို ဆက်သုံးနိုင်ပါသည်။';
+        };
+        rec.onend = function () { recListening.value = false; };
+        recListening.value = true;
+        rec.start();
+      } catch (e) {
+        recListening.value = false;
+        recError.value = 'အသံမှတ်သားစနစ် စတင်၍ မရပါ — Listen နှင့် Dictation ကို ဆက်သုံးနိုင်ပါသည်။';
+      }
+    }
+
+    onMounted(function () {
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+
+    return {
+      level, mode, idx, showMy, rate,
+      dictText, dictDone, dictParts, dictScore, dictHit, dictTotal,
+      pronParts, pronScore, pronHeard, recListening, recError, recOk, ttsOk,
+      history, recent, avg, bank, cur, levelLabel,
+      speak, submitDict, toggleRec, nextSentence, modeIcon,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>

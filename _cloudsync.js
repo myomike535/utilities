@@ -34,6 +34,7 @@
     'tutor.v1',
     'reading.v1',
     'entrans.v1',
+    'pronlab.v1',
   ];
 
   // Local sync bookkeeping (never synced themselves)
