@@ -47,6 +47,8 @@
     { href: 'Chanting.html',                       icon: 'book',       label: 'ဘုရားရှိခိုး',     color: '#b8860b' },
     { href: 'MeritJournal.html',                   icon: 'tasks',      label: 'ကုသိုလ်မှတ်တမ်း',  color: '#c62d2d' },
     { href: 'UposathaCalendar.html',               icon: 'scroll',     label: 'ဥပုသ်ပြက္ခဒိန်',   color: '#8b6f47' },
+    { href: 'SnippetManager.html',                 icon: 'braces',     label: 'Snippets',       color: '#f59e0b' },
+    { href: 'ExpenseTracker.html',                 icon: 'palette',    label: 'ငွေစာရင်း',       color: '#22c55e' },
     { href: 'PostStudio.html',                     icon: 'sparkles',   label: 'Post Studio',    color: '#6366f1' },
     { href: 'ThumbnailMaker.html',                 icon: 'bookmark',   label: 'Thumbnails',     color: '#ec4899' },
     { href: 'ScriptPrompter.html',                 icon: 'headphones', label: 'Teleprompter',   color: '#22c55e' },

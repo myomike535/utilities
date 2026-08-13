@@ -26,6 +26,8 @@
     'merit.journal.v1',
     'poststudio.v1',
     'scripts.v1',
+    'snippets.v1',
+    'expense.v1',
   ];
 
   // Local sync bookkeeping (never synced themselves)

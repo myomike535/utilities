@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snippet Manager · Code Library</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#f59e0b">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#f59e0b; --accent-2:#f97316;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#f59e0b;
+    --el-color-primary-light-3:#fbbf24;
+    --el-color-primary-dark-2:#d97706;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(245,158,11,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(249,115,22,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1000px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(245,158,11,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .toolbar { display:flex; gap:8px; margin-bottom:14px; flex-wrap:wrap; align-items:center; }
+  .toolbar .search { flex:1; min-width:200px; }
+  .langs { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+
+  .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; }
+  .snip {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:14px 16px; display:flex; flex-direction:column; gap:8px;
+    transition:all .18s; cursor:pointer;
+  }
+  .snip:hover { transform:translateY(-2px); border-color:color-mix(in srgb, var(--accent) 40%, transparent);
+    box-shadow:0 8px 24px rgba(0,0,0,.35); }
+  .snip-head { display:flex; align-items:center; gap:8px; }
+  .snip-head .t { flex:1; font-weight:700; font-size:.95rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .snip-head .pin { color:var(--accent); font-size:.85rem; }
+  .snip pre {
+    margin:0; background:var(--field); border-radius:9px; padding:10px 12px;
+    font-family:var(--mono); font-size:.76rem; line-height:1.6; color:#c9d4e3;
+    overflow:hidden; max-height:120px; white-space:pre-wrap; word-break:break-all;
+  }
+  .snip-foot { display:flex; align-items:center; gap:6px; flex-wrap:wrap; }
+  .snip-foot .when { margin-left:auto; font-size:.68rem; color:var(--faint); }
+  .empty { text-align:center; color:var(--faint); padding:50px 0; font-size:.9rem; }
+
+  .el-textarea__inner { font-family:var(--mono); font-size:.82rem; line-height:1.65; }
+  .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">📋</div>
+    <div class="title">
+      <h1>Snippet Manager</h1>
+      <div class="sub">Code library — SQL · PowerShell · JS · lowCode · regex · cloud-sync</div>
+    </div>
+    <el-button @click="exportAll">⬇ Export</el-button>
+    <el-button @click="importEl && importEl.click()">⬆ Import</el-button>
+    <el-button type="primary" @click="openNew">＋ Snippet</el-button>
+    <input type="file" ref="importEl" accept=".json" style="display:none" @change="doImport">
+  </header>
+
+  <div class="toolbar">
+    <el-input class="search" v-model="q" placeholder="🔍 ရှာရန် — title, code, tags…" clearable/>
+    <el-select v-model="sortBy" style="width:140px">
+      <el-option value="recent" label="🕒 Recent"/>
+      <el-option value="name" label="🔤 Name"/>
+      <el-option value="copies" label="📋 Most copied"/>
+    </el-select>
+  </div>
+
+  <div class="langs">
+    <el-tag v-for="l in langList" :key="l" size="default" :effect="langFilter===l ? 'dark' : 'plain'"
+      style="cursor:pointer" @click="langFilter = langFilter===l ? '' : l">{{ l }} {{ langCount[l] }}</el-tag>
+  </div>
+
+  <div class="grid" v-if="filtered.length">
+    <div v-for="s in filtered" :key="s.id" class="snip" @click="openEdit(s)">
+      <div class="snip-head">
+        <span v-if="s.pin" class="pin">📌</span>
+        <span class="t">{{ s.title }}</span>
+        <el-tag size="small" effect="dark">{{ s.lang }}</el-tag>
+      </div>
+      <pre>{{ s.code.slice(0, 400) }}</pre>
+      <div class="snip-foot">
+        <el-tag v-for="t in s.tags" :key="t" size="small" type="info" effect="plain">{{ t }}</el-tag>
+        <el-button size="small" type="primary" @click.stop="copySnip(s)">📋 Copy</el-button>
+        <span class="when">{{ new Date(s.t).toLocaleDateString() }}{{ s.copies ? ' · ' + s.copies + '×' : '' }}</span>
+      </div>
+    </div>
+  </div>
+  <div v-else class="empty">Snippet မရှိသေးပါ — ＋ Snippet ဖြင့် စတင်ပါ</div>
+
+  <!-- Edit dialog -->
+  <el-dialog v-model="showEdit" :title="editing.id ? '✏️ Edit Snippet' : '＋ New Snippet'" width="min(640px, 96vw)">
+    <label class="fl">Title</label>
+    <el-input v-model="editing.title" placeholder="e.g. WSDE screen fields query" clearable/>
+    <div style="display:flex; gap:10px; margin-top:4px">
+      <div style="flex:1">
+        <label class="fl">Language</label>
+        <el-select v-model="editing.lang" filterable allow-create default-first-option style="width:100%">
+          <el-option v-for="l in LANGS" :key="l" :value="l" :label="l"/>
+        </el-select>
+      </div>
+      <div style="flex:1">
+        <label class="fl">Tags (comma)</label>
+        <el-input v-model="editing.tagsStr" placeholder="wsde, lowcode"/>
+      </div>
+    </div>
+    <label class="fl">Code</label>
+    <el-input v-model="editing.code" type="textarea" :rows="12" placeholder="paste code here…"/>
+    <label class="fl">Note (optional)</label>
+    <el-input v-model="editing.note" placeholder="what/when to use"/>
+    <template #footer>
+      <div style="display:flex; gap:8px; width:100%">
+        <el-popconfirm v-if="editing.id" title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delSnip">
+          <template #reference><el-button type="danger" plain>🗑 Delete</el-button></template>
+        </el-popconfirm>
+        <el-button v-if="editing.id" @click="editing.pin = !editing.pin">{{ editing.pin ? '📌 Unpin' : '📌 Pin' }}</el-button>
+        <span style="flex:1"></span>
+        <el-button @click="showEdit=false">Cancel</el-button>
+        <el-button type="primary" @click="saveSnip">💾 Save</el-button>
+      </div>
+    </template>
+  </el-dialog>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted } = Vue;
+const STORE = 'snippets.v1';
+
+const app = createApp({
+  setup() {
+    const LANGS = ['SQL', 'PowerShell', 'JavaScript', 'TypeScript', 'HTML', 'CSS', 'Vue', 'C#', 'JSON', 'Regex', 'Bash', 'lowCode', 'Other'];
+    const snips = ref([]);
+    const q = ref(''); const langFilter = ref(''); const sortBy = ref('recent');
+    const showEdit = ref(false);
+    const importEl = ref(null);
+    const blank = () => ({ id: null, title: '', lang: 'SQL', tagsStr: '', code: '', note: '', pin: false, copies: 0, t: Date.now() });
+    const editing = ref(blank());
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2800 });
+
+    function load() { try { snips.value = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (e) {} }
+    function save() { localStorage.setItem(STORE, JSON.stringify(snips.value)); }
+
+    const langCount = computed(() => {
+      const m = {};
+      snips.value.forEach(s => { m[s.lang] = (m[s.lang] || 0) + 1; });
+      return m;
+    });
+    const langList = computed(() => Object.keys(langCount.value).sort());
+
+    const filtered = computed(() => {
+      const term = q.value.trim().toLowerCase();
+      let out = snips.value.filter(s => {
+        if (langFilter.value && s.lang !== langFilter.value) return false;
+        if (!term) return true;
+        return (s.title + ' ' + s.code + ' ' + (s.tags || []).join(' ') + ' ' + (s.note || '')).toLowerCase().includes(term);
+      });
+      out = [...out].sort((a, b) => {
+        if (a.pin !== b.pin) return a.pin ? -1 : 1;
+        if (sortBy.value === 'name') return a.title.localeCompare(b.title);
+        if (sortBy.value === 'copies') return (b.copies || 0) - (a.copies || 0);
+        return b.t - a.t;
+      });
+      return out;
+    });
+
+    function openNew() { editing.value = blank(); showEdit.value = true; }
+    function openEdit(s) {
+      editing.value = { ...s, tagsStr: (s.tags || []).join(', ') };
+      showEdit.value = true;
+    }
+    function saveSnip() {
+      const e = editing.value;
+      if (!e.title.trim() || !e.code.trim()) { toast('Title နှင့် code လိုအပ်ပါသည်', 'warning'); return; }
+      const rec = {
+        id: e.id || Date.now(), title: e.title.trim(), lang: e.lang || 'Other',
+        tags: e.tagsStr.split(',').map(t => t.trim()).filter(Boolean),
+        code: e.code, note: e.note || '', pin: !!e.pin, copies: e.copies || 0, t: Date.now(),
+      };
+      const i = snips.value.findIndex(s => s.id === rec.id);
+      if (i >= 0) snips.value[i] = rec; else snips.value.unshift(rec);
+      save(); showEdit.value = false; toast('💾 သိမ်းပြီး');
+    }
+    function delSnip() {
+      snips.value = snips.value.filter(s => s.id !== editing.value.id);
+      save(); showEdit.value = false; toast('🗑 ဖျက်ပြီး');
+    }
+    function copySnip(s) {
+      navigator.clipboard.writeText(s.code).then(() => {
+        s.copies = (s.copies || 0) + 1; save();
+        toast('📋 Copied — ' + s.title);
+      });
+    }
+    function exportAll() {
+      const blob = new Blob([JSON.stringify({ exportedAt: new Date().toISOString(), snippets: snips.value }, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = 'snippets-' + Date.now() + '.json'; a.click();
+      URL.revokeObjectURL(a.href);
+      toast('⬇ ' + snips.value.length + ' snippets exported');
+    }
+    function doImport(ev) {
+      const f = ev.target.files[0]; if (!f) return;
+      const r = new FileReader();
+      r.onload = () => {
+        try {
+          const d = JSON.parse(r.result);
+          const arr = Array.isArray(d) ? d : (d.snippets || []);
+          let added = 0;
+          arr.forEach(s => {
+            if (s && s.title && s.code && !snips.value.some(x => x.id === s.id)) { snips.value.push(s); added++; }
+          });
+          save(); toast('⬆ ' + added + ' imported');
+        } catch (e) { toast('⚠ Invalid JSON', 'error'); }
+        ev.target.value = '';
+      };
+      r.readAsText(f);
+    }
+
+    onMounted(() => { load(); document.getElementById('vue-loading').style.display = 'none'; });
+
+    return {
+      LANGS, snips, q, langFilter, sortBy, showEdit, editing, importEl,
+      langCount, langList, filtered,
+      openNew, openEdit, saveSnip, delSnip, copySnip, exportAll, doImport,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>
