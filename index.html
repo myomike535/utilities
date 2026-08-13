@@ -1287,7 +1287,7 @@
   const h = new Date().getHours();
   const greeting = h < 5 ? 'Late night' : h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : h < 21 ? 'Good evening' : 'Late night';
   const dateStr = new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-  $('greet').textContent = `${greeting}, MyoMT`;
+  $('greet').textContent = `${greeting}, ${localStorage.getItem('applock.name') || 'MyoMT'}`;
   $('sub').textContent = dateStr;
 
   // ---- Stats: Task Manager (tasks.v3) ----

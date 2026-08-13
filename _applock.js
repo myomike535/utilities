@@ -65,8 +65,9 @@
       <div class="al-card">
         <div class="al-ico">🔐</div>
         <div class="al-title">MyoMT Utilities</div>
-        <div class="al-sub">ပထမဆုံးအကြိမ် — PIN သတ်မှတ်ပါ (အနည်းဆုံး ၄ လုံး)</div>
-        <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN အသစ်" aria-label="New PIN">
+        <div class="al-sub">ပထမဆုံးအကြိမ် — နာမည်နှင့် PIN သတ်မှတ်ပါ</div>
+        <input class="al-input al-name" type="text" autocomplete="off" maxlength="24" placeholder="နာမည် · Your name" aria-label="Name" style="letter-spacing:normal;font-size:0.95rem;margin-bottom:8px">
+        <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN အသစ် (၄ လုံး+)" aria-label="New PIN">
         <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="ထပ်မံ အတည်ပြုပါ" aria-label="Confirm PIN" style="margin-top:8px">
         <button class="al-btn">🔒 သတ်မှတ်မည် · Set PIN</button>
         <div class="al-err"></div>
@@ -74,8 +75,8 @@
       </div>` : `
       <div class="al-card">
         <div class="al-ico">🔒</div>
-        <div class="al-title">MyoMT Utilities</div>
-        <div class="al-sub">PIN ထည့်၍ ဖွင့်ပါ</div>
+        <div class="al-title">${(localStorage.getItem('applock.name') || 'MyoMT Utilities').replace(/[<>&]/g, '')}</div>
+        <div class="al-sub">${localStorage.getItem('applock.name') ? 'မင်္ဂလာပါ — PIN ထည့်၍ ဖွင့်ပါ' : 'PIN ထည့်၍ ဖွင့်ပါ'}</div>
         <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" aria-label="PIN">
         <button class="al-btn">ဖွင့်မည် · Unlock</button>
         <div class="al-err"></div>
@@ -96,14 +97,20 @@
       sessionStorage.setItem(SESSION, '1');
       bd.style.transition = 'opacity 0.25s'; bd.style.opacity = '0';
       setTimeout(() => bd.remove(), 260);
+      // Refresh the dashboard greeting with the (possibly just-set) name
+      const nm = localStorage.getItem('applock.name');
+      const g = document.getElementById('greet');
+      if (nm && g) setTimeout(() => { g.textContent = g.textContent.replace(/,[^,]*$/, ', ' + nm); }, 300);
     }
     async function submit() {
       if (mode === 'create') {
-        const p1 = inputs[0].value, p2 = inputs[1].value;
+        const name = inputs[0].value.trim(), p1 = inputs[1].value, p2 = inputs[2].value;
+        if (!name) { fail('နာမည် ထည့်ပါ'); inputs[0].focus(); return; }
         if (p1.length < 4) { fail('PIN သည် အနည်းဆုံး ၄ လုံး ရှိရပါမည်'); return; }
-        if (p1 !== p2) { fail('⚠ PIN နှစ်ခု မတူပါ'); inputs[1].value = ''; return; }
+        if (p1 !== p2) { fail('⚠ PIN နှစ်ခု မတူပါ'); inputs[2].value = ''; return; }
         const salt = [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(16).padStart(2, '0')).join('');
         localStorage.setItem(KEY, JSON.stringify({ salt, hash: await pinHash(salt, p1) }));
+        localStorage.setItem('applock.name', name);
         localStorage.removeItem('applock.skip');
         done();
         return;
