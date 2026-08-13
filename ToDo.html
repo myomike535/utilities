@@ -600,6 +600,7 @@
     header { padding: 20px 20px 14px; }
     .input-row, .meta-row, .toolbar, .filters, .footer, .hint { padding-left: 20px; padding-right: 20px; }
     ul.task-list { padding-left: 20px; padding-right: 20px; }
+    ul.task-list li.lst-leave-active { left: 20px; right: 20px; }
   }
 
   /* ===== Element-style polish (focus rings, press feedback) ===== */
@@ -635,6 +636,23 @@
   }
   .toast-undo-btn:hover { background: var(--accent-hover); }
   .toast-undo-btn:active { transform: scale(0.95); }
+
+  /* ===== list transitions (transition-group polish) ===== */
+  .lst-enter-from { opacity: 0; transform: translateY(6px); }
+  .lst-enter-active { transition: all 0.22s ease; }
+  .lst-leave-to { opacity: 0; transform: scale(0.98); }
+  .lst-leave-active { transition: all 0.18s ease; }
+  .lst-move { transition: transform 0.25s ease; }
+  ul.task-list { position: relative; }
+  ul.task-list li.lst-leave-active { position: absolute; left: 28px; right: 28px; }
+  /* while a drag is in progress, FLIP move must not fight the native drag */
+  ul.task-list.dragging .lst-move { transition: none; }
+  .fade-enter-active, .fade-leave-active { transition: opacity 0.2s ease; }
+  .fade-enter-from, .fade-leave-to { opacity: 0; }
+  @media (prefers-reduced-motion: reduce) {
+    .lst-enter-active, .lst-leave-active, .lst-move,
+    .fade-enter-active, .fade-leave-active { transition: none !important; }
+  }
 </style>
   <link rel="manifest" href="manifest.json">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -720,8 +738,11 @@
         <kbd>n</kbd> new · <kbd>/</kbd> search · <kbd>v</kbd> toggle view · click status chip to cycle
       </div>
 
-      <ul id="taskList" class="task-list" v-show="viewMode === 'list'">
-        <div v-if="visibleTasks.length === 0" class="empty">Nothing here. Press <kbd>n</kbd> to add a task.</div>
+      <ul id="taskList" class="task-list" :class="{ dragging: dragId !== null }" v-show="viewMode === 'list'">
+        <transition name="fade">
+          <div v-if="visibleTasks.length === 0" class="empty">Nothing here. Press <kbd>n</kbd> to add a task.</div>
+        </transition>
+        <transition-group name="lst">
         <li v-for="task in visibleTasks" :key="task.id"
             :data-id="task.id"
             :draggable="sortMode === 'manual'"
@@ -774,6 +795,7 @@
             </template>
           </el-popconfirm>
         </li>
+        </transition-group>
       </ul>
 
       <div id="kanbanBoard" :class="{ on: viewMode === 'kanban' }">

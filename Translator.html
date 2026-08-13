@@ -93,32 +93,8 @@
     <el-button @click="openSettings" :type="hasKey ? 'default' : 'warning'">⚙ AI</el-button>
   </header>
 
-  <!-- AI settings dialog (Element Plus) -->
-  <el-dialog v-model="showSettings" title="⚙ AI Settings" width="min(460px, 94vw)">
-    <div style="font-size:.78rem;color:var(--faint);margin-bottom:12px;line-height:1.7">
-      Keys ကို ဤ browser ၏ localStorage တွင်သာ သိမ်းသည် — Note Taker tools များနှင့် မျှဝေသုံးသည်။
-      Key မထည့်ထားလျှင် အခမဲ့ MyMemory engine ဖြင့် ဘာသာပြန်ပေးမည်။
-    </div>
-    <label class="fl">Provider</label>
-    <el-select v-model="aiPref" @change="savePrefs" style="width:100%">
-      <el-option value="auto" label="🔄 Auto — Gemini → Groq → OpenRouter"></el-option>
-      <el-option value="gemini" label="✨ Gemini only"></el-option>
-      <el-option value="groq" label="⚡ Groq only"></el-option>
-      <el-option value="openrouter" label="🌐 OpenRouter only"></el-option>
-    </el-select>
-    <label class="fl">Gemini API key <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent-2)">aistudio.google.com/apikey</a></label>
-    <el-input v-model="gKeyInput" type="password" show-password placeholder="AIza…" autocomplete="off"></el-input>
-    <label class="fl">Groq API key <a href="https://console.groq.com/keys" target="_blank" style="color:var(--accent-2)">console.groq.com/keys</a></label>
-    <el-input v-model="qKeyInput" type="password" show-password placeholder="gsk_…" autocomplete="off"></el-input>
-    <label class="fl">OpenRouter API key <a href="https://openrouter.ai/keys" target="_blank" style="color:var(--accent-2)">openrouter.ai/keys</a></label>
-    <el-input v-model="oKeyInput" type="password" show-password placeholder="sk-or-…" autocomplete="off"></el-input>
-    <label class="fl">OpenRouter model (Myanmar အတွက် Gemini-family အကြံပြု)</label>
-    <el-input v-model="oModelInput" placeholder="google/gemini-2.0-flash-exp:free" autocomplete="off"></el-input>
-    <template #footer>
-      <el-button @click="showSettings=false">Cancel</el-button>
-      <el-button type="primary" @click="saveKeys">💾 Save</el-button>
-    </template>
-  </el-dialog>
+  <!-- AI settings dialog (shared — _vueshared.js) -->
+  <ai-settings-dialog v-model="showSettings" hint="Key မထည့်ထားလျှင် အခမဲ့ MyMemory engine ဖြင့် ဘာသာပြန်ပေးမည်။"></ai-settings-dialog>
 
   <!-- History dialog -->
   <el-dialog v-model="showHistory" title="🕘 ဘာသာပြန် မှတ်တမ်း" width="min(640px, 96vw)">
@@ -203,22 +179,13 @@
 <script defer src="_applock.js"></script>
 <script src="vue.global.prod.js"></script>
 <script src="element-plus.full.min.js"></script>
+<script src="_vueshared.js"></script>
 <script>
-if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined' || typeof VueShared === 'undefined') {
   document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
 } else {
 const { createApp, ref, computed, watch, onMounted } = Vue;
 const STORE = 'entrans.v1';
-// Shared with the AI Note Taker tools — one set of keys across the suite
-const GKEY = 'ainotes.enterprise.gemini.key';
-const GMODEL = 'ainotes.enterprise.gemini.model';
-const QKEY = 'ainotes.apikey.groq';
-const QMODEL = 'ainotes.model.groq';
-const OKEY = 'creator.apikey.openrouter';
-const OMODEL = 'creator.model.openrouter';
-const OMODEL_DEFAULT = 'google/gemini-2.0-flash-exp:free';   // free + strong Myanmar
-const PREF_KEY = 'creator.ai.provider';   // auto | gemini | groq | openrouter
-const VALID_MODELS = ['gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-2.0-flash'];
 const MM_RE = /[က-႟]/;
 
 const app = createApp({
@@ -240,12 +207,7 @@ const app = createApp({
     const busy = ref(false);
     const history = ref([]);
     const showHistory = ref(false);
-    const keyVer = ref(0);
-    const hasKey = computed(() => { keyVer.value; return !!(localStorage.getItem(GKEY) || localStorage.getItem(QKEY) || localStorage.getItem(OKEY)); });
-    const showSettings = ref(false);
-    const aiPref = ref(localStorage.getItem(PREF_KEY) || 'auto');
-    const gKeyInput = ref(''); const qKeyInput = ref('');
-    const oKeyInput = ref(''); const oModelInput = ref('');
+    const { showSettings, hasKey, openSettings } = VueShared.useAiSettings();
 
     const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 3200 });
 
@@ -285,87 +247,8 @@ const app = createApp({
       saveHistory();
     }
 
-    // ---- AI providers: Gemini + Groq + OpenRouter with Auto fallback ----
-    function geminiModel() {
-      const m = localStorage.getItem(GMODEL);
-      if (m && VALID_MODELS.includes(m)) return m;
-      if (m) localStorage.setItem(GMODEL, 'gemini-2.5-flash');
-      return 'gemini-2.5-flash';
-    }
-    function openSettings() {
-      gKeyInput.value = localStorage.getItem(GKEY) || '';
-      qKeyInput.value = localStorage.getItem(QKEY) || '';
-      oKeyInput.value = localStorage.getItem(OKEY) || '';
-      oModelInput.value = localStorage.getItem(OMODEL) || OMODEL_DEFAULT;
-      aiPref.value = localStorage.getItem(PREF_KEY) || 'auto';
-      showSettings.value = true;
-    }
-    function savePrefs() { localStorage.setItem(PREF_KEY, aiPref.value); }
-    function saveKeys() {
-      gKeyInput.value.trim() ? localStorage.setItem(GKEY, gKeyInput.value.trim()) : localStorage.removeItem(GKEY);
-      qKeyInput.value.trim() ? localStorage.setItem(QKEY, qKeyInput.value.trim()) : localStorage.removeItem(QKEY);
-      oKeyInput.value.trim() ? localStorage.setItem(OKEY, oKeyInput.value.trim()) : localStorage.removeItem(OKEY);
-      oModelInput.value.trim() ? localStorage.setItem(OMODEL, oModelInput.value.trim()) : localStorage.removeItem(OMODEL);
-      savePrefs();
-      keyVer.value++;
-      showSettings.value = false;
-      toast('🔑 သိမ်းပြီး — ' + (localStorage.getItem(GKEY) ? 'Gemini ✓ ' : '') + (localStorage.getItem(QKEY) ? 'Groq ✓ ' : '') + (localStorage.getItem(OKEY) ? 'OpenRouter ✓' : ''));
-    }
-    async function callGemini(prompt) {
-      const key = localStorage.getItem(GKEY);
-      if (!key) throw new Error('Gemini key မရှိပါ');
-      const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${geminiModel()}:generateContent?key=${encodeURIComponent(key)}`, {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ role: 'user', parts: [{ text: prompt }] }] }),
-      });
-      if (!res.ok) {
-        let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
-        throw new Error(`Gemini ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
-      }
-      const d = await res.json();
-      return d.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    }
-    async function callChatApi(url, key, model, prompt, label) {
-      if (!key) throw new Error(label + ' key မရှိပါ');
-      const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
-        body: JSON.stringify({ model, messages: [{ role: 'user', content: prompt }], max_tokens: 2000 }),
-      });
-      if (!res.ok) {
-        let reason = ''; try { reason = JSON.parse(await res.text())?.error?.message || ''; } catch (e) {}
-        throw new Error(`${label} ${res.status}${reason ? ' — ' + reason.slice(0, 100) : ''}`);
-      }
-      const d = await res.json();
-      return d.choices?.[0]?.message?.content || '';
-    }
-    const callGroq = p => callChatApi('https://api.groq.com/openai/v1/chat/completions',
-      localStorage.getItem(QKEY), localStorage.getItem(QMODEL) || 'llama-3.3-70b-versatile', p, 'Groq');
-    const callOpenRouter = p => callChatApi('https://openrouter.ai/api/v1/chat/completions',
-      localStorage.getItem(OKEY), localStorage.getItem(OMODEL) || OMODEL_DEFAULT, p, 'OpenRouter');
-    // Provider router: honors the setting; Auto tries Gemini → Groq → OpenRouter
-    async function gemini(prompt) {
-      const pref = localStorage.getItem(PREF_KEY) || 'auto';
-      const hasG = !!localStorage.getItem(GKEY), hasQ = !!localStorage.getItem(QKEY), hasO = !!localStorage.getItem(OKEY);
-      if (!hasG && !hasQ && !hasO) { openSettings(); throw new Error('API key ထည့်ပါ (⚙ AI)'); }
-      if (pref === 'gemini') return callGemini(prompt);
-      if (pref === 'groq') return callGroq(prompt);
-      if (pref === 'openrouter') return callOpenRouter(prompt);
-      const chain = [
-        hasG && { name: 'Gemini', fn: callGemini },
-        hasQ && { name: 'Groq', fn: callGroq },
-        hasO && { name: 'OpenRouter', fn: callOpenRouter },
-      ].filter(Boolean);
-      let lastErr = null;
-      for (let i = 0; i < chain.length; i++) {
-        try { return await chain[i].fn(prompt); }
-        catch (e) {
-          lastErr = e;
-          if (i < chain.length - 1) toast(`${chain[i].name} မရ — ${chain[i + 1].name} ဖြင့် ဆက်လုပ်နေသည်…`, 'warning');
-        }
-      }
-      throw lastErr;
-    }
+    // ---- AI provider router (shared — _vueshared.js) ----
+    const gemini = prompt => VueShared.callAI(prompt, { onNoKeys: openSettings });
 
     // ---- Translation ----
     function buildPrompt(text) {
@@ -445,12 +328,12 @@ const app = createApp({
       DIRS, dir, style, src, dst, engine, busy, history, hasKey,
       showHistory, openHistory, restore, clearHistory,
       swap, copyResult, translate,
-      showSettings, aiPref, gKeyInput, qKeyInput, oKeyInput, oModelInput,
-      openSettings, savePrefs, saveKeys,
+      showSettings, openSettings,
     };
   }
 });
 app.use(ElementPlus);
+VueShared.install(app);
 app.mount('#app');
 }
 </script>

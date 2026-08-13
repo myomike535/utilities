@@ -1,10 +1,20 @@
 <!DOCTYPE html>
-<html lang="my">
+<html lang="my" data-theme="light">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>ဓမ္မပဒ — Dhammapada</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ဓမ္မပဒ · Dhammapada</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#8b5a2b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
+  /* ═══════════════════════════════════════════════════════════════
+     jataka550-family design system — variables + patterns adopted from
+     jataka550.html so the pages feel like siblings (same family as
+     tipitaka.html). Light/Dark/Royal themes — dm_theme values kept.
+     ═══════════════════════════════════════════════════════════════ */
   :root {
     --bg: #faf7f2;
     --panel: #ffffff;
@@ -49,72 +59,342 @@
     --shadow-lift: 0 8px 28px rgba(230, 185, 60, 0.18);
   }
   [data-theme="royal"] header { border-bottom: 2px solid var(--accent); }
-  [data-theme="royal"] .verse { border: 1px solid var(--border); box-shadow: inset 0 0 0 1px rgba(230,185,60,0.12), var(--shadow); }
-  [data-theme="royal"] .verse:hover { box-shadow: inset 0 0 0 1px rgba(230,185,60,0.3), var(--shadow-lift); }
-  [data-theme="royal"] .chapter-title, [data-theme="royal"] h1 { text-shadow: 0 0 18px rgba(230,185,60,0.35); }
-  [data-theme="royal"] .chapter-banner { border: 1px solid var(--border); border-left: 3px solid var(--accent); }
-  [data-theme="royal"] .verse .watermark { opacity: 0.12; }
-  [data-theme="royal"] .petal { background: linear-gradient(135deg, #e6b93c 0%, #8a5a20 100%); }
+  [data-theme="royal"] .verse-card { border: 1px solid var(--border); box-shadow: inset 0 0 0 1px rgba(230,185,60,0.12), var(--shadow); }
+  [data-theme="royal"] .verse-card:hover { box-shadow: inset 0 0 0 1px rgba(230,185,60,0.3), var(--shadow-lift); }
+  [data-theme="royal"] .nipata-title, [data-theme="royal"] h1 { text-shadow: 0 0 18px rgba(230,185,60,0.35); }
+  [data-theme="royal"] .btn.active, [data-theme="royal"] .action-btn.done, [data-theme="royal"] .daily-badge { color: #26100f; }
+
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink); font-family: -apple-system, "Segoe UI", "Padauk", "Myanmar Text", Roboto, sans-serif; }
 
+  /* ── Sticky top app bar (jataka550 pattern) ── */
   header {
     background: var(--panel);
     border-bottom: 1px solid var(--border);
-    padding: 14px 20px;
+    padding: 12px 18px;
     display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
     position: sticky; top: 0; z-index: 10;
+    box-shadow: var(--shadow);
   }
-  .lang-chip.off { opacity: 0.4; text-decoration: line-through; }
-  .prog { flex-basis: 100%; height: 3px; background: var(--border); border-radius: 2px; margin-top: 5px; overflow: hidden; }
+  h1 { font-size: 19px; margin: 0; color: var(--accent); white-space: nowrap; }
+  h1 small { font-size: 12px; color: var(--muted); font-weight: normal; }
+  .header-wheel { width: 26px; height: 26px; color: var(--accent); flex-shrink: 0; animation: wheelSpin 24s linear infinite; }
+  @keyframes wheelSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  .spacer { flex: 1; }
+  .btn {
+    background: var(--panel); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 8px;
+    padding: 7px 12px; font-size: 13px; cursor: pointer;
+    font-family: inherit;
+    text-decoration: none; display: inline-flex; align-items: center;
+    transition: all 0.25s var(--ease);
+  }
+  .btn:hover { border-color: var(--accent); color: var(--accent); transform: translateY(-1px); }
+  .btn.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+  #search {
+    background: var(--bg); color: var(--ink);
+    border: 1px solid var(--border); border-radius: 20px;
+    padding: 8px 16px; font-size: 14px; width: 220px;
+    font-family: inherit; outline: none;
+    transition: all 0.3s var(--ease);
+  }
+  #search:focus { border-color: var(--accent); width: 280px; box-shadow: 0 0 0 3px var(--accent-soft); }
+  .prog { flex-basis: 100%; height: 3px; background: var(--border); border-radius: 2px; overflow: hidden; }
   .prog-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width 0.5s var(--ease); }
-  .prog-pct { font-size: 10px; color: var(--muted); margin-left: 4px; }
-  .chapter-list li { flex-wrap: wrap; }
-  .hide-pali .pali { display: none; }
-  .hide-mm .mm { display: none; }
-  .hide-en .en { display: none; }
-
-  /* ============ NAV UPGRADE ============ */
   .menu-toggle { display: none; font-size: 18px; padding: 6px 10px; }
-  .ch-badge {
-    width: 34px; height: 34px; display: flex; align-items: center; justify-content: center;
-    background: var(--accent-soft); border-radius: 10px; font-size: 17px; flex-shrink: 0;
-    animation: iconFloat 3.5s ease-in-out infinite;
-    transition: background 0.25s var(--ease), transform 0.25s var(--ease);
+  #drawer-backdrop {
+    display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 19;
+    opacity: 0; transition: opacity 0.3s;
   }
-  .ch-info { flex: 1; min-width: 0; line-height: 1.35; }
-  .ch-en { font-size: 11px; color: var(--muted); }
-  .chapter-list li {
-    padding: 8px 10px; border-radius: 10px; margin-bottom: 3px;
-    align-items: center; gap: 10px; border: 1px solid transparent;
-  }
-  .chapter-list li:hover { background: var(--accent-soft); transform: translateX(3px); }
-  .chapter-list li:hover .ch-badge { background: var(--panel); transform: scale(1.08) rotate(-4deg); }
-  .chapter-list li.active {
-    background: linear-gradient(100deg, var(--accent) 0%, #a4753f 100%);
-    color: white; box-shadow: var(--shadow-lift);
-  }
-  .chapter-list li.active .ch-badge { background: rgba(255,255,255,0.22); }
-  .chapter-list li.active .ch-en { color: rgba(255,255,255,0.75); }
-  .chapter-list li.active .prog { background: rgba(255,255,255,0.25); }
-  .chapter-list li.active .prog-fill { background: white; }
-  .chapter-list li.active .prog-pct { color: rgba(255,255,255,0.85); }
+  #drawer-backdrop.show { opacity: 1; }
 
-  /* Settings dropdown panel */
+  /* ── Settings dropdown ── */
   .settings-wrap { position: relative; }
   .settings-panel {
     position: absolute; right: 0; top: calc(100% + 10px);
     background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
-    box-shadow: var(--shadow-lift); padding: 14px 16px; min-width: 240px;
+    box-shadow: var(--shadow-lift); padding: 14px 16px; min-width: 250px;
     display: none; z-index: 50;
   }
-  .settings-panel.open { display: block; animation: modalRise 0.28s var(--ease); }
+  .settings-panel.open { display: block; animation: rise 0.28s var(--ease); }
   .sp-row { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
   .sp-row:last-child { margin-bottom: 0; }
   .sp-label { font-size: 12px; color: var(--muted); width: 62px; flex-shrink: 0; letter-spacing: 0.3px; }
   .sp-val { font-size: 12px; color: var(--muted); margin-left: 4px; }
+  .lang-chip.off { opacity: 0.4; text-decoration: line-through; }
 
-  /* Bottom navigation (mobile) */
+  /* ── Layout: sticky sidebar + main column ── */
+  .layout { display: flex; max-width: 1200px; margin: 0 auto; gap: 18px; padding: 18px; align-items: flex-start; }
+  aside {
+    width: 285px; flex-shrink: 0;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px; position: sticky; top: 76px;
+    max-height: calc(100vh - 96px); overflow-y: auto;
+    box-shadow: var(--shadow);
+  }
+  aside h3 { margin: 4px 6px 10px; font-size: 14px; color: var(--muted); }
+  .devotion-art { text-align: center; padding: 6px 0 4px; color: var(--accent); }
+  .devotion-art svg { width: 64px; height: 70px; }
+  .devotion-art .caption { font-size: 10.5px; color: var(--muted); margin-top: 2px; letter-spacing: 0.4px; }
+  .quick-links { display: flex; gap: 8px; justify-content: center; margin: 8px 0 12px; flex-wrap: wrap; }
+  .quick-links .btn { font-size: 12px; }
+  .nipata-list { list-style: none; margin: 0 0 6px; padding: 0; }
+  .nipata-list li {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    padding: 8px 9px; border-radius: 9px; cursor: pointer; font-size: 13px;
+    transition: background 0.2s var(--ease);
+  }
+  .nipata-list li:hover { background: var(--accent-soft); }
+  .nipata-list li.active { background: var(--accent); color: #fff; }
+  [data-theme="royal"] .nipata-list li.active { color: #26100f; }
+  .nipata-list li.active .np-en, .nipata-list li.active .range, .nipata-list li.active .prog-pct { color: inherit; opacity: 0.85; }
+  .np-badge {
+    width: 32px; height: 32px; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--accent-soft); border-radius: 8px; font-size: 15px;
+  }
+  .nipata-list li.active .np-badge { background: rgba(255,255,255,0.22); }
+  .np-info { flex: 1; line-height: 1.45; min-width: 0; }
+  .np-en { font-size: 11px; color: var(--muted); }
+  .range { font-size: 11px; color: var(--muted); white-space: nowrap; }
+  .prog-pct { font-size: 10px; color: var(--muted); margin-left: 4px; }
+  .nipata-list .prog { margin-top: 5px; }
+  .side-stats { background: var(--accent-soft); border-radius: 10px; padding: 10px 12px; margin-top: 6px; }
+  .ss-row { display: flex; justify-content: space-between; font-size: 12.5px; color: var(--muted); padding: 2px 4px; }
+  .ss-row b { color: var(--ink); }
+
+  section.content { flex: 1; min-width: 0; }
+
+  /* ── Section banner (jataka nipata-banner) ── */
+  .nipata-banner {
+    display: flex; align-items: center; gap: 16px;
+    background: var(--panel); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; box-shadow: var(--shadow);
+  }
+  .nipata-banner svg { width: 52px; height: 52px; color: var(--accent); flex-shrink: 0; opacity: 0.9; }
+  .nipata-banner .nb-ic { font-size: 38px; line-height: 1; flex-shrink: 0; opacity: 0.9; }
+  .nipata-title { margin: 0 0 4px; font-size: 21px; color: var(--accent); }
+  .nipata-sub { margin: 0; font-size: 13px; color: var(--muted); }
+
+  /* ── Verse cards (jataka story-card pattern) ── */
+  .verse-card {
+    position: relative; overflow: hidden;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px 18px; margin-bottom: 14px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.3s var(--ease), transform 0.3s var(--ease);
+    animation: rise 0.4s var(--ease) both;
+  }
+  .verse-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-2px); }
+  @keyframes rise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  .verse-card.bookmarked { border-left: 3px solid var(--accent); }
+  .watermark {
+    position: absolute; right: -14px; bottom: -14px; width: 110px; height: 110px;
+    color: var(--accent); opacity: 0.06; pointer-events: none;
+  }
+  [data-theme="dark"] .watermark { opacity: 0.09; }
+  [data-theme="royal"] .watermark { opacity: 0.12; }
+  .watermark svg { width: 100%; height: 100%; }
+  .card-head { display: flex; align-items: flex-start; gap: 10px; }
+  .no-chip {
+    background: var(--accent-soft); color: var(--accent);
+    font-weight: bold; font-size: 13px;
+    border-radius: 9px; padding: 6px 10px; flex-shrink: 0;
+  }
+  .titles { flex: 1; min-width: 0; }
+  .t-mm { font-size: 15.5px; color: var(--mm); font-weight: 600; line-height: 1.6; }
+  .np-chip { font-size: 11px; color: var(--muted); }
+  .daily-badge {
+    display: inline-block; font-size: 11px; margin-left: 6px;
+    background: var(--accent); color: #fff; border-radius: 10px; padding: 2px 9px;
+  }
+  .bookmark-btn {
+    background: none; border: none; font-size: 21px; cursor: pointer;
+    color: var(--muted); transition: transform 0.2s var(--ease), color 0.2s;
+    padding: 0 2px; line-height: 1; flex-shrink: 0;
+  }
+  .bookmark-btn:hover { transform: scale(1.25); }
+  .bookmark-btn.on { color: var(--accent); }
+
+  /* ── Verse text: Pāḷi / Myanmar / English stacked with labels ── */
+  .v-body { margin-top: 10px; }
+  .label {
+    display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
+    color: var(--muted); margin-right: 6px; font-weight: 600;
+  }
+  .pali { color: var(--pali); font-style: italic; white-space: pre-line; margin: 8px 0; line-height: 1.7; }
+  .mm { color: var(--mm); margin: 10px 0; line-height: 1.9; font-size: 15px; }
+  .en { color: var(--en); margin: 10px 0; line-height: 1.7; font-size: 14px; }
+  .hide-pali .pali { display: none; }
+  .hide-mm .mm { display: none; }
+  .hide-en .en { display: none; }
+
+  .card-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .action-btn {
+    background: none; border: 1px solid var(--border); border-radius: 16px;
+    color: var(--muted); font-size: 12px; padding: 5px 12px; cursor: pointer;
+    font-family: inherit; transition: all 0.2s var(--ease);
+  }
+  .action-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .action-btn.done, .action-btn.active, .action-btn.has-note { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .action-btn.speaking { background: var(--accent); color: #fff; animation: speakPulse 1.2s ease-in-out infinite; }
+  @keyframes speakPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(139, 90, 43, 0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(139, 90, 43, 0); }
+  }
+  .speaking-highlight { background: linear-gradient(90deg, var(--accent-soft), transparent); border-radius: 4px; transition: background 0.4s var(--ease); }
+
+  .empty { text-align: center; color: var(--muted); padding: 60px 20px; font-size: 15px; line-height: 2; }
+
+  /* ── Story expand (grid-rows technique, jataka moral palette) ── */
+  .story-wrap { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.5s var(--ease); margin-top: 0; }
+  .story-wrap.open { grid-template-rows: 1fr; margin-top: 12px; }
+  .story-inner { overflow: hidden; }
+  .story {
+    padding: 14px 16px;
+    background: var(--accent-soft); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    opacity: 0; transform: translateY(-4px);
+    transition: opacity 0.35s var(--ease) 0.1s, transform 0.35s var(--ease) 0.1s;
+  }
+  .story-wrap.open .story { opacity: 1; transform: translateY(0); }
+  .story-title { color: var(--accent); font-weight: 600; margin: 0 0 4px; font-size: 15px; }
+  .story-chars { color: var(--muted); font-size: 12px; margin: 0 0 10px; font-style: italic; }
+  .story-text { line-height: 1.9; color: var(--ink); margin: 0 0 10px; font-size: 14px; }
+  .story-moral {
+    background: var(--panel); border: 1px dashed var(--border);
+    padding: 10px 12px; border-radius: 8px; font-size: 13px; color: var(--mm); margin-top: 10px;
+  }
+  .story-moral::before { content: "💡 သင်ခန်းစာ — "; font-weight: 600; color: var(--accent); }
+
+  /* ── Notes ── */
+  .note-wrap { margin-top: 12px; display: none; }
+  .note-wrap.open { display: block; animation: rise 0.25s var(--ease); }
+  .note-wrap textarea {
+    width: 100%; min-height: 80px; padding: 10px 12px;
+    border: 1px solid var(--border); border-radius: 8px;
+    background: var(--bg); color: var(--ink); font-family: inherit; font-size: 14px;
+    resize: vertical;
+  }
+  .note-wrap textarea:focus { outline: none; border-color: var(--accent); }
+  .note-actions { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
+  .note-display {
+    margin-top: 12px; padding: 10px 14px;
+    background: var(--accent-soft); border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0; font-size: 13px; line-height: 1.8; color: var(--ink);
+    white-space: pre-wrap;
+  }
+  .note-display::before { content: "📝 "; }
+
+  /* ── Recite ── */
+  .recite-done-btn { font-weight: 600; }
+  .recite-done-btn.done { background: #3d8b3d; color: #fff; border-color: #3d8b3d; }
+  .recite-progress {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 16px; margin-bottom: 16px; font-size: 14px; box-shadow: var(--shadow);
+  }
+  .recite-progress .prog { margin-top: 8px; height: 6px; }
+
+  /* ── Quiz ── */
+  .quiz-score {
+    display: flex; gap: 16px; background: var(--panel);
+    border: 1px solid var(--border); border-radius: 12px;
+    padding: 12px 18px; margin-bottom: 16px; font-size: 14px; box-shadow: var(--shadow);
+  }
+  .quiz-score b { color: var(--accent); }
+  .quiz-q {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 20px 24px; margin-bottom: 14px; box-shadow: var(--shadow);
+  }
+  .quiz-opt {
+    display: block; width: 100%; text-align: left;
+    background: var(--panel); border: 1px solid var(--border); border-radius: 12px;
+    padding: 14px 18px; margin-bottom: 10px; cursor: pointer;
+    color: var(--ink); font-family: inherit; font-size: 14px; line-height: 1.8;
+    transition: all 0.2s var(--ease);
+  }
+  .quiz-opt:hover:not(:disabled) { border-color: var(--accent); transform: translateX(4px); }
+  .quiz-opt.correct { background: #e8f5e9; border-color: #3d8b3d; color: #1b5e20; }
+  .quiz-opt.wrong { background: #fdecea; border-color: #c0392b; color: #7b241c; }
+  [data-theme="dark"] .quiz-opt.correct, [data-theme="royal"] .quiz-opt.correct { background: #1e3320; color: #a5d6a7; }
+  [data-theme="dark"] .quiz-opt.wrong, [data-theme="royal"] .quiz-opt.wrong { background: #3b1f1c; color: #ef9a9a; }
+
+  /* ── Bookmark tabs ── */
+  .bm-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+
+  /* ── Daily verse flip card ── */
+  .daily-stage { perspective: 1400px; margin: 4px 0 20px; max-width: 720px; }
+  .flip-card {
+    position: relative; transform-style: preserve-3d;
+    transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1);
+    min-height: 400px;
+  }
+  .flip-card.flipped { transform: rotateY(180deg); }
+  .flip-face {
+    backface-visibility: hidden; -webkit-backface-visibility: hidden;
+    background: var(--panel);
+    border: 1px solid var(--border); border-radius: 14px;
+    padding: 26px 30px;
+    box-shadow: var(--shadow-lift);
+  }
+  .flip-face.back {
+    position: absolute; top: 0; left: 0; right: 0;
+    transform: rotateY(180deg);
+    background: linear-gradient(135deg, var(--panel) 0%, var(--accent-soft) 100%);
+  }
+  .daily-buddha { text-align: center; margin-bottom: 10px; color: var(--accent); }
+  .daily-buddha svg { width: 90px; height: 99px; }
+  .flip-hint { color: var(--muted); font-size: 12px; margin-top: 20px; text-align: center; letter-spacing: 0.5px; }
+
+  /* ── Share modal ── */
+  .modal-backdrop {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+    display: none; align-items: center; justify-content: center;
+    z-index: 100; padding: 20px;
+  }
+  .modal-backdrop.open { display: flex; }
+  .modal {
+    background: var(--panel); border: 1px solid var(--border); border-radius: 14px; padding: 20px;
+    max-width: 640px; width: 100%; max-height: 90vh; overflow: auto;
+    animation: rise 0.35s var(--ease);
+  }
+  .modal h3 { margin: 0 0 12px; color: var(--accent); }
+  .modal canvas { width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow); }
+  .modal-actions { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+
+  /* ── Toast ── */
+  .toast {
+    position: fixed; bottom: 26px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--ink); color: var(--bg);
+    border-radius: 22px; padding: 10px 22px; font-size: 13.5px;
+    opacity: 0; pointer-events: none; transition: all 0.35s var(--ease); z-index: 200;
+    max-width: 86vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  /* ── Star burst on bookmark ── */
+  .star-particle {
+    position: fixed; pointer-events: none; color: var(--accent);
+    font-size: 13px; z-index: 300;
+    animation: starBurst 0.7s ease-out forwards;
+  }
+  @keyframes starBurst {
+    from { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+    to { transform: translate(var(--dx), var(--dy)) scale(0.2) rotate(200deg); opacity: 0; }
+  }
+
+  /* ── Wallpaper (feature preserved from previous design) ── */
+  html.has-wallpaper body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0;
+    background-image: var(--wallpaper);
+    background-size: cover; background-position: center top;
+    background-repeat: no-repeat;
+    opacity: 0.13; pointer-events: none;
+  }
+  html.has-wallpaper[data-theme="dark"] body::before,
+  html.has-wallpaper[data-theme="royal"] body::before { opacity: 0.18; }
+
+  /* ── Bottom navigation (mobile) ── */
   .bottom-nav {
     display: none;
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 40;
@@ -128,659 +408,353 @@
     display: flex; flex-direction: column; align-items: center; gap: 2px;
     font-size: 19px; padding: 4px 12px; border-radius: 10px;
     transition: color 0.2s var(--ease), transform 0.15s var(--ease);
+    font-family: inherit;
   }
-  .bottom-nav button span { font-size: 10px; font-family: inherit; }
+  .bottom-nav button span { font-size: 10px; }
   .bottom-nav button:active { transform: scale(0.92); }
-  .bottom-nav button.active { color: var(--accent); }
 
-  /* Drawer backdrop */
-  .drawer-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 58;
-    opacity: 0; pointer-events: none; transition: opacity 0.3s var(--ease);
-  }
-  .drawer-backdrop.show { opacity: 1; pointer-events: auto; }
+  footer.stats { text-align: center; color: var(--muted); font-size: 12px; padding: 24px 12px 40px; line-height: 2; }
 
-  /* ============ DEVOTIONAL ART ============ */
-  .devotion-art {
-    text-align: center; padding: 14px 0 10px;
-    color: var(--accent);
-  }
-  .devotion-art svg {
-    width: 96px; height: 106px;
-    filter: drop-shadow(0 0 10px rgba(212, 165, 116, 0.35));
-    animation: devotionGlow 5s ease-in-out infinite;
-  }
-  @keyframes devotionGlow {
-    0%, 100% { filter: drop-shadow(0 0 6px rgba(212, 165, 116, 0.25)); transform: scale(1); }
-    50% { filter: drop-shadow(0 0 16px rgba(212, 165, 116, 0.55)); transform: scale(1.02); }
-  }
-  .devotion-art .caption {
-    font-size: 11px; color: var(--muted); margin-top: 4px; letter-spacing: 0.5px;
-  }
-  .daily-buddha { text-align: center; margin-bottom: 10px; color: var(--accent); }
-  .daily-buddha svg {
-    width: 110px; height: 121px;
-    animation: devotionGlow 5s ease-in-out infinite;
-  }
-  .halo { transform-origin: 50px 30px; animation: haloPulse 6s ease-in-out infinite; }
-  @keyframes haloPulse {
-    0%, 100% { opacity: 0.35; }
-    50% { opacity: 0.7; }
-  }
-  .flame {
-    transform-origin: 50px 40px;
-    animation: flicker 2.2s ease-in-out infinite;
-  }
-  @keyframes flicker {
-    0%, 100% { transform: scale(1) rotate(0deg); opacity: 1; }
-    25% { transform: scale(1.06, 1.12) rotate(-2deg); opacity: 0.9; }
-    50% { transform: scale(0.97, 0.94) rotate(1.5deg); opacity: 1; }
-    75% { transform: scale(1.04, 1.08) rotate(-1deg); opacity: 0.92; }
+  /* ── Mobile: drawer sidebar (jataka550 pattern, ≤820px) ── */
+  @media (max-width: 820px) {
+    .layout { padding: 12px; }
+    aside {
+      position: fixed; left: 0; top: 0; bottom: 0; z-index: 20;
+      width: 300px; max-height: none; border-radius: 0 12px 12px 0;
+      transform: translateX(-105%); transition: transform 0.35s var(--ease);
+    }
+    aside.open { transform: none; }
+    #drawer-backdrop { display: block; pointer-events: none; }
+    #drawer-backdrop.show { pointer-events: auto; }
+    .menu-toggle { display: inline-flex; }
+    #search { width: 140px; }
+    #search:focus { width: 170px; }
+    h1 small { display: none; }
+    .nav-btn { display: none; }
+    .bottom-nav { display: flex; }
+    section.content { padding-bottom: 78px; }
+    .flip-face { padding: 18px 20px; }
   }
 
-  /* ============ NOTES ============ */
-  .note-btn.has-note { background: var(--accent); color: white; }
-  .note-wrap { margin-top: 12px; display: none; }
-  .note-wrap.open { display: block; animation: modalRise 0.25s var(--ease); }
-  .note-wrap textarea {
-    width: 100%; min-height: 80px; padding: 10px 12px;
-    border: 1px solid var(--border); border-radius: 8px;
-    background: var(--bg); color: var(--ink); font-family: inherit; font-size: 14px;
-    resize: vertical;
-  }
-  .note-wrap textarea:focus { outline: none; border-color: var(--accent); }
-  .note-actions { display: flex; gap: 8px; margin-top: 8px; justify-content: flex-end; }
-  .note-display {
-    margin-top: 12px; padding: 10px 14px;
-    background: var(--accent-soft); border-left: 3px solid var(--accent);
-    border-radius: 6px; font-size: 13px; line-height: 1.8; color: var(--ink);
-    white-space: pre-wrap;
-  }
-  .note-display::before { content: "📝 "; }
-
-  /* ============ RECITE ============ */
-  .recite-btn.active { background: var(--accent); color: white; }
-  .recite-done-btn { font-weight: 600; }
-  .recite-done-btn.done { background: #3d8b3d; color: white; border-color: #3d8b3d; }
-  .recite-progress {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-    padding: 12px 16px; margin-bottom: 16px; font-size: 14px;
-  }
-  .recite-progress .prog { margin-top: 8px; height: 6px; }
-
-  /* ============ QUIZ ============ */
-  .quiz-score {
-    display: flex; gap: 16px; background: var(--panel);
-    border: 1px solid var(--border); border-radius: 10px;
-    padding: 12px 18px; margin-bottom: 16px; font-size: 14px;
-  }
-  .quiz-score b { color: var(--accent); }
-  .quiz-q {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-    padding: 20px 24px; margin-bottom: 14px; box-shadow: var(--shadow);
-  }
-  .quiz-opt {
-    display: block; width: 100%; text-align: left;
-    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-    padding: 14px 18px; margin-bottom: 10px; cursor: pointer;
-    color: var(--ink); font-family: inherit; font-size: 14px; line-height: 1.8;
-    transition: all 0.2s var(--ease);
-  }
-  .quiz-opt:hover:not(:disabled) { border-color: var(--accent); transform: translateX(4px); }
-  .quiz-opt.correct { background: #e8f5e9; border-color: #3d8b3d; color: #1b5e20; }
-  .quiz-opt.wrong { background: #fdecea; border-color: #c0392b; color: #7b241c; }
-  [data-theme="dark"] .quiz-opt.correct { background: #1e3320; color: #a5d6a7; }
-  [data-theme="dark"] .quiz-opt.wrong { background: #3b1f1c; color: #ef9a9a; }
-
-  /* ============ BOOKMARK TABS + QUICK LINKS ============ */
-  .bm-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .bm-tabs .btn.active { background: var(--accent); color: white; }
-  .quick-links { display: flex; gap: 8px; justify-content: center; margin-bottom: 14px; }
-  .quick-links .btn { font-size: 12px; }
-
-  /* ============ MOTION UPGRADE ============ */
-  /* Falling lotus petals (ambient) */
-  #petals { position: fixed; inset: 0; pointer-events: none; z-index: 1; overflow: hidden; }
-  .petal {
-    position: absolute; top: -6vh;
-    width: 14px; height: 14px;
-    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-soft) 100%);
-    border-radius: 68% 32% 62% 38% / 60% 44% 56% 40%;
-    opacity: 0;
-    animation: petalFall linear infinite, petalSway ease-in-out infinite alternate;
-  }
-  @keyframes petalFall {
-    0% { transform: translateY(-6vh) rotate(0deg); opacity: 0; }
-    8% { opacity: 0.35; }
-    90% { opacity: 0.3; }
-    100% { transform: translateY(110vh) rotate(340deg); opacity: 0; }
-  }
-  @keyframes petalSway {
-    from { margin-left: 0; }
-    to { margin-left: 40px; }
-  }
-  .petal:nth-child(1) { left: 8%;  animation-duration: 16s, 3.2s; animation-delay: 0s, 0s; }
-  .petal:nth-child(2) { left: 24%; animation-duration: 21s, 4.1s; animation-delay: 5s, 1s; width: 11px; height: 11px; }
-  .petal:nth-child(3) { left: 46%; animation-duration: 18s, 3.6s; animation-delay: 9s, 0.5s; }
-  .petal:nth-child(4) { left: 64%; animation-duration: 23s, 4.5s; animation-delay: 2s, 1.4s; width: 10px; height: 10px; }
-  .petal:nth-child(5) { left: 80%; animation-duration: 17s, 3s;   animation-delay: 12s, 0.2s; }
-  .petal:nth-child(6) { left: 92%; animation-duration: 25s, 5s;   animation-delay: 7s, 2s; width: 12px; height: 12px; }
-
-  /* View transition */
-  .view-enter { animation: viewSlide 0.45s var(--ease); }
-  @keyframes viewSlide {
-    from { opacity: 0; transform: translateY(14px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Button ripple */
-  .btn, .action-btn, .quiz-opt { position: relative; overflow: hidden; }
-  .ripple {
-    position: absolute; border-radius: 50%;
-    background: currentColor; opacity: 0.25;
-    transform: scale(0); pointer-events: none;
-    animation: rippleAnim 0.55s ease-out forwards;
-  }
-  @keyframes rippleAnim {
-    to { transform: scale(3); opacity: 0; }
-  }
-
-  /* Watermark parallax handled in JS via transform */
-  .verse .watermark { will-change: transform; transition: transform 0.1s linear; }
-
-  /* ============ WALLPAPER ============ */
-  html.has-wallpaper body::before {
-    content: ''; position: fixed; inset: 0; z-index: 0;
-    background-image: var(--wallpaper);
-    background-size: cover; background-position: center top;
-    background-repeat: no-repeat;
-    opacity: 0.13; pointer-events: none;
-  }
-  html.has-wallpaper[data-theme="dark"] body::before,
-  html.has-wallpaper[data-theme="royal"] body::before { opacity: 0.18; }
-  html.has-wallpaper .verse,
-  html.has-wallpaper aside,
-  html.has-wallpaper header { backdrop-filter: blur(0px); }
-
-  /* ============ MOTION UPGRADE v2 ============ */
-  /* Scroll progress bar */
-  #scroll-progress {
-    position: fixed; top: 0; left: 0; height: 3px; width: 0%;
-    background: linear-gradient(90deg, var(--accent), #e6b93c);
-    z-index: 120; border-radius: 0 2px 2px 0;
-    box-shadow: 0 0 8px rgba(230, 185, 60, 0.5);
-    transition: width 0.1s linear;
-  }
-
-  /* Header compact on scroll */
-  header { transition: padding 0.3s var(--ease); }
-  header.compact { padding: 6px 20px; box-shadow: var(--shadow); }
-  header.compact .header-wheel { width: 22px; height: 22px; }
-  header.compact h1 { font-size: 16px; }
-  .header-wheel { transition: width 0.3s var(--ease), height 0.3s var(--ease); }
-  .header-wheel:hover { animation-duration: 2.5s; }
-
-  /* 3D tilt on verse cards (desktop) */
-  @media (hover: hover) and (pointer: fine) {
-    .verse { transform-style: preserve-3d; }
-    .verse.tilting { transition: box-shadow 0.25s var(--ease); }
-    .verse.tilting .watermark { transform: translateZ(30px); }
-  }
-
-  /* Gold sheen sweep on banners */
-  .chapter-banner { position: relative; overflow: hidden; }
-  .chapter-banner::after {
-    content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
-    background: linear-gradient(105deg, transparent 0%, rgba(255, 235, 180, 0.22) 50%, transparent 100%);
-    animation: sheen 5s ease-in-out infinite;
-    pointer-events: none;
-  }
-  @keyframes sheen {
-    0% { left: -60%; }
-    45% { left: 130%; }
-    100% { left: 130%; }
-  }
-  [data-theme="royal"] .chapter-banner::after {
-    background: linear-gradient(105deg, transparent 0%, rgba(230, 185, 60, 0.28) 50%, transparent 100%);
-  }
-
-  /* Star burst on bookmark */
-  .star-particle {
-    position: fixed; pointer-events: none; color: var(--accent);
-    font-size: 13px; z-index: 300;
-    animation: starBurst 0.7s ease-out forwards;
-  }
-  @keyframes starBurst {
-    from { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
-    to { transform: translate(var(--dx), var(--dy)) scale(0.2) rotate(200deg); opacity: 0; }
-  }
-
-  /* Story content staggers in when expanded */
-  .story-wrap.open .story > * { animation: storyItem 0.45s var(--ease) both; }
-  .story-wrap.open .story > *:nth-child(1) { animation-delay: 0.08s; }
-  .story-wrap.open .story > *:nth-child(2) { animation-delay: 0.16s; }
-  .story-wrap.open .story > *:nth-child(3) { animation-delay: 0.24s; }
-  .story-wrap.open .story > *:nth-child(4) { animation-delay: 0.34s; }
-  @keyframes storyItem {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* Accessibility: respect reduced motion */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.001s !important;
       animation-iteration-count: 1 !important;
       transition-duration: 0.001s !important;
     }
-    #petals, #scroll-progress { display: none; }
-  }
-  header h1 { margin: 0; font-size: 20px; font-weight: 600; color: var(--accent); }
-  header .sub { color: var(--muted); font-size: 13px; margin-left: 4px; }
-  header .spacer { flex: 1; }
-  .btn {
-    background: var(--accent-soft); color: var(--ink); border: 1px solid var(--border);
-    padding: 6px 12px; border-radius: 6px; cursor: pointer; font-size: 13px;
-    transition: all 0.2s var(--ease);
-  }
-  .btn:hover { background: var(--accent); color: white; transform: translateY(-1px); }
-  .btn:active { transform: translateY(0); }
-  .btn.active { background: var(--accent); color: white; }
-
-  main { display: grid; grid-template-columns: 260px 1fr; min-height: calc(100vh - 60px); }
-  aside {
-    background: var(--panel); border-right: 1px solid var(--border);
-    padding: 16px; overflow-y: auto; max-height: calc(100vh - 60px); position: sticky; top: 60px;
-  }
-  aside h3 { margin: 0 0 10px 0; font-size: 13px; text-transform: uppercase; color: var(--muted); letter-spacing: 0.5px; }
-  .chapter-list { list-style: none; padding: 0; margin: 0 0 20px 0; }
-  .chapter-list li {
-    padding: 8px 10px; border-radius: 5px; cursor: pointer; font-size: 14px;
-    display: flex; justify-content: space-between; align-items: center; gap: 8px;
-    transition: background 0.2s var(--ease), transform 0.15s var(--ease);
-  }
-  .chapter-list li:hover { background: var(--accent-soft); transform: translateX(2px); }
-  .chapter-list li.active { background: var(--accent); color: white; }
-  .chapter-list li.active .range { color: rgba(255,255,255,0.8); }
-  .chapter-list .range { color: var(--muted); font-size: 11px; }
-
-  section.content { padding: 24px 32px; max-width: 900px; }
-  .search-bar { display: flex; gap: 8px; margin-bottom: 20px; }
-  .search-bar input {
-    flex: 1; padding: 8px 12px; border: 1px solid var(--border);
-    border-radius: 6px; background: var(--panel); color: var(--ink); font-size: 14px;
-    transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
-  }
-  .search-bar input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px var(--accent-soft); }
-
-  /* ============ VERSE CARD (with entry animation) ============ */
-  .verse {
-    background: var(--panel); border: 1px solid var(--border); border-radius: 10px;
-    padding: 20px 24px; margin-bottom: 18px; position: relative;
-    box-shadow: var(--shadow);
-    transition: transform 0.25s var(--ease), box-shadow 0.25s var(--ease);
-    animation: verseFadeIn 0.5s var(--ease) both;
-    overflow: hidden;
-  }
-  .verse:hover { transform: translateY(-2px); box-shadow: var(--shadow-lift); }
-  @keyframes verseFadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .verse-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-  .verse-no { font-weight: 600; color: var(--accent); font-size: 14px; }
-
-  /* ============ BOOKMARK RIBBON ============ */
-  .bookmark-btn {
-    background: none; border: none; cursor: pointer; padding: 0;
-    width: 24px; height: 24px; display: flex; align-items: center; justify-content: center;
-    font-size: 22px; color: var(--muted);
-    transition: color 0.2s var(--ease), transform 0.2s var(--ease);
-  }
-  .bookmark-btn:hover { transform: scale(1.15); }
-  .bookmark-btn.on { color: var(--accent); }
-  .bookmark-btn.pop { animation: bookmarkPop 0.45s var(--ease); }
-  @keyframes bookmarkPop {
-    0% { transform: scale(1); }
-    35% { transform: scale(1.5) rotate(-8deg); }
-    70% { transform: scale(0.9) rotate(4deg); }
-    100% { transform: scale(1) rotate(0); }
-  }
-  .ribbon {
-    position: absolute; top: -4px; right: 22px;
-    width: 22px; height: 0;
-    background: linear-gradient(180deg, var(--accent) 0%, #6d4520 100%);
-    transition: height 0.35s var(--ease);
-    z-index: 1;
-    clip-path: polygon(0 0, 100% 0, 100% 100%, 50% 82%, 0 100%);
-  }
-  .verse.bookmarked .ribbon { height: 38px; }
-
-  .pali { color: var(--pali); font-style: italic; white-space: pre-line; margin: 8px 0; line-height: 1.7; }
-  .mm { color: var(--mm); margin: 10px 0; line-height: 1.9; font-size: 15px; }
-  .en { color: var(--en); margin: 10px 0; line-height: 1.7; font-size: 14px; }
-  .label {
-    display: inline-block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px;
-    color: var(--muted); margin-right: 6px; font-weight: 600;
   }
 
-  .chapter-title { color: var(--accent); font-size: 22px; margin: 0 0 4px 0; }
-  .chapter-sub { color: var(--muted); margin: 0 0 20px 0; font-size: 14px; }
-  .empty { text-align: center; color: var(--muted); padding: 60px 20px; }
-
-  /* ============ VERSE FOOTER BUTTONS ============ */
-  .verse-actions { display: flex; gap: 8px; margin-top: 14px; flex-wrap: wrap; }
-  .action-btn {
-    background: var(--accent-soft); border: 1px solid var(--border);
-    color: var(--accent); padding: 6px 12px; border-radius: 5px;
-    cursor: pointer; font-size: 13px; display: inline-flex;
-    align-items: center; gap: 6px;
-    transition: all 0.2s var(--ease);
-  }
-  .action-btn:hover { background: var(--accent); color: white; transform: translateY(-1px); }
-  .daily-badge {
-    background: var(--accent); color: white; padding: 2px 8px; border-radius: 4px;
-    font-size: 11px; text-transform: uppercase; margin-left: 8px; letter-spacing: 0.5px;
-  }
-
-  /* ============ STORY SMOOTH EXPAND (grid-rows technique) ============ */
-  .story-wrap {
-    display: grid; grid-template-rows: 0fr;
-    transition: grid-template-rows 0.5s var(--ease);
-    margin-top: 0;
-  }
-  .story-wrap.open { grid-template-rows: 1fr; margin-top: 14px; }
-  .story-inner { overflow: hidden; }
-  .story {
-    padding: 16px 18px;
-    background: linear-gradient(135deg, var(--accent-soft) 0%, rgba(139, 90, 43, 0.05) 100%);
-    border-left: 3px solid var(--accent);
-    border-radius: 4px;
-    opacity: 0;
-    transform: translateY(-4px);
-    transition: opacity 0.35s var(--ease) 0.1s, transform 0.35s var(--ease) 0.1s;
-  }
-  .story-wrap.open .story { opacity: 1; transform: translateY(0); }
-  .story-title { color: var(--accent); font-weight: 600; margin: 0 0 4px 0; font-size: 15px; }
-  .story-chars { color: var(--muted); font-size: 12px; margin: 0 0 10px 0; font-style: italic; }
-  .story-text { line-height: 1.9; color: var(--ink); margin: 0 0 10px 0; font-size: 14px; }
-  .story-moral {
-    background: var(--panel); border: 1px dashed var(--border);
-    padding: 10px 12px; border-radius: 4px; font-size: 13px; color: var(--mm);
-    margin-top: 10px;
-  }
-  .story-moral::before { content: "💡 သင်ခန်းစာ — "; font-weight: 600; color: var(--accent); }
-  .story-missing { color: var(--muted); font-style: italic; font-size: 13px; padding: 10px 0; }
-
-  /* ============ DAILY VERSE FLIP CARD ============ */
-  .daily-stage {
-    perspective: 1400px;
-    margin: 20px 0;
-  }
-  .flip-card {
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.9s cubic-bezier(0.65, 0, 0.35, 1);
-    min-height: 400px;
-  }
-  .flip-card.flipped { transform: rotateY(180deg); }
-  .flip-face {
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    background: var(--panel);
-    border: 1px solid var(--border); border-radius: 14px;
-    padding: 30px 34px;
-    box-shadow: var(--shadow-lift);
-  }
-  .flip-face.back {
-    position: absolute; top: 0; left: 0; right: 0;
-    transform: rotateY(180deg);
-    background: linear-gradient(135deg, var(--panel) 0%, var(--accent-soft) 100%);
-  }
-  .flip-hint {
-    color: var(--muted); font-size: 12px; margin-top: 20px;
-    text-align: center; letter-spacing: 0.5px;
-  }
-  .flip-hint .kbd {
-    background: var(--accent-soft); border: 1px solid var(--border);
-    padding: 2px 8px; border-radius: 4px; font-family: monospace; margin: 0 4px;
-  }
-
-  /* ============ SHARE MODAL ============ */
-  .modal-backdrop {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.6);
-    display: none; align-items: center; justify-content: center;
-    z-index: 100; padding: 20px;
-    animation: modalFade 0.25s var(--ease);
-  }
-  .modal-backdrop.open { display: flex; }
-  @keyframes modalFade { from { opacity: 0; } to { opacity: 1; } }
-  .modal {
-    background: var(--panel); border-radius: 12px; padding: 20px;
-    max-width: 640px; width: 100%; max-height: 90vh; overflow: auto;
-    animation: modalRise 0.35s var(--ease);
-  }
-  @keyframes modalRise {
-    from { opacity: 0; transform: translateY(20px) scale(0.95); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
-  }
-  .modal h3 { margin: 0 0 12px 0; color: var(--accent); }
-  .modal canvas { width: 100%; height: auto; border-radius: 8px; box-shadow: var(--shadow); }
-  .modal-actions { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
-
-  /* ============ TOAST ============ */
-  .toast {
-    position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%) translateY(80px);
-    background: var(--accent); color: white; padding: 10px 20px; border-radius: 24px;
-    box-shadow: var(--shadow-lift); z-index: 200; font-size: 14px;
-    opacity: 0; pointer-events: none;
-    transition: transform 0.35s var(--ease), opacity 0.35s var(--ease);
-  }
-  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
-
-  /* ============ CHAPTER ICONS (animated) ============ */
-  .ch-icon {
-    display: inline-block; font-size: 16px; margin-right: 6px;
-    animation: iconFloat 3s ease-in-out infinite;
-  }
-  @keyframes iconFloat {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-3px); }
-  }
-  .chapter-hero {
-    font-size: 42px; display: inline-block; margin-right: 12px;
-    animation: heroBreathe 4s ease-in-out infinite;
-    vertical-align: middle;
-  }
-  @keyframes heroBreathe {
-    0%, 100% { transform: scale(1) rotate(0deg); opacity: 0.9; }
-    50% { transform: scale(1.1) rotate(3deg); opacity: 1; }
-  }
-
-  /* ============ SCROLL REVEAL ============ */
-  .verse.reveal-wait { opacity: 0; transform: translateY(24px); animation: none; }
-  .verse.reveal-in {
-    opacity: 1; transform: translateY(0);
-    transition: opacity 0.6s var(--ease), transform 0.6s var(--ease);
-    animation: none;
-  }
-
-  /* ============ READ ALOUD ============ */
-  .speaking-highlight {
-    background: linear-gradient(90deg, var(--accent-soft), transparent);
-    border-radius: 4px;
-    transition: background 0.4s var(--ease);
-  }
-  .action-btn.speaking {
-    background: var(--accent); color: white;
-    animation: speakPulse 1.2s ease-in-out infinite;
-  }
-  @keyframes speakPulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(139, 90, 43, 0.4); }
-    50% { box-shadow: 0 0 0 6px rgba(139, 90, 43, 0); }
-  }
-
-  /* ============ DHAMMA ART (inline SVG) ============ */
-  .header-wheel {
-    width: 30px; height: 30px; color: var(--accent);
-    animation: wheelSpin 24s linear infinite;
-    flex-shrink: 0;
-  }
-  @keyframes wheelSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-  .chapter-banner {
-    display: flex; align-items: center; gap: 18px;
-    background: linear-gradient(135deg, var(--accent-soft) 0%, transparent 70%);
-    border-left: 3px solid var(--accent);
-    border-radius: 8px;
-    padding: 14px 18px; margin-bottom: 20px;
-  }
-  .chapter-banner svg {
-    width: 72px; height: 72px; color: var(--accent); flex-shrink: 0;
-    animation: artFloat 5s ease-in-out infinite;
-  }
-  @keyframes artFloat {
-    0%, 100% { transform: translateY(0) scale(1); }
-    50% { transform: translateY(-4px) scale(1.03); }
-  }
-  .chapter-banner .cb-text h2 { margin: 0 0 4px 0; }
-  .chapter-banner .cb-text p { margin: 0; }
-
-  .verse .watermark {
-    position: absolute; bottom: 10px; right: 12px;
-    width: 90px; height: 90px; color: var(--accent);
-    opacity: 0.06; pointer-events: none;
-  }
-  .verse .watermark svg { width: 100%; height: 100%; }
-  [data-theme="dark"] .verse .watermark { opacity: 0.09; }
-
-  @media (max-width: 720px) {
-    main { grid-template-columns: 1fr; }
-    aside {
-      position: fixed; top: 0; left: 0; bottom: 0; width: 280px; max-height: none;
-      transform: translateX(-105%); transition: transform 0.35s var(--ease);
-      z-index: 60; overflow-y: auto;
-      box-shadow: none;
-    }
-    aside.open { transform: translateX(0); box-shadow: 8px 0 32px rgba(0,0,0,0.25); }
-    section.content { padding: 16px 16px 90px; }
-    .flip-face { padding: 20px 22px; }
-    .menu-toggle { display: inline-block; }
-    .bottom-nav { display: flex; }
-    header .sub { display: none; }
-    header .nav-btn { display: none; }
+  /* Hide the app until Vue compiles the template (prevents raw {{ }} flash) */
+  [v-cloak] { display: none !important; }
+  #vue-loading {
+    display: flex; align-items: center; justify-content: center;
+    min-height: 60vh; color: var(--muted);
+    font-style: italic; font-size: 15px;
   }
 </style>
-  <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <meta name="theme-color" content="#8b5a2b">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
-<div id="scroll-progress"></div>
-<div id="petals">
-  <span class="petal"></span><span class="petal"></span><span class="petal"></span>
-  <span class="petal"></span><span class="petal"></span><span class="petal"></span>
-</div>
-<header>
-  <button class="btn menu-toggle" id="btn-menu" title="ဝဂ်များ">☰</button>
-  <svg class="header-wheel" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="4">
-    <circle cx="50" cy="50" r="44"/>
-    <circle cx="50" cy="50" r="10" fill="currentColor"/>
-    <line x1="50" y1="6" x2="50" y2="94"/><line x1="6" y1="50" x2="94" y2="50"/>
-    <line x1="19" y1="19" x2="81" y2="81"/><line x1="81" y1="19" x2="19" y2="81"/>
-    <circle cx="50" cy="50" r="30" stroke-width="3"/>
-  </svg>
-  <h1>ဓမ္မပဒ</h1>
-  <span class="sub">Dhammapada · The Path of the Dhamma</span>
-  <span class="spacer"></span>
-  <button class="btn nav-btn" id="btn-daily">📖 Daily</button>
-  <button class="btn nav-btn" id="btn-random" title="ကျပန်းဂါထာ">🎲</button>
-  <button class="btn nav-btn" id="btn-bookmarks">⭐ Bookmarks</button>
-  <button class="btn nav-btn" id="btn-story-mode" title="Auto-expand all stories">📜 Story</button>
-  <div class="settings-wrap">
-    <button class="btn" id="btn-settings" title="ချိန်ညှိရန်">⚙️</button>
-    <div class="settings-panel" id="settings-panel">
-      <div class="sp-row">
-        <span class="sp-label">ဘာသာ</span>
-        <button class="btn lang-chip" id="lang-pali">Pāli</button>
-        <button class="btn lang-chip" id="lang-mm">မြန်မာ</button>
-        <button class="btn lang-chip" id="lang-en">EN</button>
+  <div id="vue-loading">📖 ဖွင့်နေသည်...</div>
+
+  <div id="app" v-cloak>
+    <header>
+      <button class="btn menu-toggle" id="btn-menu" title="ဝဂ်များ" @click="drawerOpen = true">☰</button>
+      <svg class="header-wheel" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="4">
+        <circle cx="50" cy="50" r="44"></circle>
+        <circle cx="50" cy="50" r="10" fill="currentColor"></circle>
+        <line x1="50" y1="6" x2="50" y2="94"></line><line x1="6" y1="50" x2="94" y2="50"></line>
+        <line x1="19" y1="19" x2="81" y2="81"></line><line x1="81" y1="19" x2="19" y2="81"></line>
+        <circle cx="50" cy="50" r="30" stroke-width="3"></circle>
+      </svg>
+      <h1>ဓမ္မပဒ <small>· Dhammapada</small></h1>
+      <div class="spacer"></div>
+      <input id="search" type="search" v-model="searchText" placeholder="🔍 ရှာရန် — စာသား / ဂါထာနံပါတ် (၁-၄၂၃)">
+      <button class="btn nav-btn" id="btn-daily" title="ယနေ့ဂါထာ" @click="showDaily">📖 ယနေ့</button>
+      <button class="btn nav-btn" id="btn-random" title="ကျပန်းဂါထာ" @click="showRandom">🎲</button>
+      <button class="btn nav-btn" id="btn-bookmarks" title="Bookmarks" @click="showBookmarks">⭐</button>
+      <button class="btn nav-btn" id="btn-story-mode" title="ဇာတ်လမ်းများ အလိုအလျောက်ဖွင့်ရန်" :class="{ active: storyMode }" @click="toggleStoryMode">📜</button>
+      <div class="settings-wrap">
+        <button class="btn" id="btn-settings" title="ချိန်ညှိရန်" @click.stop="settingsOpen = !settingsOpen">⚙️</button>
+        <div class="settings-panel" id="settings-panel" :class="{ open: settingsOpen }" @click.stop>
+          <div class="sp-row">
+            <span class="sp-label">ဘာသာ</span>
+            <button class="btn lang-chip" id="lang-pali" :class="{ off: !langs.pali }" @click="toggleLang('pali')">Pāli</button>
+            <button class="btn lang-chip" id="lang-mm" :class="{ off: !langs.mm }" @click="toggleLang('mm')">မြန်မာ</button>
+            <button class="btn lang-chip" id="lang-en" :class="{ off: !langs.en }" @click="toggleLang('en')">EN</button>
+          </div>
+          <div class="sp-row">
+            <span class="sp-label">စာလုံး</span>
+            <button class="btn" id="btn-font-dec" @click="zoomDec">A−</button>
+            <button class="btn" id="btn-font-inc" @click="zoomInc">A+</button>
+            <span class="sp-val" id="zoom-val">{{ Math.round(zoom * 100) }}%</span>
+          </div>
+          <div class="sp-row">
+            <span class="sp-label">🖼️ နောက်ခံ</span>
+            <button class="btn" id="btn-wallpaper" @click="toggleWallpaper">ဖွင့်/ပိတ်</button>
+            <span class="sp-val" id="wallpaper-status">{{ wallpaperStatus }}</span>
+          </div>
+          <div class="sp-row">
+            <span class="sp-label">🔊 အသံ</span>
+            <span class="sp-val" id="voice-status" style="flex:1">{{ voiceStatus }}</span>
+          </div>
+          <div class="sp-row">
+            <span class="sp-label"></span>
+            <button class="btn" id="btn-voice-test" @click="voiceTest">🎤 မြန်မာအသံ စမ်းရန်</button>
+          </div>
+        </div>
       </div>
-      <div class="sp-row">
-        <span class="sp-label">စာလုံး</span>
-        <button class="btn" id="btn-font-dec">A−</button>
-        <button class="btn" id="btn-font-inc">A+</button>
-        <span class="sp-val" id="zoom-val">100%</span>
-      </div>
-      <div class="sp-row">
-        <span class="sp-label">Theme</span>
-        <button class="btn" id="btn-theme">🌙</button>
-      </div>
-      <div class="sp-row">
-        <span class="sp-label">🖼️ နောက်ခံ</span>
-        <button class="btn" id="btn-wallpaper">ဖွင့်/ပိတ်</button>
-        <span class="sp-val" id="wallpaper-status"></span>
-      </div>
-      <div class="sp-row">
-        <span class="sp-label">🔊 အသံ</span>
-        <span class="sp-val" id="voice-status" style="flex:1">စစ်ဆေးနေ…</span>
-      </div>
-      <div class="sp-row">
-        <span class="sp-label"></span>
-        <button class="btn" id="btn-voice-test">🎤 မြန်မာအသံ စမ်းရန်</button>
+      <button class="btn" id="btn-theme" title="Theme" @click="cycleTheme">🌓</button>
+      <div class="prog" title="ဖတ်ပြီးမှု"><div class="prog-fill" id="total-prog" :style="{ width: readPct + '%' }"></div></div>
+    </header>
+
+    <div id="drawer-backdrop" :class="{ show: drawerOpen }" @click="drawerOpen = false"></div>
+
+    <div class="layout" :class="{ 'hide-pali': !langs.pali, 'hide-mm': !langs.mm, 'hide-en': !langs.en }">
+      <aside :class="{ open: drawerOpen }">
+        <div class="devotion-art" id="aside-art">
+          <span v-html="ART.wheel"></span>
+          <div class="caption">နမော တဿ ဘဂဝတော အရဟတော သမ္မာသမ္ဗုဒ္ဓဿ</div>
+        </div>
+        <div class="quick-links">
+          <button class="btn" id="ql-quiz" :class="{ active: view === 'quiz' && !searchQ }" @click="showQuiz">🎯 Quiz</button>
+          <button class="btn" id="ql-recite" :class="{ active: view === 'recite' && !searchQ }" @click="showRecite">📿 ရွတ်ဖတ်ရန်</button>
+        </div>
+        <h3>📖 ဝဂ် ၂၆ ဝဂ် — ဂါထာ ၄၂၃ ပုဒ်</h3>
+        <ul class="nipata-list" id="chapters">
+          <li v-for="c in chapters" :key="c.id" :class="{ active: c.id === currentChapter && view === 'chapter' && !searchQ }" @click="selectChapter(c.id)">
+            <span class="np-badge">{{ CHAPTER_ICONS[c.id] || '📖' }}</span>
+            <span class="np-info">{{ c.id }}. {{ c.myanmar }}<br><span class="np-en">{{ c.pali }} · {{ c.english }}</span></span>
+            <span class="range">{{ c.range[0] }}–{{ c.range[1] }}<span v-if="chapterPct(c) > 0" class="prog-pct">{{ chapterPct(c) }}%</span></span>
+            <div v-if="chapterPct(c) > 0" class="prog"><div class="prog-fill" :style="{ width: chapterPct(c) + '%' }"></div></div>
+          </li>
+        </ul>
+        <div class="side-stats">
+          <div class="ss-row"><span>✓ ဖတ်ပြီး</span><b>{{ readCount }} / 423</b></div>
+          <div class="ss-row"><span>⭐ မှတ်ထား</span><b>{{ bookmarkCount }}</b></div>
+          <div class="ss-row"><span>📝 မှတ်စု</span><b>{{ noteCount }}</b></div>
+          <div class="ss-row"><span>📿 ရွတ်ဖတ်ရန်</span><b>{{ reciteCount }}</b></div>
+        </div>
+      </aside>
+
+      <section class="content" id="content" :style="{ zoom: zoom }">
+
+        <!-- ══════════ Daily verse (flip card) ══════════ -->
+        <template v-if="view === 'daily' && !searchQ">
+          <div class="nipata-banner">
+            <span class="nb-ic">📖</span>
+            <div><h2 class="nipata-title">ယနေ့ဂါထာ · Daily Verse</h2>
+            <p class="nipata-sub">{{ todayLabel }}</p></div>
+          </div>
+          <div class="daily-stage">
+            <div class="flip-card" id="flip-card" :class="{ flipped: dailyFlipped }" @click="flipCardClick">
+              <div class="flip-face front">
+                <div class="daily-buddha" v-html="ART.lotus"></div>
+                <div class="card-head">
+                  <span class="no-chip">{{ dailyVerse.no }}</span>
+                  <div class="titles">
+                    <div class="t-mm">{{ chapterOf(dailyVerse.chapter).myanmar }}<span class="daily-badge">ယနေ့</span></div>
+                    <div class="np-chip">Verse {{ dailyVerse.no }} · {{ chapterOf(dailyVerse.chapter).pali }}</div>
+                  </div>
+                  <button class="bookmark-btn" :class="{ on: bookmarks.has(dailyVerse.no) }" title="Bookmark" @click.stop="toggleBookmark(dailyVerse.no, $event)">{{ bookmarks.has(dailyVerse.no) ? '★' : '☆' }}</button>
+                </div>
+                <div class="v-body">
+                  <div class="pali"><span class="label">Pāḷi</span>{{ dailyVerse.pali }}</div>
+                  <div class="mm"><span class="label">မြန်မာ</span>{{ dailyVerse.myanmar }}</div>
+                  <div class="en"><span class="label">English</span>{{ dailyVerse.english }}</div>
+                </div>
+                <div class="card-actions">
+                  <button class="action-btn" id="flip-to-story" @click.stop="dailyFlipped = true">📜 ဇာတ်လမ်း ပြရန် (Flip)</button>
+                  <button class="action-btn share-btn" @click.stop="openShareModal(dailyVerse.no)">📤 မျှဝေရန်</button>
+                </div>
+                <p class="flip-hint">💡 ကတ်ပြားကို နှိပ်၍ လှန်ကြည့်ပါ</p>
+              </div>
+              <div class="flip-face back">
+                <div class="card-head">
+                  <span class="no-chip">📜</span>
+                  <div class="titles"><div class="t-mm">{{ dailyStory ? dailyStory.title : 'Story' }}</div></div>
+                </div>
+                <template v-if="dailyStory">
+                  <p v-if="dailyStory.characters" class="story-chars">ဇာတ်ကောင်: {{ dailyStory.characters }}</p>
+                  <p class="story-text">{{ dailyStory.text }}</p>
+                  <div v-if="dailyStory.moral" class="story-moral">{{ dailyStory.moral }}</div>
+                </template>
+                <div v-else class="empty">ဤဂါထာအတွက် ဇာတ်လမ်း မထည့်ရသေးပါ။</div>
+                <div class="card-actions">
+                  <button class="action-btn" id="flip-to-verse" @click.stop="dailyFlipped = false">🔄 ဂါထာ ပြန်ကြည့်</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- ══════════ Quiz ══════════ -->
+        <template v-else-if="view === 'quiz' && !searchQ">
+          <div class="nipata-banner">
+            <span class="nb-ic">🎯</span>
+            <div><h2 class="nipata-title">ဓမ္မပဒ Quiz</h2>
+            <p class="nipata-sub">ပါဠိဂါထာနှင့် ကိုက်ညီသော မြန်မာပြန်ကို ရွေးပါ</p></div>
+          </div>
+          <div class="quiz-score">
+            <span>အမှတ်: <b>{{ quiz.score }} / {{ quiz.total }}</b></span>
+            <span>ဆက်တိုက်မှန်: <b>{{ quiz.streak }}</b></span>
+            <span>စံချိန်: <b>{{ quiz.best }}</b></span>
+          </div>
+          <div class="quiz-q" v-if="quiz.q">
+            <div class="label">Pali · Verse {{ quiz.answered ? quiz.q.no : '?' }}</div>
+            <div class="pali">{{ quiz.q.pali }}</div>
+          </div>
+          <button v-for="(o, i) in quiz.options" :key="'qo' + quiz.qid + '-' + i" class="quiz-opt" :class="quizOptClass(o, i)" :disabled="quiz.answered" @click="answerQuiz(i)">{{ String.fromCharCode(65 + i) }}. {{ o.myanmar.length > 160 ? o.myanmar.slice(0, 160) + '…' : o.myanmar }}</button>
+          <div class="card-actions" style="margin-top:14px">
+            <button v-if="quiz.answered" class="action-btn" id="quiz-next" @click="nextQuiz">▶ နောက်မေးခွန်း</button>
+          </div>
+        </template>
+
+        <!-- ══════════ Verse lists (chapter / search / random / bookmarks / recite) ══════════ -->
+        <template v-else>
+          <!-- Banner -->
+          <div v-if="searchQ" class="nipata-banner">
+            <span class="nb-ic">🔍</span>
+            <div><h2 class="nipata-title">ရှာဖွေမှုရလဒ်</h2>
+            <p class="nipata-sub">"{{ searchQ }}" — {{ verseList.length }} ပုဒ် တွေ့သည်<span v-if="storyOnlyHits"> ({{ storyOnlyHits }} ပုဒ်မှာ ဇာတ်လမ်းထဲ၌ တွေ့သည်)</span></p></div>
+          </div>
+          <div v-else-if="view === 'random'" class="nipata-banner">
+            <span class="nb-ic">🎲</span>
+            <div><h2 class="nipata-title">ကျပန်းဂါထာ</h2>
+            <p class="nipata-sub">{{ verseList.length ? chapterOf(verseList[0].chapter).myanmar + ' · Verse ' + verseList[0].no : '' }} — 🎲 ထပ်နှိပ်၍ နောက်တစ်ပုဒ်</p></div>
+          </div>
+          <div v-else-if="view === 'bookmarks'" class="nipata-banner">
+            <span v-html="ART.lamp"></span>
+            <div><h2 class="nipata-title">⭐ Bookmarks</h2>
+            <p class="nipata-sub">မှတ်ထားသော ဂါထာ {{ bookmarkCount }} ပုဒ်</p></div>
+          </div>
+          <div v-else-if="view === 'recite'" class="nipata-banner">
+            <span v-html="ART.lamp"></span>
+            <div><h2 class="nipata-title">📿 နေ့စဉ်ရွတ်ဖတ်ရန်</h2>
+            <p class="nipata-sub">{{ todayKey() }} · ဂါထာ {{ verseList.length }} ပုဒ်</p></div>
+          </div>
+          <div v-else class="nipata-banner">
+            <span v-html="chapterArt(currentChapterObj.id)"></span>
+            <div><h2 class="nipata-title">{{ currentChapterObj.id }}. {{ currentChapterObj.myanmar }}</h2>
+            <p class="nipata-sub">{{ currentChapterObj.pali }} · {{ currentChapterObj.english }} · ဂါထာ {{ currentChapterObj.range[0] }}–{{ currentChapterObj.range[1] }}</p></div>
+          </div>
+
+          <!-- Bookmark tabs -->
+          <div v-if="view === 'bookmarks' && !searchQ" class="bm-tabs">
+            <button class="btn" :class="{ active: bmTab === 'all' }" @click="bmTab = 'all'">⭐ အားလုံး</button>
+            <button class="btn" :class="{ active: bmTab === 'notes' }" @click="bmTab = 'notes'">📝 မှတ်စုပါသော</button>
+            <button class="btn" :class="{ active: bmTab === 'recite' }" @click="bmTab = 'recite'">📿 ရွတ်ဖတ်ရန်</button>
+          </div>
+
+          <!-- Recite daily progress -->
+          <div v-if="view === 'recite' && !searchQ && verseList.length" class="recite-progress">
+            ယနေ့ ရွတ်ပြီး <b style="color:var(--accent)">{{ reciteDoneCount }} / {{ verseList.length }}</b> ပုဒ်
+            <span v-if="reciteDonePct === 100">— 🎉 ပြီးမြောက်ပါပြီ သာဓု သာဓု သာဓု</span>
+            <div class="prog"><div class="prog-fill" :style="{ width: reciteDonePct + '%' }"></div></div>
+          </div>
+
+          <!-- Verse cards -->
+          <div v-for="v in verseList" :key="'v' + v.no" class="verse-card" :class="{ bookmarked: bookmarks.has(v.no) }" :data-verse-no="v.no">
+            <div class="watermark" v-html="chapterArt(v.chapter)"></div>
+            <div class="card-head">
+              <span class="no-chip">{{ v.no }}</span>
+              <div class="titles">
+                <div class="t-mm">{{ chapterOf(v.chapter).myanmar }}</div>
+                <div class="np-chip">Verse {{ v.no }} · {{ chapterOf(v.chapter).pali }} · {{ chapterOf(v.chapter).english }}</div>
+              </div>
+              <button class="bookmark-btn" :class="{ on: bookmarks.has(v.no) }" :data-no="v.no" title="Bookmark" @click="toggleBookmark(v.no, $event)">{{ bookmarks.has(v.no) ? '★' : '☆' }}</button>
+            </div>
+            <div class="v-body">
+              <div class="pali"><span class="label">Pāḷi</span>{{ v.pali }}</div>
+              <div class="mm"><span class="label">မြန်မာ</span>{{ v.myanmar }}</div>
+              <div class="en"><span class="label">English</span>{{ v.english }}</div>
+            </div>
+            <div class="card-actions">
+              <button v-if="storyOf(v.no)" class="action-btn story-toggle" @click="toggleStory(v.no)">📜 {{ isStoryOpen(v.no) ? 'ဇာတ်လမ်း ဖျောက်' : 'ဇာတ်လမ်း ဖတ်ရန်' }} — {{ storyOf(v.no).title }}</button>
+              <button class="action-btn copy-btn" title="Copy" @click="copyVerse(v)">📋 ကူးရန်</button>
+              <button class="action-btn share-btn" @click="openShareModal(v.no)">📤 မျှဝေရန်</button>
+              <button class="action-btn speak-btn" title="Read aloud" @click="speak(v.no, $event)">🔊 ဖတ်ပြရန်</button>
+              <button class="action-btn note-btn" :class="{ 'has-note': !!notes[v.no] }" @click="toggleNote(v.no)">📝 မှတ်စု</button>
+              <button class="action-btn recite-btn" :class="{ active: recite.has(v.no) }" title="နေ့စဉ်ရွတ်ဖတ်ရန်စာရင်း" @click="toggleRecite(v.no)">📿</button>
+              <button v-if="view === 'recite' && !searchQ" class="action-btn recite-done-btn" :class="{ done: isReciteDone(v.no) }" @click="toggleReciteDone(v.no)">{{ isReciteDone(v.no) ? '✓ ရွတ်ပြီးပြီ' : '⭕ ယနေ့ မရွတ်ရသေး' }}</button>
+            </div>
+            <div v-if="notes[v.no] && !noteOpen[v.no]" class="note-display">{{ notes[v.no] }}</div>
+            <div class="note-wrap" :class="{ open: noteOpen[v.no] }">
+              <textarea v-model="noteDrafts[v.no]" placeholder="ဤဂါထာအတွက် မှတ်စုရေးပါ…"></textarea>
+              <div class="note-actions">
+                <button class="btn" @click="deleteNote(v.no)">🗑️ ဖျက်</button>
+                <button class="btn active" @click="saveNote(v.no)">💾 သိမ်းမည်</button>
+              </div>
+            </div>
+            <div v-if="storyOf(v.no)" class="story-wrap" :class="{ open: isStoryOpen(v.no) }">
+              <div class="story-inner">
+                <div class="story">
+                  <h4 class="story-title">{{ storyOf(v.no).title }}</h4>
+                  <p v-if="storyOf(v.no).characters" class="story-chars">ဇာတ်ကောင်: {{ storyOf(v.no).characters }}</p>
+                  <p class="story-text">{{ storyOf(v.no).text }}</p>
+                  <div v-if="storyOf(v.no).moral" class="story-moral">{{ storyOf(v.no).moral }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div v-if="!verseList.length" class="empty">{{ emptyText }}</div>
+        </template>
+
+      </section><!-- /.content -->
+    </div><!-- /.layout -->
+
+    <footer class="stats">ဓမ္မပဒပါဠိတော် — ဝဂ် ၂၆ ဝဂ် · ဂါထာ ၄၂၃ ပုဒ် · ပါဠိ + မြန်မာ + English + ဇာတ်လမ်းများ<br>Offline standalone app · သာဓု သာဓု သာဓု 🙏</footer>
+
+    <!-- ══════════ Share-as-image modal ══════════ -->
+    <div class="modal-backdrop" id="share-modal" :class="{ open: shareOpen }" @click.self="shareOpen = false">
+      <div class="modal">
+        <h3>📤 ဂါထာကို ရုပ်ပုံအဖြစ် မျှဝေရန်</h3>
+        <canvas id="share-canvas" ref="shareCanvasEl" width="1080" height="1350"></canvas>
+        <div class="modal-actions">
+          <button class="btn" id="share-close" @click="shareOpen = false">ပိတ်ရန်</button>
+          <button class="btn active" id="share-download" @click="downloadShare">📥 PNG ဒေါင်းလုပ်</button>
+        </div>
       </div>
     </div>
-  </div>
-</header>
 
-<main>
-  <aside>
-    <div class="devotion-art" id="aside-art">
-      <div class="caption">နမော တဿ ဘဂဝတော အရဟတော သမ္မာသမ္ဗုဒ္ဓဿ</div>
-    </div>
-    <div class="quick-links">
-      <button class="btn" id="ql-quiz">🎯 Quiz</button>
-      <button class="btn" id="ql-recite">📿 ရွတ်ဖတ်ရန်</button>
-    </div>
-    <h3>Chapters (ဝဂ်)</h3>
-    <ul class="chapter-list" id="chapters"></ul>
-  </aside>
+    <div class="toast" id="toast" :class="{ show: toastShow }">{{ toastMsg }}</div>
 
-  <section class="content">
-    <div class="search-bar">
-      <input type="text" id="search" placeholder="ရှာဖွေရန် — စာသား သို့ ဂါထာနံပါတ် (၁-၄၂၃)" />
-    </div>
-    <div id="chapter-header"></div>
-    <div id="verses"></div>
-  </section>
-</main>
+    <nav class="bottom-nav">
+      <button id="bn-chapters" @click="drawerOpen = true">☰<span>ဝဂ်များ</span></button>
+      <button id="bn-daily" @click="showDaily">📖<span>Daily</span></button>
+      <button id="bn-random" @click="showRandom">🎲<span>ကျပန်း</span></button>
+      <button id="bn-bookmarks" @click="showBookmarks">⭐<span>မှတ်ထား</span></button>
+      <button id="bn-settings" @click.stop="settingsOpen = !settingsOpen">⚙️<span>ချိန်ညှိ</span></button>
+    </nav>
+  </div><!-- /#app -->
 
-<div class="modal-backdrop" id="share-modal">
-  <div class="modal">
-    <h3>📤 ဂါထာကို ရုပ်ပုံအဖြစ် မျှဝေရန်</h3>
-    <canvas id="share-canvas" width="1080" height="1350"></canvas>
-    <div class="modal-actions">
-      <button class="btn" id="share-close">ပိတ်ရန်</button>
-      <button class="btn active" id="share-download">📥 PNG ဒေါင်းလုပ်</button>
-    </div>
-  </div>
-</div>
-
-<div class="toast" id="toast"></div>
-<div class="drawer-backdrop" id="drawer-backdrop"></div>
-
-<nav class="bottom-nav">
-  <button id="bn-chapters">☰<span>ဝဂ်များ</span></button>
-  <button id="bn-daily">📖<span>Daily</span></button>
-  <button id="bn-random">🎲<span>ကျပန်း</span></button>
-  <button id="bn-bookmarks">⭐<span>မှတ်ထား</span></button>
-  <button id="bn-settings">⚙️<span>ချိန်ညှိ</span></button>
-</nav>
-
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script defer src="_prompts.js"></script>
+<script defer src="_dhammaart.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script src="vue.global.prod.js"></script>
 <script>
-// ============ DHAMMA SVG ART (inline, theme-aware via currentColor) ============
+// Fallback if Vue failed to load (e.g. file missing / offline before cache)
+if (typeof Vue === 'undefined') {
+  document.getElementById('vue-loading').innerHTML =
+    '⚠ Vue library load မဖြစ်ပါ။<br>Page ကို refresh လုပ်ပါ (သို့) internet ရှိမရှိ စစ်ပါ။';
+  throw new Error('Vue not loaded');
+}
+
+const { createApp, ref, reactive, computed, watch, nextTick } = Vue;
+
+// ═══════════════════════════════════════════════════════════════
+// SCRIPTURE DATA — byte-preserved from the original dhammapada.html
+// (ART, CHAPTER_ART, CHAPTER_ICONS, EMBEDDED_WALLPAPER,
+//  EMBEDDED_VERSES: 26 chapters + 423 verses, EMBEDDED_STORIES).
+// Never retype or reformat anything between the markers below.
+// ═══════════════════════════════════════════════════════════════
+/*__DHAMMAPADA_DATA_START__*/
 const ART = {
   wheel: `<svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="3.5">
     <circle cx="50" cy="50" r="42"/><circle cx="50" cy="50" r="28"/>
@@ -6406,659 +6380,220 @@ const EMBEDDED_STORIES = {
   }
 }
 ;
-const state = {
-  data: null,
-  stories: {},
-  currentChapter: 1,
-  view: 'chapter',
-  query: '',
-  bookmarks: new Set(JSON.parse(localStorage.getItem('dm_bookmarks') || '[]')),
-  theme: localStorage.getItem('dm_theme') || 'light',
-  storyMode: false,
-  dailyFlipped: false,
-  read: new Set(JSON.parse(localStorage.getItem('dm_read') || '[]')),
-  zoom: parseFloat(localStorage.getItem('dm_zoom') || '1'),
-  langs: JSON.parse(localStorage.getItem('dm_langs') || '{"pali":true,"mm":true,"en":true}'),
-  randomNo: null,
-  notes: JSON.parse(localStorage.getItem('dm_notes') || '{}'),
-  recite: new Set(JSON.parse(localStorage.getItem('dm_recite') || '[]')),
-  reciteDone: null,
-  bmTab: 'all',
-  quiz: { score: 0, total: 0, streak: 0, best: parseInt(localStorage.getItem('dm_quiz_best') || '0'), q: null, options: [], answered: false },
-};
+/*__DHAMMAPADA_DATA_END__*/
 
+// ═══════════════════════════════════════════════════════════════
+// Vue 3 app — jataka550/tipitaka design family
+// Storage keys unchanged: dm_bookmarks, dm_theme, dm_read, dm_zoom,
+// dm_langs, dm_notes, dm_recite, dm_recite_done, dm_quiz_best,
+// dm_last, dm_wallpaper
+// ═══════════════════════════════════════════════════════════════
+
+function lsGetJSON(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key) ?? fallback); }
+  catch { return JSON.parse(fallback); }
+}
 function todayKey() { return new Date().toISOString().slice(0, 10); }
 
-// ============ WALLPAPER (images/wallpaper.jpg or embedded) ============
-let wallpaperReady = false;
-function setupWallpaper() {
-  const src = (typeof EMBEDDED_WALLPAPER !== 'undefined') ? EMBEDDED_WALLPAPER : 'images/wallpaper.jpg';
-  const img = new Image();
-  img.onload = () => {
-    wallpaperReady = true;
-    document.documentElement.style.setProperty('--wallpaper', `url("${src}")`);
-    applyWallpaper();
-  };
-  img.onerror = () => {
-    const ws = document.getElementById('wallpaper-status');
-    if (ws) ws.textContent = 'ပုံမတွေ့ပါ (images\\wallpaper.jpg)';
-  };
-  img.src = src;
-}
-function applyWallpaper() {
-  const on = localStorage.getItem('dm_wallpaper') !== 'off';
-  document.documentElement.classList.toggle('has-wallpaper', wallpaperReady && on);
-  const ws = document.getElementById('wallpaper-status');
-  if (ws && wallpaperReady) ws.textContent = on ? '✅ ဖွင့်ထား' : '❌ ပိတ်ထား';
-}
-function loadReciteDone() {
-  const stored = JSON.parse(localStorage.getItem('dm_recite_done') || 'null');
-  if (stored && stored.date === todayKey()) {
-    state.reciteDone = { date: stored.date, done: new Set(stored.done) };
-  } else {
-    state.reciteDone = { date: todayKey(), done: new Set() };
-  }
-}
+// ---- Reactive state (initialised from the same storage keys) ----
+const chapters = EMBEDDED_VERSES.chapters;
+const verses = EMBEDDED_VERSES.verses;
+const stories = EMBEDDED_STORIES;
+
+const view = ref('chapter');                 // chapter | daily | random | bookmarks | recite | quiz
+const currentChapter = ref(1);
+const searchText = ref('');
+const drawerOpen = ref(false);
+const settingsOpen = ref(false);
+const storyMode = ref(false);
+const dailyFlipped = ref(false);
+const bmTab = ref('all');
+const randomNo = ref(null);
+const shareOpen = ref(false);
+const shareCanvasEl = ref(null);
+const shareVerseNo = ref(null);
+
+const bookmarks = reactive(new Set(lsGetJSON('dm_bookmarks', '[]')));
+const notes = reactive(lsGetJSON('dm_notes', '{}'));
+const recite = reactive(new Set(lsGetJSON('dm_recite', '[]')));
+const langs = reactive(lsGetJSON('dm_langs', '{"pali":true,"mm":true,"en":true}'));
+const zoom = ref(parseFloat(localStorage.getItem('dm_zoom') || '1'));
+const noteOpen = reactive({});
+const noteDrafts = reactive({});
+const storyOverride = reactive({});          // per-verse open override on top of storyMode
+
+// Read-progress set: plain Set + version counter for cheap reactivity
+const read = new Set(lsGetJSON('dm_read', '[]'));
+const readVer = ref(0);
+
+// Recite-done (per-day)
+const reciteDone = reactive({ date: todayKey(), done: new Set() });
+(function loadReciteDone() {
+  const stored = lsGetJSON('dm_recite_done', 'null');
+  if (stored && stored.date === todayKey()) { reciteDone.date = stored.date; reciteDone.done = new Set(stored.done); }
+})();
 function saveReciteDone() {
-  localStorage.setItem('dm_recite_done', JSON.stringify({ date: state.reciteDone.date, done: [...state.reciteDone.done] }));
-}
-function saveNotes() { localStorage.setItem('dm_notes', JSON.stringify(state.notes)); }
-function saveRecite() { localStorage.setItem('dm_recite', JSON.stringify([...state.recite])); }
-
-function newQuizQuestion() {
-  const list = state.data.verses;
-  const q = list[Math.floor(Math.random() * list.length)];
-  const wrong = new Set();
-  while (wrong.size < 3) {
-    const w = list[Math.floor(Math.random() * list.length)];
-    if (w.no !== q.no) wrong.add(w);
-  }
-  const options = [q, ...wrong];
-  for (let i = options.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [options[i], options[j]] = [options[j], options[i]];
-  }
-  state.quiz.q = q;
-  state.quiz.options = options;
-  state.quiz.answered = false;
+  localStorage.setItem('dm_recite_done', JSON.stringify({ date: reciteDone.date, done: [...reciteDone.done] }));
 }
 
-function applyZoom() {
-  const el = document.querySelector('section.content');
-  if (el) el.style.zoom = state.zoom;
-  const zv = document.getElementById('zoom-val');
-  if (zv) zv.textContent = Math.round(state.zoom * 100) + '%';
-}
-function applyLangs() {
-  const root = document.documentElement;
-  root.classList.toggle('hide-pali', !state.langs.pali);
-  root.classList.toggle('hide-mm', !state.langs.mm);
-  root.classList.toggle('hide-en', !state.langs.en);
-  document.getElementById('lang-pali').classList.toggle('off', !state.langs.pali);
-  document.getElementById('lang-mm').classList.toggle('off', !state.langs.mm);
-  document.getElementById('lang-en').classList.toggle('off', !state.langs.en);
-}
-let saveReadTimer = null;
-function markRead(el) {
-  const no = parseInt(el.dataset.verseNo);
-  if (!no || state.read.has(no)) return;
-  state.read.add(no);
-  clearTimeout(saveReadTimer);
-  saveReadTimer = setTimeout(() => {
-    localStorage.setItem('dm_read', JSON.stringify([...state.read]));
-    renderChapters();
-  }, 900);
-}
-
-async function load() {
-  
-  state.data = EMBEDDED_VERSES;
-  state.stories = EMBEDDED_STORIES;
-  loadReciteDone();
-  const lastCh = parseInt(localStorage.getItem('dm_last') || '0');
-  if (lastCh >= 1 && lastCh <= 26) {
-    state.currentChapter = lastCh;
-    if (lastCh > 1) setTimeout(() => showToast(`⏮️ နောက်ဆုံးဖတ်ခဲ့သော ဝဂ် ${lastCh} မှ ဆက်ဖတ်နေသည်`), 600);
-  }
-  applyTheme();
-  setupWallpaper();
-  const asideArt = document.getElementById('aside-art');
-  if (asideArt) asideArt.insertAdjacentHTML('afterbegin', ART.wheel);
-  applyZoom();
-  applyLangs();
-  renderChapters();
-  render();
-}
-
-function renderChapters() {
-  const ul = document.getElementById('chapters');
-  ul.innerHTML = state.data.chapters.map(c => {
-    const total = c.range[1] - c.range[0] + 1;
-    let readN = 0;
-    for (let i = c.range[0]; i <= c.range[1]; i++) if (state.read.has(i)) readN++;
-    const pct = Math.round(readN / total * 100);
-    return `
-    <li data-id="${c.id}" class="${c.id === state.currentChapter && state.view === 'chapter' ? 'active' : ''}">
-      <span class="ch-badge" style="animation-delay:${(c.id % 5) * 0.4}s">${CHAPTER_ICONS[c.id] || '📖'}</span>
-      <span class="ch-info">${c.id}. ${c.myanmar}<br><span class="ch-en">${c.english}</span></span>
-      <span class="range">${c.range[0]}-${c.range[1]}${pct > 0 ? `<span class="prog-pct">${pct}%</span>` : ''}</span>
-      ${pct > 0 ? `<div class="prog"><div class="prog-fill" style="width:${pct}%"></div></div>` : ''}
-    </li>`;
-  }).join('');
-  ul.querySelectorAll('li').forEach(li => {
-    li.onclick = () => {
-      state.currentChapter = parseInt(li.dataset.id);
-      localStorage.setItem('dm_last', state.currentChapter);
-      state.view = 'chapter';
-      state.query = '';
-      document.getElementById('search').value = '';
-      renderChapters();
-      render();
-      closeDrawer();
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    };
-  });
-}
-
-// ============ DRAWER + SETTINGS PANEL ============
-function openDrawer() {
-  document.querySelector('aside').classList.add('open');
-  document.getElementById('drawer-backdrop').classList.add('show');
-}
-function closeDrawer() {
-  document.querySelector('aside').classList.remove('open');
-  document.getElementById('drawer-backdrop').classList.remove('show');
-}
-function toggleSettings() {
-  document.getElementById('settings-panel').classList.toggle('open');
-}
-
-function verseCard(v, opts = {}) {
-  const ch = state.data.chapters.find(c => c.id === v.chapter);
-  const bookmarked = state.bookmarks.has(v.no);
-  const story = state.stories[v.no];
-  const storyOpen = state.storyMode;
-  const hasNote = !!state.notes[v.no];
-  const inRecite = state.recite.has(v.no);
-  const reciteDone = state.reciteDone && state.reciteDone.done.has(v.no);
-
-  const extraBtns = `
-      <button class="action-btn note-btn ${hasNote ? 'has-note' : ''}" data-verse-no="${v.no}">📝 မှတ်စု</button>
-      <button class="action-btn recite-btn ${inRecite ? 'active' : ''}" data-verse-no="${v.no}" title="နေ့စဉ်ရွတ်ဖတ်ရန်စာရင်း">📿</button>
-      ${opts.recite ? `<button class="action-btn recite-done-btn ${reciteDone ? 'done' : ''}" data-verse-no="${v.no}">${reciteDone ? '✓ ရွတ်ပြီးပြီ' : '⭕ ယနေ့ မရွတ်ရသေး'}</button>` : ''}`;
-
-  const noteBlock = `
-    ${hasNote ? `<div class="note-display" id="note-display-${v.no}">${escape(state.notes[v.no])}</div>` : ''}
-    <div class="note-wrap" id="note-wrap-${v.no}">
-      <textarea id="note-text-${v.no}" placeholder="ဤဂါထာအတွက် မှတ်စုရေးပါ…">${escape(state.notes[v.no] || '')}</textarea>
-      <div class="note-actions">
-        <button class="btn" data-note-del="${v.no}">🗑️ ဖျက်</button>
-        <button class="btn active" data-note-save="${v.no}">💾 သိမ်းမည်</button>
-      </div>
-    </div>`;
-
-  const storyBlock = story ? `
-    <div class="verse-actions">
-      <button class="action-btn story-toggle" data-story-no="${v.no}">📜 <span class="lbl">${storyOpen ? 'ဇာတ်လမ်း ဖျောက်' : 'ဇာတ်လမ်း ဖတ်ရန်'}</span> — ${escape(story.title)}</button>
-      <button class="action-btn share-btn" data-verse-no="${v.no}">📤 မျှဝေရန်</button>
-      <button class="action-btn speak-btn" data-verse-no="${v.no}" title="Read aloud">🔊 ဖတ်ပြရန်</button>
-      ${extraBtns}
-    </div>${noteBlock}
-    <div class="story-wrap ${storyOpen ? 'open' : ''}" id="story-wrap-${v.no}">
-      <div class="story-inner">
-        <div class="story">
-          <h4 class="story-title">${escape(story.title)}</h4>
-          ${story.characters ? `<p class="story-chars">ဇာတ်ကောင်: ${escape(story.characters)}</p>` : ''}
-          <p class="story-text">${escape(story.text)}</p>
-          ${story.moral ? `<div class="story-moral">${escape(story.moral)}</div>` : ''}
-        </div>
-      </div>
-    </div>
-  ` : `
-    <div class="verse-actions">
-      <button class="action-btn share-btn" data-verse-no="${v.no}">📤 မျှဝေရန်</button>
-      <button class="action-btn speak-btn" data-verse-no="${v.no}" title="Read aloud">🔊 ဖတ်ပြရန်</button>
-      ${extraBtns}
-    </div>${noteBlock}
-  `;
-
-  return `
-    <div class="verse ${bookmarked ? 'bookmarked' : ''}" data-verse-no="${v.no}">
-      <div class="ribbon"></div>
-      <div class="watermark">${ART[CHAPTER_ART[v.chapter]] || ART.lotus}</div>
-      <div class="verse-header">
-        <span class="verse-no">Verse ${v.no} · ${ch ? ch.myanmar : ''} ${opts.daily ? '<span class="daily-badge">Today</span>' : ''}</span>
-        <button class="bookmark-btn ${bookmarked ? 'on' : ''}" data-no="${v.no}" title="Bookmark">${bookmarked ? '★' : '☆'}</button>
-      </div>
-      <div class="mm"><span class="label">မြန်မာ</span>${escape(v.myanmar)}</div>
-      <div class="pali"><span class="label">Pāli</span>${escape(v.pali)}</div>
-      <div class="en"><span class="label">English</span>${escape(v.english)}</div>
-      ${storyBlock}
-    </div>
-  `;
-}
-
-function escape(s) {
-  return (s || '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-}
-
-function render() {
-  const header = document.getElementById('chapter-header');
-  const container = document.getElementById('verses');
-  playViewTransition();
-
-  if (state.view === 'daily') {
-    const seed = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-    const idx = parseInt(seed) % state.data.verses.length;
-    const v = state.data.verses[idx];
-    const ch = state.data.chapters.find(c => c.id === v.chapter);
-    const story = state.stories[v.no];
-    header.innerHTML = `<h2 class="chapter-title">📖 Daily Verse</h2><p class="chapter-sub">${new Date().toDateString()}</p>`;
-
-    const backContent = story ? `
-      <h3 class="story-title" style="font-size:20px;margin-bottom:8px;">${escape(story.title)}</h3>
-      ${story.characters ? `<p class="story-chars">ဇာတ်ကောင်: ${escape(story.characters)}</p>` : ''}
-      <p class="story-text" style="font-size:15px;">${escape(story.text)}</p>
-      ${story.moral ? `<div class="story-moral">${escape(story.moral)}</div>` : ''}
-    ` : `<div class="empty">ဤဂါထာအတွက် ဇာတ်လမ်း မထည့်ရသေးပါ။</div>`;
-
-    container.innerHTML = `
-      <div class="daily-stage">
-        <div class="flip-card ${state.dailyFlipped ? 'flipped' : ''}" id="flip-card">
-          <div class="flip-face front">
-            <div class="daily-buddha">${ART.lotus}</div>
-            <div class="verse-header">
-              <span class="verse-no">Verse ${v.no} · ${ch ? ch.myanmar : ''} <span class="daily-badge">Today</span></span>
-              <button class="bookmark-btn ${state.bookmarks.has(v.no) ? 'on' : ''}" data-no="${v.no}" title="Bookmark">${state.bookmarks.has(v.no) ? '★' : '☆'}</button>
-            </div>
-            <div class="mm"><span class="label">မြန်မာ</span>${escape(v.myanmar)}</div>
-            <div class="pali"><span class="label">Pāli</span>${escape(v.pali)}</div>
-            <div class="en"><span class="label">English</span>${escape(v.en || v.english)}</div>
-            <div class="verse-actions">
-              <button class="action-btn" id="flip-to-story">📜 ဇာတ်လမ်း ပြရန် (Flip)</button>
-              <button class="action-btn share-btn" data-verse-no="${v.no}">📤 မျှဝေရန်</button>
-            </div>
-            <p class="flip-hint">💡 ကတ်ပြားကို နှိပ်၍ လှန်ကြည့်ပါ</p>
-          </div>
-          <div class="flip-face back">
-            <div class="verse-header">
-              <span class="verse-no">📜 ${story ? escape(story.title) : 'Story'}</span>
-            </div>
-            ${backContent}
-            <div class="verse-actions">
-              <button class="action-btn" id="flip-to-verse">🔄 ဂါထာ ပြန်ကြည့်</button>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-
-    document.getElementById('flip-card').addEventListener('click', (e) => {
-      if (e.target.closest('.bookmark-btn') || e.target.closest('.share-btn')) return;
-      state.dailyFlipped = !state.dailyFlipped;
-      document.getElementById('flip-card').classList.toggle('flipped', state.dailyFlipped);
-    });
-  } else if (state.view === 'random') {
-    const v = state.data.verses.find(x => x.no === state.randomNo) || state.data.verses[0];
-    const ch = state.data.chapters.find(c => c.id === v.chapter);
-    header.innerHTML = `<h2 class="chapter-title">🎲 ကျပန်းဂါထာ</h2><p class="chapter-sub">${ch ? ch.myanmar : ''} · Verse ${v.no} — 🎲 ထပ်နှိပ်၍ နောက်တစ်ပုဒ်</p>`;
-    container.innerHTML = verseCard(v);
-    state.read.add(v.no);
-    localStorage.setItem('dm_read', JSON.stringify([...state.read]));
-  } else if (state.view === 'bookmarks') {
-    header.innerHTML = `
-      <div class="chapter-banner">
-        ${ART.lamp}
-        <div class="cb-text">
-          <h2 class="chapter-title">⭐ Bookmarks</h2>
-          <p class="chapter-sub" style="margin-bottom:0">${state.bookmarks.size} saved verse(s)</p>
-        </div>
-      </div>
-      <div class="bm-tabs">
-        <button class="btn ${state.bmTab === 'all' ? 'active' : ''}" data-bmtab="all">⭐ အားလုံး</button>
-        <button class="btn ${state.bmTab === 'notes' ? 'active' : ''}" data-bmtab="notes">📝 မှတ်စုပါသော</button>
-        <button class="btn ${state.bmTab === 'recite' ? 'active' : ''}" data-bmtab="recite">📿 ရွတ်ဖတ်ရန်</button>
-      </div>`;
-    let bm;
-    if (state.bmTab === 'notes') bm = state.data.verses.filter(v => state.notes[v.no]);
-    else if (state.bmTab === 'recite') bm = state.data.verses.filter(v => state.recite.has(v.no));
-    else bm = state.data.verses.filter(v => state.bookmarks.has(v.no));
-    container.innerHTML = bm.length ? bm.map(v => verseCard(v)).join('') : `<div class="empty">ဤအုပ်စု၌ ဂါထာ မရှိသေးပါ။</div>`;
-    header.querySelectorAll('[data-bmtab]').forEach(b => {
-      b.onclick = () => { state.bmTab = b.dataset.bmtab; render(); };
-    });
-  } else if (state.view === 'recite') {
-    const list = state.data.verses.filter(v => state.recite.has(v.no));
-    const doneN = list.filter(v => state.reciteDone.done.has(v.no)).length;
-    const pct = list.length ? Math.round(doneN / list.length * 100) : 0;
-    header.innerHTML = `
-      <div class="chapter-banner">
-        ${ART.lamp}
-        <div class="cb-text">
-          <h2 class="chapter-title">📿 နေ့စဉ်ရွတ်ဖတ်ရန်</h2>
-          <p class="chapter-sub" style="margin-bottom:0">${todayKey()} · ဂါထာ ${list.length} ပုဒ်</p>
-        </div>
-      </div>
-      ${list.length ? `<div class="recite-progress">ယနေ့ ရွတ်ပြီး <b style="color:var(--accent)">${doneN} / ${list.length}</b> ပုဒ် ${pct === 100 ? '— 🎉 ပြီးမြောက်ပါပြီ သာဓု သာဓု သာဓု' : ''}<div class="prog"><div class="prog-fill" style="width:${pct}%"></div></div></div>` : ''}`;
-    container.innerHTML = list.length
-      ? list.map(v => verseCard(v, { recite: true })).join('')
-      : `<div class="empty">ရွတ်ဖတ်ရန်စာရင်း ဗလာဖြစ်နေပါသည်။<br><br><small>ဂါထာတိုင်းရှိ 📿 ခလုတ်ကို နှိပ်၍ ထည့်နိုင်ပါသည်။</small></div>`;
-  } else if (state.view === 'quiz') {
-    if (!state.quiz.q) newQuizQuestion();
-    const qz = state.quiz;
-    header.innerHTML = `<h2 class="chapter-title">🎯 ဓမ္မပဒ Quiz</h2><p class="chapter-sub">ပါဠိဂါထာနှင့် ကိုက်ညီသော မြန်မာပြန်ကို ရွေးပါ</p>`;
-    container.innerHTML = `
-      <div class="quiz-score">
-        <span>အမှတ်: <b>${qz.score} / ${qz.total}</b></span>
-        <span>ဆက်တိုက်မှန်: <b>${qz.streak}</b></span>
-        <span>စံချိန်: <b>${qz.best}</b></span>
-      </div>
-      <div class="quiz-q">
-        <div class="label">Pali · Verse ${qz.answered ? qz.q.no : '?'}</div>
-        <div class="pali">${escape(qz.q.pali)}</div>
-      </div>
-      ${qz.options.map((o, i) => `<button class="quiz-opt" data-opt="${i}">${String.fromCharCode(65 + i)}. ${escape(o.myanmar.length > 160 ? o.myanmar.slice(0, 160) + '…' : o.myanmar)}</button>`).join('')}
-      <div class="verse-actions" style="margin-top:14px">
-        <button class="action-btn" id="quiz-next" style="${qz.answered ? '' : 'display:none'}">▶ နောက်မေးခွန်း</button>
-      </div>`;
-    container.querySelectorAll('.quiz-opt').forEach(b => {
-      b.onclick = () => {
-        if (state.quiz.answered) return;
-        state.quiz.answered = true;
-        state.quiz.total++;
-        const chosen = state.quiz.options[parseInt(b.dataset.opt)];
-        const correctIdx = state.quiz.options.findIndex(o => o.no === state.quiz.q.no);
-        container.querySelectorAll('.quiz-opt')[correctIdx].classList.add('correct');
-        if (chosen.no === state.quiz.q.no) {
-          state.quiz.score++;
-          state.quiz.streak++;
-          if (state.quiz.streak > state.quiz.best) {
-            state.quiz.best = state.quiz.streak;
-            localStorage.setItem('dm_quiz_best', state.quiz.best);
-          }
-          showToast('✅ မှန်ပါသည် — သာဓု!');
-        } else {
-          b.classList.add('wrong');
-          state.quiz.streak = 0;
-          showToast(`❌ မှား — အဖြေမှန်မှာ ဂါထာ ${state.quiz.q.no}`);
-        }
-        container.querySelectorAll('.quiz-opt').forEach(x => x.disabled = true);
-        document.getElementById('quiz-next').style.display = 'inline-flex';
-        const sc = container.querySelector('.quiz-score');
-        sc.innerHTML = `<span>အမှတ်: <b>${state.quiz.score} / ${state.quiz.total}</b></span><span>ဆက်တိုက်မှန်: <b>${state.quiz.streak}</b></span><span>စံချိန်: <b>${state.quiz.best}</b></span>`;
-      };
-    });
-    const qn = document.getElementById('quiz-next');
-    if (qn) qn.onclick = () => { newQuizQuestion(); render(); };
-    return;
-  } else if (state.query) {
-    const q = state.query.toLowerCase();
-    const hits = state.data.verses.filter(v => {
-      const story = state.stories[v.no];
-      const inVerse =
-        v.pali.toLowerCase().includes(q) ||
-        v.myanmar.includes(state.query) ||
-        v.english.toLowerCase().includes(q) ||
-        String(v.no) === state.query;
-      const inStory = story && (
-        (story.title || '').toLowerCase().includes(q) ||
-        (story.title || '').includes(state.query) ||
-        (story.chars || '').toLowerCase().includes(q) ||
-        (story.chars || '').includes(state.query) ||
-        (story.text || '').toLowerCase().includes(q) ||
-        (story.text || '').includes(state.query) ||
-        (story.moral || '').toLowerCase().includes(q) ||
-        (story.moral || '').includes(state.query)
-      );
-      return inVerse || inStory;
-    });
-    // Count separately for clarity
-    const storyOnly = hits.filter(v => {
-      const story = state.stories[v.no]; if (!story) return false;
-      const inVerse =
-        v.pali.toLowerCase().includes(q) ||
-        v.myanmar.includes(state.query) ||
-        v.english.toLowerCase().includes(q) ||
-        String(v.no) === state.query;
-      return !inVerse;
-    }).length;
-    const storyNote = storyOnly ? ` <span style="color:var(--muted);font-size:12px;">(${storyOnly} matched inside stories)</span>` : '';
-    header.innerHTML = `<h2 class="chapter-title">Search</h2><p class="chapter-sub">${hits.length} result(s) for "${escape(state.query)}"${storyNote}</p>`;
-    container.innerHTML = hits.length ? hits.map(v => verseCard(v)).join('') : `<div class="empty">မတွေ့ပါ။</div>`;
-  } else {
-    const ch = state.data.chapters.find(c => c.id === state.currentChapter);
-    const verses = state.data.verses.filter(v => v.chapter === state.currentChapter);
-    header.innerHTML = `
-      <div class="chapter-banner">
-        ${ART[CHAPTER_ART[ch.id]] || ART.wheel}
-        <div class="cb-text">
-          <h2 class="chapter-title">${ch.id}. ${ch.myanmar} <span style="font-size:16px;color:var(--muted)">(${ch.pali})</span></h2>
-          <p class="chapter-sub" style="margin-bottom:0">${ch.english} · Verses ${ch.range[0]}-${ch.range[1]}</p>
-        </div>
-      </div>
-    `;
-    if (verses.length === 0) {
-      container.innerHTML = `<div class="empty">ဤဝဂ်၏ ဂါထာများ မထည့်ရသေးပါ။<br><br><small>verses.json တွင် ဖြည့်စွက်နိုင်ပါသည်။</small></div>`;
-    } else {
-      container.innerHTML = verses.map(v => verseCard(v)).join('');
-    }
-  }
-
-  // Bookmark click → toggle + ribbon animation + pop
-  container.querySelectorAll('.bookmark-btn').forEach(b => {
-    b.onclick = (e) => {
-      e.stopPropagation();
-      const no = parseInt(b.dataset.no);
-      const wasBookmarked = state.bookmarks.has(no);
-      if (wasBookmarked) state.bookmarks.delete(no);
-      else state.bookmarks.add(no);
-      localStorage.setItem('dm_bookmarks', JSON.stringify([...state.bookmarks]));
-
-      const verseEl = b.closest('.verse');
-      if (verseEl) verseEl.classList.toggle('bookmarked', !wasBookmarked);
-      b.classList.toggle('on', !wasBookmarked);
-      b.innerHTML = !wasBookmarked ? '★' : '☆';
-      b.classList.remove('pop');
-      void b.offsetWidth;
-      b.classList.add('pop');
-      if (!wasBookmarked) burstStars(b);
-      showToast(!wasBookmarked ? '⭐ ဂါထာကို မှတ်ထားပြီး' : 'မှတ်ချက် ဖျက်ပြီး');
-    };
-  });
-
-  // Story toggle → smooth expand via grid-rows
-  container.querySelectorAll('.story-toggle').forEach(b => {
-    b.onclick = (e) => {
-      e.stopPropagation();
-      const no = b.dataset.storyNo;
-      const wrap = document.getElementById('story-wrap-' + no);
-      const isOpen = wrap.classList.toggle('open');
-      const story = state.stories[no];
-      b.querySelector('.lbl').textContent = isOpen ? 'ဇာတ်လမ်း ဖျောက်' : 'ဇာတ်လမ်း ဖတ်ရန်';
-    };
-  });
-
-  // Share click → open canvas modal
-  container.querySelectorAll('.share-btn').forEach(b => {
-    b.onclick = (e) => {
-      e.stopPropagation();
-      const no = parseInt(b.dataset.verseNo);
-      openShareModal(no);
-    };
-  });
-
-  // Daily flip buttons
-  const ftS = document.getElementById('flip-to-story');
-  const ftV = document.getElementById('flip-to-verse');
-  if (ftS) ftS.onclick = (e) => { e.stopPropagation(); state.dailyFlipped = true; document.getElementById('flip-card').classList.add('flipped'); };
-  if (ftV) ftV.onclick = (e) => { e.stopPropagation(); state.dailyFlipped = false; document.getElementById('flip-card').classList.remove('flipped'); };
-
-  // Read aloud
-  container.querySelectorAll('.speak-btn').forEach(b => {
-    b.onclick = (e) => {
-      e.stopPropagation();
-      speakVerse(parseInt(b.dataset.verseNo), b);
-    };
-  });
-
-  // Notes
-  container.querySelectorAll('.note-btn').forEach(b => {
-    b.onclick = (e) => {
-      e.stopPropagation();
-      const no = b.dataset.verseNo;
-      document.getElementById('note-wrap-' + no).classList.toggle('open');
-    };
-  });
-  container.querySelectorAll('[data-note-save]').forEach(b => {
-    b.onclick = (e) => {
-      e.stopPropagation();
-      const no = b.dataset.noteSave;
-      const text = document.getElementById('note-text-' + no).value.trim();
-      if (text) { state.notes[no] = text; showToast('💾 မှတ်စု သိမ်းပြီး'); }
-      else { delete state.notes[no]; }
-      saveNotes();
-      render();
-    };
-  });
-  container.querySelectorAll('[data-note-del]').forEach(b => {
-    b.onclick = (e) => {
-      e.stopPropagation();
-      delete state.notes[b.dataset.noteDel];
-      saveNotes();
-      showToast('🗑️ မှတ်စု ဖျက်ပြီး');
-      render();
-    };
-  });
-
-  // Recite list toggle
-  container.querySelectorAll('.recite-btn').forEach(b => {
-    b.onclick = (e) => {
-      e.stopPropagation();
-      const no = parseInt(b.dataset.verseNo);
-      if (state.recite.has(no)) {
-        state.recite.delete(no);
-        showToast('📿 ရွတ်ဖတ်ရန်စာရင်းမှ ဖယ်ပြီး');
-      } else {
-        state.recite.add(no);
-        showToast('📿 နေ့စဉ်ရွတ်ဖတ်ရန်စာရင်းသို့ ထည့်ပြီး');
-      }
-      saveRecite();
-      b.classList.toggle('active', state.recite.has(no));
-      if (state.view === 'recite' || state.view === 'bookmarks') render();
-    };
-  });
-
-  // Recite done check
-  container.querySelectorAll('.recite-done-btn').forEach(b => {
-    b.onclick = (e) => {
-      e.stopPropagation();
-      const no = parseInt(b.dataset.verseNo);
-      if (state.reciteDone.done.has(no)) state.reciteDone.done.delete(no);
-      else state.reciteDone.done.add(no);
-      saveReciteDone();
-      render();
-    };
-  });
-
-  // Scroll reveal: cards appear as they enter the viewport
-  setupScrollReveal(container);
-}
-
-function setupScrollReveal(container) {
-  const cards = container.querySelectorAll('.verse');
-  if (!('IntersectionObserver' in window)) {
-    cards.forEach(c => markRead(c));
-    return;
-  }
-  const io = new IntersectionObserver((entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add('reveal-in');
-        markRead(entry.target);
-        io.unobserve(entry.target);
-      }
-    });
-  }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
-  cards.forEach((card, i) => {
-    if (i >= 3 && cards.length >= 4) card.classList.add('reveal-wait');
-    else card.style.animationDelay = (i * 0.09) + 's';
-    io.observe(card);
-  });
-}
-
-// View transition — content slides in on every render
-function playViewTransition() {
-  ['chapter-header', 'verses'].forEach(id => {
-    const el = document.getElementById(id);
-    if (!el) return;
-    el.classList.remove('view-enter');
-    void el.offsetWidth;
-    el.classList.add('view-enter');
-  });
-}
-
-// Button ripple effect (delegated)
-document.addEventListener('pointerdown', (e) => {
-  const btn = e.target.closest('.btn, .action-btn, .quiz-opt');
-  if (!btn) return;
-  const rect = btn.getBoundingClientRect();
-  const size = Math.max(rect.width, rect.height);
-  const span = document.createElement('span');
-  span.className = 'ripple';
-  span.style.width = span.style.height = size + 'px';
-  span.style.left = (e.clientX - rect.left - size / 2) + 'px';
-  span.style.top = (e.clientY - rect.top - size / 2) + 'px';
-  btn.appendChild(span);
-  setTimeout(() => span.remove(), 600);
+// Quiz
+const quiz = reactive({
+  score: 0, total: 0, streak: 0,
+  best: parseInt(localStorage.getItem('dm_quiz_best') || '0'),
+  q: null, options: [], answered: false, chosen: -1, qid: 0,
 });
 
-// Watermark parallax + scroll progress + compact header
-let parallaxTick = false;
-window.addEventListener('scroll', () => {
-  if (parallaxTick) return;
-  parallaxTick = true;
-  requestAnimationFrame(() => {
-    const vh = window.innerHeight;
-    document.querySelectorAll('.verse .watermark').forEach(el => {
-      const r = el.getBoundingClientRect();
-      if (r.top > -200 && r.top < vh + 200) {
-        el.style.transform = `translateY(${(r.top - vh / 2) * 0.05}px) rotate(${(r.top - vh / 2) * 0.01}deg)`;
-      }
-    });
-    const doc = document.documentElement;
-    const max = doc.scrollHeight - doc.clientHeight;
-    const sp = document.getElementById('scroll-progress');
-    if (sp) sp.style.width = (max > 0 ? (doc.scrollTop / max * 100) : 0) + '%';
-    document.querySelector('header').classList.toggle('compact', doc.scrollTop > 60);
-    parallaxTick = false;
-  });
-}, { passive: true });
-
-// 3D tilt on verse cards (desktop pointers only)
-if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) {
-  let tiltCard = null;
-  document.addEventListener('pointermove', (e) => {
-    const card = e.target.closest('.verse');
-    if (tiltCard && tiltCard !== card) {
-      tiltCard.style.transform = '';
-      tiltCard.classList.remove('tilting');
-      tiltCard = null;
-    }
-    if (!card) return;
-    tiltCard = card;
-    card.classList.add('tilting');
-    const r = card.getBoundingClientRect();
-    const px = (e.clientX - r.left) / r.width - 0.5;
-    const py = (e.clientY - r.top) / r.height - 0.5;
-    card.style.transform = `perspective(900px) rotateY(${px * 3.5}deg) rotateX(${py * -3}deg) translateY(-2px)`;
-  }, { passive: true });
-  document.addEventListener('pointerleave', () => {
-    if (tiltCard) { tiltCard.style.transform = ''; tiltCard.classList.remove('tilting'); tiltCard = null; }
-  });
+// ---- Toast ----
+const toastMsg = ref('');
+const toastShow = ref(false);
+let toastTimer;
+function showToast(msg) {
+  toastMsg.value = msg;
+  toastShow.value = true;
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => { toastShow.value = false; }, 2200);
 }
 
-// Star burst particles
+// ---- Theme (dm_theme: light | dark | royal — legacy values mapped safely) ----
+const THEME_CYCLE = ['light', 'dark', 'royal'];
+const THEME_NAMES = { light: '☀️ Light', dark: '🌙 Dark', royal: '👑 Royal (ရွှေချ)' };
+function normalizeTheme(t) {
+  if (THEME_CYCLE.includes(t)) return t;
+  if (t === 'parchment') return 'light';
+  return 'light';
+}
+const theme = ref(normalizeTheme(localStorage.getItem('dm_theme') || 'light'));
+function applyTheme() {
+  document.documentElement.setAttribute('data-theme', theme.value);
+  localStorage.setItem('dm_theme', theme.value);
+}
+function cycleTheme() {
+  theme.value = THEME_CYCLE[(THEME_CYCLE.indexOf(theme.value) + 1) % THEME_CYCLE.length];
+  applyTheme();
+  showToast(`🎨 Theme: ${THEME_NAMES[theme.value]}`);
+}
+
+// ---- Helpers ----
+const chapterByIdMap = {};
+chapters.forEach(c => { chapterByIdMap[c.id] = c; });
+function chapterOf(id) { return chapterByIdMap[id] || chapters[0]; }
+function storyOf(no) { return stories[no] || stories[String(no)] || null; }
+function chapterArt(chId) { return ART[CHAPTER_ART[chId]] || ART.lotus; }
+function chapterPct(c) {
+  readVer.value; // reactivity hook
+  const total = c.range[1] - c.range[0] + 1;
+  let n = 0;
+  for (let i = c.range[0]; i <= c.range[1]; i++) if (read.has(i)) n++;
+  return Math.round(n / total * 100);
+}
+
+// ---- Search ----
+const searchQ = computed(() => searchText.value.trim());
+function verseMatches(v, qRaw, q) {
+  return v.pali.toLowerCase().includes(q) ||
+    v.myanmar.includes(qRaw) ||
+    v.english.toLowerCase().includes(q) ||
+    String(v.no) === qRaw;
+}
+function storyMatches(no, qRaw, q) {
+  const s = storyOf(no);
+  if (!s) return false;
+  return (s.title || '').toLowerCase().includes(q) || (s.title || '').includes(qRaw) ||
+    (s.characters || '').toLowerCase().includes(q) || (s.characters || '').includes(qRaw) ||
+    (s.text || '').toLowerCase().includes(q) || (s.text || '').includes(qRaw) ||
+    (s.moral || '').toLowerCase().includes(q) || (s.moral || '').includes(qRaw);
+}
+const searchHits = computed(() => {
+  const qRaw = searchQ.value;
+  if (!qRaw) return [];
+  const q = qRaw.toLowerCase();
+  return verses.filter(v => verseMatches(v, qRaw, q) || storyMatches(v.no, qRaw, q));
+});
+const storyOnlyHits = computed(() => {
+  const qRaw = searchQ.value;
+  if (!qRaw) return 0;
+  const q = qRaw.toLowerCase();
+  return searchHits.value.filter(v => !verseMatches(v, qRaw, q)).length;
+});
+
+// ---- Verse list per view ----
+const verseList = computed(() => {
+  if (searchQ.value) return searchHits.value;
+  if (view.value === 'random') {
+    const v = verses.find(x => x.no === randomNo.value);
+    return v ? [v] : [];
+  }
+  if (view.value === 'bookmarks') {
+    if (bmTab.value === 'notes') return verses.filter(v => notes[v.no]);
+    if (bmTab.value === 'recite') return verses.filter(v => recite.has(v.no));
+    return verses.filter(v => bookmarks.has(v.no));
+  }
+  if (view.value === 'recite') return verses.filter(v => recite.has(v.no));
+  return verses.filter(v => v.chapter === currentChapter.value);
+});
+const emptyText = computed(() => {
+  if (searchQ.value) return 'မတွေ့ပါ။';
+  if (view.value === 'bookmarks') return 'ဤအုပ်စု၌ ဂါထာ မရှိသေးပါ။';
+  if (view.value === 'recite') return 'ရွတ်ဖတ်ရန်စာရင်း ဗလာဖြစ်နေပါသည်။ ဂါထာတိုင်းရှိ 📿 ခလုတ်ကို နှိပ်၍ ထည့်နိုင်ပါသည်။';
+  return 'ဤဝဂ်၏ ဂါထာများ မထည့်ရသေးပါ။';
+});
+const currentChapterObj = computed(() => chapterOf(currentChapter.value));
+
+// ---- Counters ----
+const readCount = computed(() => { readVer.value; return read.size; });
+const readPct = computed(() => { readVer.value; return Math.round(read.size / 423 * 100); });
+const bookmarkCount = computed(() => bookmarks.size);
+const noteCount = computed(() => Object.keys(notes).length);
+const reciteCount = computed(() => recite.size);
+const reciteDoneCount = computed(() => verseList.value.filter(v => reciteDone.done.has(v.no)).length);
+const reciteDonePct = computed(() => verseList.value.length ? Math.round(reciteDoneCount.value / verseList.value.length * 100) : 0);
+
+// ---- Daily verse ----
+const todayLabel = new Date().toDateString();
+const dailyVerse = computed(() => {
+  const seed = parseInt(todayKey().replace(/-/g, ''));
+  return verses[seed % verses.length];
+});
+const dailyStory = computed(() => storyOf(dailyVerse.value.no));
+function flipCardClick(e) {
+  if (e.target.closest('.bookmark-btn') || e.target.closest('.action-btn')) return;
+  dailyFlipped.value = !dailyFlipped.value;
+}
+
+// ---- Navigation ----
+function resetSearch() { searchText.value = ''; }
+function selectChapter(id) {
+  currentChapter.value = id;
+  localStorage.setItem('dm_last', id);
+  view.value = 'chapter';
+  resetSearch();
+  drawerOpen.value = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+function showDaily() { view.value = 'daily'; dailyFlipped.value = false; resetSearch(); }
+function showBookmarks() { view.value = 'bookmarks'; resetSearch(); }
+function showRandom() {
+  randomNo.value = verses[Math.floor(Math.random() * verses.length)].no;
+  view.value = 'random';
+  resetSearch();
+  // Random verse counts as read immediately (same as before)
+  if (!read.has(randomNo.value)) { read.add(randomNo.value); readVer.value++; localStorage.setItem('dm_read', JSON.stringify([...read])); }
+}
+function showQuiz() { view.value = 'quiz'; resetSearch(); newQuizQuestion(); drawerOpen.value = false; }
+function showRecite() { view.value = 'recite'; resetSearch(); drawerOpen.value = false; }
+function toggleStoryMode() {
+  storyMode.value = !storyMode.value;
+  Object.keys(storyOverride).forEach(k => delete storyOverride[k]);
+  showToast(storyMode.value ? '📜 ဇာတ်လမ်းများ အလိုအလျောက် ဖွင့်ထား' : '📜 ဇာတ်လမ်းများ ပိတ်ထား');
+}
+
+// ---- Stories ----
+function isStoryOpen(no) { return storyOverride[no] !== undefined ? storyOverride[no] : storyMode.value; }
+function toggleStory(no) { storyOverride[no] = !isStoryOpen(no); }
+
+// ---- Bookmarks (+ star burst) ----
 function burstStars(el) {
+  if (!el || !el.getBoundingClientRect) return;
   const r = el.getBoundingClientRect();
   const cx = r.left + r.width / 2, cy = r.top + r.height / 2;
   for (let i = 0; i < 8; i++) {
@@ -7075,14 +6610,151 @@ function burstStars(el) {
     setTimeout(() => s.remove(), 750);
   }
 }
+function toggleBookmark(no, e) {
+  if (bookmarks.has(no)) {
+    bookmarks.delete(no);
+    showToast('☆ မှတ်ချက် ဖျက်ပြီး');
+  } else {
+    bookmarks.add(no);
+    if (e) burstStars(e.currentTarget || e.target);
+    showToast('⭐ ဂါထာကို မှတ်ထားပြီး');
+  }
+  localStorage.setItem('dm_bookmarks', JSON.stringify([...bookmarks]));
+}
 
-// ============ READ ALOUD (Web Speech API) ============
-// Prefers a Myanmar (my-MM) voice when the device has one; falls back to English.
+// ---- Notes ----
+function toggleNote(no) {
+  if (!noteOpen[no]) noteDrafts[no] = notes[no] || '';
+  noteOpen[no] = !noteOpen[no];
+}
+function saveNotes() { localStorage.setItem('dm_notes', JSON.stringify(notes)); }
+function saveNote(no) {
+  const text = (noteDrafts[no] || '').trim();
+  if (text) { notes[no] = text; showToast('💾 မှတ်စု သိမ်းပြီး'); }
+  else delete notes[no];
+  saveNotes();
+  noteOpen[no] = false;
+}
+function deleteNote(no) {
+  delete notes[no];
+  saveNotes();
+  noteOpen[no] = false;
+  showToast('🗑️ မှတ်စု ဖျက်ပြီး');
+}
+
+// ---- Recite ----
+function toggleRecite(no) {
+  if (recite.has(no)) { recite.delete(no); showToast('📿 ရွတ်ဖတ်ရန်စာရင်းမှ ဖယ်ပြီး'); }
+  else { recite.add(no); showToast('📿 နေ့စဉ်ရွတ်ဖတ်ရန်စာရင်းသို့ ထည့်ပြီး'); }
+  localStorage.setItem('dm_recite', JSON.stringify([...recite]));
+}
+function isReciteDone(no) { return reciteDone.done.has(no); }
+function toggleReciteDone(no) {
+  if (reciteDone.done.has(no)) reciteDone.done.delete(no);
+  else reciteDone.done.add(no);
+  saveReciteDone();
+}
+
+// ---- Quiz ----
+function newQuizQuestion() {
+  const q = verses[Math.floor(Math.random() * verses.length)];
+  const wrong = new Set();
+  while (wrong.size < 3) {
+    const w = verses[Math.floor(Math.random() * verses.length)];
+    if (w.no !== q.no) wrong.add(w);
+  }
+  const options = [q, ...wrong];
+  for (let i = options.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [options[i], options[j]] = [options[j], options[i]];
+  }
+  quiz.q = q;
+  quiz.options = options;
+  quiz.answered = false;
+  quiz.chosen = -1;
+  quiz.qid++;
+}
+function answerQuiz(i) {
+  if (quiz.answered) return;
+  quiz.answered = true;
+  quiz.chosen = i;
+  quiz.total++;
+  if (quiz.options[i].no === quiz.q.no) {
+    quiz.score++;
+    quiz.streak++;
+    if (quiz.streak > quiz.best) {
+      quiz.best = quiz.streak;
+      localStorage.setItem('dm_quiz_best', quiz.best);
+    }
+    showToast('✅ မှန်ပါသည် — သာဓု!');
+  } else {
+    quiz.streak = 0;
+    showToast(`❌ မှား — အဖြေမှန်မှာ ဂါထာ ${quiz.q.no}`);
+  }
+}
+function quizOptClass(o, i) {
+  if (!quiz.answered) return '';
+  if (o.no === quiz.q.no) return 'correct';
+  if (i === quiz.chosen) return 'wrong';
+  return '';
+}
+function nextQuiz() { newQuizQuestion(); }
+
+// ---- Language toggles ----
+function toggleLang(key) {
+  const next = { ...langs, [key]: !langs[key] };
+  if (!next.pali && !next.mm && !next.en) {
+    showToast('အနည်းဆုံး ဘာသာတစ်မျိုး ပြထားရပါမည်');
+    return;
+  }
+  langs[key] = !langs[key];
+  localStorage.setItem('dm_langs', JSON.stringify(langs));
+}
+
+// ---- Font zoom ----
+function zoomDec() {
+  zoom.value = Math.max(0.8, Math.round((zoom.value - 0.1) * 10) / 10);
+  localStorage.setItem('dm_zoom', zoom.value);
+  showToast(`🔎 စာလုံးအရွယ် ${Math.round(zoom.value * 100)}%`);
+}
+function zoomInc() {
+  zoom.value = Math.min(1.5, Math.round((zoom.value + 0.1) * 10) / 10);
+  localStorage.setItem('dm_zoom', zoom.value);
+  showToast(`🔎 စာလုံးအရွယ် ${Math.round(zoom.value * 100)}%`);
+}
+
+// ---- Wallpaper (dm_wallpaper) ----
+let wallpaperReady = false;
+const wallpaperStatus = ref('');
+function applyWallpaper() {
+  const on = localStorage.getItem('dm_wallpaper') !== 'off';
+  document.documentElement.classList.toggle('has-wallpaper', wallpaperReady && on);
+  if (wallpaperReady) wallpaperStatus.value = on ? '✅ ဖွင့်ထား' : '❌ ပိတ်ထား';
+}
+function setupWallpaper() {
+  const src = (typeof EMBEDDED_WALLPAPER !== 'undefined') ? EMBEDDED_WALLPAPER : 'images/wallpaper.jpg';
+  const img = new Image();
+  img.onload = () => {
+    wallpaperReady = true;
+    document.documentElement.style.setProperty('--wallpaper', `url("${src}")`);
+    applyWallpaper();
+  };
+  img.onerror = () => { wallpaperStatus.value = 'ပုံမတွေ့ပါ (images\\wallpaper.jpg)'; };
+  img.src = src;
+}
+function toggleWallpaper() {
+  if (!wallpaperReady) { showToast('🖼️ images\\wallpaper.jpg ဖိုင် အရင်ထည့်ပါ'); return; }
+  const cur = localStorage.getItem('dm_wallpaper') !== 'off';
+  localStorage.setItem('dm_wallpaper', cur ? 'off' : 'on');
+  applyWallpaper();
+}
+
+// ---- Read aloud (Web Speech API — prefers a Myanmar my-MM voice) ----
 let currentUtterance = null;
 let voicesLoaded = false;
 let myanmarVoice = null;
 let mmNoticeShown = false;
-
+const voiceStatus = ref('စစ်ဆေးနေ…');
 function loadVoices() {
   if (!('speechSynthesis' in window)) return;
   const voices = window.speechSynthesis.getVoices();
@@ -7091,20 +6763,17 @@ function loadVoices() {
     myanmarVoice = voices.find(vc => (vc.lang || '').toLowerCase().startsWith('my'))
                 || voices.find(vc => /myanmar|burmese|thiha|nilar/i.test(vc.name)) || null;
   }
-  const vs = document.getElementById('voice-status');
-  if (vs) {
-    if (!voices.length) vs.textContent = 'အသံ မတွေ့သေးပါ';
-    else if (myanmarVoice) vs.textContent = `✅ မြန်မာ: ${myanmarVoice.name}`;
-    else vs.textContent = `❌ မြန်မာအသံမရှိ (စုစုပေါင်း ${voices.length} သံ) — Edge browser စမ်းကြည့်ပါ`;
-  }
+  if (!voices.length) voiceStatus.value = 'အသံ မတွေ့သေးပါ';
+  else if (myanmarVoice) voiceStatus.value = `✅ မြန်မာ: ${myanmarVoice.name}`;
+  else voiceStatus.value = `❌ မြန်မာအသံမရှိ (စုစုပေါင်း ${voices.length} သံ) — Edge browser စမ်းကြည့်ပါ`;
 }
 if ('speechSynthesis' in window) {
   loadVoices();
   window.speechSynthesis.onvoiceschanged = loadVoices;
 }
-
-function speakVerse(verseNo, btn) {
+function speak(verseNo, e) {
   if (!('speechSynthesis' in window)) { showToast('ဤ browser တွင် အသံဖတ်ခြင်း မရနိုင်ပါ'); return; }
+  const btn = e.currentTarget || e.target;
   const synth = window.speechSynthesis;
   if (!voicesLoaded) loadVoices();
 
@@ -7115,7 +6784,7 @@ function speakVerse(verseNo, btn) {
     if (currentUtterance._no === verseNo) { currentUtterance = null; return; }
   }
 
-  const v = state.data.verses.find(x => x.no === verseNo);
+  const v = verses.find(x => x.no === verseNo);
   if (!v) return;
 
   const useMyanmar = !!myanmarVoice;
@@ -7133,9 +6802,8 @@ function speakVerse(verseNo, btn) {
     }
   }
   u._no = verseNo;
-  const card = btn.closest('.verse') || btn.closest('.flip-face');
+  const card = btn.closest('.verse-card') || btn.closest('.flip-face');
   const textEl = card ? card.querySelector(useMyanmar ? '.mm' : '.en') : null;
-
   u.onstart = () => {
     btn.classList.add('speaking');
     if (textEl) textEl.classList.add('speaking-highlight');
@@ -7148,91 +6816,39 @@ function speakVerse(verseNo, btn) {
   currentUtterance = u;
   synth.speak(u);
 }
-
-function showToast(msg) {
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(showToast._t);
-  showToast._t = setTimeout(() => el.classList.remove('show'), 2000);
+function voiceTest() {
+  if (!('speechSynthesis' in window)) { showToast('ဤ browser တွင် အသံမရနိုင်ပါ'); return; }
+  loadVoices();
+  const synth = window.speechSynthesis;
+  synth.cancel();
+  if (myanmarVoice) {
+    const u = new SpeechSynthesisUtterance('တရားအလုံးစုံတို့သည် စိတ်လျှင် ရှေ့သွားရှိကုန်၏');
+    u.voice = myanmarVoice;
+    u.lang = myanmarVoice.lang || 'my-MM';
+    u.rate = 0.85;
+    synth.speak(u);
+    showToast(`🎤 ${myanmarVoice.name} ဖြင့် ဖတ်နေသည်`);
+  } else {
+    const u = new SpeechSynthesisUtterance('Myanmar voice is not available on this device. Please try Microsoft Edge browser.');
+    u.lang = 'en-US';
+    synth.speak(u);
+    showToast('❌ မြန်မာအသံ မတွေ့ပါ — Edge browser ဖြင့် စမ်းကြည့်ပါ');
+  }
 }
 
-// ============ SHARE-AS-IMAGE ============
-function openShareModal(verseNo) {
-  const v = state.data.verses.find(x => x.no === verseNo);
-  if (!v) return;
-  const ch = state.data.chapters.find(c => c.id === v.chapter);
-  const canvas = document.getElementById('share-canvas');
-  drawVerseCanvas(canvas, v, ch);
-  document.getElementById('share-modal').classList.add('open');
+// ---- Copy verse ----
+async function copyVerse(v) {
+  const ch = chapterOf(v.chapter);
+  const text = `ဓမ္မပဒ · Verse ${v.no} (${ch.myanmar} · ${ch.pali})\n\n${v.pali}\n\n${v.myanmar}\n\n${v.english}\n\n— Dhammapada · The Path of the Dhamma`;
+  try {
+    await navigator.clipboard.writeText(text);
+    showToast('📋 Clipboard သို့ ကူးယူပြီးပါပြီ');
+  } catch {
+    showToast('📋 ကူးယူ၍ မရပါ');
+  }
 }
 
-function drawVerseCanvas(canvas, v, ch) {
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const royal = state.theme === 'royal';
-  const dark = state.theme === 'dark' || royal;
-
-  // Background gradient
-  const grd = ctx.createLinearGradient(0, 0, W, H);
-  if (royal) { grd.addColorStop(0, '#26100f'); grd.addColorStop(1, '#4d2418'); }
-  else if (dark) { grd.addColorStop(0, '#1a1815'); grd.addColorStop(1, '#3a2f22'); }
-  else { grd.addColorStop(0, '#faf7f2'); grd.addColorStop(1, '#f2e6d5'); }
-  ctx.fillStyle = grd;
-  ctx.fillRect(0, 0, W, H);
-
-  // Decorative frame
-  ctx.strokeStyle = dark ? '#d4a574' : '#8b5a2b';
-  ctx.lineWidth = 3;
-  ctx.strokeRect(40, 40, W - 80, H - 80);
-  ctx.lineWidth = 1;
-  ctx.strokeRect(56, 56, W - 112, H - 112);
-
-  // Title
-  ctx.fillStyle = dark ? '#d4a574' : '#8b5a2b';
-  ctx.font = 'bold 56px "Padauk", "Myanmar Text", sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('ဓမ္မပဒ', W / 2, 140);
-
-  ctx.font = '24px sans-serif';
-  ctx.fillStyle = dark ? '#a09488' : '#7a6f66';
-  ctx.fillText(`Verse ${v.no} · ${ch.myanmar} (${ch.pali})`, W / 2, 180);
-
-  // Divider
-  ctx.beginPath();
-  ctx.moveTo(W / 2 - 60, 210);
-  ctx.lineTo(W / 2 + 60, 210);
-  ctx.strokeStyle = dark ? '#d4a574' : '#8b5a2b';
-  ctx.lineWidth = 2;
-  ctx.stroke();
-
-  let y = 280;
-
-  // Pali
-  ctx.fillStyle = dark ? '#e2c299' : '#5d3a1a';
-  ctx.font = 'italic 28px serif';
-  ctx.textAlign = 'left';
-  y = wrapText(ctx, v.pali, 100, y, W - 200, 42);
-  y += 30;
-
-  // Myanmar
-  ctx.fillStyle = dark ? '#a8c5e8' : '#1f3a5f';
-  ctx.font = '30px "Padauk", "Myanmar Text", sans-serif';
-  y = wrapText(ctx, v.myanmar, 100, y, W - 200, 46);
-  y += 30;
-
-  // English
-  ctx.fillStyle = dark ? '#c8c4bc' : '#3d3d3d';
-  ctx.font = '24px sans-serif';
-  y = wrapText(ctx, v.english, 100, y, W - 200, 36);
-
-  // Footer
-  ctx.fillStyle = dark ? '#a09488' : '#7a6f66';
-  ctx.font = '20px sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('— Dhammapada · The Path of the Dhamma —', W / 2, H - 80);
-}
-
+// ---- Share as image (canvas, same rendering as before) ----
 function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   const lines = text.split('\n');
   lines.forEach(line => {
@@ -7252,144 +6868,177 @@ function wrapText(ctx, text, x, y, maxWidth, lineHeight) {
   });
   return y;
 }
+function drawVerseCanvas(canvas, v, ch) {
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const royal = theme.value === 'royal';
+  const dark = theme.value === 'dark' || royal;
 
-document.getElementById('share-close').onclick = () => document.getElementById('share-modal').classList.remove('open');
-document.getElementById('share-modal').onclick = (e) => {
-  if (e.target.id === 'share-modal') document.getElementById('share-modal').classList.remove('open');
-};
-document.getElementById('share-download').onclick = () => {
-  const canvas = document.getElementById('share-canvas');
+  const grd = ctx.createLinearGradient(0, 0, W, H);
+  if (royal) { grd.addColorStop(0, '#26100f'); grd.addColorStop(1, '#4d2418'); }
+  else if (dark) { grd.addColorStop(0, '#1a1815'); grd.addColorStop(1, '#3a2f22'); }
+  else { grd.addColorStop(0, '#faf7f2'); grd.addColorStop(1, '#f2e6d5'); }
+  ctx.fillStyle = grd;
+  ctx.fillRect(0, 0, W, H);
+
+  ctx.strokeStyle = dark ? '#d4a574' : '#8b5a2b';
+  ctx.lineWidth = 3;
+  ctx.strokeRect(40, 40, W - 80, H - 80);
+  ctx.lineWidth = 1;
+  ctx.strokeRect(56, 56, W - 112, H - 112);
+
+  ctx.fillStyle = dark ? '#d4a574' : '#8b5a2b';
+  ctx.font = 'bold 56px "Padauk", "Myanmar Text", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('ဓမ္မပဒ', W / 2, 140);
+
+  ctx.font = '24px sans-serif';
+  ctx.fillStyle = dark ? '#a09488' : '#7a6f66';
+  ctx.fillText(`Verse ${v.no} · ${ch.myanmar} (${ch.pali})`, W / 2, 180);
+
+  ctx.beginPath();
+  ctx.moveTo(W / 2 - 60, 210);
+  ctx.lineTo(W / 2 + 60, 210);
+  ctx.strokeStyle = dark ? '#d4a574' : '#8b5a2b';
+  ctx.lineWidth = 2;
+  ctx.stroke();
+
+  let y = 280;
+
+  ctx.fillStyle = dark ? '#e2c299' : '#5d3a1a';
+  ctx.font = 'italic 28px serif';
+  ctx.textAlign = 'left';
+  y = wrapText(ctx, v.pali, 100, y, W - 200, 42);
+  y += 30;
+
+  ctx.fillStyle = dark ? '#a8c5e8' : '#1f3a5f';
+  ctx.font = '30px "Padauk", "Myanmar Text", sans-serif';
+  y = wrapText(ctx, v.myanmar, 100, y, W - 200, 46);
+  y += 30;
+
+  ctx.fillStyle = dark ? '#c8c4bc' : '#3d3d3d';
+  ctx.font = '24px sans-serif';
+  y = wrapText(ctx, v.english, 100, y, W - 200, 36);
+
+  ctx.fillStyle = dark ? '#a09488' : '#7a6f66';
+  ctx.font = '20px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('— Dhammapada · The Path of the Dhamma —', W / 2, H - 80);
+}
+function openShareModal(no) {
+  const v = verses.find(x => x.no === no);
+  if (!v) return;
+  shareVerseNo.value = no;
+  shareOpen.value = true;
+  nextTick(() => {
+    if (shareCanvasEl.value) drawVerseCanvas(shareCanvasEl.value, v, chapterOf(v.chapter));
+  });
+}
+function downloadShare() {
+  if (!shareCanvasEl.value) return;
   const link = document.createElement('a');
-  link.download = `dhammapada-verse.png`;
-  link.href = canvas.toDataURL('image/png');
+  link.download = 'dhammapada-verse.png';
+  link.href = shareCanvasEl.value.toDataURL('image/png');
   link.click();
   showToast('📥 ရုပ်ပုံ ဒေါင်းလုပ်ပြီး');
-};
+}
 
-document.getElementById('search').oninput = (e) => {
-  state.query = e.target.value.trim();
-  state.view = state.query ? 'search' : 'chapter';
-  render();
-};
-document.getElementById('btn-daily').onclick = () => {
-  state.view = 'daily'; state.query = ''; state.dailyFlipped = false;
-  document.getElementById('search').value = ''; render();
-};
-document.getElementById('btn-bookmarks').onclick = () => {
-  state.view = 'bookmarks'; state.query = ''; document.getElementById('search').value = ''; render();
-};
-document.getElementById('btn-story-mode').onclick = () => {
-  state.storyMode = !state.storyMode;
-  document.getElementById('btn-story-mode').classList.toggle('active', state.storyMode);
-  render();
-};
-document.getElementById('btn-random').onclick = () => {
-  const list = state.data.verses;
-  state.randomNo = list[Math.floor(Math.random() * list.length)].no;
-  state.view = 'random'; state.query = '';
-  document.getElementById('search').value = '';
-  render();
-};
-document.getElementById('btn-font-dec').onclick = () => {
-  state.zoom = Math.max(0.8, Math.round((state.zoom - 0.1) * 10) / 10);
-  localStorage.setItem('dm_zoom', state.zoom); applyZoom();
-  showToast(`🔎 စာလုံးအရွယ် ${Math.round(state.zoom * 100)}%`);
-};
-document.getElementById('btn-font-inc').onclick = () => {
-  state.zoom = Math.min(1.5, Math.round((state.zoom + 0.1) * 10) / 10);
-  localStorage.setItem('dm_zoom', state.zoom); applyZoom();
-  showToast(`🔎 စာလုံးအရွယ် ${Math.round(state.zoom * 100)}%`);
-};
-function toggleLang(key) {
-  const next = { ...state.langs, [key]: !state.langs[key] };
-  if (!next.pali && !next.mm && !next.en) {
-    showToast('အနည်းဆုံး ဘာသာတစ်မျိုး ပြထားရပါမည်');
+// ---- Reading progress (dm_read) via IntersectionObserver ----
+let saveReadTimer = null;
+function markRead(no) {
+  if (!no || read.has(no)) return;
+  read.add(no);
+  readVer.value++;
+  clearTimeout(saveReadTimer);
+  saveReadTimer = setTimeout(() => {
+    localStorage.setItem('dm_read', JSON.stringify([...read]));
+  }, 900);
+}
+let readIO = null;
+function observeVerses() {
+  if (readIO) readIO.disconnect();
+  const cards = document.querySelectorAll('.verse-card[data-verse-no]');
+  if (!('IntersectionObserver' in window)) {
+    cards.forEach(c => markRead(parseInt(c.dataset.verseNo)));
     return;
   }
-  state.langs = next;
-  localStorage.setItem('dm_langs', JSON.stringify(state.langs));
-  applyLangs();
+  readIO = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        markRead(parseInt(entry.target.dataset.verseNo));
+        readIO.unobserve(entry.target);
+      }
+    });
+  }, { rootMargin: '0px 0px -40px 0px', threshold: 0.05 });
+  cards.forEach(card => readIO.observe(card));
 }
-document.getElementById('lang-pali').onclick = () => toggleLang('pali');
-document.getElementById('lang-mm').onclick = () => toggleLang('mm');
-document.getElementById('lang-en').onclick = () => toggleLang('en');
+watch([verseList, view, searchQ], () => nextTick(observeVerses));
 
-// Drawer + settings + bottom nav
-document.getElementById('btn-menu').onclick = openDrawer;
-document.getElementById('drawer-backdrop').onclick = closeDrawer;
-document.getElementById('btn-settings').onclick = (e) => { e.stopPropagation(); toggleSettings(); };
+// ---- Global listeners ----
 document.addEventListener('click', (e) => {
-  const panel = document.getElementById('settings-panel');
-  if (panel.classList.contains('open') && !e.target.closest('.settings-wrap')) {
-    panel.classList.remove('open');
+  if (settingsOpen.value && !e.target.closest('.settings-wrap') && !e.target.closest('#bn-settings')) {
+    settingsOpen.value = false;
   }
 });
-document.getElementById('btn-wallpaper').onclick = () => {
-  if (!wallpaperReady) { showToast('🖼️ images\\wallpaper.jpg ဖိုင် အရင်ထည့်ပါ'); return; }
-  const cur = localStorage.getItem('dm_wallpaper') !== 'off';
-  localStorage.setItem('dm_wallpaper', cur ? 'off' : 'on');
-  applyWallpaper();
-};
-document.getElementById('btn-voice-test').onclick = () => {
-  if (!('speechSynthesis' in window)) { showToast('ဤ browser တွင် အသံမရနိုင်ပါ'); return; }
-  loadVoices();
-  const synth = window.speechSynthesis;
-  synth.cancel();
-  if (myanmarVoice) {
-    const u = new SpeechSynthesisUtterance('တရားအလုံးစုံတို့သည် စိတ်လျှင် ရှေ့သွားရှိကုန်၏');
-    u.voice = myanmarVoice;
-    u.lang = myanmarVoice.lang || 'my-MM';
-    u.rate = 0.85;
-    synth.speak(u);
-    showToast(`🎤 ${myanmarVoice.name} ဖြင့် ဖတ်နေသည်`);
-  } else {
-    const u = new SpeechSynthesisUtterance('Myanmar voice is not available on this device. Please try Microsoft Edge browser.');
-    u.lang = 'en-US';
-    synth.speak(u);
-    showToast('❌ မြန်မာအသံ မတွေ့ပါ — Edge browser ဖြင့် စမ်းကြည့်ပါ');
-  }
-};
-document.getElementById('ql-quiz').onclick = () => {
-  state.view = 'quiz'; state.query = '';
-  document.getElementById('search').value = '';
-  newQuizQuestion();
-  render(); closeDrawer();
-};
-document.getElementById('ql-recite').onclick = () => {
-  state.view = 'recite'; state.query = '';
-  document.getElementById('search').value = '';
-  render(); closeDrawer();
-};
-document.getElementById('bn-chapters').onclick = openDrawer;
-document.getElementById('bn-daily').onclick = () => document.getElementById('btn-daily').click();
-document.getElementById('bn-random').onclick = () => document.getElementById('btn-random').click();
-document.getElementById('bn-bookmarks').onclick = () => document.getElementById('btn-bookmarks').click();
-document.getElementById('bn-settings').onclick = (e) => { e.stopPropagation(); toggleSettings(); };
-const THEME_CYCLE = ['light', 'dark', 'royal'];
-const THEME_ICONS = { light: '🌙', dark: '👑', royal: '☀️' };
-const THEME_NAMES = { light: 'Light', dark: 'Dark', royal: '👑 Royal (ရွှေချ)' };
-function applyTheme() {
-  document.documentElement.dataset.theme = state.theme;
-  document.getElementById('btn-theme').textContent = THEME_ICONS[state.theme] || '🌙';
-}
-document.getElementById('btn-theme').onclick = () => {
-  const idx = THEME_CYCLE.indexOf(state.theme);
-  state.theme = THEME_CYCLE[(idx + 1) % THEME_CYCLE.length];
-  localStorage.setItem('dm_theme', state.theme);
-  applyTheme();
-  showToast(`🎨 Theme: ${THEME_NAMES[state.theme]}`);
-};
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') { shareOpen.value = false; settingsOpen.value = false; }
+});
 
-load();
+// ---- Init: resume last chapter (dm_last) + wallpaper ----
+const lastCh = parseInt(localStorage.getItem('dm_last') || '0');
+if (lastCh >= 1 && lastCh <= 26) {
+  currentChapter.value = lastCh;
+  if (lastCh > 1) setTimeout(() => showToast(`⏮️ နောက်ဆုံးဖတ်ခဲ့သော ဝဂ် ${lastCh} မှ ဆက်ဖတ်နေသည်`), 600);
+}
+applyTheme();
+setupWallpaper();
+
+createApp({
+  setup() {
+    return {
+      // data + art
+      ART, CHAPTER_ICONS, chapters,
+      // navigation + views
+      view, currentChapter, currentChapterObj, selectChapter, drawerOpen,
+      showDaily, showRandom, showBookmarks, showQuiz, showRecite,
+      // search
+      searchText, searchQ, storyOnlyHits,
+      // verse list + helpers
+      verseList, emptyText, chapterOf, chapterArt, chapterPct, todayKey,
+      // bookmarks
+      bookmarks, toggleBookmark, bookmarkCount, bmTab,
+      // read progress
+      readCount, readPct,
+      // stories
+      storyMode, toggleStoryMode, storyOf, isStoryOpen, toggleStory,
+      // notes
+      notes, noteOpen, noteDrafts, toggleNote, saveNote, deleteNote, noteCount,
+      // recite
+      recite, toggleRecite, reciteCount, isReciteDone, toggleReciteDone, reciteDoneCount, reciteDonePct,
+      // quiz
+      quiz, answerQuiz, quizOptClass, nextQuiz,
+      // daily
+      dailyVerse, dailyStory, dailyFlipped, flipCardClick, todayLabel,
+      // settings
+      settingsOpen, langs, toggleLang, zoom, zoomDec, zoomInc,
+      wallpaperStatus, toggleWallpaper, voiceStatus, voiceTest,
+      // theme
+      cycleTheme,
+      // actions
+      copyVerse, speak, openShareModal, shareOpen, shareCanvasEl, downloadShare,
+      // toast
+      toastMsg, toastShow,
+      Math, String,
+    };
+  },
+}).mount('#app');
+
+// Remove the loading placeholder once mounted
+const loadingEl = document.getElementById('vue-loading');
+if (loadingEl) loadingEl.remove();
+
+// First observation pass
+nextTick(observeVerses);
 </script>
-<script defer src="_palette.js"></script>
-<script defer src="_navrail.js"></script>
-<script defer src="_ui.js"></script>
-<script defer src="_pwa.js"></script>
-<script defer src="_cloudsync.js"></script>
-<script defer src="_prompts.js"></script>
-<script defer src="_dhammaart.js"></script>
-<script defer src="_settings.js"></script>
-<script defer src="_applock.js"></script>
 </body>
 </html>

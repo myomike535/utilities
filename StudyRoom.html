@@ -1,9 +1,16 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="dark" class="dark">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <title>Study Room &mdash; Pomodoro &amp; Flashcards</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#a78bfa">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
 <style>
   :root {
     --bg-1: #0d1117;
@@ -22,6 +29,24 @@
     --warn: #f59e0b;
     --danger: #ef4444;
     --shadow: 0 8px 24px rgba(0,0,0,0.35);
+    /* Element Plus theme mapping — amber accent */
+    --el-color-primary: #f59e0b;
+    --el-color-primary-light-3: #fbbf24;
+    --el-color-primary-light-5: #fcd34d;
+    --el-color-primary-dark-2: #b45309;
+    --el-color-danger: #ef4444;
+  }
+  html.dark {
+    --el-bg-color: #161b22;
+    --el-bg-color-overlay: #1e2530;
+    --el-fill-color-blank: #0d1117;
+    --el-border-color: #30363d;
+    --el-border-color-light: #30363d;
+    --el-border-color-lighter: #21262d;
+    --el-text-color-primary: #e4e4e7;
+    --el-text-color-regular: #e4e4e7;
+    --el-text-color-secondary: #9a9ab0;
+    --el-text-color-placeholder: #6b6b82;
   }
   [data-theme="light"] {
     --bg-1: #fffbeb; --bg-2: #fef3c7;
@@ -31,6 +56,20 @@
     --accent: #b45309; --accent-deep: #92400e;
     --success: #16a34a; --warn: #d97706; --danger: #dc2626;
     --shadow: 0 8px 24px rgba(30,41,59,0.10);
+    --el-color-primary: #b45309;
+    --el-color-primary-light-3: #d97706;
+    --el-color-primary-light-5: #f59e0b;
+    --el-color-primary-dark-2: #92400e;
+    --el-bg-color: #ffffff;
+    --el-bg-color-overlay: #ffffff;
+    --el-fill-color-blank: #ffffff;
+    --el-border-color: #e2e8f0;
+    --el-border-color-light: #e2e8f0;
+    --el-border-color-lighter: #eef2f7;
+    --el-text-color-primary: #1e293b;
+    --el-text-color-regular: #1e293b;
+    --el-text-color-secondary: #64748b;
+    --el-text-color-placeholder: #94a3b8;
   }
   * { box-sizing: border-box; }
   body {
@@ -40,6 +79,8 @@
     color: var(--text);
     min-height: 100vh;
   }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--text-mute)}
   header {
     background: var(--panel);
     border-bottom: 1px solid var(--border);
@@ -80,15 +121,6 @@
   }
   .panel h2 { margin: 0 0 4px; font-size: 16px; }
   .panel .sub { color: var(--text-mute); font-size: 12.5px; margin: 0 0 16px; }
-  button.btn {
-    background: var(--panel-2); color: var(--text); border: 1px solid var(--border);
-    padding: 8px 16px; border-radius: 9px; font-size: 13.5px; cursor: pointer; font-family: inherit;
-    transition: all 0.15s;
-  }
-  button.btn:hover { border-color: var(--accent); }
-  button.btn.primary { background: var(--accent); color: #1a1206; border-color: transparent; font-weight: 600; }
-  [data-theme="light"] button.btn.primary { color: #fff; }
-  button.btn.danger { color: var(--danger); }
   input[type="text"], input[type="number"], select, textarea {
     background: var(--bg-1); color: var(--text); border: 1px solid var(--border);
     border-radius: 8px; padding: 8px 10px; font-size: 13.5px; font-family: inherit; outline: none;
@@ -119,20 +151,21 @@
 
   /* ---- Flashcards ---- */
   .deck-row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-bottom: 14px; }
-  .deck-row select { min-width: 180px; }
+  .deck-row .el-select { min-width: 200px; }
   .add-card { display: grid; grid-template-columns: 1fr 1fr auto; gap: 8px; margin-bottom: 6px; }
   @media (max-width: 620px) { .add-card { grid-template-columns: 1fr; } }
   .review-card {
     background: var(--panel-2); border: 1px solid var(--border);
     border-radius: 12px; min-height: 150px; padding: 26px 22px;
-    display: flex; align-items: center; justify-content: center; text-align: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center;
     font-size: 18px; line-height: 1.55; cursor: pointer; user-select: none;
     white-space: pre-wrap; word-break: break-word;
   }
   .review-card .hint { color: var(--text-mute); font-size: 12px; display: block; margin-top: 12px; }
   .rate-row { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
-  .rate-row .btn { min-width: 96px; }
+  .rate-row .el-button { min-width: 96px; height: auto; padding: 8px 16px; margin-left: 0; }
   .rate-row .k { display: block; font-size: 10.5px; color: var(--text-mute); margin-top: 2px; }
+  .rate-row .el-button > span { display: inline-block; }
   .card-list { margin-top: 6px; }
   .card-item {
     display: flex; gap: 10px; align-items: baseline; padding: 8px 10px;
@@ -141,8 +174,8 @@
   .card-item .f { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .card-item .b { flex: 1; min-width: 0; color: var(--text-dim); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .card-item .due { color: var(--text-mute); font-size: 11px; white-space: nowrap; }
-  .card-item button { background: none; border: none; color: var(--text-mute); cursor: pointer; font-size: 13px; }
-  .card-item button:hover { color: var(--danger); }
+  .card-item .del-btn { background: none; border: none; color: var(--text-mute); cursor: pointer; font-size: 13px; font-family: inherit; }
+  .card-item .del-btn:hover { color: var(--danger); }
   .empty { color: var(--text-mute); text-align: center; padding: 28px 0; font-size: 13.5px; }
 
   /* ---- Stats ---- */
@@ -167,459 +200,500 @@
   .chart .dlbl.today { color: var(--text); font-weight: 600; }
   .chart .vlbl { font-size: 11px; color: var(--text-dim); font-variant-numeric: tabular-nums; height: 14px; }
   .chart-tip {
-    position: absolute; pointer-events: none; display: none;
+    position: absolute; pointer-events: none;
     background: var(--panel); border: 1px solid var(--border); border-radius: 7px;
     padding: 5px 9px; font-size: 12px; box-shadow: var(--shadow); white-space: nowrap; z-index: 5;
   }
   .baseline { height: 1px; background: var(--border); margin-top: 2px; }
 
+  /* Element Plus fine-tuning inside our layout */
+  .el-button { font-family: inherit; }
+  .el-message-box { --el-messagebox-title-color: var(--text); }
+
   footer { text-align: center; color: var(--text-mute); font-size: 12px; padding: 10px 0 26px; }
   .hidden { display: none !important; }
 </style>
-  <link rel="manifest" href="manifest.json">
-<link rel="icon" type="image/svg+xml" href="favicon.svg">
-  <meta name="theme-color" content="#a78bfa">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 </head>
 <body>
+<div id="app" v-cloak>
 <header>
   <a class="icon-btn" href="index.html" title="Back to utility hub">←</a>
   <h1>📚 <span class="gradient">Study Room</span>
     <span style="color:var(--text-dim); font-weight:400; font-size:13px;">&mdash; focus &amp; flashcards</span></h1>
-  <button class="icon-btn" id="themeBtn" title="Toggle theme">🌙</button>
+  <button class="icon-btn" title="Toggle theme" @click="toggleTheme">{{ theme === 'light' ? '☀' : '🌙' }}</button>
 </header>
 
 <main>
   <div class="tabs">
-    <button class="tab active" data-tab="focus">⏱ Focus</button>
-    <button class="tab" data-tab="cards">🃏 Flashcards <span class="cnt hidden" id="dueCnt">0</span></button>
-    <button class="tab" data-tab="stats">📊 Stats</button>
+    <button class="tab" :class="{active: tab==='focus'}" @click="tab='focus'">⏱ Focus</button>
+    <button class="tab" :class="{active: tab==='cards'}" @click="tab='cards'">🃏 Flashcards <span class="cnt" v-show="allDue">{{ allDue }}</span></button>
+    <button class="tab" :class="{active: tab==='stats'}" @click="tab='stats'">📊 Stats</button>
   </div>
 
   <!-- ================ FOCUS ================ -->
-  <section id="tab-focus" class="panel">
+  <section class="panel" v-show="tab==='focus'">
     <div class="timer-wrap">
       <div class="modes">
-        <button class="btn" data-mode="focus">🎯 Focus</button>
-        <button class="btn" data-mode="short">☕ Short break</button>
-        <button class="btn" data-mode="long">🌴 Long break</button>
+        <el-button :type="mode==='focus' ? 'primary' : 'default'" @click="setMode('focus')">🎯 Focus</el-button>
+        <el-button :type="mode==='short' ? 'primary' : 'default'" @click="setMode('short')">☕ Short break</el-button>
+        <el-button :type="mode==='long' ? 'primary' : 'default'" @click="setMode('long')">🌴 Long break</el-button>
       </div>
       <div class="ring-box">
         <svg width="240" height="240" viewBox="0 0 240 240" aria-hidden="true">
           <circle class="ring-track" cx="120" cy="120" r="110"></circle>
-          <circle class="ring-fill" id="ringFill" cx="120" cy="120" r="110"></circle>
+          <circle class="ring-fill" cx="120" cy="120" r="110" :style="{strokeDasharray: CIRC, strokeDashoffset: ringOffset}"></circle>
         </svg>
         <div class="time-big">
-          <div class="t" id="timeTxt">25:00</div>
-          <div class="m" id="modeTxt">Focus</div>
+          <div class="t">{{ timeTxt }}</div>
+          <div class="m">{{ modeLabel[mode] }}</div>
         </div>
       </div>
-      <div class="dots" id="dots" title="Focus sessions until the long break"></div>
+      <div class="dots" title="Focus sessions until the long break">
+        <span v-for="i in cfg.every" :key="i" :class="{on: i <= doneSessions}"></span>
+      </div>
       <div class="timer-btns">
-        <button class="btn primary" id="startBtn">▶ Start</button>
-        <button class="btn" id="resetBtn">↺ Reset</button>
+        <el-button type="primary" @click="startPause">{{ running ? '⏸ Pause' : '▶ Start' }}</el-button>
+        <el-button @click="setMode(mode)">↺ Reset</el-button>
       </div>
       <div class="cfg-row">
-        <label>Focus (min)<input type="number" id="cfgFocus" min="1" max="120"></label>
-        <label>Short break<input type="number" id="cfgShort" min="1" max="60"></label>
-        <label>Long break<input type="number" id="cfgLong" min="1" max="60"></label>
-        <label>Sessions / long<input type="number" id="cfgEvery" min="2" max="8"></label>
+        <label>Focus (min)<input type="number" min="1" max="120" v-model="cfgInputs.focus" @change="cfgChange('focus')"></label>
+        <label>Short break<input type="number" min="1" max="60" v-model="cfgInputs.short" @change="cfgChange('short')"></label>
+        <label>Long break<input type="number" min="1" max="60" v-model="cfgInputs.long" @change="cfgChange('long')"></label>
+        <label>Sessions / long<input type="number" min="2" max="8" v-model="cfgInputs.every" @change="cfgChange('every')"></label>
       </div>
     </div>
   </section>
 
   <!-- ================ FLASHCARDS ================ -->
-  <section id="tab-cards" class="hidden">
+  <section v-show="tab==='cards'">
     <div class="panel">
       <h2>🃏 Review</h2>
-      <p class="sub" id="reviewSub">—</p>
-      <div id="reviewArea"></div>
+      <p class="sub">{{ reviewSub }}</p>
+      <div>
+        <div v-if="!current" class="empty">{{ deckObj.cards.length ? "🎉 All caught up — nothing due right now." : "Add cards below to start reviewing." }}</div>
+        <template v-else>
+          <div class="review-card" @click="flipCurrent">{{ showBack ? current.b : current.f }}
+            <span class="hint">{{ showBack ? "How well did you know it?" : "Click or press Space to flip" }}</span></div>
+          <div class="rate-row" v-show="showBack">
+            <el-button @click="rateAgain">😅 Again<span class="k">1 · ~10 min</span></el-button>
+            <el-button @click="rateGood">🙂 Good<span class="k">2 · {{ goodLbl }}</span></el-button>
+            <el-button type="primary" @click="rateEasy">😎 Easy<span class="k">3 · {{ easyLbl }}</span></el-button>
+          </div>
+        </template>
+      </div>
     </div>
     <div class="panel">
       <h2>Decks &amp; cards</h2>
       <p class="sub">Cards you add become due immediately; rating them schedules the next review (spaced repetition).</p>
       <div class="deck-row">
-        <select id="deckSel"></select>
-        <button class="btn" id="newDeckBtn">＋ New deck</button>
-        <button class="btn" id="renameDeckBtn">✏ Rename</button>
-        <button class="btn danger" id="delDeckBtn">🗑 Delete</button>
+        <el-select v-model="deckId" @change="deckChanged">
+          <el-option v-for="d in decks" :key="d.id" :value="d.id" :label="d.name + ' (' + d.cards.length + ')'"></el-option>
+        </el-select>
+        <el-button @click="newDeck">＋ New deck</el-button>
+        <el-button @click="renameDeck">✏ Rename</el-button>
+        <el-popconfirm :title="'Delete deck &quot;' + deckObj.name + '&quot; and its ' + deckObj.cards.length + ' cards?'" confirm-button-text="Delete" cancel-button-text="Cancel" width="260" @confirm="delDeck">
+          <template #reference>
+            <el-button type="danger" plain>🗑 Delete</el-button>
+          </template>
+        </el-popconfirm>
         <span style="flex:1"></span>
-        <button class="btn" id="exportBtn">⬇ Export</button>
-        <button class="btn" id="importBtn">⬆ Import</button>
-        <input type="file" id="importFile" accept=".json" class="hidden">
+        <el-button @click="exportDecks">⬇ Export</el-button>
+        <el-button @click="$refs.importFile.click()">⬆ Import</el-button>
+        <input type="file" ref="importFile" accept=".json" class="hidden" @change="importDecks">
       </div>
       <div class="add-card">
-        <input type="text" id="frontInp" placeholder="Front — e.g. What does CSS stand for?">
-        <input type="text" id="backInp" placeholder="Back — e.g. Cascading Style Sheets">
-        <button class="btn primary" id="addCardBtn">Add card</button>
+        <input type="text" v-model="frontInp" placeholder="Front — e.g. What does CSS stand for?">
+        <input type="text" v-model="backInp" placeholder="Back — e.g. Cascading Style Sheets" @keydown.enter="addCard">
+        <el-button type="primary" @click="addCard">Add card</el-button>
       </div>
-      <div class="card-list" id="cardList"></div>
+      <div class="card-list">
+        <div v-if="!deckObj.cards.length" class="empty">No cards in this deck yet — add your first one above.</div>
+        <div v-for="(c, i) in deckObj.cards" :key="c.id" class="card-item">
+          <span class="f">{{ c.f }}</span><span class="b">{{ c.b }}</span>
+          <span class="due">{{ fmtDue(c) }}</span>
+          <el-popconfirm title="Delete this card?" confirm-button-text="Delete" cancel-button-text="Cancel" @confirm="delCard(i)">
+            <template #reference>
+              <button class="del-btn" title="Delete card">✕</button>
+            </template>
+          </el-popconfirm>
+        </div>
+      </div>
     </div>
   </section>
 
   <!-- ================ STATS ================ -->
-  <section id="tab-stats" class="hidden">
+  <section v-show="tab==='stats'">
     <div class="panel">
       <h2>📊 Your studying</h2>
       <p class="sub">Streak counts days with at least one finished focus session or card review.</p>
-      <div class="stat-grid" id="statGrid"></div>
+      <div class="stat-grid">
+        <div v-for="s in statTiles" :key="s.l" class="stat"><div class="n">{{ s.n }}</div><div class="l">{{ s.l }}</div></div>
+      </div>
       <h2 style="margin-top:18px">Focus minutes — last 7 days</h2>
-      <p class="sub" id="chartSub">—</p>
+      <p class="sub">{{ chartSub }}</p>
       <div class="chart-wrap">
-        <div class="chart" id="chart" role="img" aria-label=""></div>
+        <div class="chart" role="img" :aria-label="chartAria" @mousemove="chartMove" @mouseleave="tipShow=false">
+          <div v-for="(x, i) in chartDays" :key="x.k" class="col" :data-i="i">
+            <div class="vlbl">{{ x.today && x.min ? x.min : "" }}</div>
+            <div class="bar-hit"><div class="bar" :class="{zero: !x.min}" :style="{height: Math.max(2, (x.min / chartMax) * 92) + 'px'}"></div></div>
+            <div class="dlbl" :class="{today: x.today}">{{ x.today ? "Today" : x.lbl }}</div>
+          </div>
+        </div>
         <div class="baseline"></div>
-        <div class="chart-tip" id="chartTip"></div>
+        <div class="chart-tip" v-show="tipShow" :style="tipStyle">{{ tipText }}</div>
       </div>
     </div>
   </section>
 </main>
 
 <footer>Developed by <b>MyoMT</b></footer>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
 
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
 <script>
-(() => {
-  "use strict";
-  const $ = (id) => document.getElementById(id);
-  const DECKS_KEY = "study.decks";
-  const LOG_KEY = "study.log";
-  const CFG_KEY = "study.cfg";
-  const THEME_KEY = "utilities.theme"; /* shared with the hub */
-  const DAY = 86400000;
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus not available — please refresh';
+} else {
+const { createApp, ref, reactive, computed, onMounted } = Vue;
 
-  /* ---- Theme (synced with utility hub) ---- */
-  const applyTheme = (t) => {
-    document.documentElement.dataset.theme = t;
-    $("themeBtn").textContent = t === "light" ? "☀" : "🌙";
-    localStorage.setItem(THEME_KEY, t);
-  };
-  applyTheme(localStorage.getItem(THEME_KEY) || "dark");
-  $("themeBtn").onclick = () =>
-    applyTheme(document.documentElement.dataset.theme === "light" ? "dark" : "light");
+const DECKS_KEY = "study.decks";
+const LOG_KEY = "study.log";
+const CFG_KEY = "study.cfg";
+const THEME_KEY = "utilities.theme"; /* shared with the hub */
+const DAY = 86400000;
 
-  /* ---- Storage helpers ---- */
-  const load = (k, fb) => { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } };
-  const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
-  const dayKey = (d) => {
-    const x = d || new Date();
-    return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0");
-  };
-  const bump = (field, n) => {
-    const log = load(LOG_KEY, {});
-    const k = dayKey();
-    log[k] = log[k] || { focusMin: 0, sessions: 0, reviews: 0 };
-    log[k][field] = (log[k][field] || 0) + n;
-    save(LOG_KEY, log);
-  };
-  const esc = (s) => String(s || "").replace(/[&<>"']/g, (c) =>
-    ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
-
-  /* ---- Tabs ---- */
-  document.querySelectorAll(".tab").forEach((b) =>
-    b.addEventListener("click", () => {
-      document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === b));
-      ["focus", "cards", "stats"].forEach((t) =>
-        $("tab-" + t).classList.toggle("hidden", t !== b.dataset.tab));
-      if (b.dataset.tab === "stats") renderStats();
-      if (b.dataset.tab === "cards") renderCards();
-    }));
-
-  /* ================= POMODORO ================= */
-  const cfg = Object.assign({ focus: 25, short: 5, long: 15, every: 4 }, load(CFG_KEY, {}));
-  const CIRC = 2 * Math.PI * 110;
-  $("ringFill").style.strokeDasharray = CIRC;
-  let mode = "focus";          /* focus | short | long */
-  let running = false;
-  let endAt = 0;               /* deadline timestamp while running */
-  let remainMs = cfg.focus * 60000;
-  let doneSessions = 0;        /* focus sessions since last long break */
-  let tickId = 0;
-
-  const modeLabel = { focus: "Focus", short: "Short break", long: "Long break" };
-  const modeMins = () => (mode === "focus" ? cfg.focus : mode === "short" ? cfg.short : cfg.long);
-
-  const fmtT = (ms) => {
-    const s = Math.max(0, Math.ceil(ms / 1000));
-    return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
-  };
-  const paint = () => {
-    const total = modeMins() * 60000;
-    const left = running ? Math.max(0, endAt - Date.now()) : remainMs;
-    $("timeTxt").textContent = fmtT(left);
-    $("modeTxt").textContent = modeLabel[mode];
-    $("ringFill").style.strokeDashoffset = CIRC * (1 - left / total);
-    document.title = running ? fmtT(left) + " · " + modeLabel[mode] + " — Study Room" : "Study Room — Pomodoro & Flashcards";
-    document.querySelectorAll("[data-mode]").forEach((b) =>
-      b.classList.toggle("primary", b.dataset.mode === mode));
-    $("startBtn").textContent = running ? "⏸ Pause" : "▶ Start";
-    $("dots").innerHTML = Array.from({ length: cfg.every },
-      (_, i) => `<span class="${i < doneSessions ? "on" : ""}"></span>`).join("");
-  };
-  const beep = () => {
-    try {
-      const ac = new (window.AudioContext || window.webkitAudioContext)();
-      [0, 0.22, 0.44].forEach((t) => {
-        const o = ac.createOscillator(), g = ac.createGain();
-        o.frequency.value = 880; o.connect(g); g.connect(ac.destination);
-        g.gain.setValueAtTime(0.001, ac.currentTime + t);
-        g.gain.exponentialRampToValueAtTime(0.2, ac.currentTime + t + 0.02);
-        g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + t + 0.18);
-        o.start(ac.currentTime + t); o.stop(ac.currentTime + t + 0.2);
-      });
-    } catch (e) {}
-  };
-  const notify = (msg) => {
-    if (!("Notification" in window)) return;
-    if (Notification.permission === "granted") new Notification("📚 Study Room", { body: msg });
-  };
-  const finish = () => {
-    stopTick(); running = false;
-    beep();
-    if (mode === "focus") {
-      bump("focusMin", cfg.focus); bump("sessions", 1);
-      doneSessions++;
-      const goLong = doneSessions >= cfg.every;
-      if (goLong) doneSessions = 0;
-      notify("Focus done — take a " + (goLong ? "long" : "short") + " break! 🎉");
-      setMode(goLong ? "long" : "short");
-    } else {
-      notify("Break over — back to it 💪");
-      setMode("focus");
-    }
-  };
-  const tick = () => { if (Date.now() >= endAt) finish(); else paint(); };
-  const startTick = () => { stopTick(); tickId = setInterval(tick, 250); };
-  const stopTick = () => { if (tickId) clearInterval(tickId); tickId = 0; };
-  const setMode = (m) => {
-    mode = m; running = false; stopTick();
-    remainMs = modeMins() * 60000;
-    paint();
-  };
-  $("startBtn").addEventListener("click", () => {
-    if (running) { remainMs = Math.max(0, endAt - Date.now()); running = false; stopTick(); }
-    else {
-      if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
-      endAt = Date.now() + remainMs; running = true; startTick();
-    }
-    paint();
-  });
-  $("resetBtn").addEventListener("click", () => setMode(mode));
-  document.querySelectorAll("[data-mode]").forEach((b) =>
-    b.addEventListener("click", () => setMode(b.dataset.mode)));
-  /* settings */
-  const cfgInputs = { focus: $("cfgFocus"), short: $("cfgShort"), long: $("cfgLong"), every: $("cfgEvery") };
-  Object.keys(cfgInputs).forEach((k) => {
-    cfgInputs[k].value = cfg[k];
-    cfgInputs[k].addEventListener("change", () => {
-      const v = parseInt(cfgInputs[k].value, 10);
-      if (isFinite(v) && v > 0) { cfg[k] = v; save(CFG_KEY, cfg); if (!running) setMode(mode); else paint(); }
+/* ---- Storage helpers (verbatim) ---- */
+const load = (k, fb) => { try { return JSON.parse(localStorage.getItem(k)) ?? fb; } catch { return fb; } };
+const save = (k, v) => localStorage.setItem(k, JSON.stringify(v));
+const dayKey = (d) => {
+  const x = d || new Date();
+  return x.getFullYear() + "-" + String(x.getMonth() + 1).padStart(2, "0") + "-" + String(x.getDate()).padStart(2, "0");
+};
+const bumpLog = (field, n) => {
+  const log = load(LOG_KEY, {});
+  const k = dayKey();
+  log[k] = log[k] || { focusMin: 0, sessions: 0, reviews: 0 };
+  log[k][field] = (log[k][field] || 0) + n;
+  save(LOG_KEY, log);
+};
+/* ---- Streak (verbatim) ---- */
+const streak = (log) => {
+  let n = 0;
+  const d = new Date();
+  const active = (k) => { const e = log[k]; return e && ((e.focusMin || 0) > 0 || (e.reviews || 0) > 0); };
+  if (!active(dayKey(d))) d.setDate(d.getDate() - 1); /* today not started yet ≠ broken streak */
+  while (active(dayKey(d))) { n++; d.setDate(d.getDate() - 1); }
+  return n;
+};
+/* ---- Beep (verbatim WebAudio chime) ---- */
+const beep = () => {
+  try {
+    const ac = new (window.AudioContext || window.webkitAudioContext)();
+    [0, 0.22, 0.44].forEach((t) => {
+      const o = ac.createOscillator(), g = ac.createGain();
+      o.frequency.value = 880; o.connect(g); g.connect(ac.destination);
+      g.gain.setValueAtTime(0.001, ac.currentTime + t);
+      g.gain.exponentialRampToValueAtTime(0.2, ac.currentTime + t + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + t + 0.18);
+      o.start(ac.currentTime + t); o.stop(ac.currentTime + t + 0.2);
     });
-  });
-  /* space = start/pause when the Focus tab is visible and no input focused */
-  document.addEventListener("keydown", (e) => {
-    if (e.code !== "Space" || /input|textarea|select|button/i.test(document.activeElement.tagName)) return;
-    if (!$("tab-focus").classList.contains("hidden")) { e.preventDefault(); $("startBtn").click(); }
-    else if (!$("tab-cards").classList.contains("hidden")) { e.preventDefault(); flipCurrent(); }
-  });
-  setMode("focus");
+  } catch (e) {}
+};
+const notify = (msg) => {
+  if (!("Notification" in window)) return;
+  if (Notification.permission === "granted") new Notification("📚 Study Room", { body: msg });
+};
 
-  /* ================= FLASHCARDS ================= */
-  let decks = load(DECKS_KEY, null);
-  if (!decks || !Array.isArray(decks) || !decks.length) {
-    decks = [{ id: "d" + Date.now().toString(36), name: "My first deck", cards: [] }];
-    save(DECKS_KEY, decks);
-  }
-  let deckId = decks[0].id;
-  let current = null;        /* card under review */
-  let showBack = false;
-  const deck = () => decks.find((d) => d.id === deckId) || decks[0];
-  const dueCards = (d) => (d || deck()).cards.filter((c) => (c.due || 0) <= Date.now());
-  const allDue = () => decks.reduce((n, d) => n + dueCards(d).length, 0);
+const app = createApp({
+  setup() {
+    const toast = (m, type) => ElementPlus.ElMessage({ message: m, type: type || 'info', duration: 3000 });
 
-  const fmtDue = (c) => {
-    if ((c.due || 0) <= Date.now()) return "due now";
-    const days = Math.round((c.due - Date.now()) / DAY);
-    return days < 1 ? "later today" : "in " + days + "d";
-  };
-  const renderDueBadge = () => {
-    const n = allDue();
-    $("dueCnt").textContent = n;
-    $("dueCnt").classList.toggle("hidden", !n);
-  };
-  const renderDeckSel = () => {
-    $("deckSel").innerHTML = decks.map((d) =>
-      `<option value="${d.id}" ${d.id === deckId ? "selected" : ""}>${esc(d.name)} (${d.cards.length})</option>`).join("");
-  };
-  const renderList = () => {
-    const d = deck();
-    $("cardList").innerHTML = d.cards.length
-      ? d.cards.map((c, i) => `<div class="card-item">
-          <span class="f">${esc(c.f)}</span><span class="b">${esc(c.b)}</span>
-          <span class="due">${fmtDue(c)}</span>
-          <button data-del="${i}" title="Delete card">✕</button>
-        </div>`).join("")
-      : '<div class="empty">No cards in this deck yet — add your first one above.</div>';
-  };
-  const pickNext = () => {
-    const q = dueCards();
-    current = q.length ? q[Math.floor(Math.random() * q.length)] : null;
-    showBack = false;
-  };
-  const renderReview = () => {
-    const d = deck();
-    const due = dueCards(d).length;
-    $("reviewSub").textContent = d.cards.length
-      ? due + " of " + d.cards.length + " card" + (d.cards.length === 1 ? "" : "s") + " due in “" + d.name + "”"
-      : "This deck is empty.";
-    if (!current) {
-      $("reviewArea").innerHTML = `<div class="empty">${d.cards.length ? "🎉 All caught up — nothing due right now." : "Add cards below to start reviewing."}</div>`;
-      return;
-    }
-    $("reviewArea").innerHTML = `
-      <div class="review-card" id="revCard">${esc(showBack ? current.b : current.f)}
-        <span class="hint">${showBack ? "How well did you know it?" : "Click or press Space to flip"}</span></div>
-      <div class="rate-row ${showBack ? "" : "hidden"}">
-        <button class="btn" id="rateAgain">😅 Again<span class="k">1 · ~10 min</span></button>
-        <button class="btn" id="rateGood">🙂 Good<span class="k">2 · ${current.iv === 0 ? "1d" : current.iv === 1 ? "3d" : Math.round((current.iv || 1) * 2.3) + "d"}</span></button>
-        <button class="btn primary" id="rateEasy">😎 Easy<span class="k">3 · ${current.iv === 0 ? "3d" : Math.round((current.iv || 1) * 3.2) + "d"}</span></button>
-      </div>`;
-    $("revCard").onclick = flipCurrent;
-    const rate = (fn) => () => { fn(); bump("reviews", 1); save(DECKS_KEY, decks); pickNext(); renderCards(); };
-    const btnA = $("rateAgain"), btnG = $("rateGood"), btnE = $("rateEasy");
-    if (btnA) btnA.onclick = rate(() => { current.iv = 0; current.due = Date.now() + 10 * 60000; });
-    if (btnG) btnG.onclick = rate(() => {
-      current.iv = current.iv === 0 ? 1 : current.iv === 1 ? 3 : Math.round(current.iv * 2.3);
-      current.due = Date.now() + current.iv * DAY; current.reps = (current.reps || 0) + 1;
-    });
-    if (btnE) btnE.onclick = rate(() => {
-      current.iv = current.iv === 0 ? 3 : Math.round(current.iv * 3.2);
-      current.due = Date.now() + current.iv * DAY; current.reps = (current.reps || 0) + 1;
-    });
-  };
-  function flipCurrent() { if (current) { showBack = !showBack; renderReview(); } }
-  document.addEventListener("keydown", (e) => {
-    if (/input|textarea|select/i.test(document.activeElement.tagName)) return;
-    if ($("tab-cards").classList.contains("hidden") || !current || !showBack) return;
-    if (e.key === "1") $("rateAgain")?.click();
-    if (e.key === "2") $("rateGood")?.click();
-    if (e.key === "3") $("rateEasy")?.click();
-  });
-  const renderCards = () => { renderDeckSel(); renderList(); renderDueBadge(); if (!current || (current.due || 0) > Date.now()) pickNext(); renderReview(); };
-
-  $("deckSel").addEventListener("change", () => { deckId = $("deckSel").value; current = null; renderCards(); });
-  $("newDeckBtn").addEventListener("click", () => {
-    const name = prompt("Deck name:", "New deck");
-    if (!name) return;
-    const d = { id: "d" + Date.now().toString(36), name: name.trim().slice(0, 60), cards: [] };
-    decks.push(d); deckId = d.id; save(DECKS_KEY, decks); current = null; renderCards();
-  });
-  $("renameDeckBtn").addEventListener("click", () => {
-    const name = prompt("Rename deck:", deck().name);
-    if (!name) return;
-    deck().name = name.trim().slice(0, 60); save(DECKS_KEY, decks); renderCards();
-  });
-  $("delDeckBtn").addEventListener("click", () => {
-    if (!confirm('Delete deck "' + deck().name + '" and its ' + deck().cards.length + " cards?")) return;
-    decks = decks.filter((d) => d.id !== deckId);
-    if (!decks.length) decks = [{ id: "d" + Date.now().toString(36), name: "My first deck", cards: [] }];
-    deckId = decks[0].id; save(DECKS_KEY, decks); current = null; renderCards();
-  });
-  $("addCardBtn").addEventListener("click", () => {
-    const f = $("frontInp").value.trim(), b = $("backInp").value.trim();
-    if (!f || !b) return;
-    deck().cards.push({ id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), f, b, iv: 0, due: 0, reps: 0 });
-    $("frontInp").value = ""; $("backInp").value = ""; $("frontInp").focus();
-    save(DECKS_KEY, decks); renderCards();
-  });
-  $("backInp").addEventListener("keydown", (e) => { if (e.key === "Enter") $("addCardBtn").click(); });
-  $("cardList").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-del]"); if (!b) return;
-    deck().cards.splice(+b.dataset.del, 1);
-    save(DECKS_KEY, decks); current = null; renderCards();
-  });
-  $("exportBtn").addEventListener("click", () => {
-    const blob = new Blob([JSON.stringify(decks, null, 2)], { type: "application/json" });
-    const a = document.createElement("a");
-    a.href = URL.createObjectURL(blob); a.download = "study-decks.json"; a.click();
-    URL.revokeObjectURL(a.href);
-  });
-  $("importBtn").addEventListener("click", () => $("importFile").click());
-  $("importFile").addEventListener("change", async (e) => {
-    const file = e.target.files[0]; if (!file) return;
-    e.target.value = "";
-    try {
-      const arr = JSON.parse(await file.text());
-      if (!Array.isArray(arr)) throw 0;
-      let added = 0;
-      arr.forEach((d) => {
-        if (!d || !Array.isArray(d.cards)) return;
-        const cards = d.cards.filter((c) => c && typeof c.f === "string" && typeof c.b === "string")
-          .map((c) => ({ id: "c" + Math.random().toString(36).slice(2, 9), f: c.f, b: c.b, iv: +c.iv || 0, due: +c.due || 0, reps: +c.reps || 0 }));
-        decks.push({ id: "d" + Math.random().toString(36).slice(2, 9), name: String(d.name || "Imported").slice(0, 60), cards });
-        added += cards.length;
-      });
-      save(DECKS_KEY, decks); renderCards();
-      alert("Imported " + added + " cards.");
-    } catch { alert("Couldn't read that file — expecting a study-decks.json export."); }
-  });
-  renderCards();
-
-  /* ================= STATS ================= */
-  const streak = (log) => {
-    let n = 0;
-    const d = new Date();
-    const active = (k) => { const e = log[k]; return e && ((e.focusMin || 0) > 0 || (e.reviews || 0) > 0); };
-    if (!active(dayKey(d))) d.setDate(d.getDate() - 1); /* today not started yet ≠ broken streak */
-    while (active(dayKey(d))) { n++; d.setDate(d.getDate() - 1); }
-    return n;
-  };
-  function renderStats() {
-    const log = load(LOG_KEY, {});
-    const today = log[dayKey()] || { focusMin: 0, sessions: 0, reviews: 0 };
-    const totalCards = decks.reduce((n, d) => n + d.cards.length, 0);
-    const tiles = [
-      { n: "🔥 " + streak(log), l: "day streak" },
-      { n: today.focusMin, l: "min today" },
-      { n: today.sessions, l: "sessions today" },
-      { n: today.reviews, l: "reviews today" },
-      { n: totalCards, l: "cards total" },
-    ];
-    $("statGrid").innerHTML = tiles.map((s) => `<div class="stat"><div class="n">${s.n}</div><div class="l">${s.l}</div></div>`).join("");
-
-    /* 7-day bars */
-    const days = [];
-    for (let i = 6; i >= 0; i--) {
-      const d = new Date(); d.setDate(d.getDate() - i);
-      const k = dayKey(d);
-      days.push({ k, lbl: d.toLocaleDateString(undefined, { weekday: "short" }), min: (log[k] && log[k].focusMin) || 0, today: i === 0 });
-    }
-    const max = Math.max(...days.map((x) => x.min), 1);
-    const weekTotal = days.reduce((n, x) => n + x.min, 0);
-    $("chartSub").textContent = weekTotal ? weekTotal + " focused minutes this week" : "Finish a focus session to start the chart.";
-    $("chart").setAttribute("aria-label",
-      "Focus minutes per day, last 7 days: " + days.map((x) => x.lbl + " " + x.min).join(", "));
-    $("chart").innerHTML = days.map((x, i) => `
-      <div class="col" data-i="${i}">
-        <div class="vlbl">${x.today && x.min ? x.min : ""}</div>
-        <div class="bar-hit"><div class="bar ${x.min ? "" : "zero"}" style="height:${Math.max(2, (x.min / max) * 92)}px"></div></div>
-        <div class="dlbl ${x.today ? "today" : ""}">${x.today ? "Today" : x.lbl}</div>
-      </div>`).join("");
-    /* per-bar hover tooltip */
-    const tip = $("chartTip");
-    $("chart").onmousemove = (e) => {
-      const col = e.target.closest(".col");
-      if (!col) { tip.style.display = "none"; return; }
-      const d = days[+col.dataset.i];
-      tip.textContent = (d.today ? "Today" : d.lbl) + " · " + d.min + " min";
-      tip.style.display = "block";
-      const r = $("chart").parentElement.getBoundingClientRect();
-      tip.style.left = Math.min(e.clientX - r.left + 12, r.width - 110) + "px";
-      tip.style.top = (e.clientY - r.top - 34) + "px";
+    /* ---- Theme (synced with utility hub) ---- */
+    const theme = ref(localStorage.getItem(THEME_KEY) || "dark");
+    const applyTheme = (t) => {
+      theme.value = t;
+      document.documentElement.dataset.theme = t;
+      document.documentElement.classList.toggle("dark", t !== "light");
+      localStorage.setItem(THEME_KEY, t);
     };
-    $("chart").onmouseleave = () => { tip.style.display = "none"; };
+    const toggleTheme = () => applyTheme(theme.value === "light" ? "dark" : "light");
+
+    /* ---- Tabs ---- */
+    const tab = ref("focus");
+
+    /* ---- Stats reactivity trigger (log lives in localStorage — same key/shape) ---- */
+    const statsTick = ref(0);
+    const bump = (field, n) => { bumpLog(field, n); statsTick.value++; };
+
+    /* ================= POMODORO (logic verbatim, deadline-based) ================= */
+    const cfg = reactive(Object.assign({ focus: 25, short: 5, long: 15, every: 4 }, load(CFG_KEY, {})));
+    const CIRC = 2 * Math.PI * 110;
+    const mode = ref("focus");          /* focus | short | long */
+    const running = ref(false);
+    const doneSessions = ref(0);        /* focus sessions since last long break */
+    let endAt = 0;                      /* deadline timestamp while running */
+    let remainMs = cfg.focus * 60000;
+    let tickId = 0;
+    const leftMs = ref(remainMs);
+
+    const modeLabel = { focus: "Focus", short: "Short break", long: "Long break" };
+    const modeMins = () => (mode.value === "focus" ? cfg.focus : mode.value === "short" ? cfg.short : cfg.long);
+
+    const fmtT = (ms) => {
+      const s = Math.max(0, Math.ceil(ms / 1000));
+      return String(Math.floor(s / 60)).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+    };
+    const timeTxt = computed(() => fmtT(leftMs.value));
+    const ringOffset = computed(() => CIRC * (1 - leftMs.value / (modeMins() * 60000)));
+
+    const paint = () => {
+      const left = running.value ? Math.max(0, endAt - Date.now()) : remainMs;
+      leftMs.value = left;
+      document.title = running.value ? fmtT(left) + " · " + modeLabel[mode.value] + " — Study Room" : "Study Room — Pomodoro & Flashcards";
+    };
+    const finish = () => {
+      stopTick(); running.value = false;
+      beep();
+      if (mode.value === "focus") {
+        bump("focusMin", cfg.focus); bump("sessions", 1);
+        doneSessions.value++;
+        const goLong = doneSessions.value >= cfg.every;
+        if (goLong) doneSessions.value = 0;
+        notify("Focus done — take a " + (goLong ? "long" : "short") + " break! 🎉");
+        setMode(goLong ? "long" : "short");
+      } else {
+        notify("Break over — back to it 💪");
+        setMode("focus");
+      }
+    };
+    const tick = () => { if (Date.now() >= endAt) finish(); else paint(); };
+    const startTick = () => { stopTick(); tickId = setInterval(tick, 250); };
+    const stopTick = () => { if (tickId) clearInterval(tickId); tickId = 0; };
+    const setMode = (m) => {
+      mode.value = m; running.value = false; stopTick();
+      remainMs = modeMins() * 60000;
+      paint();
+    };
+    const startPause = () => {
+      if (running.value) { remainMs = Math.max(0, endAt - Date.now()); running.value = false; stopTick(); }
+      else {
+        if ("Notification" in window && Notification.permission === "default") Notification.requestPermission();
+        endAt = Date.now() + remainMs; running.value = true; startTick();
+      }
+      paint();
+    };
+    /* settings — same validation as before, persisted to study.cfg */
+    const cfgInputs = reactive({ focus: cfg.focus, short: cfg.short, long: cfg.long, every: cfg.every });
+    const cfgChange = (k) => {
+      const v = parseInt(cfgInputs[k], 10);
+      if (isFinite(v) && v > 0) { cfg[k] = v; save(CFG_KEY, cfg); if (!running.value) setMode(mode.value); else paint(); }
+      else cfgInputs[k] = cfg[k];
+    };
+
+    /* ================= FLASHCARDS (same key + shape: study.decks) ================= */
+    let initDecks = load(DECKS_KEY, null);
+    if (!initDecks || !Array.isArray(initDecks) || !initDecks.length) {
+      initDecks = [{ id: "d" + Date.now().toString(36), name: "My first deck", cards: [] }];
+      save(DECKS_KEY, initDecks);
+    }
+    const decks = ref(initDecks);
+    const deckId = ref(initDecks[0].id);
+    const current = ref(null);        /* card under review */
+    const showBack = ref(false);
+    const frontInp = ref("");
+    const backInp = ref("");
+    const deckObj = computed(() => decks.value.find((d) => d.id === deckId.value) || decks.value[0]);
+    const dueCards = (d) => (d || deckObj.value).cards.filter((c) => (c.due || 0) <= Date.now());
+    const allDue = computed(() => { statsTick.value; return decks.value.reduce((n, d) => n + dueCards(d).length, 0); });
+    const saveDecks = () => save(DECKS_KEY, decks.value);
+
+    const fmtDue = (c) => {
+      if ((c.due || 0) <= Date.now()) return "due now";
+      const days = Math.round((c.due - Date.now()) / DAY);
+      return days < 1 ? "later today" : "in " + days + "d";
+    };
+    const pickNext = () => {
+      const q = dueCards();
+      current.value = q.length ? q[Math.floor(Math.random() * q.length)] : null;
+      showBack.value = false;
+    };
+    const reviewSub = computed(() => {
+      statsTick.value;
+      const d = deckObj.value;
+      const due = dueCards(d).length;
+      return d.cards.length
+        ? due + " of " + d.cards.length + " card" + (d.cards.length === 1 ? "" : "s") + " due in “" + d.name + "”"
+        : "This deck is empty.";
+    });
+    /* same interval preview labels as before */
+    const goodLbl = computed(() => !current.value ? "" :
+      (current.value.iv === 0 ? "1d" : current.value.iv === 1 ? "3d" : Math.round((current.value.iv || 1) * 2.3) + "d"));
+    const easyLbl = computed(() => !current.value ? "" :
+      (current.value.iv === 0 ? "3d" : Math.round((current.value.iv || 1) * 3.2) + "d"));
+
+    const rate = (fn) => { fn(); bump("reviews", 1); saveDecks(); pickNext(); };
+    const rateAgain = () => rate(() => { current.value.iv = 0; current.value.due = Date.now() + 10 * 60000; });
+    const rateGood = () => rate(() => {
+      const c = current.value;
+      c.iv = c.iv === 0 ? 1 : c.iv === 1 ? 3 : Math.round(c.iv * 2.3);
+      c.due = Date.now() + c.iv * DAY; c.reps = (c.reps || 0) + 1;
+    });
+    const rateEasy = () => rate(() => {
+      const c = current.value;
+      c.iv = c.iv === 0 ? 3 : Math.round(c.iv * 3.2);
+      c.due = Date.now() + c.iv * DAY; c.reps = (c.reps || 0) + 1;
+    });
+    function flipCurrent() { if (current.value) { showBack.value = !showBack.value; } }
+
+    const deckChanged = () => { current.value = null; pickNext(); };
+    const newDeck = () => {
+      ElementPlus.ElMessageBox.prompt("Deck name:", "＋ New deck", { inputValue: "New deck", confirmButtonText: "Create", cancelButtonText: "Cancel" })
+        .then(({ value }) => {
+          if (!value) return;
+          const d = { id: "d" + Date.now().toString(36), name: value.trim().slice(0, 60), cards: [] };
+          decks.value.push(d); deckId.value = d.id; saveDecks(); current.value = null; pickNext();
+        }).catch(() => {});
+    };
+    const renameDeck = () => {
+      ElementPlus.ElMessageBox.prompt("Rename deck:", "✏ Rename", { inputValue: deckObj.value.name, confirmButtonText: "Rename", cancelButtonText: "Cancel" })
+        .then(({ value }) => {
+          if (!value) return;
+          deckObj.value.name = value.trim().slice(0, 60); saveDecks();
+        }).catch(() => {});
+    };
+    const delDeck = () => {
+      decks.value = decks.value.filter((d) => d.id !== deckId.value);
+      if (!decks.value.length) decks.value = [{ id: "d" + Date.now().toString(36), name: "My first deck", cards: [] }];
+      deckId.value = decks.value[0].id; saveDecks(); current.value = null; pickNext();
+    };
+    const addCard = () => {
+      const f = frontInp.value.trim(), b = backInp.value.trim();
+      if (!f || !b) return;
+      deckObj.value.cards.push({ id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), f, b, iv: 0, due: 0, reps: 0 });
+      frontInp.value = ""; backInp.value = "";
+      saveDecks(); if (!current.value) pickNext();
+    };
+    const delCard = (i) => {
+      deckObj.value.cards.splice(i, 1);
+      saveDecks(); current.value = null; pickNext();
+    };
+    const exportDecks = () => {
+      const blob = new Blob([JSON.stringify(decks.value, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob); a.download = "study-decks.json"; a.click();
+      URL.revokeObjectURL(a.href);
+    };
+    const importFile = ref(null);
+    const importDecks = async (e) => {
+      const file = e.target.files[0]; if (!file) return;
+      e.target.value = "";
+      try {
+        const arr = JSON.parse(await file.text());
+        if (!Array.isArray(arr)) throw 0;
+        let added = 0;
+        arr.forEach((d) => {
+          if (!d || !Array.isArray(d.cards)) return;
+          const cards = d.cards.filter((c) => c && typeof c.f === "string" && typeof c.b === "string")
+            .map((c) => ({ id: "c" + Math.random().toString(36).slice(2, 9), f: c.f, b: c.b, iv: +c.iv || 0, due: +c.due || 0, reps: +c.reps || 0 }));
+          decks.value.push({ id: "d" + Math.random().toString(36).slice(2, 9), name: String(d.name || "Imported").slice(0, 60), cards });
+          added += cards.length;
+        });
+        saveDecks();
+        toast("Imported " + added + " cards.", "success");
+      } catch { toast("Couldn't read that file — expecting a study-decks.json export.", "error"); }
+    };
+
+    /* ================= STATS ================= */
+    const statTiles = computed(() => {
+      statsTick.value;
+      const log = load(LOG_KEY, {});
+      const today = log[dayKey()] || { focusMin: 0, sessions: 0, reviews: 0 };
+      const totalCards = decks.value.reduce((n, d) => n + d.cards.length, 0);
+      return [
+        { n: "🔥 " + streak(log), l: "day streak" },
+        { n: today.focusMin, l: "min today" },
+        { n: today.sessions, l: "sessions today" },
+        { n: today.reviews, l: "reviews today" },
+        { n: totalCards, l: "cards total" },
+      ];
+    });
+    const chartDays = computed(() => {
+      statsTick.value;
+      const log = load(LOG_KEY, {});
+      const days = [];
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(); d.setDate(d.getDate() - i);
+        const k = dayKey(d);
+        days.push({ k, lbl: d.toLocaleDateString(undefined, { weekday: "short" }), min: (log[k] && log[k].focusMin) || 0, today: i === 0 });
+      }
+      return days;
+    });
+    const chartMax = computed(() => Math.max(...chartDays.value.map((x) => x.min), 1));
+    const chartSub = computed(() => {
+      const weekTotal = chartDays.value.reduce((n, x) => n + x.min, 0);
+      return weekTotal ? weekTotal + " focused minutes this week" : "Finish a focus session to start the chart.";
+    });
+    const chartAria = computed(() =>
+      "Focus minutes per day, last 7 days: " + chartDays.value.map((x) => x.lbl + " " + x.min).join(", "));
+    /* per-bar hover tooltip */
+    const tipShow = ref(false);
+    const tipText = ref("");
+    const tipStyle = ref({});
+    const chartMove = (e) => {
+      const col = e.target.closest(".col");
+      if (!col) { tipShow.value = false; return; }
+      const d = chartDays.value[+col.dataset.i];
+      tipText.value = (d.today ? "Today" : d.lbl) + " · " + d.min + " min";
+      tipShow.value = true;
+      const r = col.closest(".chart").parentElement.getBoundingClientRect();
+      tipStyle.value = {
+        left: Math.min(e.clientX - r.left + 12, r.width - 110) + "px",
+        top: (e.clientY - r.top - 34) + "px",
+      };
+    };
+
+    /* keyboard: space = start/pause (Focus tab) or flip (Cards tab); 1/2/3 rate */
+    const onKeydown = (e) => {
+      if (e.code === "Space") {
+        if (/input|textarea|select|button/i.test(document.activeElement.tagName)) return;
+        if (tab.value === "focus") { e.preventDefault(); startPause(); }
+        else if (tab.value === "cards") { e.preventDefault(); flipCurrent(); }
+        return;
+      }
+      if (/input|textarea|select/i.test(document.activeElement.tagName)) return;
+      if (tab.value !== "cards" || !current.value || !showBack.value) return;
+      if (e.key === "1") rateAgain();
+      if (e.key === "2") rateGood();
+      if (e.key === "3") rateEasy();
+    };
+
+    onMounted(() => {
+      applyTheme(theme.value);
+      document.addEventListener("keydown", onKeydown);
+      setMode("focus");
+      pickNext();
+      document.getElementById("vue-loading").style.display = "none";
+    });
+
+    return {
+      theme, toggleTheme, tab,
+      cfg, cfgInputs, cfgChange, CIRC, mode, running, doneSessions, modeLabel,
+      timeTxt, ringOffset, setMode, startPause,
+      decks, deckId, deckObj, current, showBack, frontInp, backInp, allDue,
+      fmtDue, reviewSub, goodLbl, easyLbl, flipCurrent,
+      rateAgain, rateGood, rateEasy,
+      deckChanged, newDeck, renameDeck, delDeck, addCard, delCard,
+      exportDecks, importFile, importDecks,
+      statTiles, chartDays, chartMax, chartSub, chartAria,
+      tipShow, tipText, tipStyle, chartMove,
+    };
   }
-  renderStats();
-})();
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
 </script>
 <script defer src="_palette.js"></script>
 <script defer src="_navrail.js"></script>
