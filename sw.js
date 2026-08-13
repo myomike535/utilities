@@ -3,7 +3,7 @@
 // offline fallback for navigation to any cached tool.
 // Bump CACHE_VERSION to force clients to fetch fresh copies.
 
-const CACHE_VERSION = 'utilities-v67';
+const CACHE_VERSION = 'utilities-v68';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -32,6 +32,10 @@ const PRECACHE_URLS = [
   './Translator.html',
   './GradedReading.html',
   './PronunciationLab.html',
+  './MiniERP.html',
+  './CSVToolkit.html',
+  './QRGenerator.html',
+  './MarkdownEditor.html',
   './CodePlayground.html',
   './ImageCompressor.html',
   './WinnerPicker.html',
@@ -44,6 +48,8 @@ const PRECACHE_URLS = [
   './BookmarkManager.html',
   './NoteTakerVue.html',
   './vue.global.prod.js',
+  './qrcode.min.js',
+  './marked.min.js',
   './element-plus.full.min.js',
   './element-plus.css',
   './element-plus.dark.css',

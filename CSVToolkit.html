@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CSV Toolkit · ဇယားကြည့်/ပြောင်း</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#0ea5e9">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#0ea5e9; --accent-2:#06b6d4;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#0ea5e9;
+    --el-color-primary-light-3:#38bdf8;
+    --el-color-primary-dark-2:#0284c7;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(14,165,233,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(6,182,212,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1240px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(14,165,233,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px; padding:14px 16px; margin-bottom:14px; }
+
+  .dropzone {
+    border:2px dashed var(--field-border); border-radius:13px; padding:38px 16px;
+    text-align:center; color:var(--muted); cursor:pointer; transition:all .18s;
+    background:var(--field);
+  }
+  .dropzone:hover, .dropzone.over {
+    border-color:var(--accent); color:var(--text);
+    background:color-mix(in srgb, var(--accent) 8%, var(--field));
+  }
+  .dropzone .big { font-size:2rem; margin-bottom:8px; }
+  .dropzone .hint { font-size:.75rem; color:var(--faint); margin-top:8px; }
+
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .toolbar .search { flex:1; min-width:220px; }
+  .statsbar { display:flex; gap:8px; flex-wrap:wrap; align-items:center; margin-bottom:12px; font-size:.8rem; color:var(--muted); }
+  .statsbar .chip {
+    background:var(--card2); border:1px solid rgba(255,255,255,.08); border-radius:8px;
+    padding:4px 10px; display:inline-flex; gap:6px; align-items:center;
+  }
+  .statsbar .chip b { color:var(--text); }
+
+  .statgrid { width:100%; border-collapse:collapse; font-size:.78rem; }
+  .statgrid th, .statgrid td { padding:6px 10px; text-align:right; border-bottom:1px solid var(--field-border); font-variant-numeric:tabular-nums; }
+  .statgrid th:first-child, .statgrid td:first-child { text-align:left; font-weight:600; color:var(--text); }
+  .statgrid th { color:var(--muted); font-weight:600; }
+  .statgrid td { color:#c3cad6; font-family:var(--mono); }
+
+  .colchk { display:flex; flex-direction:column; gap:2px; max-height:300px; overflow-y:auto; }
+  .pager { display:flex; justify-content:center; margin-top:12px; align-items:center; gap:10px; flex-wrap:wrap; }
+  .pager .note { font-size:.72rem; color:var(--faint); }
+  .empty { text-align:center; color:var(--faint); padding:40px 0 20px; font-size:.9rem; }
+
+  .el-table { --el-table-header-bg-color:var(--card2); --el-table-bg-color:var(--field);
+    --el-table-tr-bg-color:var(--field); --el-table-row-hover-bg-color:#1a2130;
+    font-variant-numeric:tabular-nums; }
+  .el-table .cell { font-size:.8rem; white-space:pre-wrap; word-break:break-word; }
+  .el-textarea__inner { font-family:var(--mono); font-size:.8rem; line-height:1.6; }
+  label.fl { display:block; font-size:.72rem; color:var(--muted); margin:0 0 4px; font-weight:600; }
+  .ctl { display:flex; flex-direction:column; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">📊</div>
+    <div class="title">
+      <h1>CSV Toolkit</h1>
+      <div class="sub">CSV/TSV ဇယားများ ကြည့်ရှု・စစ်ထုတ်・ပြောင်းလဲရန် — offline viewer & converter (JSON / Markdown)</div>
+    </div>
+    <el-button v-if="hasData" @click="clearAll">🗑 Clear</el-button>
+  </header>
+
+  <!-- ===== Input card ===== -->
+  <div class="card">
+    <el-tabs v-model="tab">
+      <el-tab-pane label="📁 ဖိုင်ဖွင့်ရန် (Open file)" name="file">
+        <div class="dropzone" :class="{ over: dragOver }"
+             @click="fileEl && fileEl.click()"
+             @dragover.prevent="dragOver = true"
+             @dragleave.prevent="dragOver = false"
+             @drop.prevent="onDrop">
+          <div class="big">📂</div>
+          <div>CSV / TSV ဖိုင်ကို ဒီနေရာသို့ ဆွဲချပါ — သို့မဟုတ် နှိပ်၍ ရွေးပါ</div>
+          <div class="hint">.csv · .tsv · .txt — delimiter (comma / semicolon / tab / pipe) ကို အလိုအလျောက် ခန့်မှန်းပေးသည်။ Quoted fields (embedded commas, newlines) ကိုလည်း ကိုင်တွယ်နိုင်သည်။ File content ကို ဘယ်တော့မှ မသိမ်းပါ။</div>
+        </div>
+        <input type="file" ref="fileEl" accept=".csv,.tsv,.txt,text/csv,text/tab-separated-values" style="display:none" @change="onPick">
+      </el-tab-pane>
+      <el-tab-pane label="📋 Paste CSV" name="paste">
+        <el-input v-model="pasteText" type="textarea" :rows="8"
+          placeholder='name,city,amount&#10;"Smith, John",Yangon,120&#10;Aye Aye,"Mandalay",85'></el-input>
+        <div style="margin-top:10px; display:flex; gap:8px; align-items:center">
+          <el-button type="primary" @click="parsePaste">📥 Parse</el-button>
+          <span style="font-size:.75rem; color:var(--faint)">Paste ထည့်ပြီး Parse နှိပ်ပါ</span>
+        </div>
+      </el-tab-pane>
+    </el-tabs>
+  </div>
+
+  <!-- ===== Data view ===== -->
+  <div v-if="hasData">
+    <div class="toolbar">
+      <el-input class="search" v-model="searchQ" placeholder="🔍 ရှာရန် — column အားလုံးထဲမှ စစ်ထုတ်ရန်…" clearable></el-input>
+      <div class="ctl">
+        <label class="fl">Delimiter</label>
+        <el-select v-model="delimChoice" style="width:150px">
+          <el-option v-for="d in DELIMS" :key="d.v" :value="d.v" :label="d.l"></el-option>
+        </el-select>
+      </div>
+      <div class="ctl">
+        <label class="fl">First row = header</label>
+        <el-switch v-model="headerOn"></el-switch>
+      </div>
+      <div class="ctl">
+        <label class="fl">Columns</label>
+        <el-popover trigger="click" :width="240" placement="bottom-end">
+          <template #reference>
+            <el-button>🧩 {{ visibleCols.length }}/{{ cols.length }}</el-button>
+          </template>
+          <div class="colchk">
+            <el-checkbox v-for="c in cols" :key="c.key" v-model="c.visible">{{ c.label }}</el-checkbox>
+          </div>
+        </el-popover>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <el-button type="primary" plain @click="downloadJSON">⬇ JSON</el-button>
+      <div class="ctl" style="flex-direction:row; align-items:center; gap:6px">
+        <el-button type="primary" plain @click="downloadCSV">⬇ CSV</el-button>
+        <el-select v-model="exportDelim" style="width:130px" size="small">
+          <el-option v-for="d in EXPORT_DELIMS" :key="d.v" :value="d.v" :label="d.l"></el-option>
+        </el-select>
+      </div>
+      <el-button @click="copyJSON">📋 Copy JSON</el-button>
+      <el-button @click="copyMarkdown">📋 Copy Markdown</el-button>
+    </div>
+
+    <div class="statsbar">
+      <span class="chip" v-if="fileName">📄 <b>{{ fileName }}</b></span>
+      <span class="chip">🧮 <b>{{ fmtInt(dataRows.length) }}</b> rows × <b>{{ cols.length }}</b> cols</span>
+      <span class="chip">➗ delimiter: <b>{{ delimName(activeDelim) }}</b></span>
+      <span class="chip" v-if="searchQ.trim()">🔍 filtered: <b>{{ fmtInt(filtered.length) }}</b> rows</span>
+      <span class="chip" v-if="paged" style="color:var(--accent)">📑 ဖိုင်ကြီးသောကြောင့် page ခွဲပြထားသည် — {{ PAGE_SIZE }} rows/page</span>
+    </div>
+
+    <el-collapse v-if="numStats.length" style="margin-bottom:12px">
+      <el-collapse-item :title="'📈 ကိန်းဂဏန်း column စာရင်းအင်း (numeric stats — ' + numStats.length + ' columns)'" name="stats">
+        <table class="statgrid">
+          <thead><tr><th>Column</th><th>Min</th><th>Max</th><th>Avg</th><th>Sum</th><th>Count</th></tr></thead>
+          <tbody>
+            <tr v-for="s in numStats" :key="s.label">
+              <td>{{ s.label }}</td><td>{{ fmtNum(s.min) }}</td><td>{{ fmtNum(s.max) }}</td>
+              <td>{{ fmtNum(s.avg) }}</td><td>{{ fmtNum(s.sum) }}</td><td>{{ fmtInt(s.count) }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </el-collapse-item>
+    </el-collapse>
+
+    <el-table :key="tableKey" :data="pageRows" :height="tableHeight" border stripe
+      @sort-change="onSort" empty-text="ရှာဖွေမှုနှင့် ကိုက်ညီသော row မရှိပါ">
+      <el-table-column label="#" width="70" fixed>
+        <template #default="scope">
+          <span style="color:var(--faint)">{{ scope.row.__n }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column v-for="c in visibleCols" :key="c.key" :prop="c.key"
+        :label="c.label + (c.numeric ? ' 🔢' : '')" sortable="custom"
+        :min-width="140" show-overflow-tooltip></el-table-column>
+    </el-table>
+
+    <div class="pager" v-if="paged">
+      <el-pagination layout="prev, pager, next, jumper" :total="filtered.length"
+        :page-size="PAGE_SIZE" v-model:current-page="page" background></el-pagination>
+      <span class="note">rows {{ fmtInt(filtered.length) }} — {{ PAGE_SIZE }} rows တစ် page ({{ fmtInt(5000) }} ကျော်လျှင် page ခွဲသည်)</span>
+    </div>
+  </div>
+  <div v-else class="empty">ဇယားဒေတာ မရှိသေးပါ — အပေါ်မှ ဖိုင်ဖွင့်ပါ သို့မဟုတ် CSV paste လုပ်ပါ</div>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, watch, onMounted } = Vue;
+const PREFS = 'csvtk.prefs';
+const PAGE_SIZE = 500;
+const PAGE_THRESHOLD = 5000;
+
+/* ---------- pure CSV helpers ---------- */
+function parseCSV(text, delim) {
+  const rows = []; let row = []; let cur = ''; let inQ = false;
+  for (let i = 0; i < text.length; i++) {
+    const ch = text[i];
+    if (inQ) {
+      if (ch === '"') {
+        if (text[i + 1] === '"') { cur += '"'; i++; }
+        else inQ = false;
+      } else cur += ch;
+    } else if (ch === '"') {
+      inQ = true;
+    } else if (ch === delim) {
+      row.push(cur); cur = '';
+    } else if (ch === '\n') {
+      row.push(cur); rows.push(row); row = []; cur = '';
+    } else if (ch === '\r') {
+      if (text[i + 1] !== '\n') { row.push(cur); rows.push(row); row = []; cur = ''; }
+    } else {
+      cur += ch;
+    }
+  }
+  if (cur !== '' || row.length) { row.push(cur); rows.push(row); }
+  return rows.filter(r => !(r.length === 1 && r[0].trim() === ''));
+}
+
+function countOutsideQuotes(line, d) {
+  let n = 0, inQ = false;
+  for (const ch of line) {
+    if (ch === '"') inQ = !inQ;
+    else if (!inQ && ch === d) n++;
+  }
+  return n;
+}
+
+function detectDelim(text) {
+  const lines = text.split(/\r\n|\n|\r/).filter(l => l.trim() !== '').slice(0, 10);
+  if (!lines.length) return ',';
+  const cands = [',', ';', '\t', '|'];
+  let best = ',', bestScore = 0;
+  for (const d of cands) {
+    const counts = lines.map(l => countOutsideQuotes(l, d));
+    const min = Math.min(...counts);
+    const first = counts[0];
+    // prefer delimiters that appear on every sampled line, weight consistency
+    const score = min > 0 ? min * 10 + (counts.every(c => c === first) ? 5 : 0) : first;
+    if (score > bestScore) { bestScore = score; best = d; }
+  }
+  return best;
+}
+
+function guessHeader(rows) {
+  if (!rows.length) return true;
+  const isNum = v => (v || '').trim() !== '' && !isNaN(Number(v));
+  const first = rows[0];
+  if (first.some(isNum)) return false;
+  if (first.some(c => (c || '').trim() === '')) return false;
+  if (rows.length < 2) return true;
+  if (rows[1].some(isNum)) return true;
+  const uniq = new Set(first.map(c => c.trim().toLowerCase()));
+  return uniq.size === first.length;
+}
+
+function csvEscape(v, d) {
+  v = v == null ? '' : String(v);
+  if (v.includes('"') || v.includes(d) || v.includes('\n') || v.includes('\r')) {
+    return '"' + v.replace(/"/g, '""') + '"';
+  }
+  return v;
+}
+
+/* ---------- app ---------- */
+const app = createApp({
+  setup() {
+    const DELIMS = [
+      { v: 'auto', l: '🪄 Auto detect' },
+      { v: ',', l: ', Comma' },
+      { v: ';', l: '; Semicolon' },
+      { v: '\t', l: '⇥ Tab' },
+      { v: '|', l: '| Pipe' },
+    ];
+    const EXPORT_DELIMS = DELIMS.slice(1);
+
+    const tab = ref('file');
+    const fileEl = ref(null);
+    const dragOver = ref(false);
+    const pasteText = ref('');
+    const fileName = ref('');
+
+    const rawText = ref('');
+    const rawRows = ref([]);
+    const cols = ref([]);
+    const headerOn = ref(true);
+    const delimChoice = ref('auto');
+    const activeDelim = ref(',');
+    const exportDelim = ref(',');
+
+    const searchQ = ref('');
+    const sortState = ref(null); // { i, order, numeric }
+    const page = ref(1);
+    const tableKey = ref(0);
+    const tableHeight = ref(480);
+    let suppressGuess = false;
+
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2800 });
+
+    /* ----- prefs (delimiter + header toggle only — never file contents) ----- */
+    try {
+      const p = JSON.parse(localStorage.getItem(PREFS) || '{}');
+      if (p.delim && DELIMS.some(d => d.v === p.delim)) delimChoice.value = p.delim;
+      if (typeof p.header === 'boolean') headerOn.value = p.header;
+      if (p.exportDelim && EXPORT_DELIMS.some(d => d.v === p.exportDelim)) exportDelim.value = p.exportDelim;
+    } catch (e) {}
+    function savePrefs() {
+      try {
+        localStorage.setItem(PREFS, JSON.stringify({
+          delim: delimChoice.value, header: headerOn.value, exportDelim: exportDelim.value,
+        }));
+      } catch (e) {}
+    }
+
+    /* ----- parsing pipeline ----- */
+    function rebuildCols(preserveVisibility) {
+      const rows = rawRows.value;
+      const n = rows.length ? Math.max(...rows.map(r => r.length)) : 0;
+      const head = headerOn.value && rows.length ? rows[0] : null;
+      const old = cols.value;
+      const next = Array.from({ length: n }, (_, i) => ({
+        key: 'c' + i,
+        label: head && (head[i] || '').trim() ? head[i].trim() : 'Column ' + (i + 1),
+        visible: preserveVisibility && old[i] ? old[i].visible : true,
+        numeric: false,
+      }));
+      const data = headerOn.value ? rows.slice(1) : rows;
+      const sample = data.slice(0, 1000);
+      next.forEach((c, i) => {
+        let num = 0, tot = 0;
+        for (const r of sample) {
+          const v = (r[i] == null ? '' : r[i]).trim();
+          if (v !== '') { tot++; if (!isNaN(Number(v))) num++; }
+        }
+        c.numeric = tot > 0 && num / tot >= 0.8;
+      });
+      cols.value = next;
+    }
+
+    function doParse(fresh) {
+      const d = delimChoice.value === 'auto' ? detectDelim(rawText.value) : delimChoice.value;
+      activeDelim.value = d;
+      rawRows.value = parseCSV(rawText.value, d);
+      if (fresh) {
+        suppressGuess = true;
+        headerOn.value = guessHeader(rawRows.value);
+        suppressGuess = false;
+      }
+      rebuildCols(!fresh);
+      sortState.value = null;
+      page.value = 1;
+      tableKey.value++;
+    }
+
+    function loadText(text, name) {
+      if (!text || !text.trim()) { toast('⚠ ဒေတာ မတွေ့ပါ — CSV အလွတ်ဖြစ်နေသည်', 'warning'); return; }
+      rawText.value = text.replace(/^﻿/, '');
+      fileName.value = name || '';
+      searchQ.value = '';
+      doParse(true);
+      toast('📥 ' + fmtInt(dataRows.value.length) + ' rows × ' + cols.value.length + ' cols ဖတ်ပြီး');
+    }
+
+    function readFile(f) {
+      if (!f) return;
+      const r = new FileReader();
+      r.onload = () => loadText(String(r.result), f.name);
+      r.onerror = () => toast('⚠ ဖိုင်ဖတ်၍ မရပါ', 'error');
+      r.readAsText(f);
+    }
+    function onPick(ev) { readFile(ev.target.files[0]); ev.target.value = ''; }
+    function onDrop(ev) { dragOver.value = false; readFile(ev.dataTransfer.files[0]); }
+    function parsePaste() { loadText(pasteText.value, ''); }
+    function clearAll() {
+      rawText.value = ''; rawRows.value = []; cols.value = []; fileName.value = '';
+      searchQ.value = ''; sortState.value = null; page.value = 1;
+      toast('🗑 ရှင်းလင်းပြီး', 'info');
+    }
+
+    /* ----- derived data ----- */
+    const hasData = computed(() => rawRows.value.length > 0 && cols.value.length > 0);
+    const dataRows = computed(() => headerOn.value ? rawRows.value.slice(1) : rawRows.value);
+    const visibleCols = computed(() => cols.value.filter(c => c.visible));
+
+    const entries = computed(() => dataRows.value.map((cells, i) => ({ cells, n: i + 1 })));
+
+    const filtered = computed(() => {
+      const term = searchQ.value.trim().toLowerCase();
+      if (!term) return entries.value;
+      return entries.value.filter(e =>
+        e.cells.some(c => c != null && String(c).toLowerCase().includes(term)));
+    });
+
+    const sorted = computed(() => {
+      const s = sortState.value;
+      if (!s) return filtered.value;
+      const dir = s.order === 'descending' ? -1 : 1;
+      const i = s.i, numeric = s.numeric;
+      return [...filtered.value].sort((a, b) => {
+        const av = (a.cells[i] == null ? '' : String(a.cells[i])).trim();
+        const bv = (b.cells[i] == null ? '' : String(b.cells[i])).trim();
+        if (numeric) {
+          const an = av === '' ? NaN : Number(av), bn = bv === '' ? NaN : Number(bv);
+          const aOk = !isNaN(an), bOk = !isNaN(bn);
+          if (aOk && bOk) return (an - bn) * dir;
+          if (aOk) return -1 * dir;
+          if (bOk) return 1 * dir;
+        }
+        return av.localeCompare(bv, undefined, { numeric: true, sensitivity: 'base' }) * dir;
+      });
+    });
+
+    const paged = computed(() => dataRows.value.length > PAGE_THRESHOLD);
+    const pageRows = computed(() => {
+      const list = sorted.value;
+      const slice = paged.value ? list.slice((page.value - 1) * PAGE_SIZE, page.value * PAGE_SIZE) : list;
+      const cs = cols.value;
+      return slice.map(e => {
+        const o = { __n: e.n };
+        for (let i = 0; i < cs.length; i++) o[cs[i].key] = e.cells[i] == null ? '' : e.cells[i];
+        return o;
+      });
+    });
+
+    const numStats = computed(() => {
+      const out = [];
+      cols.value.forEach((c, i) => {
+        if (!c.numeric || !c.visible) return;
+        let min = Infinity, max = -Infinity, sum = 0, count = 0;
+        for (const r of dataRows.value) {
+          const v = (r[i] == null ? '' : String(r[i])).trim();
+          if (v === '') continue;
+          const n = Number(v);
+          if (isNaN(n)) continue;
+          count++; sum += n;
+          if (n < min) min = n;
+          if (n > max) max = n;
+        }
+        if (count) out.push({ label: c.label, min, max, avg: sum / count, sum, count });
+      });
+      return out;
+    });
+
+    function onSort({ prop, order }) {
+      if (!order || !prop || prop[0] !== 'c') { sortState.value = null; return; }
+      const i = parseInt(prop.slice(1), 10);
+      const col = cols.value[i];
+      sortState.value = { i, order, numeric: !!(col && col.numeric) };
+      page.value = 1;
+    }
+
+    /* ----- exports (visible columns only) ----- */
+    function jsonVal(v, numeric) {
+      const t = (v == null ? '' : String(v)).trim();
+      if (numeric && t !== '' && !isNaN(Number(t)) && String(Number(t)) === t) return Number(t);
+      return v == null ? '' : v;
+    }
+    function exportObjects() {
+      const vc = cols.value.map((c, i) => ({ c, i })).filter(x => x.c.visible);
+      return sorted.value.map(e => {
+        const o = {};
+        vc.forEach(x => { o[x.c.label] = jsonVal(e.cells[x.i], x.c.numeric); });
+        return o;
+      });
+    }
+    function buildJSON() { return JSON.stringify(exportObjects(), null, 2); }
+    function buildCSV() {
+      const d = exportDelim.value;
+      const vc = cols.value.map((c, i) => ({ c, i })).filter(x => x.c.visible);
+      const lines = [];
+      if (headerOn.value) lines.push(vc.map(x => csvEscape(x.c.label, d)).join(d));
+      for (const e of sorted.value) {
+        lines.push(vc.map(x => csvEscape(e.cells[x.i], d)).join(d));
+      }
+      return lines.join('\r\n');
+    }
+    function mdCell(v) {
+      return (v == null ? '' : String(v)).replace(/\|/g, '\\|').replace(/\r?\n/g, ' ');
+    }
+    function buildMarkdown() {
+      const vc = cols.value.map((c, i) => ({ c, i })).filter(x => x.c.visible);
+      const lines = [
+        '| ' + vc.map(x => mdCell(x.c.label)).join(' | ') + ' |',
+        '| ' + vc.map(x => x.c.numeric ? '---:' : '---').join(' | ') + ' |',
+      ];
+      for (const e of sorted.value) {
+        lines.push('| ' + vc.map(x => mdCell(e.cells[x.i])).join(' | ') + ' |');
+      }
+      return lines.join('\n');
+    }
+    function baseName() {
+      const n = fileName.value.replace(/\.[^.]+$/, '');
+      return n || 'csv-data';
+    }
+    function download(content, name, type) {
+      const blob = new Blob([content], { type });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob); a.download = name; a.click();
+      URL.revokeObjectURL(a.href);
+    }
+    function downloadJSON() {
+      download(buildJSON(), baseName() + '.json', 'application/json');
+      toast('⬇ JSON — ' + fmtInt(sorted.value.length) + ' rows');
+    }
+    function downloadCSV() {
+      download(buildCSV(), baseName() + '-export.csv', 'text/csv');
+      toast('⬇ CSV (' + delimName(exportDelim.value) + ') — ' + fmtInt(sorted.value.length) + ' rows');
+    }
+    function copyJSON() {
+      navigator.clipboard.writeText(buildJSON())
+        .then(() => toast('📋 JSON copied — ' + fmtInt(sorted.value.length) + ' rows'))
+        .catch(() => toast('⚠ Copy မရပါ', 'error'));
+    }
+    function copyMarkdown() {
+      navigator.clipboard.writeText(buildMarkdown())
+        .then(() => toast('📋 Markdown table copied — ' + fmtInt(sorted.value.length) + ' rows'))
+        .catch(() => toast('⚠ Copy မရပါ', 'error'));
+    }
+
+    /* ----- formatting ----- */
+    function fmtInt(n) { return Number(n).toLocaleString('en-US'); }
+    function fmtNum(n) {
+      if (!isFinite(n)) return '—';
+      const r = Math.abs(n) >= 1e15 ? n : Number(n.toFixed(4));
+      return r.toLocaleString('en-US', { maximumFractionDigits: 4 });
+    }
+    function delimName(d) {
+      return d === ',' ? 'comma' : d === ';' ? 'semicolon' : d === '\t' ? 'tab' : d === '|' ? 'pipe' : d;
+    }
+
+    /* ----- watches ----- */
+    watch(delimChoice, () => { savePrefs(); if (rawText.value) doParse(false); });
+    watch(exportDelim, savePrefs);
+    watch(headerOn, () => {
+      savePrefs();
+      if (!suppressGuess && rawRows.value.length) {
+        rebuildCols(true); sortState.value = null; page.value = 1; tableKey.value++;
+      }
+    });
+    watch(searchQ, () => { page.value = 1; });
+
+    onMounted(() => {
+      tableHeight.value = Math.max(320, Math.round(window.innerHeight * 0.6));
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+
+    return {
+      DELIMS, EXPORT_DELIMS, PAGE_SIZE,
+      tab, fileEl, dragOver, pasteText, fileName,
+      cols, headerOn, delimChoice, activeDelim, exportDelim,
+      searchQ, page, tableKey, tableHeight,
+      hasData, dataRows, visibleCols, filtered, paged, pageRows, numStats,
+      onPick, onDrop, parsePaste, clearAll, onSort,
+      downloadJSON, downloadCSV, copyJSON, copyMarkdown,
+      fmtInt, fmtNum, delimName,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>

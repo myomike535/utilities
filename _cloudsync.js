@@ -35,6 +35,8 @@
     'reading.v1',
     'entrans.v1',
     'pronlab.v1',
+    'mddocs.v1',
+    'minierp.v1',
   ];
 
   // Local sync bookkeeping (never synced themselves)

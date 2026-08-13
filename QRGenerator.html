@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QR Generator · QR ကုဒ်</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#10b981">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#10b981; --accent-2:#34d399;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#10b981;
+    --el-color-primary-light-3:#34d399;
+    --el-color-primary-dark-2:#059669;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(16,185,129,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(52,211,153,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1000px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(16,185,129,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .cols { display:grid; grid-template-columns:1fr 340px; gap:14px; align-items:start; }
+  @media (max-width:820px){ .cols { grid-template-columns:1fr; } }
+  .card {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:16px 18px;
+  }
+  .card h2 { margin:0 0 12px; font-size:.92rem; color:var(--accent-2); }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
+  .seg-wrap { margin-bottom:6px; }
+  .seg-wrap .el-segmented { width:100%; --el-border-radius-base:9px; }
+
+  .settings-row { display:flex; gap:10px; flex-wrap:wrap; }
+  .settings-row > div { flex:1; min-width:110px; }
+  .colors-row { display:flex; gap:18px; align-items:flex-end; margin-top:4px; }
+  .colors-row .cp { display:flex; flex-direction:column; gap:5px; }
+  .colors-row .cp span { font-size:.75rem; color:var(--muted); font-weight:600; }
+
+  .preview-card { text-align:center; }
+  .qr-box {
+    display:inline-block; padding:12px; border-radius:12px; background:#fff;
+    border:1px solid rgba(255,255,255,.1); margin-bottom:10px;
+  }
+  #qrcanvas { display:block; width:min(260px, 70vw); height:auto; image-rendering:pixelated; }
+  .qr-meta { font-size:.72rem; color:var(--faint); margin-bottom:10px; }
+  .btns { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+  .warn { margin-top:10px; }
+
+  @media print {
+    body { background:#fff; padding:0; }
+    header, .input-card, .no-print, #vue-loading { display:none !important; }
+    .cols { display:block; }
+    .preview-card { border:none; background:#fff; }
+    .qr-box { border:none; padding:0; }
+    .qr-meta { color:#333; }
+  }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🔳</div>
+    <div class="title">
+      <h1>QR Generator</h1>
+      <div class="sub">QR ကုဒ် ဖန်တီးရန် — URL · WiFi · Contact · Facebook · offline</div>
+    </div>
+  </header>
+
+  <div class="cols">
+    <!-- ================= Inputs ================= -->
+    <div class="card input-card">
+      <h2>📝 အကြောင်းအရာ (Content)</h2>
+      <div class="seg-wrap">
+        <el-segmented v-model="tab" :options="tabs" size="large"></el-segmented>
+      </div>
+
+      <!-- URL / Text -->
+      <template v-if="tab==='url'">
+        <label class="fl">URL သို့မဟုတ် စာသား</label>
+        <el-input v-model="urlText" type="textarea" :rows="3"
+          placeholder="https://example.com သို့မဟုတ် စာသား ရိုက်ထည့်ပါ…"></el-input>
+      </template>
+
+      <!-- WiFi -->
+      <template v-if="tab==='wifi'">
+        <label class="fl">📶 WiFi အမည် (SSID)</label>
+        <el-input v-model="wifiSsid" placeholder="MyHomeWiFi" clearable></el-input>
+        <label class="fl">စကားဝှက် (Password)</label>
+        <el-input v-model="wifiPass" placeholder="password" clearable show-password></el-input>
+        <label class="fl">လုံခြုံရေးအမျိုးအစား (Encryption)</label>
+        <el-select v-model="wifiEnc" style="width:100%">
+          <el-option value="WPA" label="WPA / WPA2"></el-option>
+          <el-option value="WEP" label="WEP"></el-option>
+          <el-option value="nopass" label="မရှိ (Open network)"></el-option>
+        </el-select>
+      </template>
+
+      <!-- Contact -->
+      <template v-if="tab==='contact'">
+        <label class="fl">👤 အမည် (Name)</label>
+        <el-input v-model="ctName" placeholder="Myo Myint" clearable></el-input>
+        <label class="fl">ဖုန်းနံပါတ် (Phone)</label>
+        <el-input v-model="ctPhone" placeholder="+959123456789" clearable></el-input>
+        <label class="fl">အီးမေးလ် (Email)</label>
+        <el-input v-model="ctEmail" placeholder="name@example.com" clearable></el-input>
+      </template>
+
+      <!-- FB Page -->
+      <template v-if="tab==='fb'">
+        <label class="fl">📘 Facebook စာမျက်နှာ / username</label>
+        <el-input v-model="fbPage" placeholder="yourpagename" clearable>
+          <template #prepend>https://facebook.com/</template>
+        </el-input>
+      </template>
+
+      <h2 style="margin-top:18px">⚙️ ဆက်တင်များ (Settings)</h2>
+      <div class="settings-row">
+        <div>
+          <label class="fl">အရွယ်အစား (Size px)</label>
+          <el-select v-model="size" style="width:100%">
+            <el-option :value="256" label="256 × 256"></el-option>
+            <el-option :value="512" label="512 × 512"></el-option>
+            <el-option :value="1024" label="1024 × 1024"></el-option>
+          </el-select>
+        </div>
+        <div>
+          <label class="fl">Error Correction</label>
+          <el-select v-model="ecLevel" style="width:100%">
+            <el-option value="L" label="L — 7%"></el-option>
+            <el-option value="M" label="M — 15%"></el-option>
+            <el-option value="Q" label="Q — 25%"></el-option>
+            <el-option value="H" label="H — 30%"></el-option>
+          </el-select>
+        </div>
+      </div>
+      <div class="colors-row">
+        <div class="cp">
+          <span>အရောင် (Foreground)</span>
+          <el-color-picker v-model="fg"></el-color-picker>
+        </div>
+        <div class="cp">
+          <span>နောက်ခံ (Background)</span>
+          <el-color-picker v-model="bg"></el-color-picker>
+        </div>
+      </div>
+      <el-alert v-if="lowContrast" class="warn" type="warning" :closable="false" show-icon
+        title="⚠ အရောင်ခြားနားမှု နည်းနေသည် — QR ကို scan ဖတ်မရနိုင်ပါ"></el-alert>
+    </div>
+
+    <!-- ================= Preview ================= -->
+    <div class="card preview-card">
+      <h2 class="no-print">👁 အစမ်းကြည့်ရန် (Preview)</h2>
+      <div class="qr-box" :style="{ background: bg }">
+        <canvas id="qrcanvas" ref="canvasEl" width="256" height="256"></canvas>
+      </div>
+      <div class="qr-meta">{{ metaText }}</div>
+      <div class="btns no-print">
+        <el-button type="primary" :disabled="!hasQr" @click="downloadPng">⬇ PNG သိမ်းရန်</el-button>
+        <el-button :disabled="!hasQr" @click="copyPng">📋 Copy</el-button>
+        <el-button size="small" :disabled="!hasQr" @click="printQr">🖨 Print</el-button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script src="qrcode.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined' || typeof qrcode === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus/qrcode မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+const PREFS = 'qrgen.prefs';
+
+// UTF-8 so Myanmar text encodes correctly
+if (qrcode.stringToBytesFuncs && qrcode.stringToBytesFuncs['UTF-8']) {
+  qrcode.stringToBytes = qrcode.stringToBytesFuncs['UTF-8'];
+}
+
+const app = createApp({
+  setup() {
+    const tabs = [
+      { label: '🔗 URL/Text', value: 'url' },
+      { label: '📶 WiFi', value: 'wifi' },
+      { label: '👤 Contact', value: 'contact' },
+      { label: '📘 FB Page', value: 'fb' },
+    ];
+    const tab = ref('url');
+    const urlText = ref('');
+    const wifiSsid = ref(''); const wifiPass = ref(''); const wifiEnc = ref('WPA');
+    const ctName = ref(''); const ctPhone = ref(''); const ctEmail = ref('');
+    const fbPage = ref('');
+
+    const size = ref(256);
+    const ecLevel = ref('M');
+    const fg = ref('#000000');
+    const bg = ref('#ffffff');
+
+    const canvasEl = ref(null);
+    const hasQr = ref(false);
+    const moduleCount = ref(0);
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2600 });
+
+    // ---- prefs (settings only, never content) ----
+    try {
+      const p = JSON.parse(localStorage.getItem(PREFS) || '{}');
+      if ([256, 512, 1024].includes(p.size)) size.value = p.size;
+      if (['L', 'M', 'Q', 'H'].includes(p.ec)) ecLevel.value = p.ec;
+      if (/^#[0-9a-fA-F]{6}$/.test(p.fg || '')) fg.value = p.fg;
+      if (/^#[0-9a-fA-F]{6}$/.test(p.bg || '')) bg.value = p.bg;
+      if (['url', 'wifi', 'contact', 'fb'].includes(p.tab)) tab.value = p.tab;
+    } catch (e) {}
+    function savePrefs() {
+      localStorage.setItem(PREFS, JSON.stringify({
+        size: size.value, ec: ecLevel.value, fg: fg.value, bg: bg.value, tab: tab.value,
+      }));
+    }
+
+    // ---- content builders ----
+    const escWifi = (s) => String(s).replace(/([\\;,":])/g, '\\$1');
+    const content = computed(() => {
+      if (tab.value === 'url') return urlText.value.trim();
+      if (tab.value === 'wifi') {
+        if (!wifiSsid.value.trim()) return '';
+        let s = 'WIFI:T:' + wifiEnc.value + ';S:' + escWifi(wifiSsid.value.trim()) + ';';
+        if (wifiEnc.value !== 'nopass' && wifiPass.value) s += 'P:' + escWifi(wifiPass.value) + ';';
+        return s + ';';
+      }
+      if (tab.value === 'contact') {
+        if (!ctName.value.trim() && !ctPhone.value.trim() && !ctEmail.value.trim()) return '';
+        let s = 'MECARD:';
+        if (ctName.value.trim()) s += 'N:' + escWifi(ctName.value.trim()) + ';';
+        if (ctPhone.value.trim()) s += 'TEL:' + escWifi(ctPhone.value.trim()) + ';';
+        if (ctEmail.value.trim()) s += 'EMAIL:' + escWifi(ctEmail.value.trim()) + ';';
+        return s + ';';
+      }
+      if (tab.value === 'fb') {
+        const p = fbPage.value.trim().replace(/^\/+/, '');
+        return p ? 'https://facebook.com/' + p : '';
+      }
+      return '';
+    });
+
+    // ---- contrast warning ----
+    function lum(hex) {
+      const m = /^#([0-9a-f]{6})$/i.exec(hex || '');
+      if (!m) return 0;
+      const v = [0, 2, 4].map(i => {
+        let c = parseInt(m[1].slice(i, i + 2), 16) / 255;
+        return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4);
+      });
+      return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2];
+    }
+    const lowContrast = computed(() => {
+      const l1 = lum(fg.value); const l2 = lum(bg.value);
+      const ratio = (Math.max(l1, l2) + 0.05) / (Math.min(l1, l2) + 0.05);
+      return ratio < 2.5;
+    });
+
+    const metaText = computed(() => {
+      if (!hasQr.value) return 'အကြောင်းအရာ ရိုက်ထည့်ပါ…';
+      return moduleCount.value + ' × ' + moduleCount.value + ' modules · ' + size.value + 'px · EC ' + ecLevel.value;
+    });
+
+    // ---- render ----
+    function render() {
+      const canvas = canvasEl.value;
+      if (!canvas) return;
+      const px = size.value;
+      canvas.width = px; canvas.height = px;
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = bg.value || '#ffffff';
+      ctx.fillRect(0, 0, px, px);
+      const text = content.value;
+      if (!text) { hasQr.value = false; moduleCount.value = 0; return; }
+      let qr;
+      try {
+        qr = qrcode(0, ecLevel.value);
+        qr.addData(text);
+        qr.make();
+      } catch (e) {
+        hasQr.value = false; moduleCount.value = 0;
+        toast('⚠ အကြောင်းအရာ ရှည်လွန်းသည် — QR မဆံ့ပါ', 'error');
+        return;
+      }
+      const n = qr.getModuleCount();
+      const quiet = 4;
+      const total = n + quiet * 2;
+      const scale = px / total;
+      ctx.fillStyle = fg.value || '#000000';
+      for (let r = 0; r < n; r++) {
+        for (let c = 0; c < n; c++) {
+          if (!qr.isDark(r, c)) continue;
+          const x0 = Math.round((quiet + c) * scale);
+          const y0 = Math.round((quiet + r) * scale);
+          const x1 = Math.round((quiet + c + 1) * scale);
+          const y1 = Math.round((quiet + r + 1) * scale);
+          ctx.fillRect(x0, y0, x1 - x0, y1 - y0);
+        }
+      }
+      moduleCount.value = n;
+      hasQr.value = true;
+    }
+
+    watch(
+      [content, size, ecLevel, fg, bg],
+      () => { render(); savePrefs(); }
+    );
+    watch(tab, savePrefs);
+
+    // ---- actions ----
+    function fileStem() {
+      return 'qr-' + tab.value + '-' + size.value + 'px';
+    }
+    function downloadPng() {
+      const canvas = canvasEl.value; if (!canvas) return;
+      canvas.toBlob((blob) => {
+        if (!blob) { toast('⚠ PNG ထုတ်၍မရပါ', 'error'); return; }
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = fileStem() + '.png';
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast('⬇ ' + fileStem() + '.png သိမ်းပြီး');
+      }, 'image/png');
+    }
+    function copyPng() {
+      const canvas = canvasEl.value; if (!canvas) return;
+      if (!navigator.clipboard || typeof ClipboardItem === 'undefined') {
+        toast('⚠ ဤ browser တွင် clipboard copy မရပါ', 'warning'); return;
+      }
+      canvas.toBlob((blob) => {
+        if (!blob) { toast('⚠ Copy မရပါ', 'error'); return; }
+        navigator.clipboard.write([new ClipboardItem({ 'image/png': blob })])
+          .then(() => toast('📋 QR ပုံ copy ပြီး'))
+          .catch(() => toast('⚠ Copy မရပါ', 'error'));
+      }, 'image/png');
+    }
+    function printQr() { window.print(); }
+
+    onMounted(() => {
+      document.getElementById('vue-loading').style.display = 'none';
+      nextTick(render);
+    });
+
+    return {
+      tabs, tab, urlText, wifiSsid, wifiPass, wifiEnc,
+      ctName, ctPhone, ctEmail, fbPage,
+      size, ecLevel, fg, bg, canvasEl,
+      hasQr, lowContrast, metaText,
+      downloadPng, copyPng, printQr,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>
