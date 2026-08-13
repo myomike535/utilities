@@ -1,4 +1,4 @@
-// App Lock — optional PIN privacy screen for the whole suite.
+// App Lock (v65.1) — optional PIN privacy screen for the whole suite.
 // Loaded on every page. If a PIN is set ('applock.v1'), shows a full-screen lock
 // until the correct PIN is entered; unlock lasts the browser session.
 // HONEST SCOPE: this is a privacy screen against casual device access, NOT encryption.
