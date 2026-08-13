@@ -95,7 +95,7 @@
     input.addEventListener('keydown', e => { if (e.key === 'Enter') tryUnlock(); });
     bd.querySelector('.al-reset').addEventListener('click', () => {
       if (confirm('Lock ကို ဖြုတ်မည် — သင့် data အားလုံး ဒီအတိုင်း ကျန်ပါမည်။ (privacy screen သာ ဖြုတ်ခြင်း ဖြစ်သည်)\n\nဆက်လုပ်မလား?')) {
-        localStorage.removeItem(KEY);
+        localStorage.removeItem(KEY); localStorage.removeItem('applock.enabled');
         sessionStorage.removeItem(SESSION);
         bd.remove();
       }
@@ -113,7 +113,7 @@
     const p1 = prompt('PIN အသစ် (အနည်းဆုံး ၄ လုံး) — ဖျက်ရန် blank ထားပါ:');
     if (p1 === null) return;
     if (!p1) {
-      if (cfg && confirm('Lock ဖြုတ်မလား? (data မပျက်ပါ)')) { localStorage.removeItem(KEY); alert('🔓 Lock ဖြုတ်ပြီး'); }
+      if (cfg && confirm('Lock ဖြုတ်မလား? (data မပျက်ပါ)')) { localStorage.removeItem(KEY); localStorage.removeItem('applock.enabled'); alert('🔓 Lock ဖြုတ်ပြီး'); }
       return;
     }
     if (p1.length < 4) { alert('PIN သည် အနည်းဆုံး ၄ လုံး ရှိရပါမည်'); return; }
@@ -121,6 +121,7 @@
     if (p2 !== p1) { alert('⚠ PIN နှစ်ခု မတူပါ'); return; }
     const salt = [...crypto.getRandomValues(new Uint8Array(12))].map(b => b.toString(16).padStart(2, '0')).join('');
     localStorage.setItem(KEY, JSON.stringify({ salt, hash: await pinHash(salt, p1) }));
+    localStorage.setItem('applock.enabled', '1');
     sessionStorage.setItem(SESSION, '1');
     alert('🔒 App Lock သတ်မှတ်ပြီး — နောက်ဖွင့်တိုင်း PIN မေးပါမည်');
   }
@@ -149,5 +150,5 @@
   window.addEventListener('load', () => { setTimeout(hookSettings, 600); });
 
   // ---- gate on load ----
-  if (getCfg() && sessionStorage.getItem(SESSION) !== '1') showLock();
+  if (getCfg() && localStorage.getItem('applock.enabled') === '1' && sessionStorage.getItem(SESSION) !== '1') showLock();
 })();
