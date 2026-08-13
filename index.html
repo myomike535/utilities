@@ -166,12 +166,25 @@
   }
   .cat-head {
     grid-column: 1 / -1;
-    font-size: 0.95rem; font-weight: 700; color: var(--text);
-    padding: 18px 4px 2px; letter-spacing: 0.02em;
-    border-bottom: 1px solid var(--border, rgba(255,255,255,0.08));
-    margin-bottom: 4px;
+    font-size: 1rem; font-weight: 700; color: var(--text);
+    padding: 14px 16px; letter-spacing: 0.02em;
+    background: var(--card-bg, rgba(255,255,255,0.04));
+    border: 1px solid var(--border, rgba(255,255,255,0.08));
+    border-radius: 12px;
+    margin: 6px 0 4px;
+    cursor: pointer; user-select: none;
+    display: flex; align-items: center; gap: 10px;
+    transition: all 0.18s;
   }
-  .cat-head:first-child { padding-top: 0; }
+  .cat-head:hover { border-color: var(--accent, #6366f1); transform: translateY(-1px); }
+  .cat-head .cat-count {
+    margin-left: auto; font-size: 0.72rem; font-weight: 600;
+    color: var(--text-dim, #9a9ab0);
+    background: rgba(255,255,255,0.07); border-radius: 99px; padding: 2px 10px;
+  }
+  .cat-head .cat-chev { font-size: 0.8rem; color: var(--text-dim, #9a9ab0); transition: transform 0.2s; }
+  .cat-head.open .cat-chev { transform: rotate(90deg); }
+  .tool-card.cat-hidden { display: none; }
   .tool-card {
     transform-style: preserve-3d;
     will-change: transform;
@@ -2185,6 +2198,48 @@
     else if (e.key === 'Enter') { e.preventDefault(); go(filtered[sel]); }
   });
   backdrop.addEventListener('click', e => { if (e.target === backdrop) close(); });
+})();
+</script>
+
+<script>
+// ===== Collapsible categories — dashboard shows category headers first =====
+(function () {
+  'use strict';
+  const KEY = 'dash.cats.open';
+  let open;
+  try { open = new Set(JSON.parse(localStorage.getItem(KEY) || '[]')); } catch (e) { open = new Set(); }
+
+  const heads = [...document.querySelectorAll('.cat-head')];
+  heads.forEach(h => {
+    // Collect this category's cards (siblings until the next header)
+    const cards = [];
+    let n = h.nextElementSibling;
+    while (n && !n.classList.contains('cat-head')) {
+      if (n.classList.contains('tool-card')) cards.push(n);
+      n = n.nextElementSibling;
+    }
+    const name = h.textContent.trim();
+    // Chevron + tool count chip
+    const chev = document.createElement('span');
+    chev.className = 'cat-chev'; chev.textContent = '▶';
+    h.prepend(chev);
+    const cnt = document.createElement('span');
+    cnt.className = 'cat-count'; cnt.textContent = cards.length + ' tools';
+    h.appendChild(cnt);
+
+    function apply(isOpen) {
+      h.classList.toggle('open', isOpen);
+      cards.forEach(c => c.classList.toggle('cat-hidden', !isOpen));
+    }
+    apply(open.has(name));
+
+    h.addEventListener('click', () => {
+      const isOpen = !h.classList.contains('open');
+      isOpen ? open.add(name) : open.delete(name);
+      localStorage.setItem(KEY, JSON.stringify([...open]));
+      apply(isOpen);
+    });
+  });
 })();
 </script>
 </body>
