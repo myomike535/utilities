@@ -23,13 +23,8 @@
   style.textContent = `
     .al-backdrop {
       position: fixed; inset: 0; z-index: 999999;
-      background:
-        radial-gradient(900px 600px at 15% 20%, rgba(99,102,241,0.22), transparent 55%),
-        radial-gradient(800px 550px at 85% 80%, rgba(167,139,250,0.18), transparent 55%),
-        radial-gradient(600px 500px at 80% 15%, rgba(236,72,153,0.10), transparent 50%),
-        linear-gradient(135deg, #0b0d16, #141728);
-      background-size: 200% 200%;
-      animation: alAurora 14s ease-in-out infinite alternate;
+      background: url('login-bg.svg') center bottom / cover no-repeat, linear-gradient(135deg, #0b0d16, #141728);
+      
       display: flex; align-items: center; justify-content: center; padding: 20px;
     }
     @keyframes alAurora { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
