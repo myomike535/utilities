@@ -127,6 +127,16 @@
 
   .doneline { margin-top:14px; display:flex; align-items:center; gap:10px; }
 
+  .pro-toggle { cursor:pointer; color:var(--accent); user-select:none; }
+  .pro-toggle:hover { color:var(--accent-2); }
+  .probox { border:1px dashed rgba(249,115,22,.4); border-radius:12px; padding:12px 14px; margin-top:6px;
+    background:rgba(249,115,22,.04); }
+  .regnote { background:var(--field); border:1px solid var(--field-border); border-left:3px solid var(--accent);
+    border-radius:9px; padding:10px 13px; font-size:.82rem; color:var(--muted); line-height:1.9; margin:10px 0; }
+  .prolock { color:var(--faint); font-size:.83rem; padding:10px 4px; line-height:1.9; }
+  .tipbox { background:rgba(34,197,94,.07); border:1px solid rgba(34,197,94,.25); border-radius:9px;
+    padding:10px 13px; font-size:.82rem; color:var(--muted); line-height:1.9; margin-top:10px; }
+
   .panel { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:15px; padding:22px; }
   .exam-q { text-align:center; margin:18px 0; }
   .exam-q .pat { font-size:.72rem; color:var(--faint); letter-spacing:.08em; margin-bottom:8px; }
@@ -152,6 +162,7 @@
       <h1>English Core Sentence Patterns</h1>
       <div class="sub">အခြေခံ ဝါကျပုံစံများ — ပုံစံ ၁၅ မျိုး · အဆင့် ၃ ဆင့် · လေ့ကျင့်ခန်းပါ</div>
     </div>
+    <el-button v-if="mode==='learn'" class="btn-imgall" :disabled="batchBusy" @click="exportAll">🖼 အားလုံးထုတ်မည်<span v-if="batchProg"> {{ batchProg }}</span></el-button>
     <el-button v-if="mode==='exam'" @click="goLearn">🏠 သင်ခန်းစာသို့</el-button>
     <el-button v-else type="primary" class="btn-exam" @click="startExam">📝 စာမေးပွဲ</el-button>
   </header>
@@ -188,6 +199,7 @@
           <div class="my">{{ p.myName }}</div>
         </div>
         <el-tag v-if="done.includes(p.id)" type="success" effect="dark" size="small">✓ ရပြီ</el-tag>
+        <el-button size="small" class="btn-img" @click.stop="exportImage(p)">🖼 ပုံထုတ်မည် · Image</el-button>
         <span class="arrow">▶</span>
       </div>
 
@@ -226,6 +238,40 @@
             <span class="why">💡 {{ t.why }}</span>
           </div>
         </div>
+
+        <template v-if="p.pro">
+          <div class="sect pro-toggle" @click="togglePro(p.id)">⭐ Pro — လက်တွေ့သုံး အဆင့်မြင့်ပိုင်း {{ proOpen.includes(p.id) ? '▾' : '▸' }}</div>
+          <div v-if="proOpen.includes(p.id)" class="probox">
+            <div class="sect" style="margin-top:2px">💼 လက်တွေ့ ဥပမာများ (အလုပ်/နည်းပညာ/interview)</div>
+            <div v-for="(pe, pi) in p.pro.examples" :key="pi" class="exrow">
+              <div class="en"><span class="w">{{ pe.en }}</span>
+                <button class="spk" :title="'Read aloud'" @click.stop="speak(pe.en)">🔊</button>
+              </div>
+              <div class="mm">{{ pe.mm }}</div>
+            </div>
+            <div class="regnote">🎓 Formal vs Casual — {{ p.pro.register }}</div>
+            <div class="sect">✏️ Pro လေ့ကျင့်ခန်း</div>
+            <template v-if="done.includes(p.id)">
+              <div v-for="(t, ti) in p.pro.tryIt" :key="'p' + ti" class="prac">
+                <div class="q" v-html="blankHtml(t.q)"></div>
+                <div class="opts">
+                  <button v-for="(op, oi) in t.choices" :key="oi" class="opt"
+                    :class="{ correct: prac[p.id + '_p' + ti] !== undefined && oi === t.a,
+                              wrong: prac[p.id + '_p' + ti] === oi && oi !== t.a }"
+                    :disabled="prac[p.id + '_p' + ti] !== undefined"
+                    @click="pick(p.id, 'p' + ti, oi)">{{ op }}</button>
+                </div>
+                <div v-if="prac[p.id + '_p' + ti] !== undefined" class="fb" :class="prac[p.id + '_p' + ti] === t.a ? 'ok' : 'no'">
+                  <span v-if="prac[p.id + '_p' + ti] === t.a">✅ မှန်ပါသည်!</span>
+                  <span v-else>❌ မှားပါသည် — အဖြေမှန်မှာ "{{ t.choices[t.a] }}" ဖြစ်သည်။</span>
+                  <span class="why">💡 {{ t.why }}</span>
+                </div>
+              </div>
+            </template>
+            <div v-else class="prolock">🔒 ဤပုံစံကို "ရပြီ" မှတ်ပြီးမှ Pro လေ့ကျင့်ခန်းများ ဖြေဆိုနိုင်ပါသည်။</div>
+            <div class="tipbox">📝 ရေးသားချက် အကြံပြုချက် — {{ p.pro.tip }}</div>
+          </div>
+        </template>
 
         <div class="doneline">
           <el-button v-if="!done.includes(p.id)" type="success" class="btn-done" @click="markDone(p.id)">✓ ဒီပုံစံ ရပြီ</el-button>
@@ -622,7 +668,673 @@ const PATTERNS = [
         why: '"English" (အနည်းကိန်း) အတွက် be ကြိယာမှာ "is" — is spoken။' },
     ],
   },
+
+  // ================= LEVEL 3 — INTERMEDIATE =================
+  {
+    id: 'cond2', level: 3, name: 'If + past, would + V (2nd Conditional)', myName: 'စိတ်ကူးယဉ် အခြေအနေ (လက်ရှိနှင့် ဆန့်ကျင်)',
+    formula: [P('If', 'j'), P('S + past', 'x'), P(',', 'x'), P('S + would + V', 'x')],
+    explain: 'လက်ရှိအဖြစ်မှန်နှင့် ဆန့်ကျင်သော စိတ်ကူး သို့မဟုတ် ဖြစ်နိုင်ခြေနည်းသော အခြေအနေကို ဖော်ပြသည်။ If-clause တွင် past tense၊ main clause တွင် would + ကြိယာမူရင်း သုံးသည်။',
+    examples: [
+      { parts: [P('If', 'j'), P('I', 's'), P('had', 'v'), P('a million dollars,', 'o'), P('I', 's'), P('would buy', 'v'), P('a house.', 'o')], mm: 'ကျွန်တော့်မှာ ဒေါ်လာတစ်သန်း ရှိလျှင် အိမ်တစ်လုံး ဝယ်မည်။ (အမှန်မှာ မရှိ)' },
+      { parts: [P('If', 'j'), P('she', 's'), P('lived', 'v'), P('in Yangon,'), P('we', 's'), P('would meet', 'v'), P('every week.')], mm: 'သူမ ရန်ကုန်မှာ နေလျှင် အပတ်တိုင်း တွေ့ကြမည်။' },
+      { parts: [P('If', 'j'), P('I', 's'), P('were', 'v'), P('you,', 'c'), P('I', 's'), P('would take', 'v'), P('that job.', 'o')], mm: 'ကျွန်တော်သာ ခင်ဗျားဆိုလျှင် အဲဒီအလုပ်ကို လက်ခံမည်။' },
+    ],
+    mistake: {
+      bad: 'If I would have money, I would buy a car.',
+      good: 'If I had money, I would buy a car.',
+      note: 'If-clause အတွင်း would မထည့်ရ — past tense သာသုံးပြီး would ကို main clause တွင်သာ ထားသည်။',
+    },
+    tryIt: [
+      { q: 'If I ___ rich, I would travel the world.', choices: ['were', 'am', 'will be'], a: 0,
+        why: '2nd conditional တွင် be ၏ past ပုံစံ "were" ကို ကတ္တားအားလုံးအတွက် သုံးသည်။' },
+      { q: 'If he studied harder, he ___ pass the exam.', choices: ['will', 'would', 'can'], a: 1,
+        why: 'Main clause တွင် would + ကြိယာမူရင်း လိုက်ရသည်။' },
+    ],
+  },
+  {
+    id: 'cond3', level: 3, name: 'If + had + p.p., would have + p.p. (3rd Conditional)', myName: 'အတိတ်နှင့် ဆန့်ကျင်သော နောင်တဝါကျ',
+    formula: [P('If', 'j'), P('S + had + p.p.', 'x'), P(',', 'x'), P('would have + p.p.', 'x')],
+    explain: 'ပြောင်းလဲ၍မရတော့သော အတိတ်ကို ပြန်စိတ်ကူးကြည့်ခြင်း (နောင်တ/သုံးသပ်ချက်) ဖြစ်သည်။ If + had + V3, would have + V3 ပုံစံ သုံးသည်။',
+    examples: [
+      { parts: [P('If', 'j'), P('I', 's'), P('had studied', 'v'), P('harder,'), P('I', 's'), P('would have passed', 'v'), P('the exam.', 'o')], mm: 'ပိုကြိုးစားခဲ့လျှင် စာမေးပွဲ အောင်ခဲ့မည်။ (အမှန်မှာ မအောင်ခဲ့)' },
+      { parts: [P('If', 'j'), P('we', 's'), P('had left', 'v'), P('earlier,'), P('we', 's'), P('would have caught', 'v'), P('the train.', 'o')], mm: 'စောစော ထွက်ခဲ့လျှင် ရထား မီခဲ့မည်။' },
+      { parts: [P('If', 'j'), P('she', 's'), P('had known,', 'v'), P('she', 's'), P('would have helped', 'v'), P('you.', 'o')], mm: 'သူမ သိခဲ့လျှင် ခင်ဗျားကို ကူညီခဲ့မည်။' },
+    ],
+    mistake: {
+      bad: 'If I would have studied, I would have passed.',
+      good: 'If I had studied, I would have passed.',
+      note: 'If-clause အတွင်း would have မသုံးရ — had + V3 သာ ဖြစ်ရမည်။',
+    },
+    tryIt: [
+      { q: 'If they had called me, I ___ come.', choices: ['would have', 'will have', 'would'], a: 0,
+        why: 'အတိတ်အကျိုးဆက်အတွက် would have + V3 — "would have come"။' },
+      { q: 'If you ___ the map, we would not have got lost.', choices: ['had brought', 'brought', 'would bring'], a: 0,
+        why: 'If-clause တွင် had + V3 "had brought" သုံးရသည်။' },
+    ],
+  },
+  {
+    id: 'reported', level: 3, name: 'Reported Speech', myName: 'သွယ်ဝိုက် ပြန်ပြောခြင်း',
+    formula: [P('S', 's'), P('said / told', 'v'), P('(that)', 'j'), P('S + past-shifted V', 'x')],
+    explain: 'သူတစ်ပါး ပြောခဲ့သောစကားကို ပြန်ပြောရာတွင် tense ကို တစ်ဆင့် နောက်ဆုတ်သည် (am → was, will → would, have → had)။ နာမ်စားနှင့် အချိန်ပြစကားလုံးများလည်း လိုက်ပြောင်းသည်။',
+    examples: [
+      { parts: [P('She', 's'), P('said', 'v'), P('that', 'j'), P('she', 's'), P('was', 'v'), P('tired.', 'c')], mm: 'သူမ ပင်ပန်းနေကြောင်း ပြောခဲ့သည်။ ("I am tired" မှ)' },
+      { parts: [P('He', 's'), P('told', 'v'), P('me', 'io'), P('that', 'j'), P('he', 's'), P('would call', 'v'), P('back.')], mm: 'ပြန်ဖုန်းဆက်မည်ဟု သူ ကျွန်တော့်ကို ပြောခဲ့သည်။ ("I will call back" မှ)' },
+      { parts: [P('They', 's'), P('said', 'v'), P('that', 'j'), P('they', 's'), P('had finished', 'v'), P('the project.', 'o')], mm: 'Project ပြီးသွားပြီဟု သူတို့ ပြောခဲ့သည်။ ("We have finished" မှ)' },
+    ],
+    mistake: {
+      bad: 'She said me that she was busy.',
+      good: 'She told me that she was busy.',
+      note: 'say ၏နောက်တွင် လူကို တိုက်ရိုက် မထည့်ရ — "said to me" သို့မဟုတ် "told me" ဟုသာ သုံးသည်။',
+    },
+    tryIt: [
+      { q: 'He said that he ___ hungry.', choices: ['was', 'is', 'be'], a: 0,
+        why: '"I am hungry" ကို ပြန်ပြောသောအခါ am → was ဟု နောက်ဆုတ်သည်။' },
+      { q: 'She ___ me that she would come.', choices: ['told', 'said', 'spoke'], a: 0,
+        why: 'လူ (me) ကို တိုက်ရိုက်ထည့်လျှင် told သုံးရသည် — said me ဟူ၍ မရှိပါ။' },
+    ],
+  },
+  {
+    id: 'gerinf', level: 3, name: 'Gerund vs Infinitive', myName: 'V-ing နှင့် to + V ခွဲခြားသုံးခြင်း',
+    formula: [P('S', 's'), P('V₁', 'v'), P('V-ing / to V', 'o')],
+    explain: 'enjoy, finish, mind, avoid တို့၏နောက်တွင် V-ing၊ want, decide, hope, plan တို့၏နောက်တွင် to + V သုံးသည်။ မည်သည့်ကြိယာက မည်သည့်ပုံစံ ယူသည်ကို မှတ်သားရသည်။',
+    examples: [
+      { parts: [P('I', 's'), P('enjoy', 'v'), P('reading books.', 'o')], mm: 'ကျွန်တော် စာအုပ်ဖတ်ရသည်ကို နှစ်သက်သည်။' },
+      { parts: [P('She', 's'), P('decided', 'v'), P('to learn Japanese.', 'o')], mm: 'သူမ ဂျပန်စာ သင်ရန် ဆုံးဖြတ်ခဲ့သည်။' },
+      { parts: [P('He', 's'), P('finished', 'v'), P('writing the report.', 'o')], mm: 'သူ အစီရင်ခံစာ ရေးပြီးသွားပြီ။' },
+    ],
+    mistake: {
+      bad: 'I enjoy to read books.',
+      good: 'I enjoy reading books.',
+      note: 'enjoy / finish / mind / avoid / practice တို့၏နောက်တွင် to + V မဟုတ်ဘဲ V-ing သာ လိုက်သည်။',
+    },
+    tryIt: [
+      { q: 'She wants ___ a new laptop.', choices: ['to buy', 'buying', 'buy'], a: 0,
+        why: 'want ၏နောက်တွင် to + V သာ လိုက်သည် — "wants to buy"။' },
+      { q: 'Do you mind ___ the window?', choices: ['opening', 'to open', 'open'], a: 0,
+        why: 'mind ၏နောက်တွင် V-ing သာ လိုက်သည် — "mind opening"။' },
+    ],
+  },
+  {
+    id: 'usedto', level: 3, name: 'used to / would', myName: 'အတိတ် အလေ့အထ ဖော်ပြခြင်း',
+    formula: [P('S', 's'), P('used to / would', 'a'), P('V', 'v')],
+    explain: 'ယခုမလုပ်တော့သော အတိတ်အလေ့အထကို used to + V ဖြင့် ပြောသည်။ would + V ကို ထပ်ခါလုပ်ခဲ့သော အပြုအမူအတွက် သုံးနိုင်သော်လည်း live, like, have စသည့် state ကြိယာများအတွက် used to သာ ရသည်။',
+    examples: [
+      { parts: [P('I', 's'), P('used to', 'a'), P('play', 'v'), P('football', 'o'), P('every evening.')], mm: 'ငယ်ငယ်က ညနေတိုင်း ဘောလုံး ကစားလေ့ရှိခဲ့သည်။ (ယခု မကစားတော့)' },
+      { parts: [P('She', 's'), P('used to', 'a'), P('live', 'v'), P('in Mandalay.')], mm: 'သူမ မန္တလေးမှာ နေခဲ့ဖူးသည်။' },
+      { parts: [P('Every summer, we', 's'), P('would', 'a'), P('visit', 'v'), P('our grandparents.', 'o')], mm: 'နွေရာသီတိုင်း အဘိုးအဘွားထံ သွားလည်လေ့ရှိခဲ့သည်။' },
+    ],
+    mistake: {
+      bad: 'She would live in Mandalay when she was young.',
+      good: 'She used to live in Mandalay when she was young.',
+      note: 'live / like / have စသည့် state ကြိယာများနှင့် would မသုံးရ — used to သာ သုံးသည်။ စာရေးရာတွင် "use to" (d မပါ) ဟုလည်း မမှားရ။',
+    },
+    tryIt: [
+      { q: 'I ___ to get up early when I was a student.', choices: ['used', 'use', 'using'], a: 0,
+        why: 'အတိတ်အလေ့အထ — "used to + V" (d ပါရမည်)။' },
+      { q: 'He ___ have a bicycle when he was young.', choices: ['used to', 'would', 'was'], a: 0,
+        why: 'have သည် state ကြိယာဖြစ်၍ would မရ — used to သုံးရသည်။' },
+    ],
+  },
+  {
+    id: 'tagq', level: 3, name: 'Tag Questions', myName: 'အတည်ပြု နောက်ဆက်မေးခွန်း',
+    formula: [P('Statement', 'x'), P(',', 'x'), P('aux + S ?', 'q')],
+    explain: 'ဝါကျအဆုံးတွင် "ဟုတ်တယ်နော်" သဘောဖြင့် ထပ်မေးသည်။ ရှေ့ဝါကျ အဟုတ်ဆိုလျှင် tag က အငြင်း၊ ရှေ့က အငြင်းဆိုလျှင် tag က အဟုတ် ဖြစ်ရမည်။',
+    examples: [
+      { parts: [P('You', 's'), P('are', 'v'), P('a student,', 'c'), P("aren't you?", 'q')], mm: 'ခင်ဗျား ကျောင်းသားပါ၊ ဟုတ်တယ်နော်။' },
+      { parts: [P('She', 's'), P("doesn't eat", 'v'), P('meat,', 'o'), P('does she?', 'q')], mm: 'သူမ အသား မစားဘူး၊ ဟုတ်လား။' },
+      { parts: [P('They', 's'), P('went', 'v'), P('home,'), P("didn't they?", 'q')], mm: 'သူတို့ အိမ်ပြန်သွားကြပြီ၊ မဟုတ်လား။' },
+    ],
+    mistake: {
+      bad: "You are a teacher, isn't it?",
+      good: "You are a teacher, aren't you?",
+      note: '"isn\'t it" ကို နေရာတိုင်း မသုံးရ — tag ၏ ကြိယာနှင့် နာမ်စားသည် ရှေ့ဝါကျ၏ ကတ္တားနှင့် ကိုက်ညီရမည်။',
+    },
+    tryIt: [
+      { q: 'He can swim, ___ he?', choices: ["can't", 'can', 'does'], a: 0,
+        why: 'ရှေ့ဝါကျ အဟုတ် (can) ဖြစ်၍ tag က အငြင်း "can\'t" ဖြစ်ရမည်။' },
+      { q: "You don't like durian, ___ you?", choices: ['do', "don't", 'are'], a: 0,
+        why: 'ရှေ့ဝါကျ အငြင်း (don\'t) ဖြစ်၍ tag က အဟုတ် "do" ဖြစ်ရမည်။' },
+    ],
+  },
+
+  // ================= LEVEL 4 — ADVANCED =================
+  {
+    id: 'mixedcond', level: 4, name: 'Mixed Conditionals', myName: 'ရောနှော အခြေအနေဝါကျ',
+    formula: [P('If', 'j'), P('had + p.p.', 'x'), P(',', 'x'), P('would + V (now)', 'x')],
+    explain: 'အတိတ်အကြောင်းရင်း၏ လက်ရှိအကျိုးဆက်ကို ဖော်ပြသည် — If + had + V3 (အတိတ်), would + V (ပစ္စုပ္ပန်)။ ပြောင်းပြန် (လက်ရှိအကြောင်း → အတိတ်အကျိုး) လည်း ဖြစ်နိုင်သည်။',
+    examples: [
+      { parts: [P('If', 'j'), P('I', 's'), P('had taken', 'v'), P('that job,', 'o'), P('I', 's'), P('would be', 'v'), P('rich now.', 'c')], mm: 'အဲဒီအလုပ်ကို လက်ခံခဲ့လျှင် အခု ချမ်းသာနေမည်။' },
+      { parts: [P('If', 'j'), P('she', 's'), P('had caught', 'v'), P('the flight,', 'o'), P('she', 's'), P('would be', 'v'), P('here today.')], mm: 'လေယာဉ် မီခဲ့လျှင် ဒီနေ့ ဒီမှာ ရှိနေမည်။' },
+      { parts: [P('If', 'j'), P('he', 's'), P("weren't", 'v'), P('so lazy,', 'c'), P('he', 's'), P('would have finished', 'v'), P('by now.')], mm: 'သူ ဒီလောက် မပျင်းလျှင် အခုချိန် ပြီးနေလောက်ပြီ။' },
+    ],
+    mistake: {
+      bad: 'If I took that job, I would be rich now.',
+      good: 'If I had taken that job, I would be rich now.',
+      note: 'အတိတ်က ဆုံးဖြတ်ချက်ကို ရည်ညွှန်းလျှင် If-clause တွင် had + V3 သုံးရမည် — past simple သုံးလျှင် လက်ရှိစိတ်ကူးဟု အဓိပ္ပာယ် ပြောင်းသွားသည်။',
+    },
+    tryIt: [
+      { q: 'If I had saved money, I ___ a car now.', choices: ['would have', 'would buy', 'will buy'], a: 1,
+        why: 'လက်ရှိအကျိုးဆက်ဖြစ်၍ would + V ("would buy") — would have + V3 က အတိတ်အကျိုးဆက်အတွက်သာ။' },
+      { q: 'If she ___ the medicine, she would feel better today.', choices: ['had taken', 'takes', 'would take'], a: 0,
+        why: 'အတိတ်အကြောင်းရင်း → had + V3 "had taken"။' },
+    ],
+  },
+  {
+    id: 'inversion', level: 4, name: 'Inversion (Never have I…)', myName: 'အလေးပေး ပြောင်းပြန်ဝါကျ',
+    formula: [P('Never / Not only', 'j'), P('aux', 'a'), P('S', 's'), P('V', 'v')],
+    explain: 'Never, Rarely, Not only စသည့် အငြင်းသဘောစကားလုံးကို ဝါကျရှေ့ဆုံး တင်၍ အလေးပေးသောအခါ aux နှင့် ကတ္တား နေရာချင်း ပြောင်းရသည် (မေးခွန်းပုံစံကဲ့သို့)။',
+    examples: [
+      { parts: [P('Never', 'j'), P('have', 'a'), P('I', 's'), P('seen', 'v'), P('such a beautiful sunset.', 'o')], mm: 'ဤမျှလှသော နေဝင်ချိန်ကို တစ်ခါမှ မမြင်ဖူးပါ။' },
+      { parts: [P('Rarely', 'j'), P('does', 'a'), P('he', 's'), P('make', 'v'), P('a mistake.', 'o')], mm: 'သူ အမှားလုပ်သည်မှာ ရှားပါးလှသည်။' },
+      { parts: [P('Not only', 'j'), P('did', 'a'), P('she', 's'), P('win,', 'v'), P('but she also broke the record.')], mm: 'သူမ အနိုင်ရရုံသာမက စံချိန်လည်း ချိုးခဲ့သည်။' },
+    ],
+    mistake: {
+      bad: 'Never I have seen such a view.',
+      good: 'Never have I seen such a view.',
+      note: 'အငြင်းသဘောစကားလုံး ရှေ့တင်လျှင် aux ကို ကတ္တားရှေ့သို့ ရွှေ့ရမည် — ပုံမှန်အစီအစဉ်အတိုင်း ဆက်မရေးရ။',
+    },
+    tryIt: [
+      { q: 'Never ___ such heavy rain.', choices: ['have I seen', 'I have seen', 'I saw'], a: 0,
+        why: 'Never ရှေ့တင်ထားသဖြင့် aux + S + V3 — "have I seen"။' },
+      { q: 'Not only ___ late, but he also forgot the files.', choices: ['was he', 'he was', 'he is'], a: 0,
+        why: 'Not only ရှေ့တင်လျှင် be/aux ကို ကတ္တားရှေ့ထား — "was he"။' },
+    ],
+  },
+  {
+    id: 'cleft', level: 4, name: 'Cleft Sentences (It was X that…)', myName: 'အလေးပေး ခွဲထုတ်ဝါကျ',
+    formula: [P('It', 's'), P('is / was', 'v'), P('X', 'c'), P('that…', 'q')],
+    explain: 'ဝါကျထဲမှ အချက်တစ်ခုကို အထူးအလေးပေးလိုသောအခါ "It is/was + အလေးပေးလိုသည့်အရာ + that…" ပုံစံဖြင့် ခွဲထုတ် ရေးသည်။',
+    examples: [
+      { parts: [P('It', 's'), P('was', 'v'), P('John', 'c'), P('that', 'q'), P('broke the window.', 'x')], mm: 'ပြတင်းပေါက်ကို ခွဲခဲ့သူမှာ ဂျွန် ဖြစ်သည်။' },
+      { parts: [P('It', 's'), P('was', 'v'), P('in 2019', 'c'), P('that', 'q'), P('we first met.', 'x')], mm: 'ကျွန်တော်တို့ ပထမဆုံး တွေ့ခဲ့သည့်နှစ်မှာ ၂၀၁၉ ဖြစ်သည်။' },
+      { parts: [P('It', 's'), P('is', 'v'), P('the design', 'c'), P('that', 'q'), P('customers love most.', 'x')], mm: 'ဝယ်သူများ အကြိုက်ဆုံးမှာ ဒီဇိုင်းပင် ဖြစ်သည်။' },
+    ],
+    mistake: {
+      bad: 'It was John who he broke the window.',
+      good: 'It was John who broke the window.',
+      note: 'that/who ၏နောက်တွင် ကတ္တားကို ထပ်မထည့်ရ — that/who က ကတ္တားနေရာကို ယူထားပြီး ဖြစ်သည်။',
+    },
+    tryIt: [
+      { q: '___ was my sister that called you.', choices: ['It', 'She', 'There'], a: 0,
+        why: 'Cleft ဝါကျသည် "It was … that …" ပုံစံဖြင့် စတင်သည်။' },
+      { q: 'It was yesterday ___ I lost my phone.', choices: ['that', 'what', 'where'], a: 0,
+        why: 'Cleft ၏ ဒုတိယပိုင်းကို that ဖြင့် ဆက်သည်။' },
+    ],
+  },
+  {
+    id: 'participle', level: 4, name: 'Participle Clauses', myName: 'ကြိယာပုဒ်စု အတိုချုံးဝါကျ',
+    formula: [P('V-ing / p.p. …', 'v'), P(',', 'x'), P('S + V', 'x')],
+    explain: 'Clause နှစ်ခု၏ ကတ္တားတူလျှင် တစ်ခုကို V-ing (active) သို့မဟုတ် V3 (passive) ဖြင့် အတိုချုံးနိုင်သည် — ရေးသားမှုကို ကျစ်လစ်စေသည်။',
+    examples: [
+      { parts: [P('Feeling', 'v'), P('tired,', 'c'), P('she', 's'), P('went', 'v'), P('to bed early.')], mm: 'ပင်ပန်းနေသဖြင့် သူမ စောစော အိပ်ရာဝင်ခဲ့သည်။' },
+      { parts: [P('Written', 'v'), P('in simple English,'), P('the book', 's'), P('is', 'v'), P('easy to read.', 'c')], mm: 'ရိုးရှင်းသော အင်္ဂလိပ်စာဖြင့် ရေးထားသဖြင့် စာအုပ်သည် ဖတ်ရလွယ်သည်။' },
+      { parts: [P('Having finished', 'v'), P('the report,', 'o'), P('he', 's'), P('left', 'v'), P('the office.', 'o')], mm: 'အစီရင်ခံစာ ပြီးအောင်ရေးပြီးနောက် သူ ရုံးမှ ထွက်ခဲ့သည်။' },
+    ],
+    mistake: {
+      bad: 'Walking to school, the rain started.',
+      good: 'Walking to school, I got caught in the rain.',
+      note: 'Participle clause ၏ နားလည်ရမည့်ကတ္တားသည် main clause ၏ ကတ္တားနှင့် တူရမည် — မတူလျှင် "dangling participle" အမှား ဖြစ်သည်။',
+    },
+    tryIt: [
+      { q: '___ the news, she started to cry.', choices: ['Hearing', 'Heard', 'To hearing'], a: 0,
+        why: 'သူမက ကြားသည် (active) ဖြစ်၍ V-ing "Hearing" သုံးရသည်။' },
+      { q: '___ in 1990, the bridge is over 30 years old.', choices: ['Built', 'Building', 'Build'], a: 0,
+        why: 'တံတားက "တည်ဆောက်ခံရ" (passive) ဖြစ်၍ V3 "Built" သုံးရသည်။' },
+    ],
+  },
+  {
+    id: 'subjunctive', level: 4, name: 'Subjunctive (suggest / demand that…)', myName: 'အကြံပြု / တောင်းဆိုဝါကျ (Subjunctive)',
+    formula: [P('S', 's'), P('suggest / demand', 'v'), P('that', 'j'), P('S + base V', 'x')],
+    explain: 'suggest, demand, insist, recommend တို့၏ that-clause အတွင်းတွင် ကတ္တားမည်သို့ပင်ဖြစ်စေ ကြိယာမူရင်း (base form) ကိုသာ သုံးသည် — -s လည်း မထည့်ရ။',
+    examples: [
+      { parts: [P('The doctor', 's'), P('suggested', 'v'), P('that', 'j'), P('he', 's'), P('rest', 'v'), P('for a week.')], mm: 'တစ်ပတ် အနားယူရန် ဆရာဝန်က အကြံပြုခဲ့သည်။' },
+      { parts: [P('They', 's'), P('demanded', 'v'), P('that', 'j'), P('the meeting', 's'), P('be postponed.', 'v')], mm: 'အစည်းအဝေးကို ရွှေ့ဆိုင်းရန် သူတို့ တောင်းဆိုခဲ့သည်။' },
+      { parts: [P('I', 's'), P('recommend', 'v'), P('that', 'j'), P('she', 's'), P('apply', 'v'), P('for the scholarship.')], mm: 'ပညာသင်ဆု လျှောက်ရန် သူမကို ကျွန်တော် အကြံပြုသည်။' },
+    ],
+    mistake: {
+      bad: 'The doctor suggested that he rests for a week.',
+      good: 'The doctor suggested that he rest for a week.',
+      note: 'that-clause အတွင်း ကြိယာမူရင်းသာ — "he rests" / "he rested" မဟုတ်ဘဲ "he rest" ဖြစ်ရမည်။',
+    },
+    tryIt: [
+      { q: 'She insisted that he ___ on time.', choices: ['be', 'is', 'was'], a: 0,
+        why: 'insist that ၏နောက်တွင် base form "be" သုံးရသည်။' },
+      { q: 'I suggest that she ___ a lawyer.', choices: ['see', 'sees', 'saw'], a: 0,
+        why: 'suggest that ၏နောက်တွင် base form "see" — -s မထည့်ရ။' },
+    ],
+  },
+  {
+    id: 'reducedrel', level: 4, name: 'Reduced Relative Clauses', myName: 'အတိုချုံး Relative Clause',
+    formula: [P('N', 's'), P('V-ing / p.p. …', 'v')],
+    explain: 'who/which/that + be ကို ဖြုတ်၍ relative clause ကို အတိုချုံးနိုင်သည် — active အဓိပ္ပာယ်လျှင် V-ing၊ passive အဓိပ္ပာယ်လျှင် V3 ကျန်သည်။',
+    examples: [
+      { parts: [P('The man', 's'), P('standing', 'v'), P('at the door'), P('is', 'v'), P('my uncle.', 'c')], mm: 'တံခါးဝမှာ ရပ်နေသောသူသည် ကျွန်တော့် ဦးလေး ဖြစ်သည်။ (who is standing မှ)' },
+      { parts: [P('The products', 's'), P('sold', 'v'), P('here'), P('are', 'v'), P('handmade.', 'c')], mm: 'ဤနေရာတွင် ရောင်းသော ကုန်ပစ္စည်းများသည် လက်လုပ်ပစ္စည်းများ ဖြစ်သည်။ (which are sold မှ)' },
+      { parts: [P('Students', 's'), P('taking', 'v'), P('the exam', 'o'), P('must arrive', 'v'), P('early.')], mm: 'စာမေးပွဲ ဖြေဆိုမည့် ကျောင်းသားများ စောစော ရောက်ရမည်။' },
+    ],
+    mistake: {
+      bad: 'The email sending yesterday was important.',
+      good: 'The email sent yesterday was important.',
+      note: 'Email သည် "ပို့ခြင်းခံရ" (passive) ဖြစ်၍ V-ing မဟုတ်ဘဲ V3 (sent) ဖြင့် ချုံ့ရသည်။',
+    },
+    tryIt: [
+      { q: 'The woman ___ next to me was very kind.', choices: ['sitting', 'sat', 'sits'], a: 0,
+        why: 'အမျိုးသမီးက ထိုင်နေသည် (active) — V-ing "sitting" (who was sitting မှ ချုံ့ထားခြင်း)။' },
+      { q: 'The houses ___ last year are already sold out.', choices: ['built', 'building', 'build'], a: 0,
+        why: 'အိမ်များက "ဆောက်ခြင်းခံရ" (passive) ဖြစ်၍ V3 "built" သုံးရသည်။' },
+    ],
+  },
 ];
+
+// ---- Pro section content (real-world business/tech/interview usage) ----
+const PRO = {
+  sv: {
+    examples: [
+      { en: 'The server crashed.', mm: 'ဆာဗာ ရပ်တန့်သွားသည်။' },
+      { en: 'Profits increased sharply.', mm: 'အမြတ်များ သိသိသာသာ တိုးလာခဲ့သည်။' },
+      { en: 'The deadline passed.', mm: 'နောက်ဆုံးရက် ကျော်လွန်သွားပြီ။' },
+    ],
+    register: 'Formal: "The system failed." · Casual: "It broke." — အလုပ်စာတွင် ကတ္တားကို တိကျစွာ ဖော်ပြပါ။',
+    tryIt: [
+      { q: 'The application ___ unexpectedly during the demo.', choices: ['crashed', 'crash', 'crashing'], a: 0,
+        why: 'အတိတ်ဖြစ်ရပ် — past simple "crashed"။' },
+      { q: 'Prices ___ sharply last month.', choices: ['rose', 'rise', 'risen'], a: 0,
+        why: 'last month ပါ၍ past simple "rose" (rise → rose → risen)။' },
+    ],
+    tip: 'Status update ရေးရာတွင် S+V ဝါကျတိုများက အချက်အလက်ကို ပြတ်သားစေသည် — "The build passed. The tests failed."',
+  },
+  svo: {
+    examples: [
+      { en: 'Our team delivered the project on time.', mm: 'ကျွန်တော်တို့အဖွဲ့ project ကို အချိန်မီ အပ်နှံခဲ့သည်။' },
+      { en: 'The company launched a new product.', mm: 'ကုမ္ပဏီက ထုတ်ကုန်အသစ် မိတ်ဆက်ခဲ့သည်။' },
+      { en: 'I manage three databases.', mm: 'ကျွန်တော် database သုံးခုကို စီမံသည်။' },
+    ],
+    register: 'Formal: "We received your inquiry." · Casual: "Got your message." — email တွင် ကတ္တားမချန်ပါနှင့်။',
+    tryIt: [
+      { q: 'The client approved ___ yesterday.', choices: ['the design', 'approves', 'to design'], a: 0,
+        why: 'ကြိယာ approved ၏နောက်တွင် ကံ (နာမ်ပုဒ်) လိုသည်။' },
+      { q: 'We ___ the bug in version 2.1.', choices: ['fixed', 'fixing', 'to fix'], a: 0,
+        why: 'ပြီးခဲ့သောလုပ်ဆောင်ချက် — past simple "fixed"။' },
+    ],
+    tip: 'CV နှင့် report တွင် action verb + object ("Led a team", "Reduced costs by 15%") ပုံစံကို အသုံးများသည်။',
+  },
+  svc: {
+    examples: [
+      { en: 'The results look promising.', mm: 'ရလဒ်များ အလားအလာ ကောင်းပုံရသည်။' },
+      { en: 'Our priority is customer trust.', mm: 'ကျွန်တော်တို့၏ ဦးစားပေးမှာ ဝယ်သူယုံကြည်မှု ဖြစ်သည်။' },
+      { en: 'The market remains unstable.', mm: 'ဈေးကွက်မှာ မတည်ငြိမ်သေးပါ။' },
+    ],
+    register: 'Formal: "This approach seems effective." · Casual: "Looks good." — meeting note တွင် ဝါကျအပြည့် ရေးပါ။',
+    tryIt: [
+      { q: 'The proposal sounds ___.', choices: ['reasonable', 'reasonably', 'reason'], a: 0,
+        why: 'Linking verb (sounds) ၏နောက်တွင် နာမဝိသေသန လိုက်သည် — adverb မဟုတ်။' },
+      { q: 'He remained ___ during the crisis.', choices: ['calm', 'calmly', 'calmness'], a: 0,
+        why: 'remain သည် linking verb ဖြစ်၍ နာမဝိသေသန "calm" လိုက်သည်။' },
+    ],
+    tip: 'seem / appear / remain + adjective သည် report တွင် ခန့်မှန်းချက်ကို ယဉ်ကျေးစွာ ဖော်ပြပေးသည်။',
+  },
+  sviodo: {
+    examples: [
+      { en: 'The manager offered me a promotion.', mm: 'မန်နေဂျာက ကျွန်တော့်ကို ရာထူးတိုး ကမ်းလှမ်းခဲ့သည်။' },
+      { en: 'Could you send us the invoice?', mm: 'Invoice ကို ကျွန်တော်တို့ထံ ပို့ပေးနိုင်ပါသလား။' },
+      { en: 'She showed the client our roadmap.', mm: 'သူမ ဝယ်သူကို ကျွန်တော်တို့၏ roadmap ကို ပြသခဲ့သည်။' },
+    ],
+    register: 'Formal: "We will grant you access." · Casual: "I\'ll send you the link." — နှစ်မျိုးလုံးတွင် IO + DO အစဉ် တူသည်။',
+    tryIt: [
+      { q: 'Please send ___ the updated file.', choices: ['me', 'to me', 'I'], a: 0,
+        why: 'IO ကို ကြိယာနောက် တိုက်ရိုက်ထားလျှင် to မလို — "send me the file"။' },
+      { q: 'They offered ___ a discount for early payment.', choices: ['us', 'we', 'for us'], a: 0,
+        why: 'IO နေရာတွင် object pronoun "us" သုံးရသည်။' },
+    ],
+    tip: 'Email request တွင် "Could you send me…?" ပုံစံသည် ယဉ်ကျေးပြီး တိကျသည်။',
+  },
+  svoc: {
+    examples: [
+      { en: 'The board appointed her CEO.', mm: 'ဘုတ်အဖွဲ့က သူမကို CEO အဖြစ် ခန့်အပ်ခဲ့သည်။' },
+      { en: 'Users find the app intuitive.', mm: 'အသုံးပြုသူများက app ကို သုံးရလွယ်သည်ဟု တွေ့ရှိကြသည်။' },
+      { en: 'We consider this issue critical.', mm: 'ဤပြဿနာကို အရေးကြီးသည်ဟု ကျွန်တော်တို့ သတ်မှတ်သည်။' },
+    ],
+    register: 'Formal: "We deem the risk acceptable." · Casual: "I find it easy." — formal ရေးသားမှုတွင် consider / deem သုံးသည်။',
+    tryIt: [
+      { q: 'The team found the solution ___.', choices: ['effective', 'effectively', 'effect'], a: 0,
+        why: 'find + O ၏နောက်တွင် နာမဝိသေသန complement လိုက်သည်။' },
+      { q: 'They elected him ___.', choices: ['chairman', 'a chairman is', 'to chairman'], a: 0,
+        why: 'elect + O ၏နောက်တွင် ရာထူးအမည်ကို တိုက်ရိုက်ထားသည်။' },
+    ],
+    tip: '"consider + O + adjective" သည် assessment report များတွင် အသုံးများသော ပရော်ဖက်ရှင်နယ် ပုံစံဖြစ်သည်။',
+  },
+  thereis: {
+    examples: [
+      { en: 'There are several risks in this plan.', mm: 'ဤအစီအစဉ်တွင် အန္တရာယ် အများအပြား ရှိသည်။' },
+      { en: 'There is strong demand for developers.', mm: 'Developer များအတွက် ဝယ်လိုအား မြင့်မားနေသည်။' },
+      { en: 'There has been a delay in shipping.', mm: 'ပို့ဆောင်မှုတွင် နှောင့်နှေးမှု ဖြစ်ခဲ့သည်။' },
+    ],
+    register: 'Formal: "There appears to be an error." · Casual: "There\'s a bug." — formal တွင် appears / seems ခံ၍ ရေးနိုင်သည်။',
+    tryIt: [
+      { q: 'There ___ been three complaints this week.', choices: ['has', 'have', 'is'], a: 1,
+        why: '"three complaints" အများကိန်းဖြစ်၍ "There have been"။' },
+      { q: 'There ___ no time to waste.', choices: ['is', 'are', 'have'], a: 0,
+        why: '"time" သည် uncountable ဖြစ်၍ "is" သုံးရသည်။' },
+    ],
+    tip: 'Report အစတွင် "There are three key findings:" ဟု ဖွင့်ပြီး list ချရေးသည့်ပုံစံ အသုံးများသည်။',
+  },
+  prescont: {
+    examples: [
+      { en: 'We are currently migrating the database.', mm: 'ကျွန်တော်တို့ လက်ရှိ database ကို ရွှေ့ပြောင်းနေသည်။' },
+      { en: 'The company is expanding into Asia.', mm: 'ကုမ္ပဏီသည် အာရှဈေးကွက်သို့ ချဲ့ထွင်နေသည်။' },
+      { en: 'I am working on the fix right now.', mm: 'ပြင်ဆင်မှုကို အခုပဲ လုပ်ဆောင်နေပါသည်။' },
+    ],
+    register: 'Formal: "We are currently reviewing your application." · Casual: "I\'m on it." — currently ထည့်လျှင် ပို formal ဖြစ်သည်။',
+    tryIt: [
+      { q: 'The team ___ testing the release this week.', choices: ['is', 'are', 'be'], a: 0,
+        why: '"the team" ကို အနည်းကိန်းအဖြစ် သဘောထား၍ "is testing"။' },
+      { q: 'We are ___ new features for next sprint.', choices: ['planning', 'plan', 'planned'], a: 0,
+        why: 'are ၏နောက်တွင် V-ing "planning" လိုက်ရသည်။' },
+    ],
+    tip: 'Status meeting တွင် "We are working on…" သည် လက်ရှိတိုးတက်မှုကို ဖော်ပြသည့် စံပုံစံ ဖြစ်သည်။',
+  },
+  presperf: {
+    examples: [
+      { en: 'I have led five major projects.', mm: 'ကျွန်တော် project ကြီး ငါးခုကို ဦးဆောင်ခဲ့ဖူးသည်။' },
+      { en: 'We have already resolved the issue.', mm: 'ပြဿနာကို ဖြေရှင်းပြီးပါပြီ။' },
+      { en: 'The company has grown rapidly since 2020.', mm: 'ကုမ္ပဏီသည် ၂၀၂၀ မှစ၍ လျင်မြန်စွာ ကြီးထွားလာခဲ့သည်။' },
+    ],
+    register: 'Interview: "I have worked with SQL for five years." — အတွေ့အကြုံပြောရာတွင် present perfect သည် အသင့်တော်ဆုံး ဖြစ်သည်။',
+    tryIt: [
+      { q: 'I have ___ in IT since 2018.', choices: ['worked', 'work', 'working'], a: 0,
+        why: 'have ၏နောက်တွင် V3 "worked" — since 2018 က present perfect ကို ညွှန်သည်။' },
+      { q: 'She has ___ completed the security training.', choices: ['already', 'yet', 'still'], a: 0,
+        why: 'အဟုတ်ဝါကျတွင် already၊ အငြင်း/မေးခွန်းတွင် yet သုံးသည်။' },
+    ],
+    tip: 'Interview တွင် ရက်စွဲမပါသော အတွေ့အကြုံ = present perfect၊ ရက်စွဲပါလျှင် past simple ("In 2021, I built…")။',
+  },
+  future: {
+    examples: [
+      { en: 'I will follow up by email.', mm: 'Email ဖြင့် ဆက်လက် အကြောင်းကြားပါမည်။' },
+      { en: 'We are going to release version 3 next month.', mm: 'နောက်လတွင် version 3 ထုတ်ဝေရန် စီစဉ်ထားသည်။' },
+      { en: 'The upgrade will take about two hours.', mm: 'အဆင့်မြှင့်ခြင်းက နှစ်နာရီခန့် ကြာပါမည်။' },
+    ],
+    register: 'ကတိပေးရာတွင် will ("I will send it today.")၊ စီစဉ်ပြီးသားအတွက် going to ("We are going to hire two devs.") ခွဲသုံးပါ။',
+    tryIt: [
+      { q: "Don't worry — I ___ handle it.", choices: ['will', 'am', 'going'], a: 0,
+        why: 'ချက်ချင်း ဆုံးဖြတ်ပြီး ကတိပေးခြင်း — will သုံးသည်။' },
+      { q: 'We ___ to launch on Friday as planned.', choices: ['are going', 'will going', 'going'], a: 0,
+        why: 'စီစဉ်ပြီးသား — "are going to launch"။' },
+    ],
+    tip: 'Meeting အဆုံးတွင် action item များကို "I will…" ဖြင့် ချရေးလျှင် တာဝန်ခံမှု ရှင်းလင်းသည်။',
+  },
+  whq: {
+    examples: [
+      { en: 'What does success look like for this role?', mm: 'ဤရာထူးအတွက် အောင်မြင်မှုကို မည်သို့ တိုင်းတာပါသလဲ။' },
+      { en: 'How long have you worked in fintech?', mm: 'Fintech နယ်ပယ်တွင် မည်မျှကြာ လုပ်ကိုင်ခဲ့ပါသလဲ။' },
+      { en: 'Why did the deployment fail?', mm: 'Deployment ဘာကြောင့် မအောင်မြင်ခဲ့သနည်း။' },
+    ],
+    register: 'Formal (indirect): "Could you tell me where the office is?" — indirect question တွင် word order ပုံမှန်အတိုင်း ပြန်ဖြစ်သွားသည်။',
+    tryIt: [
+      { q: 'Could you tell me where ___?', choices: ['the meeting room is', 'is the meeting room', 'does the meeting room'], a: 0,
+        why: 'Indirect question တွင် S + V ပုံမှန်အစီအစဉ် — "where the meeting room is"။' },
+      { q: 'How long ___ you been waiting?', choices: ['have', 'do', 'are'], a: 0,
+        why: '"been waiting" ပါ၍ present perfect continuous — have သုံးရသည်။' },
+    ],
+    tip: 'Interview အဆုံးတွင် "What does a typical day look like?" ကဲ့သို့ Wh-question သေသပ်စွာ ပြန်မေးလျှင် ပရော်ဖက်ရှင်နယ်ဆန်သည်။',
+  },
+  clause: {
+    examples: [
+      { en: 'Although the budget was tight, we delivered on time.', mm: 'ဘတ်ဂျက် ကျပ်တည်းသော်လည်း အချိန်မီ အပ်နှံနိုင်ခဲ့သည်။' },
+      { en: 'Because demand increased, we hired more staff.', mm: 'ဝယ်လိုအား တက်လာသောကြောင့် ဝန်ထမ်း ထပ်ခန့်ခဲ့သည်။' },
+      { en: 'Although I admire the idea, I see two risks.', mm: 'အိုင်ဒီယာကို လေးစားသော်လည်း အန္တရာယ်နှစ်ခု တွေ့မြင်ပါသည်။' },
+    ],
+    register: 'Formal ရေးသားမှုတွင် because-clause အစား "due to + noun" ("due to the delay") ကိုလည်း သုံးလေ့ရှိသည်။',
+    tryIt: [
+      { q: '___ strong competition, our sales grew.', choices: ['Despite', 'Although', 'Because'], a: 0,
+        why: 'နာမ်ပုဒ် (strong competition) ရှေ့တွင် Despite၊ clause ရှေ့တွင်သာ Although သုံးသည်။' },
+      { q: 'The launch was delayed ___ a security issue was found.', choices: ['because', 'despite', 'although'], a: 0,
+        why: 'အကြောင်းရင်းပြ clause — because + S + V။' },
+    ],
+    tip: 'Feedback ပေးရာတွင် "Although…" ဖြင့် စလျှင် ဝေဖန်ချက် ပျော့ပျောင်းသွားသည် (ချီးမွမ်း → စိုးရိမ်ချက် ပုံစံ)။',
+  },
+  ifcond: {
+    examples: [
+      { en: 'If the tests pass, we will deploy tonight.', mm: 'Test များ အောင်လျှင် ဒီည deploy လုပ်ပါမည်။' },
+      { en: 'If you restart the router, the connection usually recovers.', mm: 'Router ကို ပြန်စတင်လျှင် ချိတ်ဆက်မှု ပုံမှန် ပြန်ကောင်းတတ်သည်။' },
+      { en: 'If the client agrees, we will sign tomorrow.', mm: 'ဝယ်သူ သဘောတူလျှင် မနက်ဖြန် လက်မှတ်ထိုးပါမည်။' },
+    ],
+    register: 'Formal: "Should you have any questions, please contact us." — "If you have" ၏ formal ပုံစံ ဖြစ်သည်။',
+    tryIt: [
+      { q: '___ you need help, please let me know.', choices: ['If', 'Unless', 'Although'], a: 0,
+        why: 'အခြေအနေပြ — If + present + imperative။' },
+      { q: 'If the server ___ down, the alert fires automatically.', choices: ['goes', 'will go', 'gone'], a: 0,
+        why: 'Type 0 — If-clause တွင် present tense "goes"။' },
+    ],
+    tip: 'Troubleshooting doc များတွင် Type 0 ("If X happens, Y happens") သည် စံရေးဟန် ဖြစ်သည်။',
+  },
+  relative: {
+    examples: [
+      { en: 'We need a developer who knows Vue.', mm: 'Vue ကျွမ်းကျင်သော developer တစ်ဦး လိုအပ်သည်။' },
+      { en: 'The feature that users requested most is dark mode.', mm: 'အသုံးပြုသူများ အတောင်းဆိုဆုံး feature မှာ dark mode ဖြစ်သည်။' },
+      { en: 'The invoice, which was sent last week, is still unpaid.', mm: 'ပြီးခဲ့သောအပတ်က ပို့ခဲ့သည့် invoice မှာ မပေးချေရသေးပါ။' },
+    ],
+    register: 'Non-defining clause (comma ပါသော) တွင် that မသုံးရ — which / who သာ။ Formal ရေးသားမှုတွင် အသုံးများသည်။',
+    tryIt: [
+      { q: 'The report, ___ was published on Monday, shows strong growth.', choices: ['which', 'that', 'who'], a: 0,
+        why: 'Comma ပါသော non-defining clause တွင် which သာ ရသည်။' },
+      { q: 'We hired the candidate ___ CV impressed us.', choices: ['whose', 'who', 'which'], a: 0,
+        why: 'ပိုင်ဆိုင်မှုပြ (သူ၏ CV) — whose သုံးရသည်။' },
+    ],
+    tip: 'Job ad နှင့် spec ရေးရာတွင် relative clause ("a tool that automates X") က လိုအပ်ချက်ကို တိကျစေသည်။',
+  },
+  compare: {
+    examples: [
+      { en: "This quarter's revenue is higher than last quarter's.", mm: 'ဤသုံးလပတ် ဝင်ငွေသည် ပြီးခဲ့သည့် သုံးလပတ်ထက် မြင့်သည်။' },
+      { en: 'The new API is significantly faster than the old one.', mm: 'API အသစ်သည် အဟောင်းထက် သိသိသာသာ ပိုမြန်သည်။' },
+      { en: 'Remote work is becoming more common than office work.', mm: 'Remote အလုပ်သည် ရုံးအလုပ်ထက် ပို၍ အဖြစ်များလာသည်။' },
+    ],
+    register: 'Data တင်ပြရာတွင် slightly / significantly / far + comparative ("slightly cheaper", "far more efficient") ထည့်လျှင် ပိုတိကျသည်။',
+    tryIt: [
+      { q: 'The new design is ___ better than the old one.', choices: ['far', 'more', 'most'], a: 0,
+        why: 'Comparative ကို အားဖြည့်ရာတွင် far / much သုံးသည် — "far better"။' },
+      { q: 'Option A is less expensive ___ Option B.', choices: ['than', 'then', 'as'], a: 0,
+        why: 'နှိုင်းယှဉ်ချက်တိုင်းတွင် than သုံးသည် — then (ထို့နောက်) နှင့် မမှားပါစေနှင့်။' },
+    ],
+    tip: 'Report တွင် "X is 20% higher than Y" ဟု ကိန်းဂဏန်းနှင့် တွဲရေးလျှင် ယုံကြည်စရာ ဖြစ်သည်။',
+  },
+  passive: {
+    examples: [
+      { en: 'The issue was resolved within two hours.', mm: 'ပြဿနာကို နှစ်နာရီအတွင်း ဖြေရှင်းပြီးစီးခဲ့သည်။' },
+      { en: 'All passwords are encrypted before storage.', mm: 'Password အားလုံးကို မသိမ်းဆည်းမီ encrypt ပြုလုပ်ထားသည်။' },
+      { en: 'The contract was signed by both parties.', mm: 'စာချုပ်ကို နှစ်ဖက်လုံးက လက်မှတ်ရေးထိုးခဲ့သည်။' },
+    ],
+    register: 'Incident report တွင် passive ("The outage was caused by…") က အပြစ်တင်သံမပါဘဲ ဖော်ပြပေးသည်။ Casual စကားပြောတွင် active ကို ပိုသုံးသည်။',
+    tryIt: [
+      { q: 'The release ___ postponed until Friday.', choices: ['has been', 'has', 'have been'], a: 0,
+        why: '"The release" အနည်းကိန်း — "has been postponed" (present perfect passive)။' },
+      { q: 'New users ___ asked to verify their email.', choices: ['are', 'is', 'be'], a: 0,
+        why: '"New users" အများကိန်း — "are asked"။' },
+    ],
+    tip: 'Process/documentation ရေးရာတွင် passive ("Data is backed up daily") သည် စံဖြစ်သည် — ဘယ်သူလုပ်သည်ထက် ဘာဖြစ်သည်က အရေးကြီးသောကြောင့်။',
+  },
+  cond2: {
+    examples: [
+      { en: 'If we had a bigger budget, we would hire two more developers.', mm: 'ဘတ်ဂျက် ပိုရလျှင် developer နှစ်ဦး ထပ်ခန့်မည်။' },
+      { en: 'If I were the manager, I would automate this process.', mm: 'ကျွန်တော်သာ မန်နေဂျာဆိုလျှင် ဤလုပ်ငန်းစဉ်ကို automate လုပ်မည်။' },
+      { en: 'What would you do if a client rejected your design?', mm: 'ဝယ်သူက ဒီဇိုင်းကို ငြင်းပယ်လျှင် ဘာလုပ်မည်နည်း။' },
+    ],
+    register: '"If I were you…" သည် အကြံပေးရာ ယဉ်ကျေးသောပုံစံ — formal တွင် "were"၊ casual စကားပြောတွင် "was" လည်း ကြားရတတ်သည်။',
+    tryIt: [
+      { q: 'If the app ___ offline mode, more users would install it.', choices: ['had', 'has', 'would have'], a: 0,
+        why: 'If-clause တွင် past tense "had" — would ကို main clause တွင်သာ။' },
+      { q: 'I ___ take the offer if I were in your position.', choices: ['would', 'will', 'can'], a: 0,
+        why: 'စိတ်ကူးအခြေအနေ — main clause တွင် would + V။' },
+    ],
+    tip: 'Interview တွင် hypothetical မေးခွန်း ("What would you do if…?") ကို 2nd conditional ဖြင့်ပင် ပြန်ဖြေရသည်။',
+  },
+  cond3: {
+    examples: [
+      { en: 'If we had tested earlier, we would have caught the bug.', mm: 'စောစော test လုပ်ခဲ့လျှင် bug ကို မိခဲ့မည်။' },
+      { en: 'If the client had signed on time, the project would have started in May.', mm: 'ဝယ်သူ အချိန်မီ လက်မှတ်ထိုးခဲ့လျှင် project ကို မေလတွင် စတင်နိုင်ခဲ့မည်။' },
+      { en: 'I would have accepted the offer if the salary had been higher.', mm: 'လစာ ပိုမြင့်ခဲ့လျှင် ကမ်းလှမ်းချက်ကို လက်ခံခဲ့မည်။' },
+    ],
+    register: 'Retrospective meeting တွင် "We would have shipped sooner if…" ပုံစံဖြင့် သင်ခန်းစာ ပြန်သုံးသပ်လေ့ရှိသည်။',
+    tryIt: [
+      { q: 'If we ___ the logs, we would have found the cause.', choices: ['had checked', 'checked', 'would check'], a: 0,
+        why: '3rd conditional ၏ If-clause — had + V3 "had checked"။' },
+      { q: 'She would have joined the call if she ___ about it.', choices: ['had known', 'knew', 'has known'], a: 0,
+        why: 'အတိတ်နှင့်ဆန့်ကျင် — "had known" သုံးရသည်။' },
+    ],
+    tip: 'Post-mortem ရေးရာတွင် 3rd conditional သည် အပြစ်မတင်ဘဲ ပြန်လည်သုံးသပ်ရန် အသုံးဝင်သည်။',
+  },
+  reported: {
+    examples: [
+      { en: 'The client said that they were happy with the demo.', mm: 'Demo ကို ကျေနပ်ကြောင်း ဝယ်သူက ပြောခဲ့သည်။' },
+      { en: 'The manager announced that the deadline had been moved.', mm: 'နောက်ဆုံးရက် ရွှေ့လိုက်ကြောင်း မန်နေဂျာက ကြေညာခဲ့သည်။' },
+      { en: 'She asked whether we could deliver by June.', mm: 'ဇွန်လအမီ အပ်နှံနိုင်မလားဟု သူမ မေးမြန်းခဲ့သည်။' },
+    ],
+    register: 'Meeting minutes တွင် reported speech သည် စံ — "Mr. Aung stated that…"။ Casual တွင် "He was like, …" ဟုပြောကြသော်လည်း စာတွင် မသုံးရ။',
+    tryIt: [
+      { q: 'He asked me where I ___.', choices: ['worked', 'work', 'do work'], a: 0,
+        why: 'Indirect question — word order ပုံမှန် + tense နောက်ဆုတ် "worked"။' },
+      { q: 'They announced that the office ___ move in July.', choices: ['would', 'will', 'shall'], a: 0,
+        why: 'Reported speech တွင် will → would ဟု နောက်ဆုတ်သည်။' },
+    ],
+    tip: 'Minutes ရေးရာတွင် "X reported that…", "Y suggested that…" ပုံစံများကို အမြဲသုံးသည်။',
+  },
+  gerinf: {
+    examples: [
+      { en: 'We recommend enabling two-factor authentication.', mm: 'Two-factor authentication ဖွင့်ထားရန် အကြံပြုပါသည်။' },
+      { en: 'The team agreed to refactor the module.', mm: 'Module ကို ပြန်လည်ရေးသားရန် အဖွဲ့ သဘောတူခဲ့သည်။' },
+      { en: 'He stopped using the legacy system last year.', mm: 'သူ မနှစ်က စနစ်ဟောင်း သုံးခြင်းကို ရပ်ခဲ့သည်။' },
+    ],
+    register: 'stop + V-ing (လုပ်နေသည်ကို ရပ်သည်) နှင့် stop + to V (တခြားအရာလုပ်ရန် ရပ်သည်) အဓိပ္ပာယ် လုံးဝကွာသည် — သတိထားပါ။',
+    tryIt: [
+      { q: 'Remember ___ the file before you close the app.', choices: ['to save', 'saving', 'save'], a: 0,
+        why: 'remember + to V = လုပ်ရန်မမေ့ပါနှင့်; remember + V-ing = လုပ်ခဲ့သည်ကို မှတ်မိသည်။' },
+      { q: 'We considered ___ the launch by a week.', choices: ['delaying', 'to delay', 'delay'], a: 0,
+        why: 'consider ၏နောက်တွင် V-ing သာ လိုက်သည်။' },
+    ],
+    tip: 'Recommendation ရေးရာတွင် "We recommend + V-ing" သည် တိုတောင်းပြီး ပရော်ဖက်ရှင်နယ်ဆန်သည်။',
+  },
+  usedto: {
+    examples: [
+      { en: 'We used to deploy manually; now everything is automated.', mm: 'အရင်က လက်ဖြင့် deploy လုပ်ခဲ့ရသည် — ယခု အားလုံး automated ဖြစ်ပြီ။' },
+      { en: 'I used to work night shifts at my previous company.', mm: 'ကုမ္ပဏီဟောင်းတွင် ညဆိုင်း လုပ်ခဲ့ဖူးသည်။' },
+      { en: 'Customers would call the hotline; now they use live chat.', mm: 'ဝယ်သူများ hotline ခေါ်လေ့ရှိခဲ့သည် — ယခု live chat သုံးကြသည်။' },
+    ],
+    register: '"be used to + V-ing" (ကျင့်သားရနေသည်) နှင့် "used to + V" (အတိတ်အလေ့အထ) မတူပါ — "I\'m used to working remotely."',
+    tryIt: [
+      { q: "I'm used to ___ under pressure.", choices: ['working', 'work', 'worked'], a: 0,
+        why: '"be used to" ၏နောက်တွင် V-ing လိုက်သည် — ကျင့်သားရနေခြင်း အဓိပ္ပာယ်။' },
+      { q: 'Our team ___ to release monthly, but now we ship weekly.', choices: ['used', 'use', 'is used'], a: 0,
+        why: 'အတိတ်အလေ့အထ — "used to release"။' },
+    ],
+    tip: 'Interview တွင် တိုးတက်ပြောင်းလဲမှုပြရန် "We used to X; now we Y" ပုံစံက ထိရောက်သည်။',
+  },
+  tagq: {
+    examples: [
+      { en: "You have finished the report, haven't you?", mm: 'Report ပြီးသွားပြီနော်။' },
+      { en: "The demo went well, didn't it?", mm: 'Demo ကောင်းခဲ့တယ်နော်။' },
+      { en: "Let's review this tomorrow, shall we?", mm: 'မနက်ဖြန် ပြန်သုံးသပ်ကြရအောင်နော်။' },
+    ],
+    register: 'အထူး tag များ — "Let\'s …, shall we?" / ခိုင်းစေဝါကျနောက် "…, will you?"။ Business တွင် tag question က ယဉ်ကျေးစွာ အတည်ပြုချက် တောင်းပေးသည်။',
+    tryIt: [
+      { q: "Let's start the meeting, ___ we?", choices: ['shall', 'will', 'do'], a: 0,
+        why: '"Let\'s" ၏ tag မှာ "shall we?" ဖြစ်သည်။' },
+      { q: 'Nobody complained, ___ they?', choices: ['did', "didn't", 'do'], a: 0,
+        why: 'Nobody သည် အငြင်းသဘောဖြစ်၍ tag က အဟုတ် "did they?" — နာမ်စား they သုံးသည်။' },
+    ],
+    tip: 'ဝယ်သူနှင့် ဆွေးနွေးရာတွင် "…, isn\'t it?" ဖြင့် သဘောတူညီမှုကို ညင်သာစွာ ရယူနိုင်သည်။',
+  },
+  mixedcond: {
+    examples: [
+      { en: 'If we had chosen the cloud earlier, our costs would be lower now.', mm: 'Cloud ကို စောစော ရွေးခဲ့လျှင် ယခု ကုန်ကျစရိတ် ပိုနည်းနေမည်။' },
+      { en: "If I hadn't taken that course, I wouldn't be a developer today.", mm: 'အဲဒီသင်တန်း မတက်ခဲ့လျှင် ယနေ့ developer ဖြစ်မနေပါ။' },
+      { en: "If she weren't so busy, she would have joined yesterday's call.", mm: 'သူမ ဒီလောက် အလုပ်မများလျှင် မနေ့က call တွင် ပါဝင်ခဲ့မည်။' },
+    ],
+    register: 'Mixed conditional သည် စကားပြောထက် ရေးသားမှု/presentation တွင် ပိုတွေ့ရသည် — အကြောင်းအကျိုး ချိတ်ဆက်ပြရာတွင် အားကောင်းသည်။',
+    tryIt: [
+      { q: 'If I had learned English earlier, my career ___ different now.', choices: ['would be', 'would have been', 'will be'], a: 0,
+        why: 'လက်ရှိအကျိုးဆက် (now) — would + V "would be"။' },
+      { q: 'If he ___ more organized, he would have met the deadline.', choices: ['were', 'had been', 'was'], a: 0,
+        why: 'လက်ရှိစရိုက် (organized မဟုတ်) → အတိတ်အကျိုးဆက် — If-clause တွင် were သုံးသည်။' },
+    ],
+    tip: '"အတိတ်ဆုံးဖြတ်ချက် → ယနေ့ရလဒ်" ကို ပြောလိုလျှင် mixed conditional တစ်မျိုးတည်းသာ အံဝင်သည်။',
+  },
+  inversion: {
+    examples: [
+      { en: 'Never before has the company grown this fast.', mm: 'ကုမ္ပဏီ ဤမျှ လျင်မြန်စွာ ကြီးထွားခဲ့ဖူးခြင်း မရှိသေးပါ။' },
+      { en: 'Not only did we meet the target, but we exceeded it by 20%.', mm: 'ရည်မှန်းချက် ပြည့်ရုံသာမက ၂၀% ကျော်လွန်ခဲ့သည်။' },
+      { en: 'Only after the audit did we discover the error.', mm: 'စာရင်းစစ်ဆေးမှု အပြီးမှသာ အမှားကို တွေ့ရှိခဲ့သည်။' },
+    ],
+    register: 'Inversion သည် formal/စာပေဟန် ဖြစ်သည် — presentation နှင့် ရေးသားမှုတွင် အထင်ကြီးစေသည်။ နေ့စဉ်စကားပြောတွင် ပုံမှန်အစီအစဉ်ကိုသာ သုံးပါ။',
+    tryIt: [
+      { q: 'Only then ___ the full impact.', choices: ['did we realize', 'we realized', 'we did realize'], a: 0,
+        why: '"Only then" ရှေ့တင်လျှင် did + S + V ပြောင်းပြန်စီရသည်။' },
+      { q: 'Seldom ___ such dedication.', choices: ['have I seen', 'I have seen', 'I saw'], a: 0,
+        why: 'Seldom ရှေ့တင်ထား၍ aux + S + V3 "have I seen"။' },
+    ],
+    tip: 'Presentation ၏ အထွတ်အထိပ်တွင် "Not only… but also…" inversion သည် နားထောင်သူကို ဆွဲဆောင်သည်။',
+  },
+  cleft: {
+    examples: [
+      { en: 'It was the pricing that convinced the client.', mm: 'ဝယ်သူကို ဆွဲဆောင်နိုင်ခဲ့သည်မှာ ဈေးနှုန်းပင် ဖြစ်သည်။' },
+      { en: 'It is reliability that matters most in banking software.', mm: 'ဘဏ်လုပ်ငန်း software တွင် အရေးကြီးဆုံးမှာ ယုံကြည်စိတ်ချရမှု ဖြစ်သည်။' },
+      { en: 'What impressed me most was their teamwork.', mm: 'ကျွန်တော် အထင်ကြီးဆုံးမှာ သူတို့၏ အဖွဲ့လိုက် လုပ်ဆောင်မှု ဖြစ်သည်။' },
+    ],
+    register: '"What … is …" (What-cleft) သည် "It … that" ထက် ပို၍ စကားပြောဆန်သည် — နှစ်မျိုးလုံး အလေးပေးရန် သုံးသည်။',
+    tryIt: [
+      { q: '___ matters most is data security.', choices: ['What', 'It', 'That'], a: 0,
+        why: 'What-cleft — "What matters most is …" ပုံစံ။' },
+      { q: 'It was the CEO ___ made the final decision.', choices: ['who', 'which', 'whom'], a: 0,
+        why: 'လူကို အလေးပေး၍ who (သို့ that) သုံးသည် — ကတ္တားနေရာဖြစ်၍ whom မရ။' },
+    ],
+    tip: 'Client meeting တွင် "It is X that we value most" ဟု အလေးပေးပြောလျှင် message ထင်ရှားသည်။',
+  },
+  participle: {
+    examples: [
+      { en: 'Having reviewed the data, we adjusted the forecast.', mm: 'ဒေတာကို သုံးသပ်ပြီးနောက် ခန့်မှန်းချက်ကို ပြင်ဆင်ခဲ့သည်။' },
+      { en: 'Built on open standards, the platform integrates easily.', mm: 'Open standard များပေါ် တည်ဆောက်ထားသဖြင့် platform သည် လွယ်ကူစွာ ချိတ်ဆက်နိုင်သည်။' },
+      { en: 'Working closely with the client, we refined the design weekly.', mm: 'ဝယ်သူနှင့် နီးကပ်စွာ လုပ်ဆောင်ရင်း ဒီဇိုင်းကို အပတ်စဉ် ပြင်ဆင်ခဲ့သည်။' },
+    ],
+    register: 'Participle clause သည် formal ရေးဟန် — proposal/report တွင် ဝါကျချိတ်ဆက်မှုကို ကျစ်လစ်စေသည်။ Email တိုများတွင် သိပ်မသုံးပါ။',
+    tryIt: [
+      { q: '___ the contract carefully, she signed it.', choices: ['Having read', 'Read', 'To read'], a: 0,
+        why: 'ရှေ့ဖြစ်ပြီးမှ နောက်လုပ် — "Having + V3" ပုံစံ။' },
+      { q: '___ by over a million users, the app is well tested.', choices: ['Used', 'Using', 'Use'], a: 0,
+        why: 'App သည် "သုံးခြင်းခံရ" (passive) ဖြစ်၍ V3 "Used"။' },
+    ],
+    tip: 'CV bullet တွင် "Working with X, achieved Y" ပုံစံဖြင့် အကြောင်းအကျိုး ချိတ်ပြနိုင်သည်။',
+  },
+  subjunctive: {
+    examples: [
+      { en: 'We propose that the deadline be extended by one week.', mm: 'နောက်ဆုံးရက်ကို တစ်ပတ် တိုးမြှင့်ရန် အဆိုပြုပါသည်။' },
+      { en: 'The auditor recommended that every transaction be logged.', mm: 'Transaction တိုင်းကို မှတ်တမ်းတင်ရန် စာရင်းစစ်က အကြံပြုခဲ့သည်။' },
+      { en: 'It is essential that the backup run daily.', mm: 'Backup ကို နေ့စဉ် လည်ပတ်စေရန် မရှိမဖြစ် လိုအပ်သည်။' },
+    ],
+    register: 'Subjunctive သည် American formal ရေးဟန်တွင် အထူးအသုံးများသည်။ British English တွင် "should be extended" ဟုလည်း ရေးနိုင်သည်။',
+    tryIt: [
+      { q: 'It is vital that every user ___ a strong password.', choices: ['choose', 'chooses', 'chose'], a: 0,
+        why: '"It is vital that" ၏နောက်တွင် base form "choose" — -s မထည့်ရ။' },
+      { q: 'The board demanded that the report ___ revised.', choices: ['be', 'is', 'was'], a: 0,
+        why: 'demand that ၏နောက်တွင် base form — passive ဖြစ်၍ "be revised"။' },
+    ],
+    tip: 'Proposal တွင် "We propose that X be done" သည် ခိုင်မာပြီး ယဉ်ကျေးသော တောင်းဆိုပုံစံ ဖြစ်သည်။',
+  },
+  reducedrel: {
+    examples: [
+      { en: 'Applicants interested in the role should apply by Friday.', mm: 'ရာထူးကို စိတ်ဝင်စားသော လျှောက်ထားသူများ သောကြာနေ့အမီ လျှောက်ထားပါ။' },
+      { en: 'The features requested by enterprise clients are in beta.', mm: 'Enterprise ဝယ်သူများ တောင်းဆိုသော feature များမှာ beta အဆင့်တွင် ရှိသည်။' },
+      { en: 'Anyone using the old API should migrate this quarter.', mm: 'API အဟောင်း သုံးနေသူတိုင်း ဤသုံးလပတ်အတွင်း ပြောင်းရွှေ့သင့်သည်။' },
+    ],
+    register: 'Job ad, release note, စာချုပ်စာတမ်းများတွင် reduced relative သည် စာကို တိုကျစေ၍ စံရေးဟန် ဖြစ်သည်။',
+    tryIt: [
+      { q: 'Documents ___ before 2020 are archived automatically.', choices: ['created', 'creating', 'create'], a: 0,
+        why: 'Document သည် "ဖန်တီးခြင်းခံရ" (passive) — V3 "created"။' },
+      { q: 'Anyone ___ to attend must register first.', choices: ['wishing', 'wished', 'wish'], a: 0,
+        why: 'လူက ဆန္ဒရှိသည် (active) — V-ing "wishing" (who wishes မှ ချုံ့ထားခြင်း)။' },
+    ],
+    tip: 'Notice ရေးရာတွင် "Employees working remotely must…" ပုံစံက "who are" ကို ချန်လှပ်၍ သပ်ရပ်စေသည်။',
+  },
+};
+PATTERNS.forEach(p => { p.pro = PRO[p.id]; });
 
 const app = createApp({
   setup() {
@@ -631,9 +1343,12 @@ const app = createApp({
       { label: '🌱 အခြေခံ · Basic', value: 0 },
       { label: '☀️ နေ့စဉ်သုံး · Everyday', value: 1 },
       { label: '✍️ အရေးအသား · Writing Power', value: 2 },
+      { label: '📘 အလယ်အလတ် · Intermediate', value: 3 },
+      { label: '🏔 အဆင့်မြင့် · Advanced', value: 4 },
     ];
     const mode = ref('learn');
     const expanded = ref(null);
+    const proOpen = ref([]);
     const done = ref([]);
     const prac = ref({});
     const ex = ref({ items: [], i: 0, score: 0, picked: null, done: false, fromDone: false });
@@ -651,6 +1366,10 @@ const app = createApp({
     function save() { localStorage.setItem(STORE, JSON.stringify({ done: done.value })); }
 
     function toggle(id) { expanded.value = expanded.value === id ? null : id; }
+    function togglePro(id) {
+      if (proOpen.value.includes(id)) proOpen.value = proOpen.value.filter(x => x !== id);
+      else proOpen.value.push(id);
+    }
     function markDone(id) {
       if (!done.value.includes(id)) { done.value.push(id); save(); }
       toast('🏆 "' + (PATTERNS.find(p => p.id === id) || {}).name + '" ရပြီဟု မှတ်ထားပါပြီ');
@@ -696,9 +1415,14 @@ const app = createApp({
     function startExam() {
       const donePats = PATTERNS.filter(p => done.value.includes(p.id));
       const fromDone = donePats.length * 2 >= 10;
-      const pool = (fromDone ? donePats : PATTERNS).flatMap(p =>
-        p.tryIt.map(t => ({ pname: p.name + ' — ' + p.myName, q: t.q, choices: t.choices, a: t.a, why: t.why }))
-      );
+      const pool = (fromDone ? donePats : PATTERNS).flatMap(p => {
+        const items = p.tryIt.map(t => ({ pname: p.name + ' — ' + p.myName, q: t.q, choices: t.choices, a: t.a, why: t.why }));
+        // Pro practice items join the exam only for patterns already marked done
+        if (p.pro && done.value.includes(p.id)) {
+          items.push(...p.pro.tryIt.map(t => ({ pname: '⭐ ' + p.name + ' — Pro', q: t.q, choices: t.choices, a: t.a, why: t.why })));
+        }
+        return items;
+      });
       ex.value = { items: shuffle(pool).slice(0, 10), i: 0, score: 0, picked: null, done: false, fromDone };
       mode.value = 'exam';
     }
@@ -714,16 +1438,199 @@ const app = createApp({
     }
     function goLearn() { mode.value = 'learn'; }
 
+    // ---- Shareable PNG export (1080x1350 portrait, Facebook-ready) ----
+    const batchBusy = ref(false);
+    const batchProg = ref('');
+    const K_COLORS = { s: '#3b82f6', v: '#22c55e', o: '#f97316', c: '#a855f7', io: '#06b6d4', a: '#eab308', q: '#ec4899', j: '#f43f5e', x: '#94a3b8', '': '#94a3b8' };
+    const IMG_FONT = "'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',sans-serif";
+    function fontStr(size, weight) { return (weight || '400') + ' ' + Math.round(size) + 'px ' + IMG_FONT; }
+    function hexA(hex, a) {
+      const n = parseInt(hex.slice(1), 16);
+      return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')';
+    }
+    function rr(ctx, x, y, w, h, r) {
+      ctx.beginPath();
+      ctx.moveTo(x + r, y);
+      ctx.arcTo(x + w, y, x + w, y + h, r);
+      ctx.arcTo(x + w, y + h, x, y + h, r);
+      ctx.arcTo(x, y + h, x, y, r);
+      ctx.arcTo(x, y, x + w, y, r);
+      ctx.closePath();
+    }
+    function wrapLines(ctx, text, maxW) {
+      const words = String(text).split(' ');
+      const lines = [];
+      let cur = '';
+      for (const w of words) {
+        const t = cur ? cur + ' ' + w : w;
+        if (ctx.measureText(t).width > maxW && cur) { lines.push(cur); cur = w; }
+        else cur = t;
+      }
+      if (cur) lines.push(cur);
+      return lines;
+    }
+
+    function renderPatternCanvas(p) {
+      const W = 1080, H = 1350, PAD = 70, CW = W - PAD * 2;
+      const canvas = document.createElement('canvas');
+      canvas.width = W; canvas.height = H;
+      const ctx = canvas.getContext('2d');
+      const num = PATTERNS.indexOf(p) + 1;
+
+      // One layout pass at scale s; draws when draw=true, always returns bottom y.
+      function pass(s, draw) {
+        ctx.textBaseline = 'top';
+        let y = 84;
+        // eyebrow
+        ctx.font = fontStr(25 * s, '700');
+        if (draw) {
+          ctx.fillStyle = '#fb923c';
+          try { ctx.letterSpacing = '6px'; } catch (e) {}
+          ctx.fillText('ENGLISH SENTENCE PATTERNS', PAD, y);
+          try { ctx.letterSpacing = '0px'; } catch (e) {}
+        }
+        y += 48 * s;
+        // pattern name (shrink-to-fit one line)
+        let ns = 60 * s;
+        ctx.font = fontStr(ns, '800');
+        while (ctx.measureText(p.name).width > CW && ns > 28) { ns -= 2; ctx.font = fontStr(ns, '800'); }
+        if (draw) { ctx.fillStyle = '#f2f5fa'; ctx.fillText(p.name, PAD, y); }
+        y += ns + 14 * s;
+        // Myanmar name
+        ctx.font = fontStr(34 * s, '400');
+        const myL = wrapLines(ctx, p.myName, CW);
+        if (draw) { ctx.fillStyle = '#9aa4b3'; myL.forEach((ln, i) => ctx.fillText(ln, PAD, y + i * 54 * s)); }
+        y += myL.length * 54 * s + 22 * s;
+        // formula chips
+        const chF = 32 * s, chH = 58 * s, chPad = 22 * s, gap = 12 * s;
+        let cx = PAD, cy = y;
+        for (const ch of p.formula) {
+          ctx.font = fontStr(chF, '800');
+          const cw = ctx.measureText(ch.t).width + chPad * 2;
+          if (cx + cw > W - PAD && cx > PAD) { cx = PAD; cy += chH + gap; }
+          if (draw) {
+            const col = K_COLORS[ch.k] || K_COLORS.x;
+            ctx.fillStyle = hexA(col, 0.15);
+            rr(ctx, cx, cy, cw, chH, 14); ctx.fill();
+            ctx.strokeStyle = hexA(col, 0.55); ctx.lineWidth = 2.5;
+            rr(ctx, cx, cy, cw, chH, 14); ctx.stroke();
+            ctx.fillStyle = col;
+            ctx.fillText(ch.t, cx + chPad, cy + (chH - chF) / 2);
+          }
+          cx += cw + gap;
+        }
+        y = cy + chH + 36 * s;
+        // 2 example sentences + Myanmar translations (clean, no underlines)
+        for (const exm of p.examples.slice(0, 2)) {
+          const en = exm.parts.map(pt => pt.t).join(' ');
+          ctx.font = fontStr(38 * s, '700');
+          const enL = wrapLines(ctx, en, CW);
+          if (draw) { ctx.fillStyle = '#f2f5fa'; enL.forEach((ln, i) => ctx.fillText(ln, PAD, y + i * 56 * s)); }
+          y += enL.length * 56 * s + 6 * s;
+          ctx.font = fontStr(30 * s, '400');
+          const mmL = wrapLines(ctx, exm.mm, CW);
+          if (draw) { ctx.fillStyle = '#9aa4b3'; mmL.forEach((ln, i) => ctx.fillText(ln, PAD, y + i * 52 * s)); }
+          y += mmL.length * 52 * s + 26 * s;
+        }
+        // common-mistake amber panel
+        const bp = 28 * s, lh = 48 * s;
+        ctx.font = fontStr(30 * s, '700');
+        const badL = wrapLines(ctx, '❌ ' + p.mistake.bad, CW - bp * 2);
+        const goodL = wrapLines(ctx, '✅ ' + p.mistake.good, CW - bp * 2);
+        const boxH = bp * 2 + (badL.length + goodL.length) * lh + 8 * s;
+        if (draw) {
+          ctx.fillStyle = 'rgba(234,179,8,.10)';
+          rr(ctx, PAD, y, CW, boxH, 20); ctx.fill();
+          ctx.strokeStyle = 'rgba(234,179,8,.40)'; ctx.lineWidth = 2.5;
+          rr(ctx, PAD, y, CW, boxH, 20); ctx.stroke();
+          let by = y + bp;
+          ctx.font = fontStr(30 * s, '700');
+          ctx.fillStyle = '#ef4444';
+          badL.forEach(ln => { ctx.fillText(ln, PAD + bp, by); by += lh; });
+          by += 8 * s;
+          ctx.fillStyle = '#22c55e';
+          goodL.forEach(ln => { ctx.fillText(ln, PAD + bp, by); by += lh; });
+        }
+        return y + boxH;
+      }
+
+      // auto font-shrink until content fits above the footer
+      const LIMIT = 1205;
+      let s = 1;
+      while (pass(s, false) > LIMIT && s > 0.6) s -= 0.05;
+
+      // background: dark gradient + subtle orange glow at top
+      const g = ctx.createLinearGradient(0, 0, 0, H);
+      g.addColorStop(0, '#0d1119'); g.addColorStop(1, '#151a24');
+      ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+      const glow = ctx.createRadialGradient(W / 2, -120, 50, W / 2, -120, 720);
+      glow.addColorStop(0, 'rgba(249,115,22,.26)'); glow.addColorStop(1, 'rgba(249,115,22,0)');
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, W, 780);
+
+      pass(s, true);
+
+      // footer
+      ctx.strokeStyle = 'rgba(255,255,255,.12)'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.moveTo(PAD, 1242); ctx.lineTo(W - PAD, 1242); ctx.stroke();
+      ctx.textBaseline = 'top';
+      ctx.font = fontStr(28, '700');
+      ctx.fillStyle = '#9aa4b3';
+      ctx.fillText("Myo's Learing Lab and WebDev Academy", PAD, 1272);
+      const btxt = num + ' / ' + PATTERNS.length;
+      ctx.font = fontStr(28, '800');
+      const bw = ctx.measureText(btxt).width + 46;
+      ctx.fillStyle = '#f97316';
+      rr(ctx, W - PAD - bw, 1260, bw, 54, 27); ctx.fill();
+      ctx.fillStyle = '#0d1119';
+      ctx.fillText(btxt, W - PAD - bw + 23, 1273);
+      return canvas;
+    }
+
+    function downloadCanvas(canvas, name) {
+      return new Promise(res => {
+        canvas.toBlob(b => {
+          if (!b) { res(); return; }
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(b);
+          a.download = name;
+          document.body.appendChild(a);
+          a.click();
+          a.remove();
+          setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+          res();
+        }, 'image/png');
+      });
+    }
+    async function exportImage(p) {
+      const c = renderPatternCanvas(p);
+      await downloadCanvas(c, 'pattern-' + p.id + '.png');
+      toast('🖼 "' + p.name + '" ပုံထုတ်ပြီးပါပြီ');
+    }
+    async function exportAll() {
+      if (batchBusy.value) return;
+      batchBusy.value = true;
+      for (let i = 0; i < PATTERNS.length; i++) {
+        batchProg.value = (i + 1) + '/' + PATTERNS.length;
+        const c = renderPatternCanvas(PATTERNS[i]);
+        await downloadCanvas(c, 'pattern-' + PATTERNS[i].id + '.png');
+        if (i < PATTERNS.length - 1) await new Promise(r => setTimeout(r, 400));
+      }
+      batchBusy.value = false;
+      toast('🖼 ပုံ ' + PATTERNS.length + ' ပုံလုံး ထုတ်ပြီးပါပြီ');
+    }
+    if (typeof window !== 'undefined') window.__sentpatRender = renderPatternCanvas;
+
     onMounted(() => {
       load();
       document.getElementById('vue-loading').style.display = 'none';
     });
 
     return {
-      PATTERNS, level, levelOpts, mode, expanded, done, prac, ex,
+      PATTERNS, level, levelOpts, mode, expanded, proOpen, done, prac, ex,
       curPatterns, doneCount,
-      toggle, markDone, unmarkDone, pick, exText, blankHtml, speak,
+      toggle, togglePro, markDone, unmarkDone, pick, exText, blankHtml, speak,
       startExam, examPick, examNext, goLearn,
+      batchBusy, batchProg, exportImage, exportAll,
     };
   }
 });

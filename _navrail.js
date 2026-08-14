@@ -35,6 +35,7 @@
     { href: 'ai_note_taker_enterprise_suite.html', icon: 'sparkles',   label: 'Enterprise',     color: '#cba6f7' },
     { href: 'RecapAudioMaker.html',                icon: 'headphones', label: 'Recap Audio',    color: '#f472b6' },
     { href: 'PasswordManager.html',                icon: 'shield',     label: 'Passwords',      color: '#22c55e' },
+    { href: 'BackupRestore.html',                  icon: 'shield',     label: 'Backup',         color: '#ef4444' },
     { href: 'SqlFormatter.html',                   icon: 'braces',     label: 'SQL Formatter',  color: '#ec4899' },
     { href: 'GithubTrending.html',                 icon: 'trending',   label: 'GH Trending',    color: '#58a6ff' },
     { href: 'BookmarkManager.html',                icon: 'bookmark',   label: 'Bookmarks',      color: '#6366f1' },

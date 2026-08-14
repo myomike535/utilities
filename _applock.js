@@ -89,6 +89,12 @@
     }
     .al-btn:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 12px 28px rgba(99,102,241,0.45); }
     .al-btn:active { transform: scale(0.97); }
+    .al-btn::after { content: " →"; opacity: 0.85; }
+    .al-input { background: rgba(0,0,0,0.28); border-radius: 14px; }
+    .al-input::placeholder { color: rgba(255,255,255,0.35); letter-spacing: normal; font-size: 0.85rem; }
+    .al-input:hover { border-color: rgba(255,255,255,0.28); }
+    .al-name { text-align: left; padding-left: 18px; }
+    .al-reset { transition: color 0.15s; }
     .al-err { color: #ff7b7b; font-size: 0.78rem; min-height: 18px; margin-top: 10px; }
     .al-reset { margin-top: 14px; font-size: 0.72rem; color: #6b7280; cursor: pointer; text-decoration: underline; background: none; border: none; font-family: inherit; }
     .al-reset:hover { color: #9aa4b3; }
