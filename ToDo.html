@@ -711,7 +711,7 @@
         <el-date-picker v-model="newDue" type="date" value-format="YYYY-MM-DD" placeholder="Due date"></el-date-picker>
         <el-input v-model="newEstimate" class="estimate-input" placeholder="Est. 30m"
                   title="Estimate (e.g. 30m, 1h30m, 2h)" @keyup.enter="addTask"></el-input>
-        <el-button type="primary" id="addBtn" @click="addTask">Add</el-button>
+        <el-button type="primary" id="addBtn" @click="addTask">ထည့်မည် Add</el-button>
       </div>
 
       <div class="toolbar">
@@ -742,7 +742,7 @@
 
       <ul id="taskList" class="task-list" :class="{ dragging: dragId !== null }" v-show="viewMode === 'list'">
         <transition name="fade">
-          <div v-if="visibleTasks.length === 0" class="empty">Nothing here. Press <kbd>n</kbd> to add a task.</div>
+          <div v-if="visibleTasks.length === 0" class="empty illus">ယနေ့ လုပ်စရာ မရှိသေးပါ<br><small>အပေါ်က အကွက်မှာ ရိုက်၍ စတင်ပါ · <kbd>n</kbd></small></div>
         </transition>
         <transition-group name="lst">
         <li v-for="task in visibleTasks" :key="task.id"
@@ -836,7 +836,7 @@
           <span><b id="statBlocked">{{ stats.blocked }}</b> blocked</span>
           <span><b id="statDone">{{ stats.done }}</b> done</span>
         </div>
-        <button id="clearBtn" @click="clearDone">Clear done</button>
+        <button id="clearBtn" @click="clearDone">ပြီးသားများ ရှင်းမည်</button>
       </div>
     </div>
 

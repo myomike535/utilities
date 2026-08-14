@@ -58,7 +58,7 @@
   .grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:12px; }
   .snip {
     background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
-    padding:14px 16px; display:flex; flex-direction:column; gap:8px;
+    padding:16px 18px; display:flex; flex-direction:column; gap:8px;
     transition:all .18s; cursor:pointer;
   }
   .snip:hover { transform:translateY(-2px); border-color:color-mix(in srgb, var(--accent) 40%, transparent);
@@ -100,8 +100,8 @@
       <h1>Snippet Manager</h1>
       <div class="sub">Code library — SQL · PowerShell · JS · lowCode · regex · cloud-sync</div>
     </div>
-    <el-button @click="exportAll">⬇ Export</el-button>
-    <el-button @click="importEl && importEl.click()">⬆ Import</el-button>
+    <el-button @click="exportAll">⬇ ထုတ်မည် Export</el-button>
+    <el-button @click="importEl && importEl.click()">⬆ သွင်းမည် Import</el-button>
     <el-button type="primary" @click="openNew">＋ Snippet</el-button>
     <input type="file" ref="importEl" accept=".json" style="display:none" @change="doImport">
   </header>
@@ -131,13 +131,13 @@
       <pre>{{ s.code.slice(0, 400) }}</pre>
       <div class="snip-foot">
         <el-tag v-for="t in s.tags" :key="t" size="small" type="info" effect="plain">{{ t }}</el-tag>
-        <el-button size="small" type="primary" @click.stop="copySnip(s)">📋 Copy</el-button>
+        <el-button size="small" type="primary" @click.stop="copySnip(s)">📋 ကူးမည်</el-button>
         <span class="when">{{ new Date(s.t).toLocaleDateString() }}{{ s.copies ? ' · ' + s.copies + '×' : '' }}</span>
       </div>
     </div>
     </transition-group>
   </div>
-  <div v-else class="empty">Snippet မရှိသေးပါ — ＋ Snippet ဖြင့် စတင်ပါ</div>
+  <div v-else class="empty illus">Snippet မရှိသေးပါ<br><small>＋ Snippet ခလုတ်ကို နှိပ်၍ ပထမဆုံး snippet သိမ်းပါ</small></div>
 
   <!-- Edit dialog -->
   <el-dialog v-model="showEdit" :title="editing.id ? '✏️ Edit Snippet' : '＋ New Snippet'" width="min(640px, 96vw)">
@@ -162,12 +162,12 @@
     <template #footer>
       <div style="display:flex; gap:8px; width:100%">
         <el-popconfirm v-if="editing.id" title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delSnip">
-          <template #reference><el-button type="danger" plain>🗑 Delete</el-button></template>
+          <template #reference><el-button type="danger" plain>🗑 ဖျက်မည်</el-button></template>
         </el-popconfirm>
         <el-button v-if="editing.id" @click="editing.pin = !editing.pin">{{ editing.pin ? '📌 Unpin' : '📌 Pin' }}</el-button>
         <span style="flex:1"></span>
-        <el-button @click="showEdit=false">Cancel</el-button>
-        <el-button type="primary" @click="saveSnip">💾 Save</el-button>
+        <el-button @click="showEdit=false">မလုပ်တော့ပါ</el-button>
+        <el-button type="primary" @click="saveSnip">💾 သိမ်းမည်</el-button>
       </div>
     </template>
   </el-dialog>

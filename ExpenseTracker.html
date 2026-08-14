@@ -56,7 +56,7 @@
   /* Month summary */
   .mo-nav { display:flex; align-items:center; gap:10px; margin-bottom:12px; }
   .mo-nav .mo { flex:1; text-align:center; font-weight:700; font-size:1.05rem; }
-  .sum-row { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; }
+  .sum-row { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; }
   .sum { background:var(--field); border-radius:11px; padding:12px; text-align:center; }
   .sum .lb { font-size:.7rem; color:var(--muted); margin-bottom:4px; }
   .sum .v { font-size:1.05rem; font-weight:800; font-variant-numeric:tabular-nums; }
@@ -185,7 +185,7 @@
         </transition-group>
       </div>
     </template>
-    <div v-else class="empty">ဤလအတွက် မှတ်တမ်း မရှိသေးပါ</div>
+    <div v-else class="empty illus">ဤလအတွက် မှတ်တမ်း မရှိသေးပါ<br><small>အပေါ်က အကွက်မှာ ငွေပမာဏ ထည့်၍ စတင်မှတ်ပါ</small></div>
   </div>
 
   <!-- Budget dialog -->
@@ -193,8 +193,8 @@
     <label class="fl">လစဉ် သုံးစွဲရန် သတ်မှတ်ငွေ (Ks) — 0 = မသတ်မှတ်</label>
     <el-input v-model="budgetInput" placeholder="500000"></el-input>
     <template #footer>
-      <el-button @click="showBudget=false">Cancel</el-button>
-      <el-button type="primary" @click="saveBudget">💾 Save</el-button>
+      <el-button @click="showBudget=false">မလုပ်တော့ပါ</el-button>
+      <el-button type="primary" @click="saveBudget">💾 သိမ်းမည်</el-button>
     </template>
   </el-dialog>
 </div>

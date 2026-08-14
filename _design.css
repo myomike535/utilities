@@ -101,6 +101,22 @@
   opacity: .35;
   filter: grayscale(35%);
 }
+/* 5b. Illustrated empty state — opt-in via class="empty illus"
+   where the layout has room. A subtle 80px line-art inbox as an
+   inline-SVG data-URI, applied as a mask over a currentColor
+   background so it tints with any theme. Pages without room keep
+   the 📭 default above. */
+:where(.empty.illus)::before {
+  content: "";
+  width: 80px;
+  height: 64px;
+  margin: 0 auto var(--sp-3);
+  background: currentColor;
+  opacity: .25;
+  filter: none;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 64'%3E%3Cg fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 32 20 12h40l8 20v14a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4Z'/%3E%3Cpath d='M12 32h14l4 7h20l4-7h14'/%3E%3Cpath d='M40 2v5M26 5l2 4M54 5l-2 4'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 64'%3E%3Cg fill='none' stroke='%23000' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 32 20 12h40l8 20v14a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4Z'/%3E%3Cpath d='M12 32h14l4 7h20l4-7h14'/%3E%3Cpath d='M40 2v5M26 5l2 4M54 5l-2 4'/%3E%3C/g%3E%3C/svg%3E") center / contain no-repeat;
+}
 
 /* 6. Scrollbars — thin, rounded, theme-aware, page-wide ----- */
 ::-webkit-scrollbar { width: 8px; height: 8px; }
