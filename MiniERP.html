@@ -133,6 +133,120 @@
   .trend .tbar { width:100%; max-width:34px; background:linear-gradient(180deg,var(--accent-2),var(--accent)); border-radius:5px 5px 2px 2px; min-height:2px; }
   .trend .tl { font-size:.6rem; color:var(--faint); }
 
+  /* ===== Quick Sale (POS) overlay ===== */
+  .qs-overlay { position:fixed; inset:0; z-index:1900; display:flex; flex-direction:column;
+    background:linear-gradient(180deg,var(--bg2),var(--bg) 60%); }
+  .qs-head { display:flex; align-items:center; gap:10px; padding:14px 16px 6px; }
+  .qs-head .t { flex:1; font-size:1.12rem; font-weight:800; }
+  .qs-cust { display:flex; gap:8px; padding:4px 16px 10px; }
+  .qs-cust .el-select { flex:1; }
+  .qs-grid { flex:1; overflow-y:auto; padding:4px 16px 16px;
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:10px; align-content:start; }
+  .qs-card { background:var(--card); border:2px solid rgba(255,255,255,.08); border-radius:14px;
+    padding:12px 12px 10px; cursor:pointer; position:relative; user-select:none;
+    -webkit-tap-highlight-color:transparent; min-height:104px; }
+  .qs-card:active { transform:scale(.97); }
+  .qs-card.sel { border-color:var(--accent); background:rgba(99,102,241,.14); }
+  .qs-card.out { opacity:.38; }
+  .qs-card .nm { font-size:.86rem; font-weight:700; margin-bottom:4px; line-height:1.35; }
+  .qs-card .pr { font-size:1rem; font-weight:800; color:var(--accent-2); font-variant-numeric:tabular-nums; }
+  .qs-card .stk { display:inline-block; margin-top:5px; font-size:.64rem; padding:2px 7px; border-radius:99px;
+    background:rgba(52,211,153,.14); color:var(--ok); }
+  .qs-card .stk.low { background:rgba(248,113,113,.16); color:var(--bad); }
+  .qs-qtybar { display:flex; align-items:center; margin-top:9px; background:var(--field);
+    border:1px solid var(--field-border); border-radius:11px; overflow:hidden; }
+  .qs-step { width:46px; height:42px; border:none; background:none; color:var(--text);
+    font-size:1.25rem; cursor:pointer; font-family:var(--sans); }
+  .qs-step:active { background:rgba(99,102,241,.25); }
+  .qs-qtybar .q { flex:1; text-align:center; font-weight:800; font-size:1.05rem; }
+  .qs-totalbar { display:flex; align-items:center; gap:14px; border-top:1px solid rgba(255,255,255,.1);
+    background:var(--card2); padding:12px 16px calc(12px + env(safe-area-inset-bottom,0px)); }
+  .qs-sum { flex:1; min-width:0; }
+  .qs-sum .lbl { font-size:.72rem; color:var(--muted); }
+  .qs-sum .val { font-size:1.55rem; font-weight:900; color:var(--ok); font-variant-numeric:tabular-nums; }
+  .qs-sell { min-height:54px; padding:0 28px; border:none; border-radius:14px; cursor:pointer;
+    font-family:var(--sans); font-size:1.05rem; font-weight:800; color:#fff;
+    background:linear-gradient(135deg,#059669,#34d399); box-shadow:0 6px 18px rgba(52,211,153,.3); }
+  .qs-sell:disabled { opacity:.4; cursor:not-allowed; }
+
+  /* ===== dashboard: today row + quick actions ===== */
+  .today { display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-bottom:12px; }
+  .tstat { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:14px 14px 12px; }
+  .tstat .tk { font-size:.7rem; color:var(--muted); margin-bottom:5px; }
+  .tstat .tv { font-size:1.5rem; font-weight:900; letter-spacing:.3px; font-variant-numeric:tabular-nums; }
+  .tstat .tv small { font-size:.72rem; color:var(--faint); font-weight:400; }
+  .tstat.rev .tv { color:var(--ok); } .tstat.debt .tv { color:var(--warn); }
+  .qactions { display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap; }
+  .qact { flex:1; min-width:140px; min-height:52px; border-radius:14px; border:1px solid rgba(255,255,255,.1);
+    background:var(--card); color:var(--text); font-family:var(--sans); font-size:.92rem; font-weight:700;
+    cursor:pointer; display:flex; align-items:center; justify-content:center; gap:7px;
+    -webkit-tap-highlight-color:transparent; }
+  .qact.qsb { background:linear-gradient(135deg,var(--accent),var(--accent-2)); border:none; color:#fff;
+    box-shadow:0 6px 18px rgba(99,102,241,.35); }
+  .qact .badge { background:var(--bad); color:#fff; border-radius:99px; font-size:.7rem; padding:1px 8px; }
+
+  /* ===== low-stock banner · debt list · live amount hint ===== */
+  .lowbanner { display:flex; align-items:center; gap:8px; background:rgba(248,113,113,.12);
+    border:1px solid rgba(248,113,113,.35); color:var(--bad); border-radius:11px;
+    padding:9px 13px; font-size:.8rem; font-weight:700; margin-bottom:11px; }
+  .debtrow { display:flex; align-items:center; gap:10px; padding:11px 4px; font-size:.84rem;
+    border-bottom:1px dashed rgba(255,255,255,.07); cursor:pointer; }
+  .debtrow:last-child { border-bottom:none; }
+  .debtrow .no { font-family:var(--mono); color:var(--accent-2); font-size:.74rem; }
+  .debtrow .cu { flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .debtrow .amt { font-weight:800; color:var(--warn); font-variant-numeric:tabular-nums; }
+  .livefmt { margin-top:5px; font-size:.78rem; color:var(--accent-2); font-weight:700; text-align:right; }
+
+  /* ===== mobile: bottom tab bar + bottom-sheet dialogs ===== */
+  .erp-tabs, .erp-more { display:none; }
+  @media (max-width:700px){
+    :root { --erp-bar-off:0px; }
+    .nav { display:none; }
+    .wrap { padding-bottom:96px; }
+    .today { grid-template-columns:1fr 1fr; }
+    .today .tstat.rev { grid-column:1 / -1; }
+    .tstat .tv { font-size:1.65rem; }
+    .stat .v { font-size:1.45rem; }
+    .totals .grand { font-size:1.35rem; }
+    .erp-tabs { display:flex; position:fixed; left:0; right:0; bottom:var(--erp-bar-off); height:62px; z-index:809;
+      background:rgba(13,17,25,.97); border-top:1px solid rgba(255,255,255,.09);
+      backdrop-filter:blur(12px); -webkit-backdrop-filter:blur(12px); }
+    .erp-tabs button { flex:1; min-width:0; min-height:44px; border:none; background:none; color:var(--muted);
+      font-family:var(--sans); font-size:.62rem; cursor:pointer; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; gap:3px; padding:5px 2px; -webkit-tap-highlight-color:transparent; }
+    .erp-tabs button .i { font-size:1.3rem; line-height:1; }
+    .erp-tabs button.on { color:var(--accent-2); font-weight:800; }
+    .erp-tabs button.qsb { color:var(--accent-2); font-weight:800; }
+    .erp-tabs button.qsb .i { width:46px; height:46px; margin-top:-20px; border-radius:50%; display:grid; place-items:center;
+      background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff;
+      box-shadow:0 6px 16px rgba(99,102,241,.45); font-size:1.35rem; }
+    .erp-more { display:block; position:fixed; inset:0; z-index:808; background:rgba(4,6,10,.55); }
+    .erp-more .sheet { position:absolute; left:10px; right:10px; bottom:calc(var(--erp-bar-off) + 70px);
+      background:var(--card2); border:1px solid rgba(255,255,255,.1); border-radius:16px; padding:10px;
+      display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+    .erp-more .sheet button { min-height:50px; border:1px solid rgba(255,255,255,.08); background:var(--card);
+      color:var(--text); border-radius:12px; font-family:var(--sans); font-size:.86rem; font-weight:700; cursor:pointer; }
+    .erp-more .sheet button.on { border-color:var(--accent); color:var(--accent-2); }
+    /* dialogs become bottom sheets */
+    .el-overlay-dialog { display:flex !important; align-items:flex-end !important; justify-content:center; padding:0; }
+    .el-dialog { width:100% !important; max-width:100% !important; margin:0 !important;
+      border-radius:18px 18px 0 0; max-height:88vh; overflow-y:auto; }
+    .el-dialog .el-button { min-height:44px; }
+    .el-dialog__footer .el-button { min-width:110px; }
+    .cardbar .el-button, .qs-cust .el-button, header .el-button { min-height:44px; }
+    .qs-grid { grid-template-columns:repeat(auto-fill,minmax(140px,1fr)); }
+    /* suite floating buttons (_ui.js pins them at bottom:76px) would cover the ERP tab bar — lift them above it */
+    html body .st-gear, html body .pwa-install-btn {
+      left:auto !important; right:12px !important;
+      bottom:calc(var(--erp-bar-off, 0px) + 76px) !important;
+    }
+  }
+  @media (max-width:640px){
+    /* suite navrail bottom nav (60-64px, z-index 810) sits at bottom:0 — keep ERP tabs above it */
+    :root { --erp-bar-off:64px; }
+    .wrap { padding-bottom:140px; }
+  }
+
   /* print overlays */
   .inv-overlay { position:fixed; inset:0; z-index:3000; background:rgba(4,6,10,.8); overflow:auto; padding:30px 12px; }
   .inv-actions { max-width:560px; margin:0 auto 12px; display:flex; gap:8px; justify-content:flex-end; }
@@ -190,6 +304,19 @@
 
   <!-- ============ DASHBOARD ============ -->
   <div v-if="tab==='dash'">
+    <div class="today">
+      <div class="tstat rev"><div class="tk">💵 ယနေ့ ရောင်းရငွေ <span style="color:var(--faint)">(today)</span></div>
+        <div class="tv" id="stat-today-rev">{{ fmt(todayRevenue) }}</div></div>
+      <div class="tstat"><div class="tk">🧾 ယနေ့ အော်ဒါ</div>
+        <div class="tv">{{ todayOrders }} <small>ခု</small></div></div>
+      <div class="tstat debt"><div class="tk">⏳ လက်ကျန်ကြွေး</div>
+        <div class="tv" id="stat-debt">{{ fmt(receivables) }}</div></div>
+    </div>
+    <div class="qactions">
+      <button type="button" class="qact qsb" id="btn-quick-sale" @click="openQuickSale">⚡ အမြန်ရောင်း</button>
+      <button type="button" class="qact" @click="openProduct(null)">＋ ပစ္စည်း</button>
+      <button type="button" class="qact" id="btn-debts" @click="showDebts=true">💳 ကြွေးဆပ်ရန် <span class="badge" v-if="debtSales.length">{{ debtSales.length }}</span></button>
+    </div>
     <div class="stats">
       <div class="stat rev"><div class="k">💵 ယခုလ ဝင်ငွေ <span style="color:var(--faint)">(paid)</span></div>
         <div class="v" id="stat-revenue">{{ fmt(monthRevenue) }}</div></div>
@@ -244,6 +371,7 @@
       <el-input class="search" v-model="prodQ" placeholder="🔍 ပစ္စည်း ရှာရန် — name, SKU…" clearable></el-input>
       <el-button type="primary" id="btn-add-product" @click="openProduct(null)">＋ ပစ္စည်း အသစ်</el-button>
     </div>
+    <div class="lowbanner" v-if="lowStock.length">⚠️ လက်ကျန်နည်းနေသော ပစ္စည်း {{ lowStock.length }} မျိုး — ဇယား ထိပ်ဆုံးတွင် ပြထားပါသည်</div>
     <el-table :data="filteredProducts" style="width:100%">
       <el-table-column prop="name" label="အမည် (Name)" min-width="150"></el-table-column>
       <el-table-column prop="sku" label="SKU" width="100"></el-table-column>
@@ -306,6 +434,7 @@
   <div v-if="tab==='sales'" class="card">
     <div class="cardbar">
       <el-input class="search" v-model="saleQ" placeholder="🔍 ရှာရန် — invoice no, ဖောက်သည်…" clearable></el-input>
+      <el-button type="success" id="btn-quick-sale-sales" @click="openQuickSale">⚡ အမြန်ရောင်း</el-button>
       <el-button type="primary" id="btn-new-sale" @click="openSale">＋ အရောင်း အသစ်</el-button>
     </div>
     <el-table :data="filteredSales" style="width:100%">
@@ -485,6 +614,7 @@
         <div style="max-width:180px">
           <label class="fl">ပမာဏ <span class="en">Amount (Ks)</span></label>
           <el-input-number v-model="expDraft.amount" id="in-exp-amount" :min="0" :step="500" :controls="false" style="width:100%"></el-input-number>
+          <div class="livefmt" v-if="+expDraft.amount > 0">= {{ fmt(expDraft.amount) }}</div>
         </div>
         <div style="min-width:200px">
           <label class="fl">မှတ်ချက် <span class="en">Note</span></label>
@@ -682,6 +812,7 @@
       <div class="kv"><span class="k">ကျန်ငွေ</span><span class="num" style="color:var(--warn); font-weight:800">{{ fmt(saleBalance(paySale)) }}</span></div>
       <label class="fl">သွင်းမည့် ပမာဏ <span class="en">Amount (Ks)</span></label>
       <el-input-number v-model="payDraft.amount" id="pay-amount" :min="0" :step="500" :controls="false" style="width:100%"></el-input-number>
+      <div class="livefmt" v-if="+payDraft.amount > 0">= {{ fmt(payDraft.amount) }}</div>
       <label class="fl">နည်းလမ်း <span class="en">Method</span></label>
       <el-select v-model="payDraft.method" style="width:100%">
         <el-option v-for="m in PAY_METHODS" :key="m.v" :value="m.v" :label="m.l"></el-option>
@@ -891,6 +1022,78 @@
       <div class="sku">{{ labelProd.sku || ('P-' + labelProd.id) }}</div>
     </div>
   </div>
+
+  <!-- ============ QUICK SALE (POS) OVERLAY ============ -->
+  <!-- teleported to body: .wrap/#app get a transient transform from _effects.css fx-enter,
+       which would break position:fixed for descendants -->
+  <teleport to="body">
+  <div class="qs-overlay" v-if="showQS">
+    <div class="qs-head">
+      <div class="t">⚡ အမြန်ရောင်း <span style="color:var(--faint); font-size:.72rem; font-weight:400">Quick Sale</span></div>
+      <el-button id="btn-qs-close" circle @click="showQS=false">✕</el-button>
+    </div>
+    <div class="qs-cust">
+      <el-select v-model="qsCustomerId" id="qs-customer" filterable clearable placeholder="🚶 Walk-in ဖောက်သည် (ပုံသေ)">
+        <el-option v-for="c in S.customers" :key="c.id" :value="c.id" :label="c.name + (c.phone ? ' · ' + c.phone : '')"></el-option>
+      </el-select>
+      <el-button @click="qsAddCustomer">＋ အသစ်</el-button>
+    </div>
+    <div class="qs-grid">
+      <div class="qs-card" v-for="p in qsProducts" :key="p.id"
+        :class="{ sel: qsQty(p.id) > 0, out: p.stock <= 0 }" @click="qsTap(p)">
+        <div class="nm">{{ p.name }}</div>
+        <div class="pr">{{ fmt(p.price) }}</div>
+        <span class="stk" :class="{ low: p.stock <= p.minStock }">လက်ကျန် {{ p.stock }}</span>
+        <div class="qs-qtybar" v-if="qsQty(p.id) > 0" @click.stop>
+          <button type="button" class="qs-step" @click="qsDec(p)">−</button>
+          <span class="q">{{ qsQty(p.id) }}</span>
+          <button type="button" class="qs-step" @click="qsInc(p)">＋</button>
+        </div>
+      </div>
+      <div v-if="!S.products.length" class="empty" style="grid-column:1/-1">ပစ္စည်း မရှိသေးပါ — 📦 ပစ္စည်း tab တွင် အရင် ထည့်ပါ</div>
+    </div>
+    <div class="qs-totalbar">
+      <div class="qs-sum">
+        <div class="lbl">စုစုပေါင်း · {{ qsCount }} ခု</div>
+        <div class="val" id="qs-total">{{ fmt(qsTotal) }}</div>
+      </div>
+      <button type="button" class="qs-sell" id="btn-qs-sell" :disabled="!qsCount" @click="qsSave">💰 ရောင်းမည်</button>
+    </div>
+  </div>
+  </teleport>
+
+  <!-- ============ DEBTS (unpaid sales) DIALOG ============ -->
+  <el-dialog v-model="showDebts" title="💳 ကြွေးဆပ်ရန် စာရင်း (Unpaid)" width="min(480px, 96vw)">
+    <div v-if="debtSales.length">
+      <div class="debtrow" v-for="s in debtSales" :key="s.id" @click="showDebts=false; openPay(s)">
+        <span class="no">{{ s.no }}</span>
+        <span class="cu">{{ custName(s.customerId) }}</span>
+        <span class="amt">{{ fmt(saleBalance(s)) }}</span>
+        <el-tag type="success" size="small" effect="plain">💳 ဆပ်မည်</el-tag>
+      </div>
+    </div>
+    <div v-else class="empty">✅ ကြွေး မရှိပါ — အားလုံး ရှင်းပြီး</div>
+    <template #footer>
+      <el-button @click="showDebts=false">ပိတ်မည်</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ============ MOBILE BOTTOM TABS ============ -->
+  <teleport to="body">
+  <div class="erp-more" v-if="showMore" @click.self="showMore=false">
+    <div class="sheet">
+      <button type="button" v-for="t in moreTabs" :key="t.value" :class="{ on: tab===t.value }"
+        @click="tab=t.value; showMore=false">{{ t.label }}</button>
+    </div>
+  </div>
+  <nav class="erp-tabs" id="erp-tabs">
+    <button type="button" :class="{ on: tab==='dash' }" @click="tab='dash'; showMore=false"><span class="i">📊</span><span>ပင်မ</span></button>
+    <button type="button" id="tab-products" :class="{ on: tab==='products' }" @click="tab='products'; showMore=false"><span class="i">📦</span><span>ပစ္စည်း</span></button>
+    <button type="button" class="qsb" id="tab-quick-sale" @click="showMore=false; openQuickSale()"><span class="i">⚡</span><span>ရောင်းမည်</span></button>
+    <button type="button" id="tab-sales" :class="{ on: tab==='sales' }" @click="tab='sales'; showMore=false"><span class="i">🧾</span><span>အရောင်း</span></button>
+    <button type="button" id="tab-more" :class="{ on: showMore || moreTabs.some(t => t.value === tab) }" @click="showMore=!showMore"><span class="i">⋯</span><span>နောက်ထပ်</span></button>
+  </nav>
+  </teleport>
 </div>
 </div>
 <div id="vue-loading">⏳ Loading…</div>
@@ -952,6 +1155,14 @@ const app = createApp({
       { label: '💸 ကုန်ကျ', value: 'expenses' },
       { label: '📈 Reports', value: 'reports' },
     ];
+    const moreTabs = tabs.filter(t => ['customers', 'quotes', 'purchases', 'expenses', 'reports'].includes(t.value));
+    const showMore = ref(false);
+
+    // ---------- UI prefs (separate key — minierp.v1 schema untouched) ----------
+    const UI_STORE = 'minierp.ui';
+    let uiPrefs = {};
+    try { uiPrefs = JSON.parse(localStorage.getItem(UI_STORE) || '{}') || {}; } catch (e) { uiPrefs = {}; }
+    function rememberCust(id) { uiPrefs.lastCustomerId = id; try { localStorage.setItem(UI_STORE, JSON.stringify(uiPrefs)); } catch (e) {} }
 
     // ---------- lookups ----------
     const prodMap = computed(() => { const m = {}; S.products.forEach(p => m[p.id] = p); return m; });
@@ -1023,13 +1234,19 @@ const app = createApp({
       return arr;
     });
     const recentSales = computed(() => [...S.sales].sort((a, b) => b.t - a.t).slice(0, 5));
+    const sameDayAsToday = t => new Date(t).toDateString() === new Date().toDateString();
+    const todayRevenue = computed(() => S.sales.filter(s => sameDayAsToday(s.t)).reduce((t, s) => t + saleTotal(s), 0));
+    const todayOrders = computed(() => S.sales.filter(s => sameDayAsToday(s.t)).length);
+    const debtSales = computed(() => S.sales.filter(s => saleBalance(s) > 0).slice().sort((a, b) => b.t - a.t));
+    const showDebts = ref(false);
 
     // ---------- products ----------
     const prodQ = ref('');
+    const isLowStock = p => (p.stock || 0) <= (p.minStock || 0);
     const filteredProducts = computed(() => {
       const t = prodQ.value.trim().toLowerCase();
-      if (!t) return S.products;
-      return S.products.filter(p => (p.name + ' ' + (p.sku || '')).toLowerCase().includes(t));
+      const base = !t ? S.products : S.products.filter(p => (p.name + ' ' + (p.sku || '')).toLowerCase().includes(t));
+      return [...base].sort((a, b) => (isLowStock(b) ? 1 : 0) - (isLowStock(a) ? 1 : 0));
     });
     const showProduct = ref(false);
     const blankProduct = () => ({ id: null, name: '', sku: '', price: 0, cost: 0, stock: 0, minStock: 0 });
@@ -1126,8 +1343,9 @@ const app = createApp({
     const blankCustomer = () => ({ id: null, name: '', phone: '', address: '' });
     const custDraft = ref(blankCustomer());
     const quickAddMode = ref(false);
+    const quickAddTarget = ref('sale');
     function openCustomer(c) { quickAddMode.value = false; custDraft.value = c ? { ...c } : blankCustomer(); showCustomer.value = true; }
-    function quickAddCustomer() { quickAddMode.value = true; custDraft.value = blankCustomer(); showCustomer.value = true; }
+    function quickAddCustomer() { quickAddTarget.value = 'sale'; quickAddMode.value = true; custDraft.value = blankCustomer(); showCustomer.value = true; }
     function saveCustomer() {
       const d = custDraft.value;
       if (!d.name.trim()) { toast('ဖောက်သည် အမည် လိုအပ်ပါသည်', 'warning'); return; }
@@ -1135,7 +1353,10 @@ const app = createApp({
       const i = S.customers.findIndex(c => c.id === rec.id);
       if (i >= 0) S.customers[i] = rec; else S.customers.unshift(rec);
       save(); showCustomer.value = false;
-      if (quickAddMode.value) { saleDraft.customerId = rec.id; quickAddMode.value = false; }
+      if (quickAddMode.value) {
+        if (quickAddTarget.value === 'qs') qsCustomerId.value = rec.id; else saleDraft.customerId = rec.id;
+        quickAddMode.value = false;
+      }
       toast('💾 ' + rec.name + ' သိမ်းပြီး');
     }
     function delCustomer(c) {
@@ -1187,7 +1408,11 @@ const app = createApp({
       saleDraft.items = [{ productId: null, qty: 1, price: 0 }];
       saleDraft.discount = 0; saleDraft.tax = 0;
     }
-    function openSale() { docMode.value = 'sale'; resetDraft(); showSale.value = true; }
+    function openSale() {
+      docMode.value = 'sale'; resetDraft();
+      if (uiPrefs.lastCustomerId && custMap.value[uiPrefs.lastCustomerId]) saleDraft.customerId = uiPrefs.lastCustomerId;
+      showSale.value = true;
+    }
     function openQuote() { docMode.value = 'quote'; resetDraft(); showSale.value = true; }
     function onLineProduct(li) { const p = prodMap.value[li.productId]; if (p) li.price = p.price; }
     const draftSubtotal = computed(() => saleDraft.items.reduce((t, li) => t + (li.qty || 0) * (li.price || 0), 0));
@@ -1229,7 +1454,7 @@ const app = createApp({
           cost: (prodMap.value[li.productId] || {}).cost || 0 })),
         status: 'pending', discount: +saleDraft.discount || 0, tax: +saleDraft.tax || 0, t: Date.now(),
       });
-      save(); showSale.value = false;
+      save(); rememberCust(saleDraft.customerId); showSale.value = false;
       toast('🧾 ' + no + ' — ' + fmt(draftTotal.value) + ' ရောင်းပြီး');
     }
     function convertQuote(q) {
@@ -1252,6 +1477,59 @@ const app = createApp({
       S.sales = S.sales.filter(x => x.id !== s.id);
       S.payments = S.payments.filter(p => p.saleId !== s.id);
       save(); toast('🗑 ' + s.no + ' ဖျက်ပြီး — stock ပြန်ဝင်ပြီး');
+    }
+
+    // ---------- quick sale (POS mode) ----------
+    const WALKIN_NAME = 'Walk-in ဖောက်သည်';
+    const showQS = ref(false);
+    const qsCustomerId = ref(null);
+    const qsSel = reactive({});
+    const qsProducts = computed(() => [...S.products].sort((a, b) => ((b.stock > 0) ? 1 : 0) - ((a.stock > 0) ? 1 : 0)));
+    const qsQty = id => qsSel[id] || 0;
+    const qsCount = computed(() => Object.values(qsSel).reduce((t, q) => t + q, 0));
+    const qsTotal = computed(() => Object.keys(qsSel).reduce((t, id) => t + qsSel[id] * ((prodMap.value[id] || {}).price || 0), 0));
+    function openQuickSale() {
+      Object.keys(qsSel).forEach(k => { delete qsSel[k]; });
+      qsCustomerId.value = null;
+      showQS.value = true;
+    }
+    function qsTap(p) {
+      if (p.stock <= 0) { toast('⚠ ' + p.name + ' — လက်ကျန် မရှိပါ', 'warning'); return; }
+      const q = qsSel[p.id] || 0;
+      if (q >= p.stock) { toast('⚠ ' + p.name + ' — လက်ကျန် ' + p.stock + ' ခုသာ ရှိပါသည်', 'warning'); return; }
+      qsSel[p.id] = q + 1;
+    }
+    const qsInc = qsTap;
+    function qsDec(p) {
+      const q = qsSel[p.id] || 0;
+      if (q <= 1) delete qsSel[p.id]; else qsSel[p.id] = q - 1;
+    }
+    function qsAddCustomer() { quickAddTarget.value = 'qs'; quickAddMode.value = true; custDraft.value = blankCustomer(); showCustomer.value = true; }
+    function ensureWalkIn() {
+      let c = S.customers.find(x => x.name === WALKIN_NAME);
+      if (!c) { c = { id: Date.now(), name: WALKIN_NAME, phone: '', address: '' }; S.customers.unshift(c); }
+      return c.id;
+    }
+    function qsSave() {
+      const lines = Object.keys(qsSel)
+        .map(k => ({ productId: Number(k), qty: qsSel[k], price: (prodMap.value[k] || {}).price || 0 }))
+        .filter(li => li.qty > 0);
+      if (!lines.length) { toast('ပစ္စည်း အနည်းဆုံး ၁ ခု နှိပ်၍ ရွေးပါ', 'warning'); return; }
+      if (!checkStock(lines)) return;
+      const cid = qsCustomerId.value || ensureWalkIn();
+      lines.forEach(li => { prodMap.value[li.productId].stock -= li.qty; });
+      const no = 'INV-' + pad4(S.seq.sale); S.seq.sale++;
+      S.sales.unshift({
+        id: Date.now(), no, customerId: cid,
+        items: lines.map(li => ({ productId: li.productId, qty: li.qty, price: +li.price || 0,
+          cost: (prodMap.value[li.productId] || {}).cost || 0 })),
+        status: 'pending', discount: 0, tax: 0, t: Date.now(),
+      });
+      save(); rememberCust(cid);
+      const rec = S.sales[0];
+      showQS.value = false;
+      toast('🧾 ' + no + ' — ' + fmt(saleTotal(rec)) + ' ရောင်းပြီး');
+      openPay(rec);
     }
 
     // ---------- sale detail ----------
@@ -1421,7 +1699,14 @@ const app = createApp({
       r.readAsText(f);
     }
 
-    onMounted(() => { load(); document.getElementById('vue-loading').style.display = 'none'; });
+    onMounted(() => {
+      load(); document.getElementById('vue-loading').style.display = 'none';
+      // phone keyboards: numeric inputmode on all number fields (current + future-rendered)
+      const setNumeric = () => document.querySelectorAll('.el-input-number input:not([inputmode])')
+        .forEach(el => el.setAttribute('inputmode', 'numeric'));
+      setNumeric();
+      new MutationObserver(setNumeric).observe(document.body, { childList: true, subtree: true });
+    });
 
     return {
       S, tab, tabs, fmt,
@@ -1447,6 +1732,10 @@ const app = createApp({
       stmtCustId, stmtCust, openStatement, stmtRows,
       showBiz, bizDraft, openBiz, saveBiz,
       importEl, exportAll, doImport,
+      todayRevenue, todayOrders, debtSales, showDebts,
+      showQS, openQuickSale, qsCustomerId, qsProducts, qsQty, qsCount, qsTotal,
+      qsTap, qsInc, qsDec, qsAddCustomer, qsSave,
+      showMore, moreTabs,
     };
   }
 });
