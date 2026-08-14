@@ -1112,7 +1112,7 @@
 if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
   document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
 } else {
-const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
+const { createApp, ref, reactive, computed, watch, onMounted, nextTick } = Vue;
 const STORE = 'minierp.v1';
 
 const app = createApp({
@@ -1162,7 +1162,11 @@ const app = createApp({
     const UI_STORE = 'minierp.ui';
     let uiPrefs = {};
     try { uiPrefs = JSON.parse(localStorage.getItem(UI_STORE) || '{}') || {}; } catch (e) { uiPrefs = {}; }
-    function rememberCust(id) { uiPrefs.lastCustomerId = id; try { localStorage.setItem(UI_STORE, JSON.stringify(uiPrefs)); } catch (e) {} }
+    function saveUi() { try { localStorage.setItem(UI_STORE, JSON.stringify(uiPrefs)); } catch (e) {} }
+    function rememberCust(id) { uiPrefs.lastCustomerId = id; saveUi(); }
+    // keep-alive: restore last active tab, persist on change
+    if (uiPrefs.tab && tabs.some(t => t.value === uiPrefs.tab)) tab.value = uiPrefs.tab;
+    watch(tab, v => { uiPrefs.tab = v; saveUi(); });
 
     // ---------- lookups ----------
     const prodMap = computed(() => { const m = {}; S.products.forEach(p => m[p.id] = p); return m; });

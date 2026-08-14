@@ -181,17 +181,10 @@
 
   <div class="card" v-if="scripts.length">
     <label class="fl">🗂 Saved scripts ({{ scripts.length }})</label>
-    <div class="hist">
-      <div v-for="s in scriptsSorted" :key="s.id" class="hist-item" @click="loadScript(s)">
-        <span class="ht">{{ s.topic || s.text.slice(0,40) }}</span>
-        <span class="hd">{{ new Date(s.t).toLocaleDateString() }}</span>
-        <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delScript(s.id)">
-          <template #reference>
-            <el-button size="small" text @click.stop>🗑</el-button>
-          </template>
-        </el-popconfirm>
-      </div>
-    </div>
+    <history-list :items="scriptsSorted" title-key="topic" date-key="t"
+      @open="loadScript($event)" @del="delScript($event.id)">
+      <template #title="{ item }">{{ item.topic || item.text.slice(0,40) }}</template>
+    </history-list>
   </div>
 </div>
 

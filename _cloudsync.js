@@ -47,6 +47,7 @@
   const LAST_PUSH_H  = 'sync.lastPushHash';
   const LAST_PULL_AT = 'sync.lastPullAt';
   const ENABLED_KEY  = 'sync.enabled';
+  const MERGE_INFO_KEY = 'sync.lastMergeInfo'; // local only — intentionally NOT in SYNC_KEYS
   const FILENAME     = 'myomt-utilities-sync.json';
 
   const POLL_MS = 30_000;   // background pull check
@@ -102,6 +103,108 @@
   function snapshotHash(snap) {
     // Only hash the data payload — meta changes on every push and would defeat dedup
     return hashStr(JSON.stringify(snap.data));
+  }
+
+  // ---- Smart merge (id-based union instead of blind remote-wins) ----
+  // Timestamp of an item, if it carries one (newer item wins on id conflict)
+  function itemTime(o) {
+    const fields = ['t', 'at', 'updated', 'updatedAt'];
+    for (let i = 0; i < fields.length; i++) {
+      const v = o && o[fields[i]];
+      if (v == null) continue;
+      const n = typeof v === 'number' ? v : Date.parse(v);
+      if (!isNaN(n)) return n;
+    }
+    return null;
+  }
+  // Array whose every element is a plain object carrying an `id` field
+  function isIdArray(a) {
+    return Array.isArray(a) && a.every(x => x && typeof x === 'object' && !Array.isArray(x) && x.id != null);
+  }
+  // Union by id. Conflict: keep whichever has the newer t/at/updated; else remote wins.
+  function mergeIdArrays(localArr, remoteArr, stats) {
+    const localById = new Map();
+    localArr.forEach(it => localById.set(String(it.id), it));
+    const out = remoteArr.map(rit => {
+      const key = String(rit.id);
+      const lit = localById.get(key);
+      if (lit === undefined) return rit;
+      localById.delete(key);
+      const lt = itemTime(lit), rt = itemTime(rit);
+      if (lt != null && rt != null && lt > rt) { if (stats) stats.localNewer++; return lit; }
+      return rit;
+    });
+    localById.forEach(lit => { out.push(lit); if (stats) stats.localOnlyItems++; });
+    return out;
+  }
+  // Merge two raw localStorage strings for one key.
+  // Returns the merged JSON string, or null when no smart merge applies (caller keeps remote).
+  function mergeValues(localStr, remoteStr, stats) {
+    const lp = JSON.parse(localStr);
+    const rp = JSON.parse(remoteStr);
+    if (isIdArray(lp) && isIdArray(rp)) return JSON.stringify(mergeIdArrays(lp, rp, stats));
+    if (lp && rp && typeof lp === 'object' && typeof rp === 'object' &&
+        !Array.isArray(lp) && !Array.isArray(rp)) {
+      // Object stores like {entries:[...]} / {posts:[...]}: merge the inner
+      // id-arrays; every other prop is remote-wins.
+      let mergedAny = false;
+      const out = Object.assign({}, rp);
+      Object.keys(rp).forEach(prop => {
+        if (isIdArray(rp[prop]) && isIdArray(lp[prop])) {
+          out[prop] = mergeIdArrays(lp[prop], rp[prop], stats);
+          mergedAny = true;
+        }
+      });
+      if (mergedAny) return JSON.stringify(out);
+    }
+    return null;
+  }
+  // Merge full snapshots. Never throws — any per-key error falls back to the
+  // old behavior for that key (remote wins).
+  function mergeSnapshots(localSnap, remoteSnap) {
+    const ldata = (localSnap && localSnap.data) || {};
+    const rdata = (remoteSnap && remoteSnap.data) || {};
+    const info = {
+      at: Date.now(),
+      device: (remoteSnap && remoteSnap._meta && remoteSnap._meta.device) || null,
+      mergedKeys: 0, remoteWinKeys: 0, localOnlyKeys: 0,
+      localNewer: 0, localOnlyItems: 0,
+    };
+    const data = {};
+    new Set(Object.keys(rdata).concat(Object.keys(ldata))).forEach(k => {
+      const lv = ldata[k], rv = rdata[k];
+      if (rv == null) { data[k] = lv; info.localOnlyKeys++; return; } // only local has it → keep
+      if (lv == null || lv === rv) { data[k] = rv; return; }          // identical or local-missing → remote
+      try {
+        const stats = { localNewer: 0, localOnlyItems: 0 };
+        const merged = mergeValues(lv, rv, stats);
+        if (merged != null) {
+          data[k] = merged;
+          info.mergedKeys++;
+          info.localNewer += stats.localNewer;
+          info.localOnlyItems += stats.localOnlyItems;
+          return;
+        }
+      } catch (e) { /* fall through to remote-wins for this key */ }
+      data[k] = rv;
+      info.remoteWinKeys++;
+    });
+    return {
+      snapshot: { _meta: { version: 1, syncedAt: Date.now(), device: getDeviceId() }, data },
+      info,
+    };
+  }
+  // Apply a remote snapshot with smart merge; falls back to blind apply on any error.
+  function pullRemote(remote) {
+    try {
+      const res = mergeSnapshots(buildSnapshot(), remote);
+      applySnapshot(res.snapshot);
+      try { s(MERGE_INFO_KEY, JSON.stringify(res.info)); } catch (e) {}
+      return res.snapshot;
+    } catch (e) {
+      applySnapshot(remote); // old behavior
+      return null;
+    }
   }
 
   // ---- GitHub API ----
@@ -229,28 +332,36 @@
       const localIsChanged = localHash !== (lastPushHash || '');
 
       if (remoteIsNew && localIsChanged) {
-        // Both sides changed since we last pushed. Simple resolution: remote wins,
-        // then push a merged snapshot. For text/JSON payloads this is safest.
-        // (Rare in practice — user rarely edits both devices simultaneously.)
-        applySnapshot(remote);
+        // Both sides changed since we last pushed. Smart merge: id-based union
+        // for array-of-object stores; remote wins for everything else.
+        pullRemote(remote);
         s(LAST_PUSH_H, remoteHash);
         s(LAST_PULL_AT, String(Date.now()));
         window.dispatchEvent(new CustomEvent('cloudsync-pulled', { detail: { device: remoteDevice } }));
-        setStatus('synced', `Pulled (conflict — remote wins from ${remoteDevice})`);
+        setStatus('synced', `Pulled (merged with ${remoteDevice})`);
         // Re-hash local after apply and if it still differs from remote, push
-        const afterHash = snapshotHash(buildSnapshot());
+        const afterSnap = buildSnapshot();
+        const afterHash = snapshotHash(afterSnap);
         if (afterHash !== remoteHash) {
-          await updateGist(gistId, buildSnapshot());
+          await updateGist(gistId, afterSnap);
           s(LAST_PUSH_H, afterHash);
           setStatus('synced', 'Pulled + pushed (merge)');
         }
       } else if (remoteIsNew) {
-        // Only remote changed → pull
-        applySnapshot(remote);
+        // Only remote changed → pull (smart-merged so local-only items survive)
+        pullRemote(remote);
         s(LAST_PUSH_H, remoteHash);
         s(LAST_PULL_AT, String(Date.now()));
         window.dispatchEvent(new CustomEvent('cloudsync-pulled', { detail: { device: remoteDevice } }));
         setStatus('synced', `Pulled from ${remoteDevice || 'remote'}`);
+        // If the merge kept local items the remote lacks, push the union back
+        const afterSnap = buildSnapshot();
+        const afterHash = snapshotHash(afterSnap);
+        if (afterHash !== remoteHash) {
+          await updateGist(gistId, afterSnap);
+          s(LAST_PUSH_H, afterHash);
+          setStatus('synced', 'Pulled + pushed (merge)');
+        }
       } else if (localIsChanged) {
         // Only local changed → push
         await updateGist(gistId, localSnap);
@@ -310,6 +421,123 @@
     setStatus('idle', 'Reset');
   }
 
+  // ---- Status chip (fixed, bottom-right, above the PWA install button) ----
+  const chip = (() => {
+    let el = null, ico = null, txt = null, dimTimer = null;
+    const ICONS = { synced: '✓', syncing: '⟳', error: '⚠', offline: '⚠' };
+    const TEXTS = {
+      synced: 'Synced',
+      syncing: 'Syncing…',
+      error: 'Sync error — click to retry',
+      offline: 'Offline — click to retry',
+    };
+
+    function ensure() {
+      if (el || !document.body) return;
+      const style = document.createElement('style');
+      style.textContent = `
+        #cloudsync-chip {
+          position: fixed; right: 20px; bottom: 68px; z-index: 950;
+          display: flex; align-items: center;
+          height: 26px; min-width: 26px; max-width: 26px;
+          border-radius: 13px; overflow: hidden;
+          background: rgba(28, 28, 38, 0.88); color: #e5e7eb;
+          font: 600 11px/1 system-ui, -apple-system, sans-serif;
+          box-shadow: 0 4px 14px rgba(0, 0, 0, 0.3);
+          user-select: none; cursor: default;
+          transition: max-width 0.25s ease, opacity 0.5s ease;
+          backdrop-filter: blur(4px);
+        }
+        #cloudsync-chip .cs-ico {
+          width: 26px; height: 26px; flex: 0 0 26px;
+          display: flex; align-items: center; justify-content: center;
+          font-size: 13px;
+        }
+        #cloudsync-chip .cs-txt {
+          white-space: nowrap; padding-right: 12px;
+          opacity: 0; transition: opacity 0.2s ease;
+        }
+        #cloudsync-chip:hover { max-width: 280px; opacity: 1 !important; }
+        #cloudsync-chip:hover .cs-txt { opacity: 1; }
+        #cloudsync-chip.cs-dim { opacity: 0.4; }
+        #cloudsync-chip[data-state="synced"]  .cs-ico { color: #34d399; }
+        #cloudsync-chip[data-state="syncing"] .cs-ico { color: #a78bfa; animation: csSpin 1s linear infinite; }
+        #cloudsync-chip[data-state="error"]   .cs-ico,
+        #cloudsync-chip[data-state="offline"] .cs-ico { color: #f59e0b; }
+        #cloudsync-chip[data-state="error"],
+        #cloudsync-chip[data-state="offline"] { cursor: pointer; }
+        @keyframes csSpin { to { transform: rotate(360deg); } }
+        @media (prefers-reduced-motion: reduce) {
+          #cloudsync-chip, #cloudsync-chip .cs-txt { transition: none; }
+          #cloudsync-chip[data-state="syncing"] .cs-ico { animation: none; }
+        }
+      `;
+      document.head.appendChild(style);
+      el = document.createElement('div');
+      el.id = 'cloudsync-chip';
+      el.setAttribute('role', 'status');
+      el.setAttribute('aria-label', 'Cloud sync status');
+      el.style.display = 'none';
+      el.innerHTML = '<span class="cs-ico"></span><span class="cs-txt"></span>';
+      ico = el.querySelector('.cs-ico');
+      txt = el.querySelector('.cs-txt');
+      el.addEventListener('click', () => {
+        const st = el.dataset.state;
+        if (st === 'error' || st === 'offline') sync({ reason: 'retry' });
+      });
+      el.addEventListener('mouseenter', updateTooltip);
+      document.body.appendChild(el);
+    }
+    function fmtAgo(ts) {
+      if (!ts) return 'never';
+      const m = Math.round((Date.now() - ts) / 60000);
+      if (m < 1) return 'just now';
+      if (m < 60) return `${m} min ago`;
+      const h = Math.round(m / 60);
+      return h < 24 ? `${h} h ago` : `${Math.round(h / 24)} d ago`;
+    }
+    function updateTooltip() {
+      if (!el) return;
+      const lastPull = parseInt(g(LAST_PULL_AT) || '0', 10);
+      let tip = `Last sync ${fmtAgo(lastPull)} · ${getDeviceId()}`;
+      try {
+        const mi = JSON.parse(g(MERGE_INFO_KEY) || 'null');
+        if (mi && mi.mergedKeys > 0) {
+          tip += `\nLast merge: ${mi.mergedKeys} key(s) merged` +
+                 (mi.localOnlyItems ? `, ${mi.localOnlyItems} local item(s) kept` : '') +
+                 (mi.localNewer ? `, ${mi.localNewer} newer local win(s)` : '');
+        }
+      } catch (e) {}
+      if ((state.status === 'error' || state.status === 'offline') && state.detail) tip += `\n${state.detail}`;
+      el.title = tip;
+    }
+    function update(st) {
+      try {
+        if (!document.body) return; // pre-DOM setStatus; init hook re-runs us
+        ensure();
+        if (!el) return;
+        const visible = isEnabled() && st.status !== 'disabled' && st.status !== 'idle';
+        el.style.display = visible ? 'flex' : 'none';
+        if (!visible) return;
+        const key = ICONS[st.status] ? st.status : 'syncing';
+        el.dataset.state = key;
+        ico.textContent = ICONS[key];
+        txt.textContent = TEXTS[key];
+        clearTimeout(dimTimer);
+        el.classList.remove('cs-dim');
+        if (key === 'synced') dimTimer = setTimeout(() => { if (el) el.classList.add('cs-dim'); }, 3000);
+        updateTooltip();
+      } catch (e) { /* chip must never break sync */ }
+    }
+    return { update };
+  })();
+  statusListeners.add(st => chip.update(st));
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => chip.update(state), { once: true });
+  } else {
+    chip.update(state);
+  }
+
   // Expose API
   window.CloudSync = {
     state,
@@ -322,7 +550,7 @@
     isEnabled, setEnabled,
     getDeviceId,
     onStatus: (cb) => { statusListeners.add(cb); cb(state); return () => statusListeners.delete(cb); },
-    buildSnapshot, applySnapshot,
+    buildSnapshot, applySnapshot, mergeSnapshots,
   };
 
   // Auto-start if user has already configured sync

@@ -80,10 +80,11 @@
   .tagset .t { flex:1; color:var(--muted); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
   .hist { display:flex; flex-direction:column; gap:6px; max-height:400px; overflow-y:auto; }
-  .hist-item { background:var(--field); border-radius:8px; padding:8px 12px; cursor:pointer; border:1px solid transparent; }
+  .hist-item { background:var(--field); border-radius:8px; padding:8px 12px; cursor:pointer; border:1px solid transparent;
+    display:flex; flex-wrap:wrap; align-items:center; }
   .hist-item:hover { border-color:var(--field-border); }
-  .hist-item .ht { font-size:.84rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-  .hist-item .hd { font-size:.68rem; color:var(--faint); display:flex; gap:8px; margin-top:4px; align-items:center; }
+  .hist-item .ht { flex:1 1 100%; display:block; font-size:.84rem; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hist-item .hd { flex:1; font-size:.68rem; color:var(--faint); display:flex; gap:8px; margin-top:4px; align-items:center; }
 
   /* Element Plus fine-tuning inside our layout */
   .el-textarea__inner, .el-input__inner { font-family:var(--sans); }
@@ -184,20 +185,13 @@
       <!-- History -->
       <div class="card">
         <h3>🗂 History ({{ posts.length }})</h3>
-        <div class="hist">
-          <div v-for="p in postsSorted" :key="p.id" class="hist-item" @click="loadPost(p)">
-            <div class="ht">{{ p.topic || p.en.slice(0,40) || p.mm.slice(0,40) || '(untitled)' }}</div>
-            <div class="hd">
-              <el-tag :type="p.status==='posted' ? 'success' : 'warning'" size="small" effect="dark">{{ p.status }}</el-tag>
-              <span>{{ new Date(p.t).toLocaleDateString() }}</span>
-              <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delPost(p.id)">
-                <template #reference>
-                  <el-button size="small" text style="margin-left:auto" @click.stop>🗑</el-button>
-                </template>
-              </el-popconfirm>
-            </div>
-          </div>
-        </div>
+        <history-list :items="postsSorted" title-key="topic" date-key="t"
+          @open="loadPost($event)" @del="delPost($event.id)">
+          <template #title="{ item }">{{ item.topic || item.en.slice(0,40) || item.mm.slice(0,40) || '(untitled)' }}</template>
+          <template #meta="{ item }">
+            <el-tag :type="item.status==='posted' ? 'success' : 'warning'" size="small" effect="dark">{{ item.status }}</el-tag>
+          </template>
+        </history-list>
       </div>
     </div>
   </div>

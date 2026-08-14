@@ -10,7 +10,10 @@
                             opts.onNoKeys() fires when no key is configured
      AiSettingsDialog — the ⚙ AI Settings el-dialog component (v-model = visibility)
      useAiSettings()  — { showSettings, hasKey, openSettings, hasAnyKey, readSettings, writeSettings }
-     install(app)     — registers <ai-settings-dialog> on the app
+     HistoryList      — <history-list :items :title-key :date-key @open @del> saved-item list
+                        (.hist/.hist-item pattern, el-popconfirm delete, #title/#meta/#empty slots)
+     ExportBar        — <export-bar :actions="[{label,icon,handler,type}]"> export/copy button row
+     install(app)     — registers <ai-settings-dialog>, <history-list>, <export-bar> on the app
 */
 (function (global) {
   'use strict';
@@ -202,6 +205,54 @@
   </el-dialog>`,
   };
 
+  // ---- <history-list> — shared saved-item list (.hist/.hist-item pattern) ----
+  // Page CSS styles .hist / .hist-item / .ht / .hd; the component only emits the DOM.
+  // Slots: #title="{item}" (custom title), #meta="{item}" (extra chips before the date), #empty.
+  const HistoryList = {
+    name: 'HistoryList',
+    props: {
+      items: { type: Array, default: () => [] },
+      titleKey: { type: String, default: 'title' },
+      dateKey: { type: String, default: 't' },
+    },
+    emits: ['open', 'del'],
+    methods: {
+      fmtDate(v) { return v ? new Date(v).toLocaleDateString() : ''; },
+    },
+    template: `
+  <div class="hist">
+    <template v-if="items && items.length">
+      <div v-for="it in items" :key="it.id" class="hist-item" @click="$emit('open', it)">
+        <span class="ht"><slot name="title" :item="it">{{ it[titleKey] }}</slot></span>
+        <span class="hd">
+          <slot name="meta" :item="it"></slot>
+          <span>{{ fmtDate(it[dateKey]) }}</span>
+        </span>
+        <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="$emit('del', it)">
+          <template #reference>
+            <el-button size="small" text @click.stop>🗑</el-button>
+          </template>
+        </el-popconfirm>
+      </div>
+    </template>
+    <slot v-else name="empty"></slot>
+  </div>`,
+  };
+
+  // ---- <export-bar> — shared export/copy button row ----
+  // actions: [{ label, icon, handler, type? }] — icon is an emoji prefix, type is the el-button type.
+  const ExportBar = {
+    name: 'ExportBar',
+    props: {
+      actions: { type: Array, default: () => [] },
+    },
+    template: `
+  <div class="export-bar" style="display:flex;gap:8px;flex-wrap:wrap">
+    <el-button v-for="(a, i) in actions" :key="i" :type="a.type || 'default'"
+      @click="a.handler && a.handler()">{{ a.icon ? a.icon + ' ' + a.label : a.label }}</el-button>
+  </div>`,
+  };
+
   // ---- composable ----
   function useAiSettings() {
     const showSettings = Vue.ref(false);
@@ -212,7 +263,9 @@
 
   function install(app) {
     app.component('ai-settings-dialog', AiSettingsDialog);
+    app.component('history-list', HistoryList);
+    app.component('export-bar', ExportBar);
   }
 
-  global.VueShared = { KEYS, DEFAULTS, callAI, AiSettingsDialog, useAiSettings, install, hasAnyKey, toast };
+  global.VueShared = { KEYS, DEFAULTS, callAI, AiSettingsDialog, HistoryList, ExportBar, useAiSettings, install, hasAnyKey, toast };
 })(window);
