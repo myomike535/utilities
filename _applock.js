@@ -33,6 +33,30 @@
       display: flex; align-items: center; justify-content: center; padding: 20px;
     }
     @keyframes alAurora { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
+    /* Starfield layer */
+    .al-backdrop::before {
+      content: ""; position: absolute; inset: 0; pointer-events: none;
+      background-image:
+        radial-gradient(1.5px 1.5px at 12% 22%, rgba(255,255,255,0.9), transparent),
+        radial-gradient(1px 1px at 28% 12%, rgba(255,255,255,0.7), transparent),
+        radial-gradient(2px 2px at 44% 30%, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1px 1px at 58% 8%, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1.5px 1.5px at 72% 24%, rgba(255,255,255,0.85), transparent),
+        radial-gradient(1px 1px at 86% 14%, rgba(255,255,255,0.7), transparent),
+        radial-gradient(1.5px 1.5px at 8% 44%, rgba(255,255,255,0.6), transparent),
+        radial-gradient(1px 1px at 92% 38%, rgba(255,255,255,0.75), transparent),
+        radial-gradient(1px 1px at 36% 52%, rgba(255,255,255,0.5), transparent),
+        radial-gradient(1.5px 1.5px at 65% 45%, rgba(255,255,255,0.65), transparent);
+      animation: alTwinkle 5s ease-in-out infinite alternate;
+    }
+    @keyframes alTwinkle { from { opacity: 0.5; } to { opacity: 1; } }
+    /* Mountain silhouette layer */
+    .al-backdrop::after {
+      content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 34vh; pointer-events: none;
+      background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 320' preserveAspectRatio='none'%3E%3Cpath d='M0 320 L0 200 L140 120 L260 190 L390 70 L520 180 L640 110 L780 210 L900 90 L1040 180 L1200 130 L1200 320 Z' fill='%23090b14' opacity='0.85'/%3E%3Cpath d='M0 320 L0 260 L180 190 L340 250 L500 160 L680 250 L840 180 L1000 250 L1200 200 L1200 320 Z' fill='%23060810'/%3E%3C/svg%3E") bottom / cover no-repeat;
+    }
+    .al-card { position: relative; z-index: 2; }
+    @media (prefers-reduced-motion: reduce) { .al-backdrop::before { animation: none; } }
     .al-card {
       width: 100%; max-width: 330px; text-align: center;
       background: rgba(255,255,255,0.055);
