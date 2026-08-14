@@ -42,7 +42,7 @@
   }
   [v-cloak]{display:none!important}
   #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
-  .wrap { max-width:1100px; margin:0 auto; }
+  .wrap { max-width:1150px; margin:0 auto; }
   header { display:flex; align-items:center; gap:13px; margin-bottom:16px; flex-wrap:wrap; }
   .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
     background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(99,102,241,.35); }
@@ -50,12 +50,12 @@
   header .sub { color:var(--muted); font-size:.8rem; }
   header .title { flex:1; min-width:160px; }
 
-  .nav { margin-bottom:16px; }
+  .nav { margin-bottom:16px; overflow-x:auto; }
   .nav .el-segmented { --el-segmented-bg-color:var(--card); --el-segmented-item-selected-bg-color:var(--accent);
-    padding:5px; border-radius:12px; font-size:.85rem; }
+    padding:5px; border-radius:12px; font-size:.83rem; }
 
   .card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px 18px; margin-bottom:14px; }
-  .card h3 { margin:0 0 12px; font-size:.95rem; display:flex; align-items:center; gap:8px; }
+  .card h3 { margin:0 0 12px; font-size:.95rem; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
   .card h3 .en { color:var(--faint); font-size:.7rem; font-weight:400; }
   .cardbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
   .cardbar .search { flex:1; min-width:180px; }
@@ -87,6 +87,7 @@
   .el-table { --el-table-header-bg-color:var(--card2); --el-table-tr-bg-color:transparent;
     --el-table-row-hover-bg-color:rgba(99,102,241,.08); background:transparent; font-size:.82rem; border-radius:10px; }
   .num { font-variant-numeric:tabular-nums; }
+  .lnk { cursor:pointer; text-decoration:underline dotted; }
   .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
   label.fl { display:block; font-size:.75rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
   label.fl .en { color:var(--faint); font-weight:400; font-size:.68rem; }
@@ -99,7 +100,38 @@
   .totals .trow { display:flex; align-items:center; justify-content:flex-end; gap:14px; font-size:.85rem; }
   .totals .grand { font-size:1.15rem; font-weight:800; color:var(--accent-2); }
 
-  /* invoice overlay */
+  /* pay / detail */
+  .kv { display:flex; justify-content:space-between; font-size:.84rem; padding:4px 0; }
+  .kv .k { color:var(--muted); }
+  .payrow { display:flex; align-items:center; gap:10px; padding:7px 0; font-size:.8rem; border-bottom:1px dashed rgba(255,255,255,.06); }
+  .payrow:last-child { border-bottom:none; }
+  .payrow .m { color:var(--muted); }
+  .payrow .a { margin-left:auto; font-weight:700; }
+
+  /* ledger */
+  .ledrow { display:flex; align-items:center; gap:10px; padding:6px 0; font-size:.8rem; border-bottom:1px dashed rgba(255,255,255,.06); }
+  .ledrow:last-child { border-bottom:none; }
+  .ledrow .d { width:86px; color:var(--faint); font-size:.72rem; }
+  .ledrow .ty { flex:1; }
+  .ledrow .q { width:64px; text-align:right; font-weight:700; }
+  .ledrow .q.pos { color:var(--ok); } .ledrow .q.neg { color:var(--bad); }
+  .ledrow .run { width:84px; text-align:right; color:var(--muted); font-variant-numeric:tabular-nums; }
+
+  /* expenses */
+  .chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:10px; }
+  .chips .el-tag { cursor:pointer; }
+
+  /* reports */
+  .plrow { display:flex; justify-content:space-between; font-size:.86rem; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,.06); }
+  .plrow.g { border-top:1px solid rgba(255,255,255,.12); border-bottom:none; font-weight:800; font-size:.95rem; padding-top:10px; }
+  .plrow .k { color:var(--muted); } .plrow.g .k { color:var(--text); }
+  .plrow .sub { padding-left:16px; font-size:.78rem; }
+  .trend { display:flex; align-items:flex-end; gap:6px; height:130px; padding-top:6px; }
+  .trend .col { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+  .trend .tbar { width:100%; max-width:34px; background:linear-gradient(180deg,var(--accent-2),var(--accent)); border-radius:5px 5px 2px 2px; min-height:2px; }
+  .trend .tl { font-size:.6rem; color:var(--faint); }
+
+  /* print overlays */
   .inv-overlay { position:fixed; inset:0; z-index:3000; background:rgba(4,6,10,.8); overflow:auto; padding:30px 12px; }
   .inv-actions { max-width:560px; margin:0 auto 12px; display:flex; gap:8px; justify-content:flex-end; }
   .inv-sheet { max-width:560px; margin:0 auto; background:#fff; color:#1a1f2b; border-radius:8px; padding:34px 36px;
@@ -119,12 +151,18 @@
   .inv-sheet .sumrow { display:flex; justify-content:flex-end; gap:20px; padding:5px 9px; font-size:.82rem; }
   .inv-sheet .sumrow.g { font-size:1rem; font-weight:800; color:#4f46e5; border-top:2px solid #4f46e5; margin-top:6px; padding-top:9px; }
   .inv-sheet .thanks { text-align:center; margin-top:22px; color:#555e70; font-size:.76rem; }
+  .label-sheet { width:320px; margin:0 auto; background:#fff; color:#111827; border-radius:8px; padding:22px;
+    text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.5); }
+  .label-sheet .bz { font-size:.7rem; color:#555e70; letter-spacing:1px; }
+  .label-sheet .nm { font-size:1.05rem; font-weight:800; margin:6px 0 2px; }
+  .label-sheet .pr { font-size:1.5rem; font-weight:900; color:#4f46e5; margin:4px 0 10px; }
+  .label-sheet .sku { font-family:var(--mono); font-size:.74rem; color:#555e70; margin-top:8px; }
   @media print {
     body { background:#fff !important; padding:0 !important; }
     body * { visibility:hidden; }
-    .inv-sheet, .inv-sheet * { visibility:visible; }
+    .print-sheet, .print-sheet * { visibility:visible; }
     .inv-overlay { position:static; background:none; padding:0; overflow:visible; }
-    .inv-sheet { position:absolute; left:0; top:0; width:100%; max-width:none; box-shadow:none; border-radius:0; }
+    .print-sheet { position:absolute; left:0; top:0; width:100%; max-width:none; box-shadow:none; border-radius:0; }
     .inv-actions { display:none; }
   }
 </style>
@@ -156,7 +194,7 @@
       <div class="stat"><div class="k">🧾 ယခုလ အော်ဒါ <span style="color:var(--faint)">(orders)</span></div>
         <div class="v">{{ monthOrders }} <small>ခု</small></div></div>
       <div class="stat recv"><div class="k">⏳ ရရန်ကျန်ငွေ <span style="color:var(--faint)">(receivables)</span></div>
-        <div class="v">{{ fmt(receivables) }}</div></div>
+        <div class="v" id="stat-receivables">{{ fmt(receivables) }}</div></div>
       <div class="stat low"><div class="k">📉 လက်ကျန်နည်း ပစ္စည်း <span style="color:var(--faint)">(low stock)</span></div>
         <div class="v">{{ lowStock.length }} <small>မျိုး</small></div></div>
     </div>
@@ -205,23 +243,26 @@
       <el-button type="primary" id="btn-add-product" @click="openProduct(null)">＋ ပစ္စည်း အသစ်</el-button>
     </div>
     <el-table :data="filteredProducts" style="width:100%">
-      <el-table-column prop="name" label="အမည် (Name)" min-width="160"></el-table-column>
-      <el-table-column prop="sku" label="SKU" width="110"></el-table-column>
-      <el-table-column label="ရောင်းဈေး (Price)" width="130" align="right">
+      <el-table-column prop="name" label="အမည် (Name)" min-width="150"></el-table-column>
+      <el-table-column prop="sku" label="SKU" width="100"></el-table-column>
+      <el-table-column label="ရောင်းဈေး (Price)" width="120" align="right">
         <template #default="sc"><span class="num">{{ fmt(sc.row.price) }}</span></template>
       </el-table-column>
-      <el-table-column label="ဝယ်ဈေး (Cost)" width="120" align="right">
+      <el-table-column label="ဝယ်ဈေး (Cost)" width="110" align="right">
         <template #default="sc"><span class="num">{{ fmt(sc.row.cost) }}</span></template>
       </el-table-column>
-      <el-table-column label="လက်ကျန် (Stock)" width="130" align="center">
+      <el-table-column label="လက်ကျန် (Stock)" width="115" align="center">
         <template #default="sc">
           <el-tag v-if="sc.row.stock <= sc.row.minStock" type="danger" effect="dark" size="small">{{ sc.row.stock }} ⚠</el-tag>
           <el-tag v-else type="success" effect="plain" size="small">{{ sc.row.stock }}</el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="" width="130" align="right">
+      <el-table-column label="" width="250" align="right">
         <template #default="sc">
-          <el-button size="small" @click="openProduct(sc.row)">✏️</el-button>
+          <el-button size="small" title="ပြင်ရန်" @click="openProduct(sc.row)">✏️</el-button>
+          <el-button size="small" title="Stock ညှိရန်" class="btn-adjust" @click="openAdjust(sc.row)">🧮</el-button>
+          <el-button size="small" title="Ledger" class="btn-ledger" @click="openLedger(sc.row)">📒</el-button>
+          <el-button size="small" title="QR Label" class="btn-label" @click="openLabel(sc.row)">🏷</el-button>
           <el-popconfirm title="ဤပစ္စည်းကို ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delProduct(sc.row)">
             <template #reference><el-button size="small" type="danger" plain>🗑</el-button></template>
           </el-popconfirm>
@@ -238,11 +279,14 @@
       <el-button type="primary" id="btn-add-customer" @click="openCustomer(null)">＋ ဖောက်သည် အသစ်</el-button>
     </div>
     <el-table :data="filteredCustomers" style="width:100%">
-      <el-table-column prop="name" label="အမည် (Name)" min-width="150"></el-table-column>
-      <el-table-column prop="phone" label="ဖုန်း (Phone)" width="140"></el-table-column>
-      <el-table-column prop="address" label="လိပ်စာ (Address)" min-width="180"></el-table-column>
-      <el-table-column label="စုစုပေါင်း ဝယ်ယူမှု" width="150" align="right">
+      <el-table-column prop="name" label="အမည် (Name)" min-width="140"></el-table-column>
+      <el-table-column prop="phone" label="ဖုန်း (Phone)" width="130"></el-table-column>
+      <el-table-column prop="address" label="လိပ်စာ (Address)" min-width="160"></el-table-column>
+      <el-table-column label="စုစုပေါင်း ဝယ်ယူမှု" width="140" align="right">
         <template #default="sc"><span class="num">{{ fmt(custTotal(sc.row.id)) }}</span></template>
+      </el-table-column>
+      <el-table-column label="ကျန်ငွေ" width="120" align="right">
+        <template #default="sc"><span class="num" :style="custBalance(sc.row.id) ? 'color:var(--warn)' : ''">{{ fmt(custBalance(sc.row.id)) }}</span></template>
       </el-table-column>
       <el-table-column label="" width="130" align="right">
         <template #default="sc">
@@ -263,26 +307,32 @@
       <el-button type="primary" id="btn-new-sale" @click="openSale">＋ အရောင်း အသစ်</el-button>
     </div>
     <el-table :data="filteredSales" style="width:100%">
-      <el-table-column label="နံပါတ် (No)" width="110">
-        <template #default="sc"><span class="no num" style="font-family:var(--mono); color:var(--accent-2)">{{ sc.row.no }}</span></template>
+      <el-table-column label="နံပါတ် (No)" width="100">
+        <template #default="sc"><span class="num lnk" style="font-family:var(--mono); color:var(--accent-2)" @click="openDetail(sc.row)">{{ sc.row.no }}</span></template>
       </el-table-column>
-      <el-table-column label="နေ့စွဲ (Date)" width="110">
+      <el-table-column label="နေ့စွဲ" width="100">
         <template #default="sc">{{ new Date(sc.row.t).toLocaleDateString() }}</template>
       </el-table-column>
-      <el-table-column label="ဖောက်သည် (Customer)" min-width="140">
+      <el-table-column label="ဖောက်သည်" min-width="120">
         <template #default="sc">{{ custName(sc.row.customerId) }}</template>
       </el-table-column>
-      <el-table-column label="စုစုပေါင်း (Total)" width="130" align="right">
+      <el-table-column label="စုစုပေါင်း" width="115" align="right">
         <template #default="sc"><span class="num">{{ fmt(saleTotal(sc.row)) }}</span></template>
       </el-table-column>
-      <el-table-column label="အခြေအနေ" width="110" align="center">
+      <el-table-column label="ရပြီး (Paid)" width="110" align="right">
+        <template #default="sc"><span class="num" style="color:var(--ok)">{{ fmt(salePaidEff(sc.row)) }}</span></template>
+      </el-table-column>
+      <el-table-column label="ကျန် (Balance)" width="115" align="right">
+        <template #default="sc"><span class="num sale-balance" :style="saleBalance(sc.row) ? 'color:var(--warn); font-weight:700' : 'color:var(--faint)'">{{ fmt(saleBalance(sc.row)) }}</span></template>
+      </el-table-column>
+      <el-table-column label="အခြေအနေ" width="100" align="center">
         <template #default="sc"><el-tag :type="stTag(sc.row.status)" effect="dark" size="small">{{ stLabel(sc.row.status) }}</el-tag></template>
       </el-table-column>
-      <el-table-column label="" width="230" align="right">
+      <el-table-column label="" width="200" align="right">
         <template #default="sc">
-          <el-button v-if="sc.row.status==='pending'" size="small" type="success" plain @click="setStatus(sc.row,'paid')">💰 ငွေရပြီ</el-button>
-          <el-button v-if="sc.row.status==='paid'" size="small" type="primary" plain @click="setStatus(sc.row,'delivered')">🚚 ပို့ပြီ</el-button>
-          <el-button size="small" @click="openInvoice(sc.row)">🖨</el-button>
+          <el-button v-if="saleBalance(sc.row) > 0" size="small" type="success" plain class="btn-pay" @click="openPay(sc.row)">💳</el-button>
+          <el-button v-if="sc.row.status==='paid'" size="small" type="primary" plain @click="setStatus(sc.row,'delivered')">🚚</el-button>
+          <el-button size="small" @click="openInvoice(sc.row,'inv')">🖨</el-button>
           <el-popconfirm title="ဖျက်လျှင် stock ပြန်ဝင်ပါမည် — သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delSale(sc.row)">
             <template #reference><el-button size="small" type="danger" plain>🗑</el-button></template>
           </el-popconfirm>
@@ -292,53 +342,123 @@
     <div v-if="!S.sales.length" class="empty">အရောင်း မရှိသေးပါ — ＋ အရောင်း အသစ် ဖြင့် စတင်ပါ</div>
   </div>
 
+  <!-- ============ QUOTES ============ -->
+  <div v-if="tab==='quotes'" class="card">
+    <div class="cardbar">
+      <el-input class="search" v-model="quoteQ" placeholder="🔍 ရှာရန် — quote no, ဖောက်သည်…" clearable></el-input>
+      <el-button type="primary" id="btn-new-quote" @click="openQuote">＋ ကမ်းလှမ်းလွှာ အသစ်</el-button>
+    </div>
+    <el-table :data="filteredQuotes" style="width:100%">
+      <el-table-column label="နံပါတ် (No)" width="100">
+        <template #default="sc"><span class="num" style="font-family:var(--mono); color:var(--accent-2)">{{ sc.row.no }}</span></template>
+      </el-table-column>
+      <el-table-column label="နေ့စွဲ" width="105">
+        <template #default="sc">{{ new Date(sc.row.t).toLocaleDateString() }}</template>
+      </el-table-column>
+      <el-table-column label="ဖောက်သည်" min-width="130">
+        <template #default="sc">{{ custName(sc.row.customerId) }}</template>
+      </el-table-column>
+      <el-table-column label="စုစုပေါင်း" width="125" align="right">
+        <template #default="sc"><span class="num">{{ fmt(saleTotal(sc.row)) }}</span></template>
+      </el-table-column>
+      <el-table-column label="အခြေအနေ" width="110" align="center">
+        <template #default="sc">
+          <el-tag :type="sc.row.status==='open' ? 'warning' : 'success'" effect="dark" size="small">{{ sc.row.status==='open' ? 'ဖွင့်' : 'ပြောင်းပြီး' }}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column label="" width="210" align="right">
+        <template #default="sc">
+          <el-popconfirm v-if="sc.row.status==='open'" title="Sale အဖြစ် ပြောင်းမလား? (stock လျော့ပါမည်)" confirm-button-text="ပြောင်းမည်" cancel-button-text="မပြောင်းပါ" @confirm="convertQuote(sc.row)">
+            <template #reference><el-button size="small" type="success" plain class="btn-convert">✅ Sale</el-button></template>
+          </el-popconfirm>
+          <el-button size="small" @click="openInvoice(sc.row,'quote')">🖨</el-button>
+          <el-popconfirm title="ဤကမ်းလှမ်းလွှာကို ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delQuote(sc.row)">
+            <template #reference><el-button size="small" type="danger" plain>🗑</el-button></template>
+          </el-popconfirm>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div v-if="!S.quotes.length" class="empty">ကမ်းလှမ်းလွှာ မရှိသေးပါ — stock မထိဘဲ စျေးနှုန်း ကမ်းလှမ်းနိုင်သည်</div>
+  </div>
+
   <!-- ============ PURCHASES ============ -->
   <div v-if="tab==='purchases'">
     <div class="card">
       <h3>📥 ပစ္စည်း အဝယ် / Restock</h3>
       <div class="frow" style="flex-wrap:wrap">
-        <div style="min-width:200px">
+        <div style="min-width:190px">
           <label class="fl">ပစ္စည်း <span class="en">Product</span></label>
           <el-select v-model="purchDraft.productId" filterable placeholder="ရွေးပါ" style="width:100%">
             <el-option v-for="p in S.products" :key="p.id" :value="p.id" :label="p.name + ' (လက်ကျန် ' + p.stock + ')'"></el-option>
           </el-select>
         </div>
-        <div style="max-width:140px">
+        <div style="min-width:160px">
+          <label class="fl">ပေးသွင်းသူ <span class="en">Supplier</span></label>
+          <el-select v-model="purchDraft.supplierId" filterable clearable placeholder="(မရွေးလည်း ရ)" style="width:100%">
+            <el-option v-for="sp in S.suppliers" :key="sp.id" :value="sp.id" :label="sp.name"></el-option>
+          </el-select>
+        </div>
+        <div style="max-width:130px">
           <label class="fl">အရေအတွက် <span class="en">Qty</span></label>
           <el-input-number v-model="purchDraft.qty" :min="1" style="width:100%"></el-input-number>
         </div>
-        <div style="max-width:160px">
+        <div style="max-width:150px">
           <label class="fl">ဝယ်ဈေး/ခု <span class="en">Unit cost</span></label>
           <el-input-number v-model="purchDraft.unitCost" :min="0" :step="100" :controls="false" style="width:100%"></el-input-number>
         </div>
-        <div style="min-width:180px">
+        <div style="min-width:150px">
           <label class="fl">မှတ်ချက် <span class="en">Note</span></label>
-          <el-input v-model="purchDraft.note" placeholder="supplier, batch…"></el-input>
+          <el-input v-model="purchDraft.note" placeholder="batch…"></el-input>
         </div>
-        <div style="max-width:150px; display:flex; align-items:flex-end; padding-bottom:1px">
+        <div style="max-width:140px; display:flex; align-items:flex-end; padding-bottom:1px">
           <el-button type="primary" id="btn-save-purchase" @click="savePurchase" style="width:100%">📥 သွင်းမည်</el-button>
         </div>
       </div>
     </div>
     <div class="card">
+      <h3>🚚 ပေးသွင်းသူများ <span class="en">Suppliers</span>
+        <span style="flex:1"></span>
+        <el-button size="small" type="primary" plain id="btn-add-supplier" @click="openSupplier(null)">＋ အသစ်</el-button>
+      </h3>
+      <el-table :data="S.suppliers" style="width:100%" v-if="S.suppliers.length">
+        <el-table-column prop="name" label="အမည်" min-width="160"></el-table-column>
+        <el-table-column prop="phone" label="ဖုန်း" width="160"></el-table-column>
+        <el-table-column label="အဝယ် ကြိမ်" width="110" align="right">
+          <template #default="sc"><span class="num">{{ S.purchases.filter(x => x.supplierId === sc.row.id).length }}</span></template>
+        </el-table-column>
+        <el-table-column label="" width="130" align="right">
+          <template #default="sc">
+            <el-button size="small" @click="openSupplier(sc.row)">✏️</el-button>
+            <el-popconfirm title="ဤပေးသွင်းသူကို ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delSupplier(sc.row)">
+              <template #reference><el-button size="small" type="danger" plain>🗑</el-button></template>
+            </el-popconfirm>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div v-else class="empty">ပေးသွင်းသူ မရှိသေးပါ</div>
+    </div>
+    <div class="card">
       <h3>📜 အဝယ် မှတ်တမ်း <span class="en">Purchase history</span></h3>
       <el-table :data="S.purchases" style="width:100%">
-        <el-table-column label="နေ့စွဲ" width="110">
+        <el-table-column label="နေ့စွဲ" width="105">
           <template #default="sc">{{ new Date(sc.row.t).toLocaleDateString() }}</template>
         </el-table-column>
-        <el-table-column label="ပစ္စည်း" min-width="150">
+        <el-table-column label="ပစ္စည်း" min-width="140">
           <template #default="sc">{{ prodName(sc.row.productId) }}</template>
         </el-table-column>
-        <el-table-column label="အရေအတွက်" width="110" align="right">
+        <el-table-column label="ပေးသွင်းသူ" min-width="110">
+          <template #default="sc">{{ suppName(sc.row.supplierId) }}</template>
+        </el-table-column>
+        <el-table-column label="အရေအတွက်" width="100" align="right">
           <template #default="sc"><span class="num">{{ sc.row.qty }}</span></template>
         </el-table-column>
-        <el-table-column label="ဝယ်ဈေး/ခု" width="120" align="right">
+        <el-table-column label="ဝယ်ဈေး/ခု" width="110" align="right">
           <template #default="sc"><span class="num">{{ fmt(sc.row.unitCost) }}</span></template>
         </el-table-column>
-        <el-table-column label="စုစုပေါင်း" width="130" align="right">
+        <el-table-column label="စုစုပေါင်း" width="120" align="right">
           <template #default="sc"><span class="num">{{ fmt(sc.row.qty * sc.row.unitCost) }}</span></template>
         </el-table-column>
-        <el-table-column prop="note" label="မှတ်ချက်" min-width="130"></el-table-column>
+        <el-table-column prop="note" label="မှတ်ချက်" min-width="110"></el-table-column>
         <el-table-column label="" width="70" align="right">
           <template #default="sc">
             <el-popconfirm title="ဖျက်လျှင် stock ပြန်လျော့ပါမည် — သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delPurchase(sc.row)">
@@ -348,6 +468,112 @@
         </el-table-column>
       </el-table>
       <div v-if="!S.purchases.length" class="empty">အဝယ် မှတ်တမ်း မရှိသေးပါ</div>
+    </div>
+  </div>
+
+  <!-- ============ EXPENSES ============ -->
+  <div v-if="tab==='expenses'">
+    <div class="card">
+      <h3>💸 ကုန်ကျစရိတ် ထည့်ရန် <span class="en">Quick add expense</span></h3>
+      <div class="chips">
+        <el-tag v-for="c in EXP_CATS" :key="c" size="large" :effect="expDraft.category===c ? 'dark' : 'plain'"
+          :type="expDraft.category===c ? 'primary' : 'info'" @click="expDraft.category=c">{{ EXP_ICON[c] }} {{ c }}</el-tag>
+      </div>
+      <div class="frow" style="flex-wrap:wrap">
+        <div style="max-width:180px">
+          <label class="fl">ပမာဏ <span class="en">Amount (Ks)</span></label>
+          <el-input-number v-model="expDraft.amount" id="in-exp-amount" :min="0" :step="500" :controls="false" style="width:100%"></el-input-number>
+        </div>
+        <div style="min-width:200px">
+          <label class="fl">မှတ်ချက် <span class="en">Note</span></label>
+          <el-input v-model="expDraft.note" placeholder="ဘာအတွက်လဲ…"></el-input>
+        </div>
+        <div style="max-width:150px; display:flex; align-items:flex-end; padding-bottom:1px">
+          <el-button type="primary" id="btn-save-expense" @click="saveExpense" style="width:100%">＋ မှတ်မည်</el-button>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>📅 လအလိုက် စာရင်း <span class="en">Monthly list</span>
+        <span style="flex:1"></span>
+        <el-date-picker v-model="expMonth" type="month" :clearable="false" style="width:140px"></el-date-picker>
+      </h3>
+      <el-table :data="expList" style="width:100%" v-if="expList.length">
+        <el-table-column label="နေ့စွဲ" width="110">
+          <template #default="sc">{{ new Date(sc.row.t).toLocaleDateString() }}</template>
+        </el-table-column>
+        <el-table-column label="အမျိုးအစား" width="150">
+          <template #default="sc"><el-tag size="small" effect="plain">{{ EXP_ICON[sc.row.category] || '📎' }} {{ sc.row.category }}</el-tag></template>
+        </el-table-column>
+        <el-table-column label="ပမာဏ" width="130" align="right">
+          <template #default="sc"><span class="num">{{ fmt(sc.row.amount) }}</span></template>
+        </el-table-column>
+        <el-table-column prop="note" label="မှတ်ချက်" min-width="160"></el-table-column>
+        <el-table-column label="" width="70" align="right">
+          <template #default="sc">
+            <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delExpense(sc.row)">
+              <template #reference><el-button size="small" type="danger" plain>🗑</el-button></template>
+            </el-popconfirm>
+          </template>
+        </el-table-column>
+      </el-table>
+      <div v-else class="empty">ဤလအတွက် ကုန်ကျစရိတ် မရှိသေးပါ</div>
+      <div v-if="expList.length" style="text-align:right; margin-top:10px; font-weight:800; color:var(--bad)">
+        စုစုပေါင်း — {{ fmt(expList.reduce((t,e)=>t+e.amount,0)) }}
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ REPORTS ============ -->
+  <div v-if="tab==='reports'">
+    <div class="cardbar">
+      <el-date-picker v-model="repMonth" type="month" :clearable="false" style="width:150px"></el-date-picker>
+      <span style="flex:1"></span>
+      <el-button @click="exportCsv">⬇ CSV (အရောင်း)</el-button>
+    </div>
+    <div class="dashgrid">
+      <div class="card">
+        <h3>💰 အရှုံးအမြတ် <span class="en">P&amp;L — accrual basis</span></h3>
+        <div class="plrow"><span class="k">ရောင်းရငွေ (Revenue)</span><span class="num" id="pl-revenue">{{ fmt(repRevenue) }}</span></div>
+        <div class="plrow"><span class="k">ကုန်ကျ ရင်းနှီး (COGS)</span><span class="num" id="pl-cogs">− {{ fmt(repCogs) }}</span></div>
+        <div class="plrow"><span class="k" style="font-weight:700; color:var(--text)">အကြမ်း အမြတ် (Gross profit)</span><span class="num" id="pl-gross" style="font-weight:700">{{ fmt(repGross) }}</span></div>
+        <div class="plrow sub" v-for="(v,c) in repExpByCat" :key="c"><span class="k">{{ EXP_ICON[c] || '📎' }} {{ c }}</span><span class="num">− {{ fmt(v) }}</span></div>
+        <div class="plrow"><span class="k">ကုန်ကျစရိတ် စုစုပေါင်း (Expenses)</span><span class="num" id="pl-exp">− {{ fmt(repExpTotal) }}</span></div>
+        <div class="plrow g"><span class="k">အသား အမြတ် (NET profit)</span>
+          <span class="num" id="pl-net" :style="repNet >= 0 ? 'color:var(--ok)' : 'color:var(--bad)'">{{ fmt(repNet) }}</span></div>
+      </div>
+      <div class="card">
+        <h3>📊 ၁၂ လ ဝင်ငွေ <span class="en">12-month revenue trend</span></h3>
+        <div class="trend">
+          <div class="col" v-for="m in trend12" :key="m.key" :title="m.label + ' — ' + fmt(m.rev)">
+            <div class="tbar" :style="{height: m.pct+'%'}"></div>
+            <div class="tl">{{ m.label }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>🏅 ပစ္စည်း ရောင်းအား အဆင့် <span class="en">Product ranking — selected month</span></h3>
+      <el-table :data="repRanking" style="width:100%" v-if="repRanking.length">
+        <el-table-column type="index" label="#" width="55"></el-table-column>
+        <el-table-column prop="name" label="ပစ္စည်း" min-width="160"></el-table-column>
+        <el-table-column label="အရေအတွက်" width="120" align="right">
+          <template #default="sc"><span class="num">{{ sc.row.qty }}</span></template>
+        </el-table-column>
+        <el-table-column label="ရောင်းရငွေ" width="140" align="right">
+          <template #default="sc"><span class="num">{{ fmt(sc.row.rev) }}</span></template>
+        </el-table-column>
+      </el-table>
+      <div v-else class="empty">ဤလအတွက် အရောင်း မရှိပါ</div>
+    </div>
+    <div class="card">
+      <h3>🧾 ဖောက်သည် စာရင်းရှင်းတမ်း <span class="en">Customer statement</span></h3>
+      <div style="display:flex; gap:8px; flex-wrap:wrap">
+        <el-select v-model="stmtCustId" filterable placeholder="ဖောက်သည် ရွေးပါ" style="min-width:220px">
+          <el-option v-for="c in S.customers" :key="c.id" :value="c.id" :label="c.name"></el-option>
+        </el-select>
+        <el-button type="primary" plain :disabled="!stmtCustId" @click="openStatement">🖨 Statement ကြည့်မည်</el-button>
+      </div>
     </div>
   </div>
 
@@ -399,8 +625,20 @@
     </template>
   </el-dialog>
 
-  <!-- ============ SALE DIALOG ============ -->
-  <el-dialog v-model="showSale" title="＋ အရောင်း အသစ် (New Sale)" width="min(720px, 96vw)">
+  <!-- ============ SUPPLIER DIALOG ============ -->
+  <el-dialog v-model="showSupplier" :title="suppDraft.id ? '✏️ ပေးသွင်းသူ ပြင်ရန်' : '＋ ပေးသွင်းသူ အသစ်'" width="min(420px, 96vw)">
+    <label class="fl">အမည် <span class="en">Name</span></label>
+    <el-input v-model="suppDraft.name" id="in-supp-name" placeholder="e.g. ရွှေမြန်မာ ကုန်စည်" clearable></el-input>
+    <label class="fl">ဖုန်း <span class="en">Phone</span></label>
+    <el-input v-model="suppDraft.phone" id="in-supp-phone" placeholder="09-…"></el-input>
+    <template #footer>
+      <el-button @click="showSupplier=false">မလုပ်တော့ပါ</el-button>
+      <el-button type="primary" id="btn-save-supplier" @click="saveSupplier">💾 သိမ်းမည်</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ============ SALE / QUOTE DIALOG ============ -->
+  <el-dialog v-model="showSale" :title="docMode==='quote' ? '＋ ကမ်းလှမ်းလွှာ အသစ် (New Quotation)' : '＋ အရောင်း အသစ် (New Sale)'" width="min(720px, 96vw)">
     <label class="fl">ဖောက်သည် <span class="en">Customer</span></label>
     <div style="display:flex; gap:8px">
       <el-select v-model="saleDraft.customerId" id="in-sale-customer" filterable placeholder="ဖောက်သည် ရွေးပါ" style="flex:1">
@@ -408,11 +646,11 @@
       </el-select>
       <el-button @click="quickAddCustomer">＋ အသစ်</el-button>
     </div>
-    <label class="fl" style="margin-top:14px">ရောင်းသည့် ပစ္စည်းများ <span class="en">Line items</span></label>
+    <label class="fl" style="margin-top:14px">ပစ္စည်းများ <span class="en">Line items</span></label>
     <div class="line" v-for="(li, idx) in saleDraft.items" :key="idx">
       <el-select v-model="li.productId" filterable placeholder="ပစ္စည်း ရွေးပါ" style="flex:2" @change="onLineProduct(li)">
         <el-option v-for="p in S.products" :key="p.id" :value="p.id"
-          :label="p.name + ' — ' + fmt(p.price) + ' (လက်ကျန် ' + p.stock + ')'" :disabled="p.stock <= 0"></el-option>
+          :label="p.name + ' — ' + fmt(p.price) + ' (လက်ကျန် ' + p.stock + ')'" :disabled="docMode==='sale' && p.stock <= 0"></el-option>
       </el-select>
       <el-input-number v-model="li.qty" :min="1" style="width:110px"></el-input-number>
       <el-input-number v-model="li.price" :min="0" :step="100" :controls="false" style="width:120px"></el-input-number>
@@ -424,11 +662,114 @@
       <div class="trow"><span style="color:var(--muted)">ကြားခ စုစုပေါင်း (Subtotal)</span><span class="num" style="width:130px; text-align:right">{{ fmt(draftSubtotal) }}</span></div>
       <div class="trow"><span style="color:var(--muted)">လျှော့ဈေး (Discount)</span>
         <el-input-number v-model="saleDraft.discount" id="in-sale-discount" :min="0" :step="100" :controls="false" style="width:130px"></el-input-number></div>
+      <div class="trow"><span style="color:var(--muted)">အခွန် % (Tax)</span>
+        <el-input-number v-model="saleDraft.tax" id="in-sale-tax" :min="0" :max="100" :step="1" :controls="false" style="width:130px"></el-input-number></div>
       <div class="trow grand"><span>ကျသင့်ငွေ (Grand total)</span><span class="num" id="sale-grand" style="width:150px; text-align:right">{{ fmt(draftTotal) }}</span></div>
     </div>
     <template #footer>
       <el-button @click="showSale=false">မလုပ်တော့ပါ</el-button>
-      <el-button type="primary" id="btn-save-sale" @click="saveSale">💾 ရောင်းမည်</el-button>
+      <el-button type="primary" id="btn-save-sale" @click="saveSale">{{ docMode==='quote' ? '💾 သိမ်းမည်' : '💾 ရောင်းမည်' }}</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ============ PAYMENT DIALOG ============ -->
+  <el-dialog v-model="showPay" :title="'💳 ငွေသွင်း — ' + (paySale ? paySale.no : '')" width="min(420px, 96vw)">
+    <div v-if="paySale">
+      <div class="kv"><span class="k">ကျသင့်ငွေ</span><span class="num">{{ fmt(saleTotal(paySale)) }}</span></div>
+      <div class="kv"><span class="k">ရပြီး</span><span class="num" style="color:var(--ok)">{{ fmt(salePaidEff(paySale)) }}</span></div>
+      <div class="kv"><span class="k">ကျန်ငွေ</span><span class="num" style="color:var(--warn); font-weight:800">{{ fmt(saleBalance(paySale)) }}</span></div>
+      <label class="fl">သွင်းမည့် ပမာဏ <span class="en">Amount (Ks)</span></label>
+      <el-input-number v-model="payDraft.amount" id="pay-amount" :min="0" :step="500" :controls="false" style="width:100%"></el-input-number>
+      <label class="fl">နည်းလမ်း <span class="en">Method</span></label>
+      <el-select v-model="payDraft.method" style="width:100%">
+        <el-option v-for="m in PAY_METHODS" :key="m.v" :value="m.v" :label="m.l"></el-option>
+      </el-select>
+    </div>
+    <template #footer>
+      <el-button @click="showPay=false">မလုပ်တော့ပါ</el-button>
+      <el-button type="success" id="btn-pay-save" @click="savePay">💳 သွင်းမည်</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ============ SALE DETAIL DIALOG ============ -->
+  <el-dialog v-model="showDetail" :title="'🧾 ' + (detailSale ? detailSale.no : '') + ' — အသေးစိတ်'" width="min(560px, 96vw)">
+    <div v-if="detailSale">
+      <div class="kv"><span class="k">ဖောက်သည်</span><span>{{ custName(detailSale.customerId) }}</span></div>
+      <div class="kv"><span class="k">နေ့စွဲ</span><span>{{ new Date(detailSale.t).toLocaleString() }}</span></div>
+      <div class="kv"><span class="k">အခြေအနေ</span><el-tag :type="stTag(detailSale.status)" size="small" effect="dark">{{ stLabel(detailSale.status) }}</el-tag></div>
+      <label class="fl">ပစ္စည်းများ</label>
+      <div class="payrow" v-for="(li,i) in detailSale.items" :key="i">
+        <span>{{ prodName(li.productId) }}</span>
+        <span class="m">× {{ li.qty }}</span>
+        <span class="a num">{{ fmt(li.qty * li.price) }}</span>
+      </div>
+      <div class="kv" style="margin-top:8px"><span class="k">ကြားခ စုစုပေါင်း</span><span class="num">{{ fmt(saleSubtotal(detailSale)) }}</span></div>
+      <div class="kv" v-if="detailSale.discount"><span class="k">လျှော့ဈေး</span><span class="num">− {{ fmt(detailSale.discount) }}</span></div>
+      <div class="kv" v-if="detailSale.tax"><span class="k">အခွန် ({{ detailSale.tax }}%)</span><span class="num">+ {{ fmt(saleTaxAmt(detailSale)) }}</span></div>
+      <div class="kv" style="font-weight:800"><span class="k" style="color:var(--text)">ကျသင့်ငွေ</span><span class="num" style="color:var(--accent-2)">{{ fmt(saleTotal(detailSale)) }}</span></div>
+      <label class="fl">💳 ငွေသွင်း မှတ်တမ်း <span class="en">Payment history</span></label>
+      <div v-if="salePayments(detailSale).length">
+        <div class="payrow" v-for="p in salePayments(detailSale)" :key="p.id">
+          <span class="m">{{ new Date(p.t).toLocaleDateString() }}</span>
+          <span>{{ methodLabel(p.method) }}</span>
+          <span class="a num" style="color:var(--ok)">{{ fmt(p.amount) }}</span>
+          <el-popconfirm title="ဤငွေသွင်းမှုကို ဖျက်မှာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delPayment(p)">
+            <template #reference><el-button size="small" text type="danger">✕</el-button></template>
+          </el-popconfirm>
+        </div>
+      </div>
+      <div v-else class="empty" style="padding:12px 0">ငွေသွင်း မရှိသေးပါ</div>
+      <div class="kv"><span class="k">ကျန်ငွေ</span><span class="num" style="color:var(--warn); font-weight:800" id="detail-balance">{{ fmt(saleBalance(detailSale)) }}</span></div>
+    </div>
+    <template #footer>
+      <el-button v-if="detailSale && saleBalance(detailSale) > 0" type="success" plain @click="openPay(detailSale)">💳 ငွေသွင်း</el-button>
+      <el-button @click="showDetail=false">ပိတ်မည်</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ============ ADJUSTMENT DIALOG ============ -->
+  <el-dialog v-model="showAdjust" :title="'🧮 Stock ညှိရန် — ' + (adjProd ? adjProd.name : '')" width="min(420px, 96vw)">
+    <div v-if="adjProd">
+      <div class="kv"><span class="k">လက်ရှိ လက်ကျန်</span><span class="num">{{ adjProd.stock }} ခု</span></div>
+      <label class="fl">အပြောင်းအလဲ <span class="en">Delta (+/−)</span></label>
+      <el-input-number v-model="adjDraft.delta" id="in-adj-delta" :min="-99999" :max="99999" style="width:100%"></el-input-number>
+      <label class="fl">အကြောင်းရင်း <span class="en">Reason</span></label>
+      <el-select v-model="adjDraft.reason" id="in-adj-reason" style="width:100%">
+        <el-option v-for="r in ADJ_REASONS" :key="r" :value="r" :label="r"></el-option>
+      </el-select>
+      <div class="kv" style="margin-top:10px"><span class="k">ညှိပြီးနောက် လက်ကျန်</span>
+        <span class="num" :style="(adjProd.stock + (adjDraft.delta||0)) < 0 ? 'color:var(--bad)' : 'color:var(--ok)'">{{ adjProd.stock + (adjDraft.delta||0) }} ခု</span></div>
+    </div>
+    <template #footer>
+      <el-button @click="showAdjust=false">မလုပ်တော့ပါ</el-button>
+      <el-button type="primary" id="btn-save-adjust" @click="saveAdjust">💾 ညှိမည်</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ============ LEDGER DIALOG ============ -->
+  <el-dialog v-model="showLedger" :title="'📒 Stock မှတ်တမ်း — ' + (ledgerProd ? ledgerProd.name : '')" width="min(560px, 96vw)">
+    <div v-if="ledgerProd" id="ledger-body">
+      <div class="ledrow" style="font-weight:700">
+        <span class="d"></span>
+        <span class="ty">အစ လက်ကျန် (Opening)</span>
+        <span class="q"></span>
+        <span class="run">{{ ledgerRows.opening }}</span>
+      </div>
+      <div class="ledrow" v-for="(r, i) in ledgerRows.rows" :key="i">
+        <span class="d">{{ new Date(r.t).toLocaleDateString() }}</span>
+        <span class="ty">{{ r.label }}</span>
+        <span class="q" :class="r.qty >= 0 ? 'pos' : 'neg'">{{ r.qty >= 0 ? '+' + r.qty : r.qty }}</span>
+        <span class="run">{{ r.run }}</span>
+      </div>
+      <div class="ledrow" style="font-weight:800; border-top:1px solid rgba(255,255,255,.15)">
+        <span class="d"></span>
+        <span class="ty">လက်ရှိ လက်ကျန် (Current)</span>
+        <span class="q"></span>
+        <span class="run" id="ledger-current">{{ ledgerProd.stock }}</span>
+      </div>
+    </div>
+    <template #footer>
+      <el-button @click="showLedger=false">ပိတ်မည်</el-button>
     </template>
   </el-dialog>
 
@@ -446,20 +787,20 @@
     </template>
   </el-dialog>
 
-  <!-- ============ INVOICE OVERLAY ============ -->
+  <!-- ============ INVOICE / QUOTE PRINT OVERLAY ============ -->
   <div class="inv-overlay" v-if="invSale" @click.self="invSale=null">
     <div class="inv-actions">
-      <el-button type="primary" @click="printInvoice">🖨 Print</el-button>
+      <el-button type="primary" @click="printNow">🖨 Print</el-button>
       <el-button @click="invSale=null">✕ ပိတ်မည်</el-button>
     </div>
-    <div class="inv-sheet">
+    <div class="inv-sheet print-sheet">
       <div class="biz">
         <div>
           <h2>{{ S.biz.name || 'My Business' }}</h2>
           <div class="meta">{{ S.biz.phone }}<br v-if="S.biz.phone && S.biz.address">{{ S.biz.address }}</div>
         </div>
         <div class="invno">
-          <div style="font-size:.78rem; color:#555e70; letter-spacing:2px">ပြေစာ · INVOICE</div>
+          <div style="font-size:.78rem; color:#555e70; letter-spacing:2px">{{ invKind==='quote' ? 'စျေးနှုန်းကမ်းလှမ်းလွှာ · QUOTATION' : 'ပြေစာ · INVOICE' }}</div>
           <div class="big">{{ invSale.no }}</div>
           <div style="font-size:.74rem; color:#555e70">နေ့စွဲ — {{ new Date(invSale.t).toLocaleDateString() }}</div>
         </div>
@@ -483,8 +824,69 @@
       </table>
       <div class="sumrow"><span style="color:#555e70">ကြားခ စုစုပေါင်း</span><span style="min-width:110px; text-align:right">{{ fmt(saleSubtotal(invSale)) }}</span></div>
       <div class="sumrow" v-if="invSale.discount"><span style="color:#555e70">လျှော့ဈေး</span><span style="min-width:110px; text-align:right">− {{ fmt(invSale.discount) }}</span></div>
+      <div class="sumrow" v-if="invSale.tax"><span style="color:#555e70">အခွန် ({{ invSale.tax }}%)</span><span style="min-width:110px; text-align:right">+ {{ fmt(saleTaxAmt(invSale)) }}</span></div>
       <div class="sumrow g"><span>ကျသင့်ငွေ</span><span style="min-width:110px; text-align:right">{{ fmt(saleTotal(invSale)) }}</span></div>
-      <div class="thanks">🙏 ဝယ်ယူအားပေးမှုအတွက် ကျေးဇူးတင်ပါသည် — {{ S.biz.name || 'My Business' }}</div>
+      <template v-if="invKind==='inv' && salePayments(invSale).length">
+        <div class="sumrow"><span style="color:#555e70">ပေးပြီး</span><span style="min-width:110px; text-align:right">− {{ fmt(salePaidEff(invSale)) }}</span></div>
+        <div class="sumrow"><span style="color:#555e70; font-weight:700">ကျန်ငွေ</span><span style="min-width:110px; text-align:right; font-weight:700">{{ fmt(saleBalance(invSale)) }}</span></div>
+      </template>
+      <div class="thanks" v-if="invKind==='quote'">📌 ဤစျေးနှုန်းများသည် ကမ်းလှမ်းချက်သာ ဖြစ်ပါသည် — {{ S.biz.name || 'My Business' }}</div>
+      <div class="thanks" v-else>🙏 ဝယ်ယူအားပေးမှုအတွက် ကျေးဇူးတင်ပါသည် — {{ S.biz.name || 'My Business' }}</div>
+    </div>
+  </div>
+
+  <!-- ============ CUSTOMER STATEMENT OVERLAY ============ -->
+  <div class="inv-overlay" v-if="stmtCust" @click.self="stmtCust=null">
+    <div class="inv-actions">
+      <el-button type="primary" @click="printNow">🖨 Print</el-button>
+      <el-button @click="stmtCust=null">✕ ပိတ်မည်</el-button>
+    </div>
+    <div class="inv-sheet print-sheet">
+      <div class="biz">
+        <div>
+          <h2>{{ S.biz.name || 'My Business' }}</h2>
+          <div class="meta">{{ S.biz.phone }}<br v-if="S.biz.phone && S.biz.address">{{ S.biz.address }}</div>
+        </div>
+        <div class="invno">
+          <div style="font-size:.78rem; color:#555e70; letter-spacing:2px">စာရင်းရှင်းတမ်း · STATEMENT</div>
+          <div style="font-size:.74rem; color:#555e70">နေ့စွဲ — {{ new Date().toLocaleDateString() }}</div>
+        </div>
+      </div>
+      <hr>
+      <div class="cust">
+        <b>ဖောက်သည် —</b> {{ stmtCust.name }}<br>
+        <span v-if="stmtCust.phone" style="color:#555e70; font-size:.76rem">📞 {{ stmtCust.phone }}</span>
+        <span v-if="stmtCust.address" style="color:#555e70; font-size:.76rem"> · {{ stmtCust.address }}</span>
+      </div>
+      <table>
+        <thead><tr><th>နေ့စွဲ</th><th>အကြောင်းအရာ</th><th class="r">ရောင်း (Dr)</th><th class="r">သွင်း (Cr)</th><th class="r">ကျန်</th></tr></thead>
+        <tbody>
+          <tr v-for="(r, i) in stmtRows" :key="i">
+            <td>{{ new Date(r.t).toLocaleDateString() }}</td>
+            <td>{{ r.label }}</td>
+            <td class="r">{{ r.debit ? fmt(r.debit) : '' }}</td>
+            <td class="r">{{ r.credit ? fmt(r.credit) : '' }}</td>
+            <td class="r">{{ fmt(r.run) }}</td>
+          </tr>
+        </tbody>
+      </table>
+      <div class="sumrow g"><span>ကျန်ငွေ စုစုပေါင်း</span><span style="min-width:110px; text-align:right">{{ fmt(stmtRows.length ? stmtRows[stmtRows.length-1].run : 0) }}</span></div>
+      <div class="thanks">🙏 {{ S.biz.name || 'My Business' }}</div>
+    </div>
+  </div>
+
+  <!-- ============ PRODUCT LABEL OVERLAY ============ -->
+  <div class="inv-overlay" v-if="labelProd" @click.self="labelProd=null">
+    <div class="inv-actions" style="max-width:320px">
+      <el-button type="primary" @click="printNow">🖨 Print</el-button>
+      <el-button @click="labelProd=null">✕ ပိတ်မည်</el-button>
+    </div>
+    <div class="label-sheet print-sheet">
+      <div class="bz">{{ S.biz.name || 'My Business' }}</div>
+      <div class="nm">{{ labelProd.name }}</div>
+      <div class="pr">{{ fmt(labelProd.price) }}</div>
+      <canvas id="qr-canvas"></canvas>
+      <div class="sku">{{ labelProd.sku || ('P-' + labelProd.id) }}</div>
     </div>
   </div>
 </div>
@@ -498,20 +900,22 @@
 <script defer src="_settings.js"></script>
 <script defer src="_applock.js"></script>
 <script defer src="_cloudsync.js"></script>
+<script src="qrcode.min.js"></script>
 <script src="vue.global.prod.js"></script>
 <script src="element-plus.full.min.js"></script>
 <script>
 if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
   document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
 } else {
-const { createApp, ref, reactive, computed, onMounted } = Vue;
+const { createApp, ref, reactive, computed, onMounted, nextTick } = Vue;
 const STORE = 'minierp.v1';
 
 const app = createApp({
   setup() {
     const blankState = () => ({
       products: [], customers: [], sales: [], purchases: [],
-      seq: { sale: 1 }, biz: { name: '', phone: '', address: '' },
+      suppliers: [], payments: [], expenses: [], quotes: [], adjustments: [],
+      seq: { sale: 1, quote: 1 }, biz: { name: '', phone: '', address: '' },
     });
     const S = reactive(blankState());
     function load() {
@@ -519,8 +923,11 @@ const app = createApp({
         const d = JSON.parse(localStorage.getItem(STORE) || 'null');
         if (d && typeof d === 'object') {
           const b = blankState();
-          ['products', 'customers', 'sales', 'purchases'].forEach(k => { if (Array.isArray(d[k])) b[k] = d[k]; });
-          if (d.seq && d.seq.sale) b.seq = d.seq;
+          ['products', 'customers', 'sales', 'purchases', 'suppliers', 'payments', 'expenses', 'quotes', 'adjustments']
+            .forEach(k => { if (Array.isArray(d[k])) b[k] = d[k]; });
+          if (d.seq && typeof d.seq === 'object') Object.assign(b.seq, d.seq);
+          if (!b.seq.sale) b.seq.sale = 1;
+          if (!b.seq.quote) b.seq.quote = 1;
           if (d.biz) b.biz = Object.assign(b.biz, d.biz);
           Object.assign(S, b);
         }
@@ -530,6 +937,7 @@ const app = createApp({
 
     const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2800 });
     const fmt = n => (Math.round(+n || 0)).toLocaleString('en-US') + ' Ks';
+    const pad4 = n => String(n).padStart(4, '0');
 
     const tab = ref('dash');
     const tabs = [
@@ -537,24 +945,71 @@ const app = createApp({
       { label: '📦 ပစ္စည်း', value: 'products' },
       { label: '👥 ဖောက်သည်', value: 'customers' },
       { label: '🧾 အရောင်း', value: 'sales' },
+      { label: '📋 ကမ်းလှမ်း', value: 'quotes' },
       { label: '📥 အဝယ်', value: 'purchases' },
+      { label: '💸 ကုန်ကျ', value: 'expenses' },
+      { label: '📈 Reports', value: 'reports' },
     ];
 
     // ---------- lookups ----------
     const prodMap = computed(() => { const m = {}; S.products.forEach(p => m[p.id] = p); return m; });
     const custMap = computed(() => { const m = {}; S.customers.forEach(c => m[c.id] = c); return m; });
+    const suppMap = computed(() => { const m = {}; S.suppliers.forEach(s => m[s.id] = s); return m; });
     const prodName = id => (prodMap.value[id] || {}).name || '— (ဖျက်ပြီး)';
     const custName = id => (custMap.value[id] || {}).name || '— (ဖျက်ပြီး)';
+    const suppName = id => id ? ((suppMap.value[id] || {}).name || '—') : '—';
     const saleSubtotal = s => s.items.reduce((t, li) => t + (li.qty || 0) * (li.price || 0), 0);
-    const saleTotal = s => Math.max(0, saleSubtotal(s) - (s.discount || 0));
+    const saleTaxAmt = s => Math.round(Math.max(0, saleSubtotal(s) - (s.discount || 0)) * ((s.tax || 0) / 100));
+    const saleTotal = s => Math.max(0, saleSubtotal(s) - (s.discount || 0)) + saleTaxAmt(s);
     const stLabel = st => ({ pending: 'မရသေး', paid: 'ငွေရပြီး', delivered: 'ပို့ပြီး' }[st] || st);
     const stTag = st => ({ pending: 'warning', paid: 'success', delivered: 'info' }[st] || 'info');
 
+    // ---------- payments ----------
+    const PAY_METHODS = [
+      { v: 'cash', l: '💵 ငွေသား (Cash)' }, { v: 'kpay', l: '📱 KPay' },
+      { v: 'wave', l: '🌊 Wave' }, { v: 'bank', l: '🏦 ဘဏ် (Bank)' },
+    ];
+    const methodLabel = v => (PAY_METHODS.find(m => m.v === v) || {}).l || v;
+    const paidBySale = computed(() => {
+      const m = {};
+      S.payments.forEach(p => { m[p.saleId] = (m[p.saleId] || 0) + (p.amount || 0); });
+      return m;
+    });
+    const salePaid = s => paidBySale.value[s.id] || 0;
+    // legacy: sale marked paid/delivered before payments existed → treated as settled
+    const saleBalance = s => {
+      if (s.status !== 'pending' && !salePaid(s)) return 0;
+      return Math.max(0, saleTotal(s) - salePaid(s));
+    };
+    const salePaidEff = s => saleTotal(s) - saleBalance(s);
+    const salePayments = s => S.payments.filter(p => p.saleId === s.id).sort((a, b) => a.t - b.t);
+
+    const showPay = ref(false);
+    const paySale = ref(null);
+    const payDraft = reactive({ amount: 0, method: 'cash' });
+    function openPay(s) { paySale.value = s; payDraft.amount = saleBalance(s); payDraft.method = 'cash'; showPay.value = true; }
+    function savePay() {
+      const s = paySale.value; if (!s) return;
+      const amt = +payDraft.amount || 0;
+      if (amt <= 0) { toast('ပမာဏ မှန်အောင် ထည့်ပါ', 'warning'); return; }
+      if (amt > saleBalance(s)) { toast('⚠ ကျန်ငွေထက် များနေပါသည် (ကျန် ' + fmt(saleBalance(s)) + ')', 'warning'); return; }
+      S.payments.push({ id: Date.now(), saleId: s.id, amount: amt, method: payDraft.method, t: Date.now() });
+      if (saleBalance(s) <= 0 && s.status === 'pending') s.status = 'paid';
+      save(); showPay.value = false;
+      toast('💳 ' + s.no + ' — ' + fmt(amt) + ' သွင်းပြီး' + (saleBalance(s) <= 0 ? ' · အကြေ ရှင်းပြီး ✅' : ' · ကျန် ' + fmt(saleBalance(s))));
+    }
+    function delPayment(p) {
+      const s = S.sales.find(x => x.id === p.saleId);
+      S.payments = S.payments.filter(x => x.id !== p.id);
+      if (s && s.status === 'paid' && saleBalance(s) > 0) s.status = 'pending';
+      save(); toast('🗑 ငွေသွင်း မှတ်တမ်း ဖျက်ပြီး');
+    }
+
     // ---------- dashboard ----------
-    const sameMonth = t => { const d = new Date(t), n = new Date(); return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear(); };
-    const monthRevenue = computed(() => S.sales.filter(s => sameMonth(s.t) && (s.status === 'paid' || s.status === 'delivered')).reduce((t, s) => t + saleTotal(s), 0));
-    const monthOrders = computed(() => S.sales.filter(s => sameMonth(s.t)).length);
-    const receivables = computed(() => S.sales.filter(s => s.status === 'pending').reduce((t, s) => t + saleTotal(s), 0));
+    const sameMonthAs = (t, refDate) => { const d = new Date(t); return d.getMonth() === refDate.getMonth() && d.getFullYear() === refDate.getFullYear(); };
+    const monthRevenue = computed(() => S.sales.filter(s => sameMonthAs(s.t, new Date()) && (s.status === 'paid' || s.status === 'delivered')).reduce((t, s) => t + saleTotal(s), 0));
+    const monthOrders = computed(() => S.sales.filter(s => sameMonthAs(s.t, new Date())).length);
+    const receivables = computed(() => S.sales.reduce((t, s) => t + saleBalance(s), 0));
     const lowStock = computed(() => S.products.filter(p => (p.stock || 0) <= (p.minStock || 0)));
     const topProducts = computed(() => {
       const q = {};
@@ -594,6 +1049,68 @@ const app = createApp({
       S.products = S.products.filter(x => x.id !== p.id); save(); toast('🗑 ' + p.name + ' ဖျက်ပြီး');
     }
 
+    // ---------- adjustments ----------
+    const ADJ_REASONS = ['ပျက်စီး', 'ပျောက်ဆုံး', 'စာရင်းညှိ'];
+    const showAdjust = ref(false);
+    const adjProd = ref(null);
+    const adjDraft = reactive({ delta: 0, reason: 'စာရင်းညှိ' });
+    function openAdjust(p) { adjProd.value = p; adjDraft.delta = 0; adjDraft.reason = 'စာရင်းညှိ'; showAdjust.value = true; }
+    function saveAdjust() {
+      const p = adjProd.value; if (!p) return;
+      const delta = Math.trunc(+adjDraft.delta || 0);
+      if (!delta) { toast('အပြောင်းအလဲ 0 မဖြစ်ရပါ', 'warning'); return; }
+      if (p.stock + delta < 0) { toast('⚠ လက်ကျန် အနုတ် မဖြစ်နိုင်ပါ (လက်ရှိ ' + p.stock + ')', 'error'); return; }
+      p.stock += delta;
+      S.adjustments.push({ id: Date.now(), productId: p.id, delta, reason: adjDraft.reason, t: Date.now() });
+      save(); showAdjust.value = false;
+      toast('🧮 ' + p.name + ' ' + (delta > 0 ? '+' + delta : delta) + ' (' + adjDraft.reason + ') — လက်ကျန် ' + p.stock);
+    }
+
+    // ---------- ledger ----------
+    const showLedger = ref(false);
+    const ledgerProd = ref(null);
+    function openLedger(p) { ledgerProd.value = p; showLedger.value = true; }
+    const ledgerRows = computed(() => {
+      const p = ledgerProd.value;
+      if (!p) return { opening: 0, rows: [] };
+      const ev = [];
+      S.purchases.filter(x => x.productId === p.id).forEach(x =>
+        ev.push({ t: x.t, label: '📥 အဝယ်' + (x.supplierId ? ' — ' + suppName(x.supplierId) : ''), qty: +x.qty }));
+      S.sales.forEach(s => s.items.forEach(li => {
+        if (li.productId === p.id) ev.push({ t: s.t, label: '🧾 အရောင်း — ' + s.no, qty: -li.qty });
+      }));
+      S.adjustments.filter(x => x.productId === p.id).forEach(x =>
+        ev.push({ t: x.t, label: '🧮 ညှိ — ' + x.reason, qty: x.delta }));
+      ev.sort((a, b) => a.t - b.t);
+      const moved = ev.reduce((t, e) => t + e.qty, 0);
+      const opening = p.stock - moved;
+      let run = opening;
+      const rows = ev.map(e => { run += e.qty; return { ...e, run }; });
+      return { opening, rows };
+    });
+
+    // ---------- QR label ----------
+    const labelProd = ref(null);
+    function drawQR(canvas, text) {
+      try {
+        const q = qrcode(0, 'M'); q.addData(String(text)); q.make();
+        const n = q.getModuleCount(), cell = 4, m = 8, size = n * cell + m * 2;
+        canvas.width = size; canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, size, size);
+        ctx.fillStyle = '#000';
+        for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+          if (q.isDark(r, c)) ctx.fillRect(m + c * cell, m + r * cell, cell, cell);
+      } catch (e) { /* non-encodable text */ }
+    }
+    function openLabel(p) {
+      labelProd.value = p;
+      nextTick(() => {
+        const cv = document.getElementById('qr-canvas');
+        if (cv) drawQR(cv, p.sku || ('P-' + p.id));
+      });
+    }
+
     // ---------- customers ----------
     const custQ = ref('');
     const filteredCustomers = computed(() => {
@@ -602,6 +1119,7 @@ const app = createApp({
       return S.customers.filter(c => (c.name + ' ' + (c.phone || '') + ' ' + (c.address || '')).toLowerCase().includes(t));
     });
     const custTotal = id => S.sales.filter(s => s.customerId === id).reduce((t, s) => t + saleTotal(s), 0);
+    const custBalance = id => S.sales.filter(s => s.customerId === id).reduce((t, s) => t + saleBalance(s), 0);
     const showCustomer = ref(false);
     const blankCustomer = () => ({ id: null, name: '', phone: '', address: '' });
     const custDraft = ref(blankCustomer());
@@ -619,13 +1137,32 @@ const app = createApp({
       toast('💾 ' + rec.name + ' သိမ်းပြီး');
     }
     function delCustomer(c) {
-      if (S.sales.some(s => s.customerId === c.id)) {
-        toast('⚠ အရောင်း မှတ်တမ်း ရှိနေသဖြင့် မဖျက်နိုင်ပါ', 'warning'); return;
+      if (S.sales.some(s => s.customerId === c.id) || S.quotes.some(q => q.customerId === c.id)) {
+        toast('⚠ အရောင်း/ကမ်းလှမ်း မှတ်တမ်း ရှိနေသဖြင့် မဖျက်နိုင်ပါ', 'warning'); return;
       }
       S.customers = S.customers.filter(x => x.id !== c.id); save(); toast('🗑 ' + c.name + ' ဖျက်ပြီး');
     }
 
-    // ---------- sales ----------
+    // ---------- suppliers ----------
+    const showSupplier = ref(false);
+    const suppDraft = ref({ id: null, name: '', phone: '' });
+    function openSupplier(sp) { suppDraft.value = sp ? { ...sp } : { id: null, name: '', phone: '' }; showSupplier.value = true; }
+    function saveSupplier() {
+      const d = suppDraft.value;
+      if (!d.name.trim()) { toast('ပေးသွင်းသူ အမည် လိုအပ်ပါသည်', 'warning'); return; }
+      const rec = { id: d.id || Date.now(), name: d.name.trim(), phone: (d.phone || '').trim() };
+      const i = S.suppliers.findIndex(x => x.id === rec.id);
+      if (i >= 0) S.suppliers[i] = rec; else S.suppliers.unshift(rec);
+      save(); showSupplier.value = false; toast('💾 ' + rec.name + ' သိမ်းပြီး');
+    }
+    function delSupplier(sp) {
+      if (S.purchases.some(x => x.supplierId === sp.id)) {
+        toast('⚠ အဝယ် မှတ်တမ်းတွင် ပါဝင်နေသဖြင့် မဖျက်နိုင်ပါ', 'warning'); return;
+      }
+      S.suppliers = S.suppliers.filter(x => x.id !== sp.id); save(); toast('🗑 ' + sp.name + ' ဖျက်ပြီး');
+    }
+
+    // ---------- sales + quotes (shared dialog) ----------
     const saleQ = ref('');
     const sortedSales = computed(() => [...S.sales].sort((a, b) => b.t - a.t));
     const filteredSales = computed(() => {
@@ -633,54 +1170,102 @@ const app = createApp({
       if (!t) return sortedSales.value;
       return sortedSales.value.filter(s => (s.no + ' ' + custName(s.customerId)).toLowerCase().includes(t));
     });
+    const quoteQ = ref('');
+    const filteredQuotes = computed(() => {
+      const t = quoteQ.value.trim().toLowerCase();
+      const arr = [...S.quotes].sort((a, b) => b.t - a.t);
+      if (!t) return arr;
+      return arr.filter(q => (q.no + ' ' + custName(q.customerId)).toLowerCase().includes(t));
+    });
     const showSale = ref(false);
-    const saleDraft = reactive({ customerId: null, items: [{ productId: null, qty: 1, price: 0 }], discount: 0 });
-    function openSale() {
+    const docMode = ref('sale');
+    const saleDraft = reactive({ customerId: null, items: [{ productId: null, qty: 1, price: 0 }], discount: 0, tax: 0 });
+    function resetDraft() {
       saleDraft.customerId = null;
       saleDraft.items = [{ productId: null, qty: 1, price: 0 }];
-      saleDraft.discount = 0;
-      showSale.value = true;
+      saleDraft.discount = 0; saleDraft.tax = 0;
     }
+    function openSale() { docMode.value = 'sale'; resetDraft(); showSale.value = true; }
+    function openQuote() { docMode.value = 'quote'; resetDraft(); showSale.value = true; }
     function onLineProduct(li) { const p = prodMap.value[li.productId]; if (p) li.price = p.price; }
     const draftSubtotal = computed(() => saleDraft.items.reduce((t, li) => t + (li.qty || 0) * (li.price || 0), 0));
-    const draftTotal = computed(() => Math.max(0, draftSubtotal.value - (saleDraft.discount || 0)));
-    function saveSale() {
-      if (!saleDraft.customerId) { toast('ဖောက်သည် ရွေးပါ', 'warning'); return; }
-      const lines = saleDraft.items.filter(li => li.productId && (li.qty || 0) > 0);
-      if (!lines.length) { toast('ပစ္စည်း အနည်းဆုံး ၁ ခု ထည့်ပါ', 'warning'); return; }
+    const draftTotal = computed(() => {
+      const base = Math.max(0, draftSubtotal.value - (saleDraft.discount || 0));
+      return base + Math.round(base * ((saleDraft.tax || 0) / 100));
+    });
+    function checkStock(lines) {
       const need = {};
       lines.forEach(li => { need[li.productId] = (need[li.productId] || 0) + li.qty; });
       for (const pid in need) {
         const p = prodMap.value[pid];
-        if (!p) { toast('⚠ ပစ္စည်း မတွေ့ပါ', 'error'); return; }
-        if (need[pid] > p.stock) { toast('⚠ ' + p.name + ' — လက်ကျန် မလုံလောက်ပါ (ကျန် ' + p.stock + ' ခု)', 'error'); return; }
+        if (!p) { toast('⚠ ပစ္စည်း မတွေ့ပါ', 'error'); return null; }
+        if (need[pid] > p.stock) { toast('⚠ ' + p.name + ' — လက်ကျန် မလုံလောက်ပါ (ကျန် ' + p.stock + ' ခု)', 'error'); return null; }
       }
+      return need;
+    }
+    function saveSale() {
+      if (!saleDraft.customerId) { toast('ဖောက်သည် ရွေးပါ', 'warning'); return; }
+      const lines = saleDraft.items.filter(li => li.productId && (li.qty || 0) > 0);
+      if (!lines.length) { toast('ပစ္စည်း အနည်းဆုံး ၁ ခု ထည့်ပါ', 'warning'); return; }
+      if (docMode.value === 'quote') {
+        const no = 'QT-' + pad4(S.seq.quote); S.seq.quote++;
+        S.quotes.unshift({
+          id: Date.now(), no, customerId: saleDraft.customerId,
+          items: lines.map(li => ({ productId: li.productId, qty: li.qty, price: +li.price || 0 })),
+          discount: +saleDraft.discount || 0, tax: +saleDraft.tax || 0, t: Date.now(), status: 'open',
+        });
+        save(); showSale.value = false;
+        toast('📋 ' + no + ' — ' + fmt(draftTotal.value) + ' ကမ်းလှမ်းလွှာ သိမ်းပြီး');
+        return;
+      }
+      if (!checkStock(lines)) return;
       lines.forEach(li => { prodMap.value[li.productId].stock -= li.qty; });
-      const no = 'INV-' + String(S.seq.sale).padStart(4, '0');
-      S.seq.sale++;
+      const no = 'INV-' + pad4(S.seq.sale); S.seq.sale++;
       S.sales.unshift({
         id: Date.now(), no, customerId: saleDraft.customerId,
-        items: lines.map(li => ({ productId: li.productId, qty: li.qty, price: +li.price || 0 })),
-        status: 'pending', discount: +saleDraft.discount || 0, t: Date.now(),
+        items: lines.map(li => ({ productId: li.productId, qty: li.qty, price: +li.price || 0,
+          cost: (prodMap.value[li.productId] || {}).cost || 0 })),
+        status: 'pending', discount: +saleDraft.discount || 0, tax: +saleDraft.tax || 0, t: Date.now(),
       });
       save(); showSale.value = false;
       toast('🧾 ' + no + ' — ' + fmt(draftTotal.value) + ' ရောင်းပြီး');
     }
+    function convertQuote(q) {
+      const ok = checkStock(q.items); if (!ok) return;
+      q.items.forEach(li => { prodMap.value[li.productId].stock -= li.qty; });
+      const no = 'INV-' + pad4(S.seq.sale); S.seq.sale++;
+      S.sales.unshift({
+        id: Date.now(), no, customerId: q.customerId,
+        items: q.items.map(li => ({ productId: li.productId, qty: li.qty, price: +li.price || 0,
+          cost: (prodMap.value[li.productId] || {}).cost || 0 })),
+        status: 'pending', discount: q.discount || 0, tax: q.tax || 0, t: Date.now(),
+      });
+      q.status = 'converted';
+      save(); toast('✅ ' + q.no + ' → ' + no + ' ပြောင်းပြီး');
+    }
+    function delQuote(q) { S.quotes = S.quotes.filter(x => x.id !== q.id); save(); toast('🗑 ' + q.no + ' ဖျက်ပြီး'); }
     function setStatus(s, st) { s.status = st; save(); toast(s.no + ' → ' + stLabel(st)); }
     function delSale(s) {
       s.items.forEach(li => { const p = prodMap.value[li.productId]; if (p) p.stock += li.qty; });
       S.sales = S.sales.filter(x => x.id !== s.id);
+      S.payments = S.payments.filter(p => p.saleId !== s.id);
       save(); toast('🗑 ' + s.no + ' ဖျက်ပြီး — stock ပြန်ဝင်ပြီး');
     }
 
-    // ---------- invoice ----------
+    // ---------- sale detail ----------
+    const showDetail = ref(false);
+    const detailSale = ref(null);
+    function openDetail(s) { detailSale.value = s; showDetail.value = true; }
+
+    // ---------- invoice / quote print ----------
     const invSale = ref(null);
+    const invKind = ref('inv');
     const invCust = computed(() => invSale.value ? custMap.value[invSale.value.customerId] : null);
-    function openInvoice(s) { invSale.value = s; }
-    function printInvoice() { window.print(); }
+    function openInvoice(s, kind) { invKind.value = kind || 'inv'; invSale.value = s; }
+    function printNow() { window.print(); }
 
     // ---------- purchases ----------
-    const blankPurchase = () => ({ productId: null, qty: 1, unitCost: 0, note: '' });
+    const blankPurchase = () => ({ productId: null, supplierId: null, qty: 1, unitCost: 0, note: '' });
     const purchDraft = reactive(blankPurchase());
     function savePurchase() {
       if (!purchDraft.productId) { toast('ပစ္စည်း ရွေးပါ', 'warning'); return; }
@@ -688,7 +1273,8 @@ const app = createApp({
       const p = prodMap.value[purchDraft.productId];
       p.stock += purchDraft.qty;
       if ((+purchDraft.unitCost || 0) > 0) p.cost = +purchDraft.unitCost;
-      S.purchases.unshift({ id: Date.now(), productId: purchDraft.productId, qty: purchDraft.qty,
+      S.purchases.unshift({ id: Date.now(), productId: purchDraft.productId,
+        supplierId: purchDraft.supplierId || null, qty: purchDraft.qty,
         unitCost: +purchDraft.unitCost || 0, note: (purchDraft.note || '').trim(), t: Date.now() });
       save();
       toast('📥 ' + p.name + ' +' + purchDraft.qty + ' — လက်ကျန် ' + p.stock + ' ခု');
@@ -703,6 +1289,93 @@ const app = createApp({
       S.purchases = S.purchases.filter(x => x.id !== pu.id);
       save(); toast('🗑 အဝယ် မှတ်တမ်း ဖျက်ပြီး');
     }
+
+    // ---------- expenses ----------
+    const EXP_CATS = ['ငှားရမ်းခ', 'လျှပ်စစ်', 'ပို့ဆောင်ခ', 'လုပ်အားခ', 'ကြော်ငြာ', 'အခြား'];
+    const EXP_ICON = { 'ငှားရမ်းခ': '🏠', 'လျှပ်စစ်': '⚡', 'ပို့ဆောင်ခ': '🚚', 'လုပ်အားခ': '👷', 'ကြော်ငြာ': '📣', 'အခြား': '📎' };
+    const expDraft = reactive({ category: 'အခြား', amount: 0, note: '' });
+    const expMonth = ref(new Date());
+    const expList = computed(() => S.expenses.filter(e => sameMonthAs(e.t, expMonth.value)).sort((a, b) => b.t - a.t));
+    function saveExpense() {
+      if ((+expDraft.amount || 0) <= 0) { toast('ပမာဏ မှန်အောင် ထည့်ပါ', 'warning'); return; }
+      S.expenses.unshift({ id: Date.now(), category: expDraft.category, amount: +expDraft.amount,
+        note: (expDraft.note || '').trim(), t: Date.now() });
+      save();
+      toast('💸 ' + expDraft.category + ' — ' + fmt(expDraft.amount) + ' မှတ်ပြီး');
+      expDraft.amount = 0; expDraft.note = '';
+    }
+    function delExpense(e) { S.expenses = S.expenses.filter(x => x.id !== e.id); save(); toast('🗑 ကုန်ကျစရိတ် ဖျက်ပြီး'); }
+
+    // ---------- reports ----------
+    const repMonth = ref(new Date());
+    const repSales = computed(() => S.sales.filter(s => sameMonthAs(s.t, repMonth.value)));
+    const repRevenue = computed(() => repSales.value.reduce((t, s) => t + saleTotal(s), 0));
+    const lineCost = li => (li.cost != null ? li.cost : ((prodMap.value[li.productId] || {}).cost || 0));
+    const repCogs = computed(() => repSales.value.reduce((t, s) =>
+      t + s.items.reduce((c, li) => c + (li.qty || 0) * lineCost(li), 0), 0));
+    const repGross = computed(() => repRevenue.value - repCogs.value);
+    const repExpByCat = computed(() => {
+      const m = {};
+      S.expenses.filter(e => sameMonthAs(e.t, repMonth.value)).forEach(e => { m[e.category] = (m[e.category] || 0) + e.amount; });
+      return m;
+    });
+    const repExpTotal = computed(() => Object.values(repExpByCat.value).reduce((t, v) => t + v, 0));
+    const repNet = computed(() => repGross.value - repExpTotal.value);
+    const trend12 = computed(() => {
+      const now = new Date(); const arr = [];
+      for (let i = 11; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const rev = S.sales.filter(s => sameMonthAs(s.t, d)).reduce((t, s) => t + saleTotal(s), 0);
+        arr.push({ key: d.getFullYear() + '-' + d.getMonth(), label: d.toLocaleString('en', { month: 'short' }), rev });
+      }
+      const max = Math.max(1, ...arr.map(x => x.rev));
+      arr.forEach(x => x.pct = Math.max(x.rev ? 4 : 1, Math.round(x.rev / max * 100)));
+      return arr;
+    });
+    const repRanking = computed(() => {
+      const m = {};
+      repSales.value.forEach(s => s.items.forEach(li => {
+        if (!m[li.productId]) m[li.productId] = { name: prodName(li.productId), qty: 0, rev: 0 };
+        m[li.productId].qty += li.qty || 0;
+        m[li.productId].rev += (li.qty || 0) * (li.price || 0);
+      }));
+      return Object.values(m).sort((a, b) => b.rev - a.rev);
+    });
+    function exportCsv() {
+      const rows = [['No', 'Date', 'Customer', 'Status', 'Subtotal', 'Discount', 'Tax%', 'Total', 'Paid', 'Balance']];
+      repSales.value.forEach(s => rows.push([
+        s.no, new Date(s.t).toLocaleDateString(), custName(s.customerId), s.status,
+        saleSubtotal(s), s.discount || 0, s.tax || 0, saleTotal(s), salePaidEff(s), saleBalance(s),
+      ]));
+      const csv = '﻿' + rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const a = document.createElement('a');
+      const d = repMonth.value;
+      a.href = URL.createObjectURL(blob);
+      a.download = 'sales-' + d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '.csv';
+      a.click(); URL.revokeObjectURL(a.href);
+      toast('⬇ ' + (rows.length - 1) + ' rows CSV ထုတ်ပြီး');
+    }
+
+    // ---------- customer statement ----------
+    const stmtCustId = ref(null);
+    const stmtCust = ref(null);
+    function openStatement() { stmtCust.value = custMap.value[stmtCustId.value] || null; }
+    const stmtRows = computed(() => {
+      const c = stmtCust.value; if (!c) return [];
+      const ev = [];
+      const custSales = S.sales.filter(s => s.customerId === c.id);
+      custSales.forEach(s => {
+        ev.push({ t: s.t, label: s.no + ' — အရောင်း', debit: saleTotal(s), credit: 0 });
+        const pays = salePayments(s);
+        pays.forEach(p => ev.push({ t: p.t, label: s.no + ' — ငွေသွင်း (' + methodLabel(p.method) + ')', debit: 0, credit: p.amount }));
+        if (s.status !== 'pending' && !pays.length && saleTotal(s) > 0)
+          ev.push({ t: s.t, label: s.no + ' — ရှင်းပြီး (settled)', debit: 0, credit: saleTotal(s) });
+      });
+      ev.sort((a, b) => a.t - b.t);
+      let run = 0;
+      return ev.map(e => { run += e.debit - e.credit; return { ...e, run }; });
+    });
 
     // ---------- biz settings ----------
     const showBiz = ref(false);
@@ -731,8 +1404,11 @@ const app = createApp({
             { confirmButtonText: 'အစားထိုးမည်', cancelButtonText: 'မလုပ်တော့ပါ', type: 'warning' }
           ).then(() => {
             const b = blankState();
-            ['products', 'customers', 'sales', 'purchases'].forEach(k => { if (Array.isArray(d[k])) b[k] = d[k]; });
-            if (d.seq && d.seq.sale) b.seq = d.seq;
+            ['products', 'customers', 'sales', 'purchases', 'suppliers', 'payments', 'expenses', 'quotes', 'adjustments']
+              .forEach(k => { if (Array.isArray(d[k])) b[k] = d[k]; });
+            if (d.seq && typeof d.seq === 'object') Object.assign(b.seq, d.seq);
+            if (!b.seq.sale) b.seq.sale = 1;
+            if (!b.seq.quote) b.seq.quote = 1;
             if (d.biz) b.biz = Object.assign(b.biz, d.biz);
             Object.assign(S, b);
             save(); toast('⬆ Import ပြီး — products ' + S.products.length + ' · sales ' + S.sales.length);
@@ -747,13 +1423,26 @@ const app = createApp({
 
     return {
       S, tab, tabs, fmt,
-      prodMap, custMap, prodName, custName, saleSubtotal, saleTotal, stLabel, stTag,
+      prodMap, custMap, suppMap, prodName, custName, suppName,
+      saleSubtotal, saleTaxAmt, saleTotal, stLabel, stTag,
+      PAY_METHODS, methodLabel, salePaid, salePaidEff, saleBalance, salePayments,
+      showPay, paySale, payDraft, openPay, savePay, delPayment,
       monthRevenue, monthOrders, receivables, lowStock, topProducts, recentSales,
       prodQ, filteredProducts, showProduct, prodDraft, openProduct, saveProduct, delProduct,
-      custQ, filteredCustomers, custTotal, showCustomer, custDraft, openCustomer, quickAddCustomer, saveCustomer, delCustomer,
-      saleQ, filteredSales, showSale, saleDraft, openSale, onLineProduct, draftSubtotal, draftTotal, saveSale, setStatus, delSale,
-      invSale, invCust, openInvoice, printInvoice,
+      ADJ_REASONS, showAdjust, adjProd, adjDraft, openAdjust, saveAdjust,
+      showLedger, ledgerProd, openLedger, ledgerRows,
+      labelProd, openLabel,
+      custQ, filteredCustomers, custTotal, custBalance, showCustomer, custDraft, openCustomer, quickAddCustomer, saveCustomer, delCustomer,
+      showSupplier, suppDraft, openSupplier, saveSupplier, delSupplier,
+      saleQ, filteredSales, quoteQ, filteredQuotes, showSale, docMode, saleDraft,
+      openSale, openQuote, onLineProduct, draftSubtotal, draftTotal, saveSale, convertQuote, delQuote, setStatus, delSale,
+      showDetail, detailSale, openDetail,
+      invSale, invKind, invCust, openInvoice, printNow,
       purchDraft, savePurchase, delPurchase,
+      EXP_CATS, EXP_ICON, expDraft, expMonth, expList, saveExpense, delExpense,
+      repMonth, repSales, repRevenue, repCogs, repGross, repExpByCat, repExpTotal, repNet,
+      trend12, repRanking, exportCsv,
+      stmtCustId, stmtCust, openStatement, stmtRows,
       showBiz, bizDraft, openBiz, saveBiz,
       importEl, exportAll, doImport,
     };
