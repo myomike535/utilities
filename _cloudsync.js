@@ -35,6 +35,7 @@
     'reading.v1',
     'entrans.v1',
     'pronlab.v1',
+    'sentpat.v1',
     'mddocs.v1',
     'minierp.v1',
   ];

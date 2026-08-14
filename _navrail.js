@@ -47,6 +47,7 @@
     { href: 'Chanting.html',                       icon: 'book',       label: 'ဘုရားရှိခိုး',     color: '#b8860b' },
     { href: 'MeritJournal.html',                   icon: 'tasks',      label: 'ကုသိုလ်မှတ်တမ်း',  color: '#c62d2d' },
     { href: 'UposathaCalendar.html',               icon: 'scroll',     label: 'ဥပုသ်ပြက္ခဒိန်',   color: '#8b6f47' },
+    { href: 'SentencePatterns.html',               icon: 'book',       label: 'Patterns',       color: '#f97316' },
     { href: 'VocabTrainer.html',                   icon: 'study',      label: 'Vocab',          color: '#8b5cf6' },
     { href: 'EnglishTutor.html',                   icon: 'sparkles',   label: 'English Tutor',  color: '#0ea5e9' },
     { href: 'Translator.html',                     icon: 'palette',    label: 'Translator',     color: '#6366f1' },

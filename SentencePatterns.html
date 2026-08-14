@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>English Core Sentence Patterns · အခြေခံ ဝါကျပုံစံများ</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="_effects.css">
+<link rel="stylesheet" href="_design.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#f97316">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#f97316; --accent-2:#fb923c;
+    --ok:#22c55e; --bad:#ef4444;
+    --k-s:#3b82f6; --k-v:#22c55e; --k-o:#f97316; --k-c:#a855f7;
+    --k-io:#06b6d4; --k-a:#eab308; --k-q:#ec4899; --k-j:#f43f5e;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --el-color-primary:#f97316;
+    --el-color-primary-light-3:#fb923c;
+    --el-color-primary-dark-2:#ea580c;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(249,115,22,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(251,146,60,.09), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:980px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:14px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(249,115,22,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:180px; }
+  .progbox { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:12px 16px; margin-bottom:14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap; }
+  .progbox .cnt { font-weight:800; color:var(--accent); font-size:1.05rem; white-space:nowrap; }
+  .progbox .bar { flex:1; min-width:160px; }
+
+  .legend { display:flex; gap:8px; flex-wrap:wrap; margin:12px 0 16px; }
+  .legend span { font-size:.7rem; color:var(--muted); padding:3px 9px; border-radius:999px;
+    background:var(--field); border:1px solid var(--field-border); }
+  .legend i { display:inline-block; width:9px; height:9px; border-radius:3px; margin-right:5px; font-style:normal; }
+
+  .pcard { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px;
+    padding:16px 18px; margin-bottom:12px; transition:border-color .18s; }
+  .pcard.open { border-color:color-mix(in srgb, var(--accent) 45%, transparent); }
+  .phead { display:flex; align-items:center; gap:12px; cursor:pointer; flex-wrap:wrap; }
+  .phead .chips { display:flex; gap:6px; flex-wrap:wrap; }
+  .chip { font-weight:800; font-size:.86rem; padding:5px 12px; border-radius:9px; letter-spacing:.02em;
+    background:var(--field); border:1px solid var(--field-border); }
+  .chip.k-s { color:var(--k-s); background:rgba(59,130,246,.14); border-color:rgba(59,130,246,.4); }
+  .chip.k-v { color:var(--k-v); background:rgba(34,197,94,.14); border-color:rgba(34,197,94,.4); }
+  .chip.k-o { color:var(--k-o); background:rgba(249,115,22,.14); border-color:rgba(249,115,22,.4); }
+  .chip.k-c { color:var(--k-c); background:rgba(168,85,247,.14); border-color:rgba(168,85,247,.4); }
+  .chip.k-io { color:var(--k-io); background:rgba(6,182,212,.14); border-color:rgba(6,182,212,.4); }
+  .chip.k-a { color:var(--k-a); background:rgba(234,179,8,.14); border-color:rgba(234,179,8,.4); }
+  .chip.k-q { color:var(--k-q); background:rgba(236,72,153,.14); border-color:rgba(236,72,153,.4); }
+  .chip.k-j { color:var(--k-j); background:rgba(244,63,94,.14); border-color:rgba(244,63,94,.4); }
+  .phead .nm { flex:1; min-width:180px; }
+  .phead .nm b { font-size:.95rem; }
+  .phead .nm .my { color:var(--muted); font-size:.78rem; margin-top:2px; }
+  .phead .arrow { color:var(--faint); font-size:.8rem; transition:transform .18s; }
+  .pcard.open .arrow { transform:rotate(90deg); }
+
+  .pbody { margin-top:14px; border-top:1px solid rgba(255,255,255,.07); padding-top:14px; }
+  .explain { color:var(--muted); font-size:.87rem; line-height:1.9; margin-bottom:14px; }
+  .sect { font-size:.72rem; letter-spacing:.1em; text-transform:uppercase; color:var(--faint);
+    font-weight:700; margin:16px 0 8px; }
+  .exrow { background:var(--field); border:1px solid var(--field-border); border-radius:11px;
+    padding:11px 14px; margin-bottom:8px; }
+  .exrow .en { font-size:1rem; line-height:2; display:flex; align-items:baseline; gap:0; flex-wrap:wrap; }
+  .exrow .en .w { margin-right:.32em; padding-bottom:1px; }
+  .u-s { border-bottom:2.5px solid var(--k-s); }
+  .u-v { border-bottom:2.5px solid var(--k-v); }
+  .u-o { border-bottom:2.5px solid var(--k-o); }
+  .u-c { border-bottom:2.5px solid var(--k-c); }
+  .u-io { border-bottom:2.5px solid var(--k-io); }
+  .u-a { border-bottom:2.5px solid var(--k-a); }
+  .u-q { border-bottom:2.5px solid var(--k-q); }
+  .u-j { border-bottom:2.5px solid var(--k-j); }
+  .exrow .mm { color:var(--muted); font-size:.84rem; line-height:1.9; margin-top:4px; }
+  .spk { background:none; border:none; cursor:pointer; font-size:1rem; padding:0 4px; margin-left:auto; }
+  .spk:hover { transform:scale(1.15); }
+
+  .mistake { background:rgba(239,68,68,.07); border:1px solid rgba(239,68,68,.25); border-radius:11px;
+    padding:12px 14px; font-size:.87rem; line-height:2; }
+  .mistake .bad { color:var(--bad); text-decoration:line-through; text-decoration-thickness:1.5px; }
+  .mistake .good { color:var(--ok); font-weight:700; }
+  .mistake .note { color:var(--muted); font-size:.82rem; margin-top:5px; }
+
+  .prac { background:var(--field); border:1px solid var(--field-border); border-radius:11px;
+    padding:12px 14px; margin-bottom:9px; }
+  .prac .q { font-size:.95rem; margin-bottom:9px; }
+  .prac .q .blank { color:var(--accent); font-weight:800; letter-spacing:.05em; }
+  .opts { display:flex; gap:8px; flex-wrap:wrap; }
+  .opt { border:1px solid var(--field-border); background:var(--card); color:var(--text);
+    border-radius:9px; padding:8px 15px; cursor:pointer; font-family:var(--sans); font-size:.88rem; transition:all .15s; }
+  .opt:hover:not(:disabled) { border-color:var(--accent); transform:translateY(-1px); }
+  .opt:disabled { cursor:default; opacity:.9; }
+  .opt.correct { border-color:var(--ok); background:rgba(34,197,94,.16); }
+  .opt.wrong { border-color:var(--bad); background:rgba(239,68,68,.16); }
+  .fb { margin-top:8px; font-size:.83rem; line-height:1.9; }
+  .fb.ok { color:var(--ok); }
+  .fb.no { color:var(--bad); }
+  .fb .why { color:var(--muted); display:block; }
+
+  .doneline { margin-top:14px; display:flex; align-items:center; gap:10px; }
+
+  .panel { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:15px; padding:22px; }
+  .exam-q { text-align:center; margin:18px 0; }
+  .exam-q .pat { font-size:.72rem; color:var(--faint); letter-spacing:.08em; margin-bottom:8px; }
+  .exam-q .q { font-size:1.25rem; line-height:2; }
+  .exam-q .q .blank { color:var(--accent); font-weight:800; }
+  .exam-opts { display:flex; flex-direction:column; gap:9px; max-width:520px; margin:0 auto; }
+  .exam-opts .opt { padding:12px 16px; font-size:.95rem; text-align:left; }
+  .donebox { text-align:center; padding:30px 10px; }
+  .donebox .big { font-size:2.5rem; }
+  .donebox h2 { margin:8px 0 14px; }
+  .topline { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; }
+  .topline .sp { flex:1; }
+  .empty { text-align:center; color:var(--faint); padding:30px 0; font-size:.9rem; }
+  .el-segmented { --el-border-radius-base:10px; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🧩</div>
+    <div class="title">
+      <h1>English Core Sentence Patterns</h1>
+      <div class="sub">အခြေခံ ဝါကျပုံစံများ — ပုံစံ ၁၅ မျိုး · အဆင့် ၃ ဆင့် · လေ့ကျင့်ခန်းပါ</div>
+    </div>
+    <el-button v-if="mode==='exam'" @click="goLearn">🏠 သင်ခန်းစာသို့</el-button>
+    <el-button v-else type="primary" class="btn-exam" @click="startExam">📝 စာမေးပွဲ</el-button>
+  </header>
+
+  <div class="progbox">
+    <span class="cnt">🏆 {{ doneCount }} / {{ PATTERNS.length }} ရပြီ</span>
+    <div class="bar">
+      <el-progress :percentage="Math.round(doneCount / PATTERNS.length * 100)" :show-text="false" :stroke-width="10"></el-progress>
+    </div>
+  </div>
+
+  <!-- ============ LEARN MODE ============ -->
+  <div v-if="mode==='learn'">
+    <el-segmented v-model="level" :options="levelOpts" size="large" block></el-segmented>
+
+    <div class="legend">
+      <span><i style="background:var(--k-s)"></i>S = ကတ္တား</span>
+      <span><i style="background:var(--k-v)"></i>V = ကြိယာ</span>
+      <span><i style="background:var(--k-o)"></i>O = ကံ</span>
+      <span><i style="background:var(--k-c)"></i>C = ဖြည့်စွက်ပုဒ်</span>
+      <span><i style="background:var(--k-io)"></i>IO = သွယ်ဝိုက်ကံ</span>
+      <span><i style="background:var(--k-a)"></i>Aux = အထောက်အကူကြိယာ</span>
+      <span><i style="background:var(--k-q)"></i>Wh = မေးခွန်းစကားလုံး</span>
+      <span><i style="background:var(--k-j)"></i>Conj = ဆက်စပ်ပုဒ်</span>
+    </div>
+
+    <div v-for="p in curPatterns" :key="p.id" class="pcard" :class="{ open: expanded === p.id }">
+      <div class="phead" @click="toggle(p.id)">
+        <div class="chips">
+          <span v-for="(ch, ci) in p.formula" :key="ci" class="chip" :class="'k-' + ch.k">{{ ch.t }}</span>
+        </div>
+        <div class="nm">
+          <b>{{ p.name }}</b>
+          <div class="my">{{ p.myName }}</div>
+        </div>
+        <el-tag v-if="done.includes(p.id)" type="success" effect="dark" size="small">✓ ရပြီ</el-tag>
+        <span class="arrow">▶</span>
+      </div>
+
+      <div v-if="expanded === p.id" class="pbody">
+        <div class="explain">{{ p.explain }}</div>
+
+        <div class="sect">💬 ဥပမာ ဝါကျများ</div>
+        <div v-for="(ex, xi) in p.examples" :key="xi" class="exrow">
+          <div class="en">
+            <span v-for="(w, wi) in ex.parts" :key="wi" class="w" :class="w.k ? 'u-' + w.k : ''">{{ w.t }}</span>
+            <button class="spk" :title="'Read aloud'" @click.stop="speak(exText(ex))">🔊</button>
+          </div>
+          <div class="mm">{{ ex.mm }}</div>
+        </div>
+
+        <div class="sect">⚠️ မကြာခဏ မှားတတ်သောအချက်</div>
+        <div class="mistake">
+          <div>❌ <span class="bad">{{ p.mistake.bad }}</span></div>
+          <div>✅ <span class="good">{{ p.mistake.good }}</span></div>
+          <div class="note">{{ p.mistake.note }}</div>
+        </div>
+
+        <div class="sect">✏️ လေ့ကျင့်ခန်း — ကွက်လပ်ဖြည့်ပါ</div>
+        <div v-for="(t, ti) in p.tryIt" :key="ti" class="prac">
+          <div class="q" v-html="blankHtml(t.q)"></div>
+          <div class="opts">
+            <button v-for="(op, oi) in t.choices" :key="oi" class="opt"
+              :class="{ correct: prac[p.id + '_' + ti] !== undefined && oi === t.a,
+                        wrong: prac[p.id + '_' + ti] === oi && oi !== t.a }"
+              :disabled="prac[p.id + '_' + ti] !== undefined"
+              @click="pick(p.id, ti, oi)">{{ op }}</button>
+          </div>
+          <div v-if="prac[p.id + '_' + ti] !== undefined" class="fb" :class="prac[p.id + '_' + ti] === t.a ? 'ok' : 'no'">
+            <span v-if="prac[p.id + '_' + ti] === t.a">✅ မှန်ပါသည်!</span>
+            <span v-else>❌ မှားပါသည် — အဖြေမှန်မှာ "{{ t.choices[t.a] }}" ဖြစ်သည်။</span>
+            <span class="why">💡 {{ t.why }}</span>
+          </div>
+        </div>
+
+        <div class="doneline">
+          <el-button v-if="!done.includes(p.id)" type="success" class="btn-done" @click="markDone(p.id)">✓ ဒီပုံစံ ရပြီ</el-button>
+          <el-button v-else plain class="btn-undone" @click="unmarkDone(p.id)">↩ မရသေးဟု ပြန်မှတ်မည်</el-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============ EXAM MODE ============ -->
+  <div v-if="mode==='exam'" class="panel">
+    <div v-if="!ex.done">
+      <div class="topline">
+        <b>📝 စာမေးပွဲ</b>
+        <el-tag v-if="ex.fromDone" size="small" type="warning" effect="plain">ရပြီးသော ပုံစံများမှ</el-tag>
+        <el-tag v-else size="small" effect="plain">ပုံစံ ၁၅ မျိုးလုံးမှ</el-tag>
+        <span class="sp"></span>
+        <el-tag type="success" effect="plain" class="exam-score">အမှတ်: {{ ex.score }}</el-tag>
+        <el-tag effect="plain">{{ ex.i + 1 }} / {{ ex.items.length }}</el-tag>
+      </div>
+      <el-progress :percentage="Math.round(ex.i / ex.items.length * 100)" :show-text="false" :stroke-width="8"></el-progress>
+
+      <div class="exam-q">
+        <div class="pat">{{ ex.items[ex.i].pname }}</div>
+        <div class="q" v-html="blankHtml(ex.items[ex.i].q)"></div>
+      </div>
+      <div class="exam-opts">
+        <button v-for="(op, oi) in ex.items[ex.i].choices" :key="oi" class="opt"
+          :class="{ correct: ex.picked !== null && oi === ex.items[ex.i].a,
+                    wrong: ex.picked === oi && oi !== ex.items[ex.i].a }"
+          :disabled="ex.picked !== null" @click="examPick(oi)">{{ op }}</button>
+      </div>
+      <div style="text-align:center; margin-top:16px" v-if="ex.picked !== null">
+        <div class="fb" style="margin-bottom:10px" :class="ex.picked === ex.items[ex.i].a ? 'ok' : 'no'">
+          <span v-if="ex.picked === ex.items[ex.i].a">✅ မှန်ပါသည်!</span>
+          <span v-else>❌ အဖြေမှန်မှာ "{{ ex.items[ex.i].choices[ex.items[ex.i].a] }}" ဖြစ်သည်။</span>
+          <span class="why">💡 {{ ex.items[ex.i].why }}</span>
+        </div>
+        <el-button type="primary" class="btn-next" @click="examNext">{{ ex.i + 1 >= ex.items.length ? '🏁 ရလဒ်ကြည့်မည်' : '➡ ရှေ့ဆက်မည်' }}</el-button>
+      </div>
+    </div>
+
+    <div v-else class="donebox">
+      <div class="big">{{ ex.score >= ex.items.length * 0.8 ? '🏆' : ex.score >= ex.items.length * 0.5 ? '👍' : '💪' }}</div>
+      <h2 class="exam-result">စာမေးပွဲ ပြီးပါပြီ — {{ ex.score }} / {{ ex.items.length }} မှတ်</h2>
+      <div style="color:var(--muted); font-size:.85rem; margin-bottom:18px">
+        {{ ex.score >= ex.items.length * 0.8 ? 'အရမ်းတော်ပါသည်! ဝါကျပုံစံများ ကျွမ်းကျင်နေပါပြီ' : ex.score >= ex.items.length * 0.5 ? 'ကောင်းပါသည် — မှားသောပုံစံများကို ပြန်လေ့လာပါ' : 'သင်ခန်းစာများကို ပြန်ဖတ်ပြီး ထပ်ကြိုးစားကြည့်ပါ' }}
+      </div>
+      <el-button @click="startExam">🔁 ထပ်ဖြေမည်</el-button>
+      <el-button type="primary" @click="goLearn">🏠 သင်ခန်းစာသို့</el-button>
+    </div>
+  </div>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted } = Vue;
+const STORE = 'sentpat.v1';
+
+// Part kinds: s=Subject v=Verb o=Object(direct) c=Complement io=Indirect-Object a=Aux/Modal q=Wh-word j=Conjunction
+function P(t, k) { return { t, k: k || '' }; }
+
+const PATTERNS = [
+  // ================= LEVEL 0 — BASIC =================
+  {
+    id: 'sv', level: 0, name: 'S + V', myName: 'ကတ္တား + ကြိယာ',
+    formula: [P('S', 's'), P('V', 'v')],
+    explain: 'အရိုးရှင်းဆုံး ဝါကျပုံစံ — ကတ္တား (ပြုလုပ်သူ) နှင့် ကြိယာ (လုပ်ဆောင်ချက်) နှစ်ခုတည်းဖြင့် ပြည့်စုံသော ဝါကျဖြစ်သည်။ ကံပုဒ် မလိုအပ်ပါ။',
+    examples: [
+      { parts: [P('Birds', 's'), P('fly.', 'v')], mm: 'ငှက်များ ပျံသည်။' },
+      { parts: [P('The train', 's'), P('arrived', 'v'), P('late.')], mm: 'ရထားသည် နောက်ကျပြီးမှ ဆိုက်ရောက်လာသည်။' },
+      { parts: [P('She', 's'), P('smiled.', 'v')], mm: 'သူမ ပြုံးလိုက်သည်။' },
+    ],
+    mistake: {
+      bad: 'Went to school yesterday.',
+      good: 'I went to school yesterday.',
+      note: 'မြန်မာစကားတွင် ကတ္တားကို ချန်လှပ်လေ့ရှိသော်လည်း အင်္ဂလိပ်ဝါကျတိုင်းတွင် ကတ္တားပုဒ် မဖြစ်မနေ ပါရမည်။',
+    },
+    tryIt: [
+      { q: 'The baby ___ loudly.', choices: ['cry', 'cries', 'crying'], a: 1,
+        why: 'ကတ္တား "the baby" သည် အနည်းကိန်း (3rd person singular) ဖြစ်၍ ကြိယာတွင် -s/-es ထည့်ရသည်။' },
+      { q: '___ arrived at the station.', choices: ['Was', 'The bus', 'Raining'], a: 1,
+        why: 'ဝါကျတိုင်း ကတ္တား (နာမ်ပုဒ်) ဖြင့် စတင်ရမည် — "The bus arrived."' },
+    ],
+  },
+  {
+    id: 'svo', level: 0, name: 'S + V + O', myName: 'ကတ္တား + ကြိယာ + ကံ',
+    formula: [P('S', 's'), P('V', 'v'), P('O', 'o')],
+    explain: 'ကြိယာ၏ လုပ်ဆောင်ချက်ကို ခံယူသည့် ကံပုဒ် (Object) ပါဝင်သည်။ မြန်မာက "ကတ္တား–ကံ–ကြိယာ" အစဉ်ဖြစ်သော်လည်း အင်္ဂလိပ်တွင် ကြိယာသည် ကံ၏ရှေ့တွင် ရှိသည်။',
+    examples: [
+      { parts: [P('I', 's'), P('eat', 'v'), P('rice.', 'o')], mm: 'ကျွန်တော် ထမင်း စားသည်။' },
+      { parts: [P('She', 's'), P('reads', 'v'), P('books', 'o'), P('every night.')], mm: 'သူမ ညတိုင်း စာအုပ်များ ဖတ်သည်။' },
+      { parts: [P('We', 's'), P('watched', 'v'), P('a movie', 'o'), P('yesterday.')], mm: 'ကျွန်တော်တို့ မနေ့က ရုပ်ရှင်တစ်ကား ကြည့်ခဲ့သည်။' },
+    ],
+    mistake: {
+      bad: 'I rice eat.',
+      good: 'I eat rice.',
+      note: 'မြန်မာအစီအစဉ် (ကံရှေ့၊ ကြိယာနောက်ဆုံး) အတိုင်း မရေးပါနှင့် — အင်္ဂလိပ်တွင် ကြိယာ + ကံ အစဉ်ဖြစ်သည်။',
+    },
+    tryIt: [
+      { q: 'She ___ English every day.', choices: ['studies', 'study', 'studying'], a: 0,
+        why: '"She" နောက်တွင် ပစ္စုပ္ပန်ကြိယာ -es ပုံစံ "studies" သုံးရသည်။' },
+      { q: 'They bought ___ yesterday.', choices: ['goes', 'a new car', 'buys'], a: 1,
+        why: 'ကြိယာ "bought" ၏နောက်တွင် ကံပုဒ် (နာမ်) လိုအပ်သည် — "a new car"။' },
+    ],
+  },
+  {
+    id: 'svc', level: 0, name: 'S + V + C', myName: 'ကတ္တား + ကြိယာ + ဖြည့်စွက်ပုဒ်',
+    formula: [P('S', 's'), P('V', 'v'), P('C', 'c')],
+    explain: 'be, become, seem, look, taste စသည့် linking verb များ၏နောက်တွင် ကတ္တားကို ပြန်ဖော်ပြသည့် ဖြည့်စွက်ပုဒ် (နာမ် သို့မဟုတ် နာမဝိသေသန) လိုက်သည်။',
+    examples: [
+      { parts: [P('She', 's'), P('is', 'v'), P('a nurse.', 'c')], mm: 'သူမသည် သူနာပြုတစ်ဦး ဖြစ်သည်။' },
+      { parts: [P('The soup', 's'), P('tastes', 'v'), P('delicious.', 'c')], mm: 'ဟင်းချိုသည် အရသာ ထူးကဲသည်။' },
+      { parts: [P('He', 's'), P('became', 'v'), P('famous', 'c'), P('last year.')], mm: 'သူ မနှစ်က နာမည်ကြီး ဖြစ်လာခဲ့သည်။' },
+    ],
+    mistake: {
+      bad: 'She teacher.',
+      good: 'She is a teacher.',
+      note: 'မြန်မာလို "သူမ ဆရာမပါ" ဟု be မပါဘဲ ပြောနိုင်သော်လည်း အင်္ဂလိပ်တွင် am/is/are ကို မဖြစ်မနေ ထည့်ရမည်။',
+    },
+    tryIt: [
+      { q: 'This mango ___ very sweet.', choices: ['makes', 'eats', 'tastes'], a: 2,
+        why: 'အရသာကို ဖော်ပြရာတွင် linking verb "tastes" + နာမဝိသေသန သုံးသည်။' },
+      { q: 'My brother ___ a doctor.', choices: ['is', 'are', 'be'], a: 0,
+        why: 'ကတ္တား "my brother" (အနည်းကိန်း) အတွက် be ကြိယာမှာ "is" ဖြစ်သည်။' },
+    ],
+  },
+  {
+    id: 'sviodo', level: 0, name: 'S + V + IO + DO', myName: 'ကတ္တား + ကြိယာ + သွယ်ဝိုက်ကံ + တိုက်ရိုက်ကံ',
+    formula: [P('S', 's'), P('V', 'v'), P('IO', 'io'), P('DO', 'o')],
+    explain: 'give, send, show, teach, buy စသည့် ကြိယာများတွင် "ဘယ်သူ့ကို" (IO) ကို ရှေ့၊ "ဘာကို" (DO) ကို နောက်တွင် အစဉ်လိုက် ထားသည်။',
+    examples: [
+      { parts: [P('He', 's'), P('gave', 'v'), P('me', 'io'), P('a book.', 'o')], mm: 'သူ ကျွန်တော့်ကို စာအုပ်တစ်အုပ် ပေးခဲ့သည်။' },
+      { parts: [P('She', 's'), P('sent', 'v'), P('her mother', 'io'), P('a letter.', 'o')], mm: 'သူမ အမေ့ထံ စာတစ်စောင် ပို့ခဲ့သည်။' },
+      { parts: [P('The teacher', 's'), P('taught', 'v'), P('us', 'io'), P('grammar.', 'o')], mm: 'ဆရာမက ကျွန်တော်တို့ကို သဒ္ဒါ သင်ပေးခဲ့သည်။' },
+    ],
+    mistake: {
+      bad: 'He gave to me a book.',
+      good: 'He gave me a book.',
+      note: 'IO ကို DO ၏ရှေ့တွင် ထားလျှင် to/for မထည့်ရ။ DO ကို ရှေ့ထားမှသာ "He gave a book to me." ဟု ရေးသည်။',
+    },
+    tryIt: [
+      { q: 'She showed ___ her photos.', choices: ['to me', 'me', 'mine'], a: 1,
+        why: 'ကြိယာ၏နောက် တိုက်ရိုက်လိုက်သော IO တွင် to မပါ — "showed me her photos"။' },
+      { q: 'Mom cooked ___ dinner.', choices: ['us', 'we', 'to us'], a: 0,
+        why: 'IO နေရာတွင် object pronoun "us" သုံးရသည် (we မဟုတ်၊ to လည်း မလို)။' },
+    ],
+  },
+  {
+    id: 'svoc', level: 0, name: 'S + V + O + C', myName: 'ကတ္တား + ကြိယာ + ကံ + ကံဖြည့်စွက်ပုဒ်',
+    formula: [P('S', 's'), P('V', 'v'), P('O', 'o'), P('C', 'c')],
+    explain: 'make, name, call, paint, find စသည့် ကြိယာများတွင် ကံ၏နောက်၌ ထိုကံကို ထပ်ဖော်ပြသည့် ဖြည့်စွက်ပုဒ် လိုက်သည်။',
+    examples: [
+      { parts: [P('The news', 's'), P('made', 'v'), P('him', 'o'), P('happy.', 'c')], mm: 'ထိုသတင်းက သူ့ကို ပျော်ရွှင်စေခဲ့သည်။' },
+      { parts: [P('They', 's'), P('named', 'v'), P('the baby', 'o'), P('Su Su.', 'c')], mm: 'သူတို့ ကလေးကို "စုစု" ဟု အမည်ပေးခဲ့သည်။' },
+      { parts: [P('We', 's'), P('painted', 'v'), P('the wall', 'o'), P('white.', 'c')], mm: 'ကျွန်တော်တို့ နံရံကို အဖြူရောင် သုတ်ခဲ့သည်။' },
+    ],
+    mistake: {
+      bad: 'The news made him to be happy.',
+      good: 'The news made him happy.',
+      note: 'make / call / name တို့၏နောက်တွင် "to be" မလိုပါ — ကံပြီးလျှင် ဖြည့်စွက်ပုဒ်ကို တိုက်ရိုက် ထားပါ။',
+    },
+    tryIt: [
+      { q: 'The movie made me ___.', choices: ['to sad', 'sadly', 'sad'], a: 2,
+        why: '"made + O" ၏နောက်တွင် နာမဝိသေသန "sad" ကို တိုက်ရိုက်ထားသည် — to လည်းမလို၊ ကြိယာဝိသေသနလည်း မဟုတ်။' },
+      { q: 'We call him ___.', choices: ['Ko Ko', 'to Ko Ko', 'is Ko Ko'], a: 0,
+        why: '"call + O" ၏နောက်တွင် အမည် (complement) ကို တိုက်ရိုက်ထားသည်။' },
+    ],
+  },
+
+  // ================= LEVEL 1 — EVERYDAY =================
+  {
+    id: 'thereis', level: 1, name: 'There is / There are', myName: '"ရှိသည်" ဟု ဖော်ပြခြင်း',
+    formula: [P('There', 'j'), P('is / are', 'v'), P('S', 's'), P('place', 'a')],
+    explain: 'တစ်စုံတစ်ခု ရှိကြောင်း စတင်ဖော်ပြရာတွင် သုံးသည်။ နောက်ကလိုက်သော နာမ် အနည်းကိန်းလျှင် is၊ အများကိန်းလျှင် are ရွေးရသည်။',
+    examples: [
+      { parts: [P('There', 'j'), P('is', 'v'), P('a book', 's'), P('on the table.', 'a')], mm: 'စားပွဲပေါ်တွင် စာအုပ်တစ်အုပ် ရှိသည်။' },
+      { parts: [P('There', 'j'), P('are', 'v'), P('two cats', 's'), P('in the garden.', 'a')], mm: 'ဥယျာဉ်ထဲတွင် ကြောင်နှစ်ကောင် ရှိသည်။' },
+      { parts: [P('There', 'j'), P('is', 'v'), P('no water', 's'), P('in the bottle.', 'a')], mm: 'ဘူးထဲတွင် ရေ မရှိပါ။' },
+    ],
+    mistake: {
+      bad: 'Have many people in the market.',
+      good: 'There are many people in the market.',
+      note: '"ရှိသည်" ကို have ဖြင့် တိုက်ရိုက် ဘာသာပြန်တတ်ကြသည် — ပိုင်ဆိုင်မှု မဟုတ်လျှင် There is / There are ကိုသာ သုံးပါ။',
+    },
+    tryIt: [
+      { q: 'There ___ many students in the class.', choices: ['is', 'are', 'have'], a: 1,
+        why: '"many students" သည် အများကိန်းဖြစ်၍ "are" သုံးရသည်။' },
+      { q: 'There ___ a big tree near my house.', choices: ['is', 'are', 'be'], a: 0,
+        why: '"a big tree" သည် အနည်းကိန်းဖြစ်၍ "is" သုံးရသည်။' },
+    ],
+  },
+  {
+    id: 'prescont', level: 1, name: 'S + be + V-ing', myName: 'ယခုဖြစ်နေဆဲ (Present Continuous)',
+    formula: [P('S', 's'), P('am/is/are', 'a'), P('V-ing', 'v')],
+    explain: 'ယခုအချိန်တွင် ဖြစ်ပျက်နေဆဲ လုပ်ဆောင်ချက်ကို ဖော်ပြသည်။ am/is/are နှင့် ကြိယာ-ing ကို အမြဲ တွဲသုံးရမည်။',
+    examples: [
+      { parts: [P('I', 's'), P('am', 'a'), P('studying', 'v'), P('English', 'o'), P('now.')], mm: 'ကျွန်တော် အခု အင်္ဂလိပ်စာ လေ့လာနေသည်။' },
+      { parts: [P('She', 's'), P('is', 'a'), P('cooking', 'v'), P('dinner.', 'o')], mm: 'သူမ ညစာ ချက်ပြုတ်နေသည်။' },
+      { parts: [P('They', 's'), P('are', 'a'), P('playing', 'v'), P('football', 'o'), P('at the field.')], mm: 'သူတို့ ကွင်းထဲတွင် ဘောလုံး ကစားနေကြသည်။' },
+    ],
+    mistake: {
+      bad: 'She cooking dinner.',
+      good: 'She is cooking dinner.',
+      note: '-ing ကြိယာ၏ရှေ့တွင် am/is/are ကျန်ခဲ့တတ်သည် — be မပါလျှင် ဝါကျ မပြည့်စုံပါ။',
+    },
+    tryIt: [
+      { q: 'He ___ watching TV now.', choices: ['is', 'are', 'be'], a: 0,
+        why: '"He" အတွက် be ကြိယာမှာ "is" — is + watching ဟု တွဲသုံးသည်။' },
+      { q: 'I am ___ a letter.', choices: ['write', 'wrote', 'writing'], a: 2,
+        why: 'am/is/are ၏နောက်တွင် ကြိယာ -ing ပုံစံ လိုက်ရသည် — "am writing"။' },
+    ],
+  },
+  {
+    id: 'presperf', level: 1, name: 'S + have/has + p.p.', myName: 'ပြီးစီးမှု / အတွေ့အကြုံ (Present Perfect)',
+    formula: [P('S', 's'), P('have / has', 'a'), P('p.p. (V3)', 'v')],
+    explain: 'အချိန်အတိအကျ မဖော်ပြဘဲ ပြီးစီးမှု သို့မဟုတ် အတွေ့အကြုံကို ပြောရာတွင် သုံးသည်။ have/has ၏နောက်တွင် past participle (V3) လိုက်ရမည်။',
+    examples: [
+      { parts: [P('I', 's'), P('have', 'a'), P('finished', 'v'), P('my homework.', 'o')], mm: 'ကျွန်တော် အိမ်စာ လုပ်ပြီးပါပြီ။' },
+      { parts: [P('She', 's'), P('has', 'a'), P('visited', 'v'), P('Bagan', 'o'), P('twice.')], mm: 'သူမ ပုဂံကို နှစ်ကြိမ် ရောက်ဖူးသည်။' },
+      { parts: [P('We', 's'), P('have', 'a'), P('lived', 'v'), P('here for five years.')], mm: 'ကျွန်တော်တို့ ဤနေရာတွင် ငါးနှစ်ကြာ နေထိုင်ခဲ့ပြီ ဖြစ်သည်။' },
+    ],
+    mistake: {
+      bad: 'I have went to Bagan.',
+      good: 'I have gone to Bagan.',
+      note: 'have/has ၏နောက်တွင် V2 (went) မဟုတ်ဘဲ V3 (gone) ကို သုံးရမည် — go → went → gone။',
+    },
+    tryIt: [
+      { q: 'She has ___ her keys.', choices: ['lose', 'lost', 'losing'], a: 1,
+        why: 'has ၏နောက်တွင် V3 "lost" လိုက်ရသည် — lose → lost → lost။' },
+      { q: 'I have lived here ___ 2020.', choices: ['for', 'since', 'from'], a: 1,
+        why: 'အချိန်အမှတ် (2020) ရှေ့တွင် since၊ ကြာချိန် (five years) ရှေ့တွင် for သုံးသည်။' },
+    ],
+  },
+  {
+    id: 'future', level: 1, name: 'S + will / be going to + V', myName: 'အနာဂတ် ဖော်ပြခြင်း',
+    formula: [P('S', 's'), P('will / be going to', 'a'), P('V', 'v')],
+    explain: 'will = ချက်ချင်း ဆုံးဖြတ်ချက် သို့မဟုတ် ကတိ၊ be going to = ကြိုတင်စီစဉ်ထားမှု သို့မဟုတ် သေချာနေသော လက္ခဏာ။ နှစ်မျိုးလုံး၏နောက်တွင် ကြိယာမူရင်း (base form) လိုက်သည်။',
+    examples: [
+      { parts: [P('I', 's'), P('will', 'a'), P('call', 'v'), P('you', 'o'), P('tomorrow.')], mm: 'မနက်ဖြန် ခင်ဗျားကို ဖုန်းဆက်ပါမည်။' },
+      { parts: [P('Look at the clouds!'), P('It', 's'), P('is going to', 'a'), P('rain.', 'v')], mm: 'တိမ်တွေကို ကြည့်ပါ — မိုးရွာတော့မည်။' },
+      { parts: [P('We', 's'), P('are going to', 'a'), P('visit', 'v'), P('our grandmother', 'o'), P('next week.')], mm: 'နောက်အပတ်တွင် အဘွားထံ သွားလည်ရန် စီစဉ်ထားသည်။' },
+    ],
+    mistake: {
+      bad: 'I will to call you.',
+      good: 'I will call you.',
+      note: 'will ၏နောက်တွင် to မထည့်ရ — ကြိယာမူရင်းကို တိုက်ရိုက် သုံးပါ။',
+    },
+    tryIt: [
+      { q: 'She will ___ us tomorrow.', choices: ['helps', 'to help', 'help'], a: 2,
+        why: 'will ၏နောက်တွင် ကြိယာမူရင်း (base form) "help" သာ လိုက်ရသည်။' },
+      { q: 'They ___ going to move to Yangon.', choices: ['are', 'will', 'is'], a: 0,
+        why: '"They" အတွက် be ကြိယာမှာ "are" — are going to + V ဖြစ်သည်။' },
+    ],
+  },
+  {
+    id: 'whq', level: 1, name: 'Wh-Questions', myName: 'မေးခွန်း ဝါကျပုံစံ',
+    formula: [P('Wh', 'q'), P('do/does/did · be', 'a'), P('S', 's'), P('V', 'v')],
+    explain: 'What / Where / When / Why / Who / How ဖြင့် စသောမေးခွန်းများတွင် Wh-word + အထောက်အကူကြိယာ (do/does/did သို့ be) + ကတ္တား + ကြိယာ အစီအစဉ်ကို လိုက်နာရသည်။',
+    examples: [
+      { parts: [P('Where', 'q'), P('do', 'a'), P('you', 's'), P('live?', 'v')], mm: 'ခင်ဗျား ဘယ်မှာ နေပါသလဲ။' },
+      { parts: [P('What time', 'q'), P('does', 'a'), P('the shop', 's'), P('open?', 'v')], mm: 'ဆိုင် ဘယ်အချိန် ဖွင့်ပါသလဲ။' },
+      { parts: [P('Why', 'q'), P('are', 'a'), P('you', 's'), P('late?', 'c')], mm: 'ဘာကြောင့် နောက်ကျရတာလဲ။' },
+    ],
+    mistake: {
+      bad: 'Where you live?',
+      good: 'Where do you live?',
+      note: 'Wh-word ၏နောက်တွင် do/does/did ကျန်ခဲ့တတ်သည် — be မပါသော ကြိယာများအတွက် do-support မဖြစ်မနေ လိုအပ်သည်။',
+    },
+    tryIt: [
+      { q: 'What ___ she want?', choices: ['do', 'does', 'is'], a: 1,
+        why: '"She" (3rd person singular) အတွက် "does" သုံးရသည်။' },
+      { q: 'Where ___ they go yesterday?', choices: ['did', 'do', 'done'], a: 0,
+        why: 'yesterday (အတိတ်) ဖြစ်၍ "did" သုံးရသည် — did ၏နောက်တွင် ကြိယာမူရင်း "go"။' },
+    ],
+  },
+
+  // ================= LEVEL 2 — WRITING POWER =================
+  {
+    id: 'clause', level: 2, name: 'Although / Because + Clause', myName: 'အကြောင်းပြ / ဆန့်ကျင်ပြ ဆက်စပ်ဝါကျ',
+    formula: [P('Although / Because', 'j'), P('S + V', 'x'), P(',', 'x'), P('S + V', 'x')],
+    explain: 'Because = အကြောင်းရင်း ဖော်ပြရန်၊ Although = ဆန့်ကျင်ဘက် အခြေအနေ ဖော်ပြရန်။ ဆက်စပ်ပုဒ်ပါသော clause ကို ရှေ့တွင်ထားလျှင် comma ခံရသည်။',
+    examples: [
+      { parts: [P('Although', 'j'), P('it', 's'), P('was raining,', 'v'), P('we', 's'), P('went', 'v'), P('out.')], mm: 'မိုးရွာနေသော်လည်း ကျွန်တော်တို့ အပြင် ထွက်ခဲ့သည်။' },
+      { parts: [P('She', 's'), P('went', 'v'), P('to bed early'), P('because', 'j'), P('she', 's'), P('was', 'v'), P('tired.', 'c')], mm: 'သူမ ပင်ပန်းနေသောကြောင့် စောစော အိပ်ရာဝင်ခဲ့သည်။' },
+      { parts: [P('Because', 'j'), P('the bus', 's'), P('was', 'v'), P('late,', 'c'), P('I', 's'), P('missed', 'v'), P('the meeting.', 'o')], mm: 'ဘတ်စ်ကား နောက်ကျသောကြောင့် အစည်းအဝေး လွတ်သွားခဲ့သည်။' },
+    ],
+    mistake: {
+      bad: 'Although it was raining, but we went out.',
+      good: 'Although it was raining, we went out.',
+      note: 'Although နှင့် but ကို တစ်ဝါကျတည်းတွင် တွဲမသုံးရ — တစ်ခုတည်းကိုသာ ရွေးသုံးပါ။',
+    },
+    tryIt: [
+      { q: '___ he was sick, he came to work.', choices: ['Because', 'Although', 'So'], a: 1,
+        why: 'နေမကောင်းသော်လည်း လာသည် — ဆန့်ကျင်ဘက် အခြေအနေဖြစ်၍ Although သုံးရသည်။' },
+      { q: 'I stayed home ___ it was raining heavily.', choices: ['because', 'although', 'but'], a: 0,
+        why: 'မိုးသည်းသောကြောင့် အိမ်မှာနေသည် — အကြောင်းရင်းပြ ဖြစ်၍ because သုံးရသည်။' },
+    ],
+  },
+  {
+    id: 'ifcond', level: 2, name: 'If-Conditionals (Type 0 & 1)', myName: '"အကယ်၍" ဝါကျများ',
+    formula: [P('If', 'j'), P('S + present', 'x'), P(',', 'x'), P('S + will + V', 'x')],
+    explain: 'Type 0 (အမြဲမှန်သောအရာ): If + present, present။ Type 1 (ဖြစ်နိုင်ခြေရှိသော အနာဂတ်): If + present, will + V။ သတိ — If-clause အတွင်း will မသုံးရ။',
+    examples: [
+      { parts: [P('If', 'j'), P('you', 's'), P('heat', 'v'), P('ice,', 'o'), P('it', 's'), P('melts.', 'v')], mm: 'ရေခဲကို အပူပေးလျှင် အရည်ပျော်သည်။ (Type 0)' },
+      { parts: [P('If', 'j'), P('it', 's'), P('rains', 'v'), P('tomorrow,'), P('we', 's'), P('will stay', 'v'), P('home.')], mm: 'မနက်ဖြန် မိုးရွာလျှင် အိမ်မှာပဲ နေကြပါမည်။ (Type 1)' },
+      { parts: [P('If', 'j'), P('you', 's'), P('study', 'v'), P('hard,'), P('you', 's'), P('will pass', 'v'), P('the exam.', 'o')], mm: 'ကြိုးစား လေ့လာလျှင် စာမေးပွဲ အောင်ပါလိမ့်မည်။ (Type 1)' },
+    ],
+    mistake: {
+      bad: 'If it will rain tomorrow, we will stay home.',
+      good: 'If it rains tomorrow, we will stay home.',
+      note: 'If-clause အတွင်းတွင် will မထည့်ရ — အနာဂတ် အဓိပ္ပာယ်ရှိသော်လည်း present tense ကိုသာ သုံးသည်။',
+    },
+    tryIt: [
+      { q: 'If she ___ early, she will catch the bus.', choices: ['will leave', 'leaves', 'left'], a: 1,
+        why: 'Type 1 ၏ If-clause တွင် present tense "leaves" သုံးရသည် — will မပါရ။' },
+      { q: 'If you mix red and yellow, you ___ orange.', choices: ['get', 'will got', 'getting'], a: 0,
+        why: 'အမြဲမှန်သော အချက် (Type 0) ဖြစ်၍ နှစ်ဖက်လုံး present tense — "get"။' },
+    ],
+  },
+  {
+    id: 'relative', level: 2, name: 'Relative Clauses (who / which / that)', myName: 'နာမ်ကို အထူးပြုသော ဝါကျပိုင်း',
+    formula: [P('N', 's'), P('who / which / that', 'q'), P('S + V', 'x')],
+    explain: 'နာမ်တစ်ခုကို ထပ်မံရှင်းပြရန် who (လူအတွက်)၊ which (အရာဝတ္ထု/တိရစ္ဆာန်အတွက်)၊ that (နှစ်မျိုးလုံးအတွက်) ဖြင့် ဆက်ရေးသည်။',
+    examples: [
+      { parts: [P('The man', 's'), P('who', 'q'), P('lives next door', 'x'), P('is', 'v'), P('a doctor.', 'c')], mm: 'အိမ်နီးနားချင်းတွင် နေသောသူသည် ဆရာဝန် ဖြစ်သည်။' },
+      { parts: [P('This', 's'), P('is', 'v'), P('the book', 'c'), P('which', 'q'), P('I bought yesterday.', 'x')], mm: 'ဒါက မနေ့က ကျွန်တော် ဝယ်ခဲ့သော စာအုပ် ဖြစ်သည်။' },
+      { parts: [P('The phone', 's'), P('that', 'q'), P('I lost', 'x'), P('was', 'v'), P('brand new.', 'c')], mm: 'ကျွန်တော် ပျောက်သွားသော ဖုန်းသည် အသစ်စက်စက် ဖြစ်သည်။' },
+    ],
+    mistake: {
+      bad: 'The book which I bought it is interesting.',
+      good: 'The book which I bought is interesting.',
+      note: 'Relative clause အတွင်းတွင် ကံကို (it ဖြင့်) ထပ်မထည့်ရ — which/that က ကံနေရာကို ယူထားပြီး ဖြစ်သည်။',
+    },
+    tryIt: [
+      { q: 'The girl ___ won the prize is my cousin.', choices: ['which', 'who', 'where'], a: 1,
+        why: 'လူကို အထူးပြုသောကြောင့် "who" သုံးရသည်။' },
+      { q: 'I like the shirt ___ you bought me.', choices: ['that', 'who', 'where'], a: 0,
+        why: 'အရာဝတ္ထု (shirt) ကို အထူးပြုသောကြောင့် "that" (သို့ which) သုံးရသည်။' },
+    ],
+  },
+  {
+    id: 'compare', level: 2, name: 'Comparatives', myName: 'နှိုင်းယှဉ်ခြင်း',
+    formula: [P('S', 's'), P('be', 'v'), P('-er / more ~', 'c'), P('than', 'j'), P('N', 'o')],
+    explain: 'စကားလုံးတို (၁-၂ syllable) → -er + than၊ စကားလုံးရှည် → more + adjective + than။ -er နှင့် more ကို တစ်ပြိုင်နက် တွဲမသုံးရ။',
+    examples: [
+      { parts: [P('This bag', 's'), P('is', 'v'), P('cheaper', 'c'), P('than', 'j'), P('that one.', 'o')], mm: 'ဒီအိတ်က ဟိုအိတ်ထက် ဈေးသက်သာသည်။' },
+      { parts: [P('Yangon', 's'), P('is', 'v'), P('bigger', 'c'), P('than', 'j'), P('Mandalay.', 'o')], mm: 'ရန်ကုန်သည် မန္တလေးထက် ပိုကြီးသည်။' },
+      { parts: [P('My new phone', 's'), P('is', 'v'), P('more expensive', 'c'), P('than', 'j'), P('my old one.', 'o')], mm: 'ကျွန်တော့် ဖုန်းအသစ်သည် အဟောင်းထက် ဈေးပိုကြီးသည်။' },
+    ],
+    mistake: {
+      bad: 'This bag is more cheaper than that one.',
+      good: 'This bag is cheaper than that one.',
+      note: 'more နှင့် -er ကို တွဲမသုံးရ — cheap → cheaper (သို့မဟုတ်) expensive → more expensive တစ်မျိုးတည်းသာ။',
+    },
+    tryIt: [
+      { q: 'Today is ___ than yesterday.', choices: ['more hot', 'hot', 'hotter'], a: 2,
+        why: 'hot သည် စကားလုံးတိုဖြစ်၍ -er ပုံစံ "hotter" သုံးရသည်။' },
+      { q: 'This book is ___ interesting than that one.', choices: ['more', 'most', 'much'], a: 0,
+        why: 'interesting သည် စကားလုံးရှည်ဖြစ်၍ "more interesting than" သုံးရသည်။' },
+    ],
+  },
+  {
+    id: 'passive', level: 2, name: 'Passive Voice', myName: 'ကံပြု ဝါကျ',
+    formula: [P('S', 's'), P('be', 'a'), P('p.p. (V3)', 'v'), P('by ~', 'j')],
+    explain: 'ပြုလုပ်သူထက် ခံရသည့်အရာကို အလေးပေးလိုသောအခါ be + past participle (V3) သုံးသည်။ ပြုလုပ်သူကို ဖော်ပြလိုမှသာ by ဖြင့် နောက်ဆက် ထည့်သည်။',
+    examples: [
+      { parts: [P('Rice', 's'), P('is', 'a'), P('grown', 'v'), P('in Myanmar.')], mm: 'မြန်မာနိုင်ငံတွင် ဆန်စပါး စိုက်ပျိုးကြသည်။' },
+      { parts: [P('The letter', 's'), P('was', 'a'), P('written', 'v'), P('by my father.', 'j')], mm: 'ထိုစာကို ကျွန်တော့်အဖေ ရေးခဲ့ခြင်း ဖြစ်သည်။' },
+      { parts: [P('This bridge', 's'), P('was', 'a'), P('built', 'v'), P('in 1954.')], mm: 'ဤတံတားကို ၁၉၅၄ ခုနှစ်တွင် တည်ဆောက်ခဲ့သည်။' },
+    ],
+    mistake: {
+      bad: 'Rice is grow in Myanmar.',
+      good: 'Rice is grown in Myanmar.',
+      note: 'be ၏နောက်တွင် V3 (past participle) သုံးရမည် — is grow / was build မဟုတ်ဘဲ is grown / was built ဖြစ်ရမည်။',
+    },
+    tryIt: [
+      { q: 'This song was ___ by a famous singer.', choices: ['sang', 'sung', 'sing'], a: 1,
+        why: 'was ၏နောက်တွင် V3 "sung" လိုက်ရသည် — sing → sang → sung။' },
+      { q: 'English ___ spoken all over the world.', choices: ['is', 'are', 'be'], a: 0,
+        why: '"English" (အနည်းကိန်း) အတွက် be ကြိယာမှာ "is" — is spoken။' },
+    ],
+  },
+];
+
+const app = createApp({
+  setup() {
+    const level = ref(0);
+    const levelOpts = [
+      { label: '🌱 အခြေခံ · Basic', value: 0 },
+      { label: '☀️ နေ့စဉ်သုံး · Everyday', value: 1 },
+      { label: '✍️ အရေးအသား · Writing Power', value: 2 },
+    ];
+    const mode = ref('learn');
+    const expanded = ref(null);
+    const done = ref([]);
+    const prac = ref({});
+    const ex = ref({ items: [], i: 0, score: 0, picked: null, done: false, fromDone: false });
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2600 });
+
+    const curPatterns = computed(() => PATTERNS.filter(p => p.level === level.value));
+    const doneCount = computed(() => done.value.length);
+
+    function load() {
+      try {
+        const d = JSON.parse(localStorage.getItem(STORE) || 'null');
+        if (d && Array.isArray(d.done)) done.value = d.done.filter(id => PATTERNS.some(p => p.id === id));
+      } catch (e) {}
+    }
+    function save() { localStorage.setItem(STORE, JSON.stringify({ done: done.value })); }
+
+    function toggle(id) { expanded.value = expanded.value === id ? null : id; }
+    function markDone(id) {
+      if (!done.value.includes(id)) { done.value.push(id); save(); }
+      toast('🏆 "' + (PATTERNS.find(p => p.id === id) || {}).name + '" ရပြီဟု မှတ်ထားပါပြီ');
+    }
+    function unmarkDone(id) {
+      done.value = done.value.filter(x => x !== id);
+      save();
+      toast('↩ ပြန်ဖြုတ်လိုက်ပါပြီ', 'info');
+    }
+
+    function pick(pid, ti, oi) {
+      const key = pid + '_' + ti;
+      if (prac.value[key] !== undefined) return;
+      prac.value[key] = oi;
+    }
+
+    function exText(exm) { return exm.parts.map(p => p.t).join(' '); }
+    function blankHtml(q) {
+      const safe = q.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return safe.replace(/___/g, '<span class="blank">______</span>');
+    }
+    function speak(text) {
+      if (!('speechSynthesis' in window)) { toast('⚠ ဤ browser တွင် read-aloud မရနိုင်ပါ', 'warning'); return; }
+      try {
+        speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = 'en-US';
+        u.rate = 0.92;
+        speechSynthesis.speak(u);
+      } catch (e) {}
+    }
+
+    function shuffle(a) {
+      const x = [...a];
+      for (let i = x.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [x[i], x[j]] = [x[j], x[i]];
+      }
+      return x;
+    }
+
+    // ---- Exam: 10 random practice items, preferring patterns already learned ----
+    function startExam() {
+      const donePats = PATTERNS.filter(p => done.value.includes(p.id));
+      const fromDone = donePats.length * 2 >= 10;
+      const pool = (fromDone ? donePats : PATTERNS).flatMap(p =>
+        p.tryIt.map(t => ({ pname: p.name + ' — ' + p.myName, q: t.q, choices: t.choices, a: t.a, why: t.why }))
+      );
+      ex.value = { items: shuffle(pool).slice(0, 10), i: 0, score: 0, picked: null, done: false, fromDone };
+      mode.value = 'exam';
+    }
+    function examPick(oi) {
+      if (ex.value.picked !== null) return;
+      ex.value.picked = oi;
+      if (oi === ex.value.items[ex.value.i].a) ex.value.score++;
+    }
+    function examNext() {
+      if (ex.value.i + 1 >= ex.value.items.length) { ex.value.done = true; return; }
+      ex.value.i++;
+      ex.value.picked = null;
+    }
+    function goLearn() { mode.value = 'learn'; }
+
+    onMounted(() => {
+      load();
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+
+    return {
+      PATTERNS, level, levelOpts, mode, expanded, done, prac, ex,
+      curPatterns, doneCount,
+      toggle, markDone, unmarkDone, pick, exText, blankHtml, speak,
+      startExam, examPick, examNext, goLearn,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>
