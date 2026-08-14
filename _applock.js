@@ -23,32 +23,53 @@
   style.textContent = `
     .al-backdrop {
       position: fixed; inset: 0; z-index: 999999;
-      background: linear-gradient(135deg, #10121a, #1a1d2e);
+      background:
+        radial-gradient(900px 600px at 15% 20%, rgba(99,102,241,0.22), transparent 55%),
+        radial-gradient(800px 550px at 85% 80%, rgba(167,139,250,0.18), transparent 55%),
+        radial-gradient(600px 500px at 80% 15%, rgba(236,72,153,0.10), transparent 50%),
+        linear-gradient(135deg, #0b0d16, #141728);
+      background-size: 200% 200%;
+      animation: alAurora 14s ease-in-out infinite alternate;
       display: flex; align-items: center; justify-content: center; padding: 20px;
     }
+    @keyframes alAurora { from { background-position: 0% 0%; } to { background-position: 100% 100%; } }
     .al-card {
-      width: 100%; max-width: 320px; text-align: center;
-      background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 18px; padding: 34px 26px;
+      width: 100%; max-width: 330px; text-align: center;
+      background: rgba(255,255,255,0.055);
+      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 22px; padding: 38px 28px 30px;
+      box-shadow: 0 24px 70px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
       font-family: 'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',system-ui,sans-serif;
       color: #e8ecf4;
+      animation: alRise 0.45s cubic-bezier(.22,1,.36,1);
     }
-    .al-ico { font-size: 2.2rem; margin-bottom: 8px; }
+    @keyframes alRise { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: none; } }
+    .al-ico {
+      width: 62px; height: 62px; margin: 0 auto 14px; font-size: 1.7rem;
+      display: grid; place-items: center; border-radius: 20px;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      box-shadow: 0 10px 28px rgba(99,102,241,0.45);
+    }
+    @media (prefers-reduced-motion: reduce) { .al-backdrop, .al-card { animation: none; } }
     .al-title { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
     .al-sub { font-size: 0.76rem; color: #8a93a5; margin-bottom: 18px; line-height: 1.6; }
     .al-input {
-      width: 100%; padding: 12px 14px; border-radius: 11px;
-      border: 1px solid rgba(255,255,255,0.15); background: rgba(0,0,0,0.3);
+      width: 100%; padding: 13px 14px; border-radius: 12px;
+      border: 1px solid rgba(255,255,255,0.16); background: rgba(0,0,0,0.32);
       color: #fff; font-size: 1.15rem; text-align: center; letter-spacing: 0.4em;
-      outline: none; font-family: inherit;
+      outline: none; font-family: inherit; transition: border-color 0.18s, box-shadow 0.18s;
     }
-    .al-input:focus { border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.25); }
+    .al-input:focus { border-color: #818cf8; box-shadow: 0 0 0 4px rgba(99,102,241,0.28); background: rgba(0,0,0,0.42); }
     .al-btn {
-      width: 100%; margin-top: 12px; padding: 12px; border: none; border-radius: 11px;
+      width: 100%; margin-top: 14px; padding: 13px; border: none; border-radius: 12px;
       background: linear-gradient(135deg, #6366f1, #a78bfa); color: #fff;
       font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: inherit;
+      box-shadow: 0 8px 22px rgba(99,102,241,0.35);
+      transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
     }
-    .al-btn:active { transform: scale(0.98); }
+    .al-btn:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 12px 28px rgba(99,102,241,0.45); }
+    .al-btn:active { transform: scale(0.97); }
     .al-err { color: #ff7b7b; font-size: 0.78rem; min-height: 18px; margin-top: 10px; }
     .al-reset { margin-top: 14px; font-size: 0.72rem; color: #6b7280; cursor: pointer; text-decoration: underline; background: none; border: none; font-family: inherit; }
     .al-reset:hover { color: #9aa4b3; }
