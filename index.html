@@ -2307,5 +2307,76 @@
   select(saved);
 })();
 </script>
+
+<!-- ================= First-visit tour (3-step spotlight) ================= -->
+<style>
+  .tour-hole { position: fixed; z-index: 9998; border-radius: 12px; pointer-events: none;
+    box-shadow: 0 0 0 100vmax rgba(0,0,0,.68); transition: left .3s ease, top .3s ease, width .3s ease, height .3s ease; }
+  .tour-tip { position: fixed; z-index: 9999; width: min(300px, calc(100vw - 24px));
+    background: var(--card, #1e1e2e); color: var(--text, #e4e4ef); border: 1px solid rgba(167,139,250,.45);
+    border-radius: 12px; padding: 14px 16px; font-size: .88rem; line-height: 1.9;
+    box-shadow: 0 12px 40px rgba(0,0,0,.5); }
+  .tour-tip .tt-step { font-size: .68rem; color: var(--accent, #a78bfa); letter-spacing: 1.5px; margin-bottom: 4px; }
+  .tour-tip .tt-sub { opacity: .78; font-size: .78rem; }
+  .tour-tip .tt-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 10px; }
+  .tour-tip button { border: 0; border-radius: 8px; padding: 6px 14px; cursor: pointer; font: inherit; font-size: .8rem; }
+  .tour-tip .tt-next { background: var(--accent, #a78bfa); color: #14141e; font-weight: 700; }
+  .tour-tip .tt-skip { background: transparent; color: inherit; opacity: .6; }
+</style>
+<script>
+(function () {
+  'use strict';
+  if (localStorage.getItem('tour.done') === '1') return;
+  const steps = [
+    { sel: '.cat-menu',   t: 'Category နှိပ်၍ tools ရွေးပါ',   s: 'အုပ်စုလိုက် ခလုတ်များဖြင့် tool များကို စစ်ထုတ်ကြည့်နိုင်သည် · Filter tools by category' },
+    { sel: '#paletteBtn', t: 'မည်သည့် tool မဆို အမြန်ရှာ',      s: 'Search ခလုတ် သို့မဟုတ် Ctrl+K နှိပ်ပါ · Quick-open any tool with Ctrl+K' },
+    { sel: '.st-gear',    t: 'Settings + App Lock ဒီမှာ',        s: '⚙ တွင် theme · AI · cloud sync · App Lock ချိန်ညှိနိုင်သည် · All settings live here' },
+  ];
+  let i = -1, hole = null, tip = null;
+  function done() {
+    localStorage.setItem('tour.done', '1');
+    if (hole) hole.remove(); if (tip) tip.remove();
+  }
+  function next() {
+    i++;
+    let el = null;
+    while (i < steps.length && !(el = document.querySelector(steps[i].sel))) i++;   // skip missing targets
+    if (i >= steps.length || !el) { done(); return; }
+    try { el.scrollIntoView({ block: 'nearest' }); } catch (e) {}
+    const r = el.getBoundingClientRect();
+    if (!hole) {
+      hole = document.createElement('div'); hole.className = 'tour-hole';
+      tip = document.createElement('div'); tip.className = 'tour-tip';
+      document.body.append(hole, tip);
+    }
+    hole.style.left = (r.left - 6) + 'px'; hole.style.top = (r.top - 6) + 'px';
+    hole.style.width = (r.width + 12) + 'px'; hole.style.height = (r.height + 12) + 'px';
+    const last = i === steps.length - 1;
+    tip.innerHTML =
+      '<div class="tt-step">TOUR ' + (i + 1) + '/' + steps.length + '</div>' +
+      '<div><b>' + steps[i].t + '</b></div>' +
+      '<div class="tt-sub">' + steps[i].s + '</div>' +
+      '<div class="tt-btns"><button class="tt-skip">ကျော်မည် · Skip</button>' +
+      '<button class="tt-next">' + (last ? 'ပြီးပါပြီ · Done' : 'ရှေ့ဆက် · Next') + '</button></div>';
+    tip.querySelector('.tt-skip').onclick = done;
+    tip.querySelector('.tt-next').onclick = next;
+    // Place the tip below the hole when there is room, otherwise above
+    const tw = tip.offsetWidth, th = tip.offsetHeight;
+    tip.style.left = Math.max(12, Math.min(r.left, innerWidth - tw - 12)) + 'px';
+    tip.style.top = (r.bottom + 16 + th < innerHeight ? r.bottom + 16 : Math.max(12, r.top - th - 16)) + 'px';
+  }
+  // Start only after the App Lock overlay (login / skip) is gone and the
+  // category bar has been built; give up waiting after ~10s but still run —
+  // next() safely skips any target that never appeared.
+  let tries = 0;
+  const iv = setInterval(function () {
+    tries++;
+    if (document.querySelector('.al-backdrop')) return;                  // waiting for login/skip
+    if (!document.querySelector('.cat-menu') && tries < 40) return;      // menu still building
+    clearInterval(iv);
+    next();
+  }, 250);
+})();
+</script>
 </body>
 </html>

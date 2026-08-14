@@ -147,3 +147,64 @@
 ::selection {
   background: color-mix(in srgb, var(--accent, #6366f1) 30%, transparent);
 }
+
+/* 8. Print — clean paper output, suite-wide ------------------ */
+/* Guard: any page currently presenting a dedicated .print-sheet
+   (MiniERP invoices / labels / statements) keeps full control of
+   its own scoped @media print flow — every rule below is disabled
+   for it via html:not(:has(.print-sheet)). The !important flags
+   are print-only and never leak into screen styles; selectors stay
+   :where()-wrapped per the file philosophy except where a page
+   rule is itself !important and must be out-specified. */
+@media print {
+  @page { margin: 14mm; }
+
+  /* App chrome never prints */
+  :where(html:not(:has(.print-sheet))) :where(.nr, .nr-bottom-nav,
+      .pwa-install-btn, .pwa-update-btn, header .hbtn, .el-button,
+      button, .cat-menu, .toolbar, nav, aside, .st-gear,
+      #vue-loading, [class^="fetch-"], [class*=" fetch-"]) {
+    display: none !important;
+  }
+
+  /* Paper = white page, black ink, no elevation */
+  :where(html:not(:has(.print-sheet))),
+  :where(html:not(:has(.print-sheet))) :where(body, .app, .wrap,
+      .container, main, #app, .card, .tool-card, .snip, .hist-item,
+      .entry, .book-card, .story-card) {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  /* No motion or shadows on paper */
+  :where(html:not(:has(.print-sheet))) *,
+  :where(html:not(:has(.print-sheet))) *::before,
+  :where(html:not(:has(.print-sheet))) *::after {
+    animation: none !important;
+    transition: none !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+
+  /* Sensible margins — content flows full width on the page */
+  :where(html:not(:has(.print-sheet))) :where(.app, .wrap,
+      .container, main, #app) {
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+  :where(html:not(:has(.print-sheet)) body) {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+  /* Nav-rail body offset uses !important in _navrail.js, so this
+     one rule intentionally keeps specificity to win in print. */
+  html:not(:has(.print-sheet)) body.nr-expanded {
+    padding-left: 0 !important;
+  }
+  /* Links print as plain black text */
+  :where(html:not(:has(.print-sheet))) :where(a) {
+    color: #000 !important;
+  }
+}
