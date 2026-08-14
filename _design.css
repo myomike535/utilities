@@ -1,0 +1,133 @@
+/* ============================================================
+   _design.css — design-detail layer for ALL Utilities.Tool
+   pages. Loaded right after _effects.css. Pure CSS, no JS.
+   Every selector is :where()-wrapped (specificity 0) so any
+   existing per-tool rule always wins — this file only refines.
+   Motion lives inside prefers-reduced-motion: no-preference.
+   ============================================================ */
+
+/* 1. Design tokens ------------------------------------------ */
+:where(:root) {
+  /* type scale (Myanmar-aware) */
+  --fs-h1: 1.25rem;
+  --fs-h2: 1rem;
+  --fs-body: .92rem;
+  --fs-caption: .75rem;
+  --lh-mm: 1.9;            /* Myanmar stacked-diacritic safe */
+  /* spacing scale */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;
+  --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+  /* elevation — layered shadows tuned for dark surfaces */
+  --elev-1: 0 1px 2px rgba(0,0,0,.22), 0 2px 6px -2px rgba(0,0,0,.28);
+  --elev-2: 0 2px 4px rgba(0,0,0,.26), 0 8px 20px -6px rgba(0,0,0,.40);
+  --elev-3: 0 4px 8px rgba(0,0,0,.30), 0 18px 44px -8px rgba(0,0,0,.50);
+}
+
+/* 2. Typography polish -------------------------------------- */
+:where(h1, h2, h3) { letter-spacing: -0.01em; }
+:where(small) { font-size: var(--fs-caption); }
+:where(.sub, .desc, small) {
+  color: color-mix(in srgb, currentColor 82%, transparent);
+}
+/* Myanmar-safe line-height: stacked glyphs need breathing room */
+:where(p, .desc, textarea) { line-height: var(--lh-mm); }
+
+/* 3. Elevation, applied gently ------------------------------ */
+:where(.card, .tool-card, .snip, .hist-item, .entry,
+       .book-card, .story-card) {
+  box-shadow: var(--elev-1);
+}
+:where(.card, .tool-card, .snip, .hist-item, .entry,
+       .book-card, .story-card):hover {
+  box-shadow: var(--elev-2);
+}
+
+/* 4. Skeleton shimmer utility + loading-state polish -------- */
+:where(.fx-skeleton) {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(255,255,255,.06);
+  color: transparent;
+  min-height: 1em;
+  user-select: none;
+}
+/* #vue-loading — centered pulsing dot row; original text kept
+   as fallback, visually softened below the dots. */
+:where(#vue-loading) {
+  flex-direction: column;
+  gap: var(--sp-4);
+  font-size: var(--fs-caption);
+  letter-spacing: .05em;
+  opacity: .6;
+}
+:where(#vue-loading)::before {
+  content: "";
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--accent, #6366f1);
+  box-shadow: -18px 0 0 0 color-mix(in srgb, var(--accent, #6366f1) 55%, transparent),
+               18px 0 0 0 color-mix(in srgb, var(--accent, #6366f1) 55%, transparent);
+}
+@media (prefers-reduced-motion: no-preference) {
+  :where(.fx-skeleton)::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(100deg,
+      transparent 30%, rgba(255,255,255,.10) 50%, transparent 70%);
+    transform: translateX(-100%);
+    animation: fx-shimmer 1.4s ease-in-out infinite;
+  }
+  @keyframes fx-shimmer { to { transform: translateX(100%); } }
+  :where(#vue-loading)::before {
+    animation: fx-pulse 1.2s ease-in-out infinite;
+  }
+  @keyframes fx-pulse {
+    0%, 100% { transform: scale(.82); opacity: .5; }
+    50%      { transform: scale(1.08); opacity: 1; }
+  }
+}
+
+/* 5. Empty-state polish ------------------------------------- */
+:where(.empty) {
+  color: color-mix(in srgb, currentColor 72%, transparent);
+}
+:where(.empty)::before {
+  content: "📭";
+  display: block;
+  font-size: 2rem;
+  line-height: 1.3;
+  margin-bottom: var(--sp-2);
+  opacity: .35;
+  filter: grayscale(35%);
+}
+
+/* 6. Scrollbars — thin, rounded, theme-aware, page-wide ----- */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.15);
+  border-radius: 8px;
+}
+::-webkit-scrollbar-thumb:hover { background: rgba(255,255,255,.25); }
+::-webkit-scrollbar-corner { background: transparent; }
+:where([data-theme="light"]) ::-webkit-scrollbar-thumb,
+:where([data-theme="light"])::-webkit-scrollbar-thumb {
+  background: rgba(0,0,0,.18);
+}
+:where([data-theme="light"]) ::-webkit-scrollbar-thumb:hover,
+:where([data-theme="light"])::-webkit-scrollbar-thumb:hover {
+  background: rgba(0,0,0,.30);
+}
+:where(html) {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.18) transparent;
+}
+:where(html[data-theme="light"]) {
+  scrollbar-color: rgba(0,0,0,.22) transparent;
+}
+
+/* 7. Selection color — accent-tinted, suite-wide ------------ */
+::selection {
+  background: color-mix(in srgb, var(--accent, #6366f1) 30%, transparent);
+}

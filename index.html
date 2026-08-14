@@ -83,15 +83,15 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-end;
-    margin-bottom: 32px;
+    margin-bottom: 24px;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
   }
   header .greet { flex: 1; min-width: 0; }
   header .greet-row {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 10px;
     flex-wrap: wrap;
   }
   header .greet-wave {
@@ -119,11 +119,12 @@
   header h1 {
     font-size: 2rem;
     font-weight: 600;
-    background: linear-gradient(90deg, var(--accent), var(--accent-2), var(--accent));
+    letter-spacing: -0.015em;
+    background: linear-gradient(92deg, var(--accent), var(--accent-2) 55%, var(--accent));
     background-size: 200% 100%;
     -webkit-background-clip: text; background-clip: text;
     -webkit-text-fill-color: transparent;
-    animation: shimmer 6s linear infinite;
+    animation: shimmer 9s linear infinite;
   }
   @keyframes shimmer {
     from { background-position: 0% 50%; }
@@ -135,8 +136,9 @@
   }
   header .sub {
     color: var(--text-dim);
-    font-size: 0.95rem;
-    margin-top: 4px;
+    font-size: 0.85rem;
+    letter-spacing: 0.02em;
+    margin-top: 6px;
   }
   .header-actions { display: flex; gap: 8px; }
   .icon-btn {
@@ -883,6 +885,7 @@
 </style>
   <link rel="manifest" href="manifest.json">
   <link rel="stylesheet" href="_effects.css">
+  <link rel="stylesheet" href="_design.css">
 <link rel="icon" type="image/svg+xml" href="favicon.svg">
   <meta name="theme-color" content="#a78bfa">
   <meta name="apple-mobile-web-app-capable" content="yes">
