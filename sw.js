@@ -3,7 +3,7 @@
 // offline fallback for navigation to any cached tool.
 // Bump CACHE_VERSION to force clients to fetch fresh copies.
 
-const CACHE_VERSION = 'utilities-v81';
+const CACHE_VERSION = 'utilities-v82';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -71,7 +71,6 @@ const PRECACHE_URLS = [
   './_design.css',
   './manifest.json',
   './favicon.svg',
-  './login-bg.svg',
   './login-bg.svg',
 ];
 

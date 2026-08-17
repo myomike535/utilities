@@ -133,6 +133,12 @@
   .trend .tbar { width:100%; max-width:34px; background:linear-gradient(180deg,var(--accent-2),var(--accent)); border-radius:5px 5px 2px 2px; min-height:2px; }
   .trend .tl { font-size:.6rem; color:var(--faint); }
 
+  /* dashboard mini sparkline */
+  .spark { display:flex; align-items:flex-end; gap:6px; height:64px; }
+  .spark .scol { flex:1; display:flex; flex-direction:column; align-items:center; gap:4px; height:100%; justify-content:flex-end; }
+  .spark .sbar { width:100%; max-width:26px; background:linear-gradient(180deg,var(--ok),var(--accent)); border-radius:4px 4px 2px 2px; min-height:2px; }
+  .spark .sl { font-size:.58rem; color:var(--faint); }
+
   /* ===== Quick Sale (POS) overlay ===== */
   .qs-overlay { position:fixed; inset:0; z-index:1900; display:flex; flex-direction:column;
     background:linear-gradient(180deg,var(--bg2),var(--bg) 60%); }
@@ -316,6 +322,16 @@
       <button type="button" class="qact qsb" id="btn-quick-sale" @click="openQuickSale">⚡ အမြန်ရောင်း</button>
       <button type="button" class="qact" @click="openProduct(null)">＋ ပစ္စည်း</button>
       <button type="button" class="qact" id="btn-debts" @click="showDebts=true">💳 ကြွေးဆပ်ရန် <span class="badge" v-if="debtSales.length">{{ debtSales.length }}</span></button>
+      <button type="button" class="qact" id="btn-zreport" @click="openZ">🧾 ယနေ့ အကျဉ်း</button>
+    </div>
+    <div class="card" v-if="spark7.length">
+      <h3>📊 ၇ ရက် အသားတင် ရောင်းအား <span class="en">Last 7 days · net sales</span></h3>
+      <div class="spark">
+        <div class="scol" v-for="(d, i) in spark7" :key="i" :title="d.label + ' — ' + fmt(d.net)">
+          <div class="sbar" :style="{ height: d.pct + '%' }"></div>
+          <div class="sl">{{ d.label }}</div>
+        </div>
+      </div>
     </div>
     <div class="stats">
       <div class="stat rev"><div class="k">💵 ယခုလ ဝင်ငွေ <span style="color:var(--faint)">(paid)</span></div>
@@ -329,7 +345,10 @@
     </div>
     <div class="dashgrid">
       <div class="card">
-        <h3>🏆 အရောင်းရဆုံး ပစ္စည်းများ <span class="en">Top 5 by qty sold</span></h3>
+        <h3>🏆 အရောင်းရဆုံး {{ topByCat ? 'အမျိုးအစား' : 'ပစ္စည်း' }}များ <span class="en">Top 5 by qty sold</span>
+          <span style="flex:1"></span>
+          <el-switch v-model="topByCat" size="small" active-text="🔖 အမျိုးအစား" inactive-text="ပစ္စည်း"></el-switch>
+        </h3>
         <div v-if="topProducts.length">
           <div class="toprow" v-for="tp in topProducts" :key="tp.id">
             <div class="nm">{{ tp.name }}</div>
@@ -349,6 +368,16 @@
           </div>
         </div>
         <div v-else class="empty">✅ လက်ကျန် အားလုံး လုံလောက်ပါသည်</div>
+      </div>
+    </div>
+    <div class="card" v-if="reorderList.length">
+      <h3>🔔 ပြန်ဖြည့်ရန် <span class="en">Reorder suggestions</span></h3>
+      <div class="lowrow" v-for="p in reorderList" :key="p.id">
+        <div class="nm">{{ p.name }}</div>
+        <el-tag type="danger" size="small" effect="dark">လက်ကျန် {{ p.stock }}</el-tag>
+        <span style="color:var(--faint); font-size:.7rem">min {{ p.minStock }}</span>
+        <span style="color:var(--accent-2); font-weight:700; font-size:.78rem">→ {{ p.suggest }} ခု</span>
+        <el-button size="small" type="primary" plain class="btn-reorder" @click="reorderTo(p)">＋ အဝယ်စာရင်း</el-button>
       </div>
     </div>
     <div class="card">
@@ -372,6 +401,10 @@
       <el-button type="primary" id="btn-add-product" @click="openProduct(null)">＋ ပစ္စည်း အသစ်</el-button>
     </div>
     <div class="lowbanner" v-if="lowStock.length">⚠️ လက်ကျန်နည်းနေသော ပစ္စည်း {{ lowStock.length }} မျိုး — ဇယား ထိပ်ဆုံးတွင် ပြထားပါသည်</div>
+    <div class="chips" v-if="categories.length">
+      <el-tag :effect="prodCat==='' ? 'dark' : 'plain'" :type="prodCat==='' ? 'primary' : 'info'" size="large" @click="prodCat=''">🔖 အားလုံး</el-tag>
+      <el-tag v-for="c in categories" :key="c" :effect="prodCat===c ? 'dark' : 'plain'" :type="prodCat===c ? 'primary' : 'info'" size="large" @click="prodCat=c">{{ c }}</el-tag>
+    </div>
     <el-table :data="filteredProducts" style="width:100%">
       <el-table-column prop="name" label="အမည် (Name)" min-width="150"></el-table-column>
       <el-table-column prop="sku" label="SKU" width="100"></el-table-column>
@@ -471,6 +504,15 @@
       </el-table-column>
     </el-table>
     <div v-if="!S.sales.length" class="empty illus">အရောင်း မရှိသေးပါ<br><small>＋ အရောင်း အသစ် ခလုတ်ဖြင့် ပထမဆုံး ဘောင်ချာ စတင်ပါ</small></div>
+    <template v-if="returnsList.length">
+      <h3 style="margin:18px 0 10px; font-size:.9rem">↩ ပြန်အမ်း မှတ်တမ်း <span class="en" style="color:var(--faint); font-size:.7rem">Returns / Refunds</span></h3>
+      <div class="minirow" v-for="r in returnsList" :key="r.id">
+        <span class="no">{{ r.no || 'RET' }}</span>
+        <span class="cu">{{ saleNoOf(r.saleId) }} · {{ r.reason }} · {{ r.items.reduce((t,it)=>t+it.qty,0) }} ခု</span>
+        <span style="color:var(--faint); font-size:.72rem">{{ new Date(r.t).toLocaleDateString() }}</span>
+        <span class="amt num" style="color:var(--warn)">− {{ fmt(r.items.reduce((t,it)=>t+it.qty*it.price,0)) }}</span>
+      </div>
+    </template>
   </div>
 
   <!-- ============ QUOTES ============ -->
@@ -612,7 +654,7 @@
       </div>
       <div class="frow" style="flex-wrap:wrap">
         <div style="max-width:180px">
-          <label class="fl">ပမာဏ <span class="en">Amount (Ks)</span></label>
+          <label class="fl">ပမာဏ <span class="en">Amount ({{ cur }})</span></label>
           <el-input-number v-model="expDraft.amount" id="in-exp-amount" :min="0" :step="500" :controls="false" style="width:100%"></el-input-number>
           <div class="livefmt" v-if="+expDraft.amount > 0">= {{ fmt(expDraft.amount) }}</div>
         </div>
@@ -667,7 +709,9 @@
       <div class="card">
         <h3>💰 အရှုံးအမြတ် <span class="en">P&amp;L — accrual basis</span></h3>
         <div class="plrow"><span class="k">ရောင်းရငွေ (Revenue)</span><span class="num" id="pl-revenue">{{ fmt(repRevenue) }}</span></div>
-        <div class="plrow"><span class="k">ကုန်ကျ ရင်းနှီး (COGS)</span><span class="num" id="pl-cogs">− {{ fmt(repCogs) }}</span></div>
+        <div class="plrow" v-if="repReturns"><span class="k">ပြန်အမ်း (Returns)</span><span class="num" id="pl-returns">− {{ fmt(repReturns) }}</span></div>
+        <div class="plrow" v-if="repReturns"><span class="k" style="font-weight:700; color:var(--text)">အသားတင် ရောင်းရငွေ (Net sales)</span><span class="num" id="pl-netsales" style="font-weight:700">{{ fmt(repNetSales) }}</span></div>
+        <div class="plrow"><span class="k">ကုန်ကျ ရင်းနှီး (COGS)</span><span class="num" id="pl-cogs">− {{ fmt(repCogsNet) }}</span></div>
         <div class="plrow"><span class="k" style="font-weight:700; color:var(--text)">အကြမ်း အမြတ် (Gross profit)</span><span class="num" id="pl-gross" style="font-weight:700">{{ fmt(repGross) }}</span></div>
         <div class="plrow sub" v-for="(v,c) in repExpByCat" :key="c"><span class="k">{{ EXP_ICON[c] || '📎' }} {{ c }}</span><span class="num">− {{ fmt(v) }}</span></div>
         <div class="plrow"><span class="k">ကုန်ကျစရိတ် စုစုပေါင်း (Expenses)</span><span class="num" id="pl-exp">− {{ fmt(repExpTotal) }}</span></div>
@@ -715,6 +759,16 @@
     <el-input v-model="prodDraft.name" id="in-prod-name" placeholder="e.g. ကော်ဖီမစ် 30g" clearable></el-input>
     <div class="frow">
       <div>
+        <label class="fl">အမျိုးအစား <span class="en">Category (optional)</span></label>
+        <el-input v-model="prodDraft.category" id="in-prod-category" placeholder="e.g. အချိုရည်" clearable></el-input>
+      </div>
+      <div>
+        <label class="fl">ဘားကုဒ် <span class="en">Barcode (optional)</span></label>
+        <el-input v-model="prodDraft.barcode" id="in-prod-barcode" placeholder="e.g. 8850..."></el-input>
+      </div>
+    </div>
+    <div class="frow">
+      <div>
         <label class="fl">SKU / Code</label>
         <el-input v-model="prodDraft.sku" id="in-prod-sku" placeholder="e.g. CF-001"></el-input>
       </div>
@@ -725,11 +779,11 @@
     </div>
     <div class="frow">
       <div>
-        <label class="fl">ရောင်းဈေး <span class="en">Price (Ks)</span></label>
+        <label class="fl">ရောင်းဈေး <span class="en">Price ({{ cur }})</span></label>
         <el-input-number v-model="prodDraft.price" id="in-prod-price" :min="0" :step="100" :controls="false" style="width:100%"></el-input-number>
       </div>
       <div>
-        <label class="fl">ဝယ်ဈေး <span class="en">Cost (Ks)</span></label>
+        <label class="fl">ဝယ်ဈေး <span class="en">Cost ({{ cur }})</span></label>
         <el-input-number v-model="prodDraft.cost" id="in-prod-cost" :min="0" :step="100" :controls="false" style="width:100%"></el-input-number>
       </div>
       <div>
@@ -751,6 +805,8 @@
     <el-input v-model="custDraft.phone" id="in-cust-phone" placeholder="09-…"></el-input>
     <label class="fl">လိပ်စာ <span class="en">Address</span></label>
     <el-input v-model="custDraft.address" id="in-cust-address" type="textarea" :rows="2" placeholder="ရပ်ကွက် / မြို့"></el-input>
+    <label class="fl">ကြွေးကန့်သတ်ချက် <span class="en">Credit limit (0 = အကန့်အသတ်မရှိ)</span></label>
+    <el-input-number v-model="custDraft.creditLimit" id="in-cust-credit" :min="0" :step="10000" :controls="false" style="width:100%"></el-input-number>
     <template #footer>
       <el-button @click="showCustomer=false">မလုပ်တော့ပါ</el-button>
       <el-button type="primary" id="btn-save-customer" @click="saveCustomer">💾 သိမ်းမည်</el-button>
@@ -810,7 +866,7 @@
       <div class="kv"><span class="k">ကျသင့်ငွေ</span><span class="num">{{ fmt(saleTotal(paySale)) }}</span></div>
       <div class="kv"><span class="k">ရပြီး</span><span class="num" style="color:var(--ok)">{{ fmt(salePaidEff(paySale)) }}</span></div>
       <div class="kv"><span class="k">ကျန်ငွေ</span><span class="num" style="color:var(--warn); font-weight:800">{{ fmt(saleBalance(paySale)) }}</span></div>
-      <label class="fl">သွင်းမည့် ပမာဏ <span class="en">Amount (Ks)</span></label>
+      <label class="fl">သွင်းမည့် ပမာဏ <span class="en">Amount ({{ cur }})</span></label>
       <el-input-number v-model="payDraft.amount" id="pay-amount" :min="0" :step="500" :controls="false" style="width:100%"></el-input-number>
       <div class="livefmt" v-if="+payDraft.amount > 0">= {{ fmt(payDraft.amount) }}</div>
       <label class="fl">နည်းလမ်း <span class="en">Method</span></label>
@@ -856,7 +912,31 @@
     </div>
     <template #footer>
       <el-button v-if="detailSale && saleBalance(detailSale) > 0" type="success" plain @click="openPay(detailSale)">💳 ငွေသွင်း</el-button>
+      <el-button v-if="canReturn(detailSale)" type="warning" plain id="btn-open-return" @click="showDetail=false; openReturn(detailSale)">↩ ပြန်အမ်း</el-button>
       <el-button @click="showDetail=false">ပိတ်မည်</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- ============ RETURN / REFUND DIALOG ============ -->
+  <el-dialog v-model="showReturn" :title="'↩ ပြန်အမ်း — ' + (returnSale ? returnSale.no : '')" width="min(520px, 96vw)">
+    <div v-if="returnSale">
+      <label class="fl">ပြန်အမ်းမည့် ပစ္စည်းများ <span class="en">Items to return</span></label>
+      <div class="line" v-for="(it, i) in returnDraft.items" :key="i">
+        <span style="flex:2">{{ prodName(it.productId) }} <span style="color:var(--faint); font-size:.72rem">(max {{ it.max }})</span></span>
+        <el-input-number v-model="it.qty" :min="0" :max="it.max" style="width:130px"></el-input-number>
+        <div class="ltotal">{{ fmt((it.qty||0) * it.price) }}</div>
+      </div>
+      <div v-if="!returnDraft.items.length" class="empty">ပြန်အမ်းနိုင်သည့် ပစ္စည်း မကျန်တော့ပါ</div>
+      <label class="fl">အကြောင်းရင်း <span class="en">Reason</span></label>
+      <el-select v-model="returnDraft.reason" id="in-return-reason" style="width:100%">
+        <el-option v-for="r in RETURN_REASONS" :key="r" :value="r" :label="r"></el-option>
+      </el-select>
+      <div class="kv" style="margin-top:12px; font-weight:800"><span class="k" style="color:var(--text)">ပြန်အမ်း တန်ဖိုး</span>
+        <span class="num" id="return-value" style="color:var(--warn)">{{ fmt(returnDraftValue) }}</span></div>
+    </div>
+    <template #footer>
+      <el-button @click="showReturn=false">မလုပ်တော့ပါ</el-button>
+      <el-button type="warning" id="btn-save-return" :disabled="!returnDraftValue" @click="saveReturn">↩ ပြန်အမ်းမည်</el-button>
     </template>
   </el-dialog>
 
@@ -914,6 +994,16 @@
     <el-input v-model="bizDraft.phone" placeholder="09-…"></el-input>
     <label class="fl">လိပ်စာ <span class="en">Address</span></label>
     <el-input v-model="bizDraft.address" type="textarea" :rows="2"></el-input>
+    <div class="frow">
+      <div>
+        <label class="fl">ငွေကြေး သင်္ကေတ <span class="en">Currency symbol</span></label>
+        <el-input v-model="bizDraft.currencySymbol" id="in-biz-currency" placeholder="Ks"></el-input>
+      </div>
+      <div>
+        <label class="fl">ပုံသေ အခွန် % <span class="en">Default tax %</span></label>
+        <el-input-number v-model="bizDraft.taxRate" id="in-biz-tax" :min="0" :max="100" :step="1" :controls="false" style="width:100%"></el-input-number>
+      </div>
+    </div>
     <template #footer>
       <el-button @click="showBiz=false">မလုပ်တော့ပါ</el-button>
       <el-button type="primary" @click="saveBiz">💾 သိမ်းမည်</el-button>
@@ -1023,6 +1113,46 @@
     </div>
   </div>
 
+  <!-- ============ DAILY Z-REPORT OVERLAY ============ -->
+  <div class="inv-overlay" v-if="showZ" @click.self="showZ=false">
+    <div class="inv-actions">
+      <el-button type="primary" @click="printNow">🖨 ပရင့်ထုတ်မည်</el-button>
+      <el-button id="btn-z-csv" @click="exportZCsv">⬇ CSV</el-button>
+      <el-button @click="showZ=false">✕ ပိတ်မည်</el-button>
+    </div>
+    <div class="inv-sheet print-sheet" id="z-sheet">
+      <div class="biz">
+        <div>
+          <h2>{{ S.biz.name || 'My Business' }}</h2>
+          <div class="meta">{{ S.biz.phone }}</div>
+        </div>
+        <div class="invno">
+          <div style="font-size:.78rem; color:#555e70; letter-spacing:2px">ယနေ့ အကျဉ်း · Z-REPORT</div>
+          <div style="font-size:.74rem; color:#555e70">{{ zData.date.toLocaleDateString() }}</div>
+        </div>
+      </div>
+      <hr>
+      <div class="sumrow"><span style="color:#555e70">အရောင်း အရေအတွက် (Sales)</span><span style="min-width:110px; text-align:right" id="z-count">{{ zData.count }} ခု</span></div>
+      <div class="sumrow"><span style="color:#555e70">စုစုပေါင်း ရောင်းရငွေ (Gross)</span><span style="min-width:110px; text-align:right" id="z-gross">{{ fmt(zData.gross) }}</span></div>
+      <div class="sumrow"><span style="color:#555e70">ပြန်အမ်း (Returns · {{ zData.returnsCount }})</span><span style="min-width:110px; text-align:right">− {{ fmt(zData.returnsVal) }}</span></div>
+      <div class="sumrow g"><span>အသားတင် (Net)</span><span style="min-width:110px; text-align:right" id="z-net">{{ fmt(zData.net) }}</span></div>
+      <h3 style="margin:16px 0 6px; font-size:.86rem; color:#312e81">💳 ငွေလက်ခံ နည်းလမ်းအလိုက်</h3>
+      <div class="sumrow" v-for="(m, i) in zData.methods" :key="i"><span style="color:#555e70">{{ m.label }}</span><span style="min-width:110px; text-align:right">{{ fmt(m.amount) }}</span></div>
+      <div class="sumrow" v-if="!zData.methods.length"><span style="color:#555e70">— ငွေလက်ခံမှု မရှိပါ —</span></div>
+      <div class="sumrow" style="font-weight:700; border-top:1px solid #e6e8f2; margin-top:4px; padding-top:6px"><span>လက်ခံ စုစုပေါင်း</span><span style="min-width:110px; text-align:right">{{ fmt(zData.paymentsTotal) }}</span></div>
+      <template v-if="zData.topItems.length">
+        <h3 style="margin:16px 0 6px; font-size:.86rem; color:#312e81">🏆 အရောင်းရဆုံး ပစ္စည်းများ</h3>
+        <table>
+          <thead><tr><th>ပစ္စည်း</th><th class="r">အရေအတွက်</th><th class="r">ရောင်းရငွေ</th></tr></thead>
+          <tbody>
+            <tr v-for="(it, i) in zData.topItems" :key="i"><td>{{ it.name }}</td><td class="r">{{ it.qty }}</td><td class="r">{{ fmt(it.rev) }}</td></tr>
+          </tbody>
+        </table>
+      </template>
+      <div class="thanks">🙏 {{ S.biz.name || 'My Business' }} — {{ zData.date.toLocaleString() }}</div>
+    </div>
+  </div>
+
   <!-- ============ QUICK SALE (POS) OVERLAY ============ -->
   <!-- teleported to body: .wrap/#app get a transient transform from _effects.css fx-enter,
        which would break position:fixed for descendants -->
@@ -1119,8 +1249,9 @@ const app = createApp({
   setup() {
     const blankState = () => ({
       products: [], customers: [], sales: [], purchases: [],
-      suppliers: [], payments: [], expenses: [], quotes: [], adjustments: [],
-      seq: { sale: 1, quote: 1 }, biz: { name: '', phone: '', address: '' },
+      suppliers: [], payments: [], expenses: [], quotes: [], adjustments: [], returns: [],
+      seq: { sale: 1, quote: 1, return: 1 }, biz: { name: '', phone: '', address: '' },
+      settings: { currencySymbol: 'Ks', taxRate: 0 },
     });
     const S = reactive(blankState());
     function load() {
@@ -1128,20 +1259,35 @@ const app = createApp({
         const d = JSON.parse(localStorage.getItem(STORE) || 'null');
         if (d && typeof d === 'object') {
           const b = blankState();
-          ['products', 'customers', 'sales', 'purchases', 'suppliers', 'payments', 'expenses', 'quotes', 'adjustments']
+          ['products', 'customers', 'sales', 'purchases', 'suppliers', 'payments', 'expenses', 'quotes', 'adjustments', 'returns']
             .forEach(k => { if (Array.isArray(d[k])) b[k] = d[k]; });
           if (d.seq && typeof d.seq === 'object') Object.assign(b.seq, d.seq);
           if (!b.seq.sale) b.seq.sale = 1;
           if (!b.seq.quote) b.seq.quote = 1;
+          if (!b.seq.return) b.seq.return = 1;
           if (d.biz) b.biz = Object.assign(b.biz, d.biz);
+          if (d.settings) b.settings = Object.assign(b.settings, d.settings);
+          migrateShape(b);
           Object.assign(S, b);
         }
       } catch (e) {}
     }
+    // ---- forward-compat: default new fields on old-shape data ----
+    function migrateShape(b) {
+      b.products.forEach(p => {
+        if (p.category == null) p.category = '';
+        if (p.barcode == null) p.barcode = '';
+      });
+      b.customers.forEach(c => { if (c.creditLimit == null) c.creditLimit = 0; });
+      if (!b.settings) b.settings = { currencySymbol: 'Ks', taxRate: 0 };
+      if (b.settings.currencySymbol == null) b.settings.currencySymbol = 'Ks';
+      if (b.settings.taxRate == null) b.settings.taxRate = 0;
+    }
     function save() { localStorage.setItem(STORE, JSON.stringify(S)); }
 
     const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2800 });
-    const fmt = n => (Math.round(+n || 0)).toLocaleString('en-US') + ' Ks';
+    const cur = computed(() => (S.settings && S.settings.currencySymbol) || 'Ks');
+    const fmt = n => (Math.round(+n || 0)).toLocaleString('en-US') + ' ' + cur.value;
     const pad4 = n => String(n).padStart(4, '0');
 
     const tab = ref('dash');
@@ -1186,17 +1332,27 @@ const app = createApp({
       { v: 'cash', l: '💵 ငွေသား (Cash)' }, { v: 'kpay', l: '📱 KPay' },
       { v: 'wave', l: '🌊 Wave' }, { v: 'bank', l: '🏦 ဘဏ် (Bank)' },
     ];
-    const methodLabel = v => (PAY_METHODS.find(m => m.v === v) || {}).l || v;
+    const methodLabel = v => (PAY_METHODS.find(m => m.v === v) || {}).l || (v === 'refund' ? '↩ ပြန်အမ်း (Refund)' : v);
     const paidBySale = computed(() => {
       const m = {};
       S.payments.forEach(p => { m[p.saleId] = (m[p.saleId] || 0) + (p.amount || 0); });
       return m;
     });
     const salePaid = s => paidBySale.value[s.id] || 0;
+    // returned goods value per sale (reduces what customer owes)
+    const returnValueBySale = computed(() => {
+      const m = {};
+      S.returns.forEach(r => {
+        const v = r.items.reduce((t, it) => t + (it.qty || 0) * (it.price || 0), 0);
+        m[r.saleId] = (m[r.saleId] || 0) + v;
+      });
+      return m;
+    });
+    const saleReturned = s => returnValueBySale.value[s.id] || 0;
     // legacy: sale marked paid/delivered before payments existed → treated as settled
     const saleBalance = s => {
-      if (s.status !== 'pending' && !salePaid(s)) return 0;
-      return Math.max(0, saleTotal(s) - salePaid(s));
+      if (s.status !== 'pending' && !salePaid(s) && !saleReturned(s)) return 0;
+      return Math.max(0, saleTotal(s) - saleReturned(s) - salePaid(s));
     };
     const salePaidEff = s => saleTotal(s) - saleBalance(s);
     const salePayments = s => S.payments.filter(p => p.saleId === s.id).sort((a, b) => a.t - b.t);
@@ -1228,10 +1384,19 @@ const app = createApp({
     const monthOrders = computed(() => S.sales.filter(s => sameMonthAs(s.t, new Date())).length);
     const receivables = computed(() => S.sales.reduce((t, s) => t + saleBalance(s), 0));
     const lowStock = computed(() => S.products.filter(p => (p.stock || 0) <= (p.minStock || 0)));
+    const topByCat = ref(false);   // dashboard: group top-sellers by category
     const topProducts = computed(() => {
       const q = {};
-      S.sales.forEach(s => s.items.forEach(li => { q[li.productId] = (q[li.productId] || 0) + (li.qty || 0); }));
-      const arr = Object.keys(q).map(id => ({ id, name: prodName(id), qty: q[id] }))
+      if (topByCat.value) {
+        S.sales.forEach(s => s.items.forEach(li => {
+          const p = prodMap.value[li.productId];
+          const key = (p && p.category) ? p.category : '(အမျိုးအစား မရှိ)';
+          q[key] = (q[key] || 0) + (li.qty || 0);
+        }));
+      } else {
+        S.sales.forEach(s => s.items.forEach(li => { q[li.productId] = (q[li.productId] || 0) + (li.qty || 0); }));
+      }
+      const arr = Object.keys(q).map(id => ({ id, name: topByCat.value ? id : prodName(id), qty: q[id] }))
         .sort((a, b) => b.qty - a.qty).slice(0, 5);
       const max = arr.length ? arr[0].qty : 1;
       arr.forEach(x => x.pct = Math.max(4, Math.round(x.qty / max * 100)));
@@ -1244,22 +1409,63 @@ const app = createApp({
     const debtSales = computed(() => S.sales.filter(s => saleBalance(s) > 0).slice().sort((a, b) => b.t - a.t));
     const showDebts = ref(false);
 
+    // ---------- reorder suggestions ----------
+    const reorderQty = p => Math.max(1, (+p.minStock || 0) * 2 - (+p.stock || 0));
+    const reorderList = computed(() => S.products
+      .filter(p => (p.stock || 0) <= (p.minStock || 0))
+      .map(p => ({ ...p, suggest: reorderQty(p) }))
+      .sort((a, b) => (a.stock - a.minStock) - (b.stock - b.minStock)));
+    function reorderTo(p) {
+      Object.assign(purchDraft, blankPurchase());
+      purchDraft.productId = p.id;
+      purchDraft.qty = reorderQty(p);
+      purchDraft.unitCost = p.cost || 0;
+      tab.value = 'purchases';
+      toast('📦 ' + p.name + ' — အဝယ်စာရင်း ဖြည့်ပြီး (' + reorderQty(p) + ' ခု)');
+    }
+
+    // ---------- last-7-day net-sales sparkline ----------
+    const spark7 = computed(() => {
+      const days = [];
+      const now = new Date();
+      for (let i = 6; i >= 0; i--) {
+        const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        const key = d.toDateString();
+        const gross = S.sales.filter(s => new Date(s.t).toDateString() === key).reduce((t, s) => t + saleTotal(s), 0);
+        const ret = S.returns.filter(r => new Date(r.t).toDateString() === key)
+          .reduce((t, r) => t + r.items.reduce((x, it) => x + (it.qty || 0) * (it.price || 0), 0), 0);
+        days.push({ label: d.toLocaleString('en', { weekday: 'narrow' }), net: Math.max(0, gross - ret) });
+      }
+      const max = Math.max(1, ...days.map(x => x.net));
+      days.forEach(x => x.pct = Math.max(x.net ? 6 : 2, Math.round(x.net / max * 100)));
+      return days;
+    });
+
     // ---------- products ----------
     const prodQ = ref('');
+    const prodCat = ref('');   // category filter chip ('' = all)
     const isLowStock = p => (p.stock || 0) <= (p.minStock || 0);
+    const categories = computed(() => {
+      const set = new Set();
+      S.products.forEach(p => { if (p.category) set.add(p.category); });
+      return [...set].sort();
+    });
     const filteredProducts = computed(() => {
       const t = prodQ.value.trim().toLowerCase();
-      const base = !t ? S.products : S.products.filter(p => (p.name + ' ' + (p.sku || '')).toLowerCase().includes(t));
+      let base = S.products;
+      if (prodCat.value) base = base.filter(p => (p.category || '') === prodCat.value);
+      if (t) base = base.filter(p => (p.name + ' ' + (p.sku || '') + ' ' + (p.barcode || '') + ' ' + (p.category || '')).toLowerCase().includes(t));
       return [...base].sort((a, b) => (isLowStock(b) ? 1 : 0) - (isLowStock(a) ? 1 : 0));
     });
     const showProduct = ref(false);
-    const blankProduct = () => ({ id: null, name: '', sku: '', price: 0, cost: 0, stock: 0, minStock: 0 });
+    const blankProduct = () => ({ id: null, name: '', sku: '', category: '', barcode: '', price: 0, cost: 0, stock: 0, minStock: 0 });
     const prodDraft = ref(blankProduct());
     function openProduct(p) { prodDraft.value = p ? { ...p } : blankProduct(); showProduct.value = true; }
     function saveProduct() {
       const d = prodDraft.value;
       if (!d.name.trim()) { toast('ပစ္စည်း အမည် လိုအပ်ပါသည်', 'warning'); return; }
       const rec = { id: d.id || Date.now(), name: d.name.trim(), sku: (d.sku || '').trim(),
+        category: (d.category || '').trim(), barcode: (d.barcode || '').trim(),
         price: +d.price || 0, cost: +d.cost || 0, stock: +d.stock || 0, minStock: +d.minStock || 0 };
       const i = S.products.findIndex(p => p.id === rec.id);
       if (i >= 0) S.products[i] = rec; else S.products.unshift(rec);
@@ -1344,7 +1550,7 @@ const app = createApp({
     const custTotal = id => S.sales.filter(s => s.customerId === id).reduce((t, s) => t + saleTotal(s), 0);
     const custBalance = id => S.sales.filter(s => s.customerId === id).reduce((t, s) => t + saleBalance(s), 0);
     const showCustomer = ref(false);
-    const blankCustomer = () => ({ id: null, name: '', phone: '', address: '' });
+    const blankCustomer = () => ({ id: null, name: '', phone: '', address: '', creditLimit: 0 });
     const custDraft = ref(blankCustomer());
     const quickAddMode = ref(false);
     const quickAddTarget = ref('sale');
@@ -1353,7 +1559,7 @@ const app = createApp({
     function saveCustomer() {
       const d = custDraft.value;
       if (!d.name.trim()) { toast('ဖောက်သည် အမည် လိုအပ်ပါသည်', 'warning'); return; }
-      const rec = { id: d.id || Date.now(), name: d.name.trim(), phone: (d.phone || '').trim(), address: (d.address || '').trim() };
+      const rec = { id: d.id || Date.now(), name: d.name.trim(), phone: (d.phone || '').trim(), address: (d.address || '').trim(), creditLimit: +d.creditLimit || 0 };
       const i = S.customers.findIndex(c => c.id === rec.id);
       if (i >= 0) S.customers[i] = rec; else S.customers.unshift(rec);
       save(); showCustomer.value = false;
@@ -1410,7 +1616,18 @@ const app = createApp({
     function resetDraft() {
       saleDraft.customerId = null;
       saleDraft.items = [{ productId: null, qty: 1, price: 0 }];
-      saleDraft.discount = 0; saleDraft.tax = 0;
+      saleDraft.discount = 0; saleDraft.tax = +(S.settings.taxRate) || 0;
+    }
+    // credit-limit guard: resolves true to proceed, false to abort
+    function creditOk(cid, total) {
+      const c = custMap.value[cid];
+      if (!c || !(+c.creditLimit > 0)) return Promise.resolve(true);
+      const projected = custBalance(cid) + total;
+      if (projected <= +c.creditLimit) return Promise.resolve(true);
+      return ElementPlus.ElMessageBox.confirm(
+        '⚠ ' + c.name + ' ၏ ကြွေးကန့်သတ်ချက် ' + fmt(c.creditLimit) + ' ကို ကျော်လွန်ပါမည်။ (လက်ကျန်ကြွေး ' + fmt(custBalance(cid)) + ' + ယခုအရောင်း = ' + fmt(projected) + ') — ဆက်ရောင်းမလား?',
+        '💳 ကြွေးကန့်သတ်ချက် ကျော်လွန်မှု', { confirmButtonText: 'ဆက်ရောင်းမည်', cancelButtonText: 'မရောင်းတော့ပါ', type: 'warning' }
+      ).then(() => true).catch(() => false);
     }
     function openSale() {
       docMode.value = 'sale'; resetDraft();
@@ -1450,16 +1667,20 @@ const app = createApp({
         return;
       }
       if (!checkStock(lines)) return;
-      lines.forEach(li => { prodMap.value[li.productId].stock -= li.qty; });
-      const no = 'INV-' + pad4(S.seq.sale); S.seq.sale++;
-      S.sales.unshift({
-        id: Date.now(), no, customerId: saleDraft.customerId,
-        items: lines.map(li => ({ productId: li.productId, qty: li.qty, price: +li.price || 0,
-          cost: (prodMap.value[li.productId] || {}).cost || 0 })),
-        status: 'pending', discount: +saleDraft.discount || 0, tax: +saleDraft.tax || 0, t: Date.now(),
+      creditOk(saleDraft.customerId, draftTotal.value).then(ok => {
+        if (!ok) return;
+        if (!checkStock(lines)) return;
+        lines.forEach(li => { prodMap.value[li.productId].stock -= li.qty; });
+        const no = 'INV-' + pad4(S.seq.sale); S.seq.sale++;
+        S.sales.unshift({
+          id: Date.now(), no, customerId: saleDraft.customerId,
+          items: lines.map(li => ({ productId: li.productId, qty: li.qty, price: +li.price || 0,
+            cost: (prodMap.value[li.productId] || {}).cost || 0 })),
+          status: 'pending', discount: +saleDraft.discount || 0, tax: +saleDraft.tax || 0, t: Date.now(),
+        });
+        save(); rememberCust(saleDraft.customerId); showSale.value = false;
+        toast('🧾 ' + no + ' — ' + fmt(draftTotal.value) + ' ရောင်းပြီး');
       });
-      save(); rememberCust(saleDraft.customerId); showSale.value = false;
-      toast('🧾 ' + no + ' — ' + fmt(draftTotal.value) + ' ရောင်းပြီး');
     }
     function convertQuote(q) {
       const ok = checkStock(q.items); if (!ok) return;
@@ -1541,6 +1762,59 @@ const app = createApp({
     const detailSale = ref(null);
     function openDetail(s) { detailSale.value = s; showDetail.value = true; }
 
+    // ---------- sales returns / refunds ----------
+    const showReturn = ref(false);
+    const returnSale = ref(null);
+    const returnDraft = reactive({ items: [], reason: '' });
+    const RETURN_REASONS = ['ချို့ယွင်း', 'မကြိုက်', 'အမှားပို့', 'အခြား'];
+    const canReturn = s => !!s && (s.status === 'paid' || s.status === 'delivered' || salePayments(s).some(p => p.amount > 0));
+    // qty already returned per (sale,product)
+    const returnedQtyMap = computed(() => {
+      const m = {};
+      S.returns.forEach(r => r.items.forEach(it => { m[r.saleId + ':' + it.productId] = (m[r.saleId + ':' + it.productId] || 0) + (it.qty || 0); }));
+      return m;
+    });
+    function openReturn(s) {
+      returnSale.value = s;
+      returnDraft.reason = RETURN_REASONS[0];
+      returnDraft.items = s.items.map(li => {
+        const already = returnedQtyMap.value[s.id + ':' + li.productId] || 0;
+        return { productId: li.productId, price: li.price || 0, cost: li.cost != null ? li.cost : 0,
+          max: (li.qty || 0) - already, qty: 0 };
+      }).filter(it => it.max > 0);
+      showReturn.value = true;
+    }
+    const returnDraftValue = computed(() => returnDraft.items.reduce((t, it) => t + (it.qty || 0) * (it.price || 0), 0));
+    function saveReturn() {
+      const s = returnSale.value; if (!s) return;
+      const items = returnDraft.items.filter(it => (it.qty || 0) > 0);
+      if (!items.length) { toast('ပြန်အမ်းမည့် ပစ္စည်း ရွေးပါ', 'warning'); return; }
+      for (const it of items) {
+        if (it.qty > it.max) { toast('⚠ ' + prodName(it.productId) + ' — ရောင်းထားသည်ထက် များနေသည် (max ' + it.max + ')', 'warning'); return; }
+      }
+      const value = items.reduce((t, it) => t + it.qty * it.price, 0);
+      // materialize legacy settled sale (no positive payment records) so balance math stays correct
+      let positivePaid = S.payments.filter(p => p.saleId === s.id && p.amount > 0).reduce((t, p) => t + p.amount, 0);
+      if (positivePaid === 0 && s.status !== 'pending') {
+        S.payments.push({ id: Date.now() - 2, saleId: s.id, amount: saleTotal(s), method: 'cash', t: s.t });
+        positivePaid = saleTotal(s);
+      }
+      // restock returned items
+      items.forEach(it => { const p = prodMap.value[it.productId]; if (p) p.stock += it.qty; });
+      const rno = 'RET-' + pad4(S.seq.return); S.seq.return++;
+      S.returns.unshift({ id: Date.now(), no: rno, saleId: s.id,
+        items: items.map(it => ({ productId: it.productId, qty: it.qty, price: it.price, cost: it.cost })),
+        reason: returnDraft.reason, t: Date.now() });
+      // negative payment = refund of cash actually collected
+      const alreadyRefunded = S.payments.filter(p => p.saleId === s.id && p.amount < 0).reduce((t, p) => t - p.amount, 0);
+      const refund = Math.max(0, Math.min(value, positivePaid - alreadyRefunded));
+      if (refund > 0) S.payments.push({ id: Date.now() + 2, saleId: s.id, amount: -refund, method: 'refund', t: Date.now() });
+      save(); showReturn.value = false;
+      toast('↩ ' + rno + ' — ' + fmt(value) + ' ပြန်အမ်းပြီး · stock ပြန်ဝင်ပြီး' + (refund > 0 ? ' · ငွေပြန်အမ်း ' + fmt(refund) : ''));
+    }
+    const returnsList = computed(() => [...S.returns].sort((a, b) => b.t - a.t));
+    const saleNoOf = id => (S.sales.find(x => x.id === id) || {}).no || '—';
+
     // ---------- invoice / quote print ----------
     const invSale = ref(null);
     const invKind = ref('inv');
@@ -1597,7 +1871,14 @@ const app = createApp({
     const lineCost = li => (li.cost != null ? li.cost : ((prodMap.value[li.productId] || {}).cost || 0));
     const repCogs = computed(() => repSales.value.reduce((t, s) =>
       t + s.items.reduce((c, li) => c + (li.qty || 0) * lineCost(li), 0), 0));
-    const repGross = computed(() => repRevenue.value - repCogs.value);
+    const repReturnsMonth = computed(() => S.returns.filter(r => sameMonthAs(r.t, repMonth.value)));
+    const repReturns = computed(() => repReturnsMonth.value.reduce((t, r) =>
+      t + r.items.reduce((x, it) => x + (it.qty || 0) * (it.price || 0), 0), 0));
+    const repReturnCogs = computed(() => repReturnsMonth.value.reduce((t, r) =>
+      t + r.items.reduce((x, it) => x + (it.qty || 0) * (it.cost || 0), 0), 0));
+    const repNetSales = computed(() => repRevenue.value - repReturns.value);
+    const repCogsNet = computed(() => repCogs.value - repReturnCogs.value);
+    const repGross = computed(() => repNetSales.value - repCogsNet.value);
     const repExpByCat = computed(() => {
       const m = {};
       S.expenses.filter(e => sameMonthAs(e.t, repMonth.value)).forEach(e => { m[e.category] = (m[e.category] || 0) + e.amount; });
@@ -1641,6 +1922,51 @@ const app = createApp({
       toast('⬇ ' + (rows.length - 1) + ' rows CSV ထုတ်ပြီး');
     }
 
+    // ---------- daily Z-report ----------
+    const showZ = ref(false);
+    function openZ() { showZ.value = true; }
+    const zData = computed(() => {
+      const todaySales = S.sales.filter(s => sameDayAsToday(s.t));
+      const todayReturns = S.returns.filter(r => sameDayAsToday(r.t));
+      const gross = todaySales.reduce((t, s) => t + saleTotal(s), 0);
+      const returnsVal = todayReturns.reduce((t, r) => t + r.items.reduce((x, it) => x + (it.qty || 0) * (it.price || 0), 0), 0);
+      const byMethod = {};
+      [...PAY_METHODS.map(m => m.v), 'refund'].forEach(v => { byMethod[v] = 0; });
+      S.payments.filter(p => sameDayAsToday(p.t)).forEach(p => {
+        const k = byMethod[p.method] != null ? p.method : 'cash';
+        byMethod[k] += p.amount || 0;
+      });
+      const methods = [...PAY_METHODS, { v: 'refund', l: '↩ ပြန်အမ်း (Refund)' }]
+        .map(m => ({ label: m.l, amount: byMethod[m.v] || 0 })).filter(m => m.amount !== 0);
+      const paymentsTotal = Object.values(byMethod).reduce((t, v) => t + v, 0);
+      const q = {};
+      todaySales.forEach(s => s.items.forEach(li => {
+        if (!q[li.productId]) q[li.productId] = { name: prodName(li.productId), qty: 0, rev: 0 };
+        q[li.productId].qty += li.qty || 0;
+        q[li.productId].rev += (li.qty || 0) * (li.price || 0);
+      }));
+      const topItems = Object.values(q).sort((a, b) => b.qty - a.qty).slice(0, 8);
+      return { date: new Date(), count: todaySales.length, returnsCount: todayReturns.length,
+        gross, returnsVal, net: gross - returnsVal, methods, paymentsTotal, topItems };
+    });
+    function exportZCsv() {
+      const z = zData.value;
+      const rows = [['Daily Z-Report', z.date.toLocaleDateString()], [],
+        ['Sales count', z.count], ['Gross sales', z.gross], ['Returns count', z.returnsCount],
+        ['Returns value', z.returnsVal], ['Net sales', z.net], [],
+        ['Payments by method', '']];
+      z.methods.forEach(m => rows.push([m.label, m.amount]));
+      rows.push(['Payments total', z.paymentsTotal], [], ['Top items', 'Qty', 'Revenue']);
+      z.topItems.forEach(it => rows.push([it.name, it.qty, it.rev]));
+      const csv = '﻿' + rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(',')).join('\r\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'z-report-' + z.date.getFullYear() + '-' + String(z.date.getMonth() + 1).padStart(2, '0') + '-' + String(z.date.getDate()).padStart(2, '0') + '.csv';
+      a.click(); URL.revokeObjectURL(a.href);
+      toast('⬇ Z-Report CSV ထုတ်ပြီး');
+    }
+
     // ---------- customer statement ----------
     const stmtCustId = ref(null);
     const stmtCust = ref(null);
@@ -1663,9 +1989,19 @@ const app = createApp({
 
     // ---------- biz settings ----------
     const showBiz = ref(false);
-    const bizDraft = reactive({ name: '', phone: '', address: '' });
-    function openBiz() { Object.assign(bizDraft, S.biz); showBiz.value = true; }
-    function saveBiz() { Object.assign(S.biz, { name: bizDraft.name.trim(), phone: bizDraft.phone.trim(), address: bizDraft.address.trim() }); save(); showBiz.value = false; toast('💾 လုပ်ငန်း အချက်အလက် သိမ်းပြီး'); }
+    const bizDraft = reactive({ name: '', phone: '', address: '', currencySymbol: 'Ks', taxRate: 0 });
+    function openBiz() {
+      Object.assign(bizDraft, S.biz);
+      bizDraft.currencySymbol = S.settings.currencySymbol || 'Ks';
+      bizDraft.taxRate = +S.settings.taxRate || 0;
+      showBiz.value = true;
+    }
+    function saveBiz() {
+      Object.assign(S.biz, { name: bizDraft.name.trim(), phone: bizDraft.phone.trim(), address: bizDraft.address.trim() });
+      S.settings.currencySymbol = (bizDraft.currencySymbol || '').trim() || 'Ks';
+      S.settings.taxRate = +bizDraft.taxRate || 0;
+      save(); showBiz.value = false; toast('💾 လုပ်ငန်း အချက်အလက် သိမ်းပြီး');
+    }
 
     // ---------- export / import ----------
     const importEl = ref(null);
@@ -1688,12 +2024,15 @@ const app = createApp({
             { confirmButtonText: 'အစားထိုးမည်', cancelButtonText: 'မလုပ်တော့ပါ', type: 'warning' }
           ).then(() => {
             const b = blankState();
-            ['products', 'customers', 'sales', 'purchases', 'suppliers', 'payments', 'expenses', 'quotes', 'adjustments']
+            ['products', 'customers', 'sales', 'purchases', 'suppliers', 'payments', 'expenses', 'quotes', 'adjustments', 'returns']
               .forEach(k => { if (Array.isArray(d[k])) b[k] = d[k]; });
             if (d.seq && typeof d.seq === 'object') Object.assign(b.seq, d.seq);
             if (!b.seq.sale) b.seq.sale = 1;
             if (!b.seq.quote) b.seq.quote = 1;
+            if (!b.seq.return) b.seq.return = 1;
             if (d.biz) b.biz = Object.assign(b.biz, d.biz);
+            if (d.settings) b.settings = Object.assign(b.settings, d.settings);
+            migrateShape(b);
             Object.assign(S, b);
             save(); toast('⬆ Import ပြီး — products ' + S.products.length + ' · sales ' + S.sales.length);
           }).catch(() => {});
@@ -1713,12 +2052,16 @@ const app = createApp({
     });
 
     return {
-      S, tab, tabs, fmt,
+      S, tab, tabs, fmt, cur,
       prodMap, custMap, suppMap, prodName, custName, suppName,
       saleSubtotal, saleTaxAmt, saleTotal, stLabel, stTag,
-      PAY_METHODS, methodLabel, salePaid, salePaidEff, saleBalance, salePayments,
+      PAY_METHODS, methodLabel, salePaid, salePaidEff, saleBalance, saleReturned, salePayments,
       showPay, paySale, payDraft, openPay, savePay, delPayment,
-      monthRevenue, monthOrders, receivables, lowStock, topProducts, recentSales,
+      monthRevenue, monthOrders, receivables, lowStock, topProducts, topByCat, recentSales,
+      reorderList, reorderTo, spark7,
+      canReturn, showReturn, returnSale, returnDraft, RETURN_REASONS, openReturn, saveReturn, returnDraftValue, returnsList, saleNoOf,
+      showZ, openZ, zData, exportZCsv,
+      categories, prodCat,
       prodQ, filteredProducts, showProduct, prodDraft, openProduct, saveProduct, delProduct,
       ADJ_REASONS, showAdjust, adjProd, adjDraft, openAdjust, saveAdjust,
       showLedger, ledgerProd, openLedger, ledgerRows,
@@ -1731,7 +2074,8 @@ const app = createApp({
       invSale, invKind, invCust, openInvoice, printNow,
       purchDraft, savePurchase, delPurchase,
       EXP_CATS, EXP_ICON, expDraft, expMonth, expList, saveExpense, delExpense,
-      repMonth, repSales, repRevenue, repCogs, repGross, repExpByCat, repExpTotal, repNet,
+      repMonth, repSales, repRevenue, repCogs, repCogsNet, repGross, repExpByCat, repExpTotal, repNet,
+      repReturns, repNetSales,
       trend12, repRanking, exportCsv,
       stmtCustId, stmtCust, openStatement, stmtRows,
       showBiz, bizDraft, openBiz, saveBiz,
