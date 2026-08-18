@@ -66,6 +66,8 @@
     { href: 'DevToolbox.html',                     icon: 'braces',     label: 'Dev Toolbox',    color: '#0ea5e9' },
     { href: 'SnippetManager.html',                 icon: 'braces',     label: 'Snippets',       color: '#f59e0b' },
     { href: 'ExpenseTracker.html',                 icon: 'palette',    label: 'ငွေစာရင်း',       color: '#22c55e' },
+    { href: 'ComparisonTable.html',               icon: 'tasks',      label: 'Compare',        color: '#8b5cf6' },
+    { href: 'ReviewCardMaker.html',                icon: 'sparkles',   label: 'Review Card',    color: '#f59e0b' },
     { href: 'PostStudio.html',                     icon: 'sparkles',   label: 'Post Studio',    color: '#6366f1' },
     { href: 'ThumbnailMaker.html',                 icon: 'bookmark',   label: 'Thumbnails',     color: '#ec4899' },
     { href: 'ScriptPrompter.html',                 icon: 'headphones', label: 'Teleprompter',   color: '#22c55e' },

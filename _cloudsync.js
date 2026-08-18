@@ -25,6 +25,8 @@
     'medi.timer.v1',
     'merit.journal.v1',
     'poststudio.v1',
+    'reviewcards.v1',
+    'comparisons.v1',
     'scripts.v1',
     'snippets.v1',
     'expense.v1',

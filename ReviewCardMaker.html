@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Review Card · သုံးသပ်ချက်</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="_effects.css">
+<link rel="stylesheet" href="_design.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#f59e0b">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#f59e0b; --accent-2:#f97316;
+    --good:#22c55e; --bad:#ef4444;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --el-color-primary:#f59e0b;
+    --el-color-primary-light-3:#fbbf24;
+    --el-color-primary-dark-2:#d97706;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(245,158,11,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(249,115,22,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1120px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(245,158,11,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .cols { display:grid; grid-template-columns:380px 1fr; gap:16px; align-items:start; }
+  @media(max-width:920px){ .cols{grid-template-columns:1fr} }
+  .card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px; margin-bottom:14px; }
+  .card h3 { font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin:0 0 10px; }
+  label.fl { display:block; font-size:.74rem; color:var(--muted); margin:10px 0 5px; font-weight:600; }
+  .r2 { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+  .plrow { display:flex; gap:6px; margin-top:6px; }
+  .pl-list { display:flex; flex-direction:column; gap:5px; margin-top:8px; }
+  .pl-item { display:flex; align-items:center; gap:8px; background:var(--field); border:1px solid var(--field-border);
+    border-radius:9px; padding:6px 8px 6px 11px; font-size:.85rem; }
+  .pl-item .tx { flex:1; overflow:hidden; text-overflow:ellipsis; }
+  .pl-item.good { border-left:3px solid var(--good); }
+  .pl-item.bad  { border-left:3px solid var(--bad); }
+  .pl-empty { font-size:.75rem; color:var(--faint); margin-top:6px; }
+
+  .preview-box { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px; position:sticky; top:14px; }
+  canvas { width:100%; height:auto; border-radius:10px; display:block; background:#000; box-shadow:0 10px 34px rgba(0,0,0,.5); }
+  .dl-row { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .dl-btn { flex:1; min-width:150px; }
+  .dim { font-size:.72rem; color:var(--faint); text-align:center; margin-top:8px; }
+
+  .drafts { display:flex; flex-direction:column; gap:8px; }
+  .draft {
+    background:var(--field); border:1px solid var(--field-border); border-radius:11px;
+    padding:10px 12px; display:flex; align-items:center; gap:10px; cursor:pointer; transition:all .16s;
+  }
+  .draft:hover { border-color:color-mix(in srgb, var(--accent) 45%, transparent); transform:translateY(-1px); }
+  .draft .d-body { flex:1; min-width:0; }
+  .draft .d-t { font-weight:700; font-size:.9rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .draft .d-sub { font-size:.72rem; color:var(--faint); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .draft .d-star { color:var(--accent); font-size:.8rem; white-space:nowrap; }
+  .empty { text-align:center; color:var(--faint); padding:30px 0; font-size:.85rem; }
+  .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">⭐</div>
+    <div class="title">
+      <h1>Review Card · သုံးသပ်ချက်</h1>
+      <div class="sub">ပစ္စည်းသုံးသပ်ချက် ကတ်ပြား — ကြယ်အဆင့်၊ ကောင်း/အားနည်း၊ နိဂုံး → FB/IG</div>
+    </div>
+    <el-button @click="openDrafts">📂 Draft များ ({{ drafts.length }})</el-button>
+    <el-button type="primary" @click="saveDraft">💾 Draft သိမ်းမည်</el-button>
+  </header>
+
+  <div class="cols">
+    <div>
+      <div class="card">
+        <h3>📦 ပစ္စည်းအချက်အလက်</h3>
+        <label class="fl">ပစ္စည်းအမည် · Product name</label>
+        <el-input v-model="f.name" placeholder="ဥပမာ — Xiaomi Redmi Watch 5" clearable maxlength="60" show-word-limit></el-input>
+        <div class="r2">
+          <div>
+            <label class="fl">အမျိုးအစား · Category</label>
+            <el-input v-model="f.category" placeholder="Smartwatch" clearable></el-input>
+          </div>
+          <div>
+            <label class="fl">စျေးနှုန်း · Price</label>
+            <el-input v-model="f.price" placeholder="၁၅၀,၀၀၀ Ks" clearable></el-input>
+          </div>
+        </div>
+        <label class="fl">📷 ပစ္စည်းဓာတ်ပုံ (optional)</label>
+        <input type="file" ref="photoEl" accept="image/*" style="font-size:.78rem;color:var(--muted)" @change="onPhoto">
+        <el-button v-if="f.photo" size="small" text type="danger" style="margin-top:4px" @click="clearPhoto">✕ ဓာတ်ပုံဖယ်မည်</el-button>
+      </div>
+
+      <div class="card">
+        <h3>⭐ အဆင့်သတ်မှတ်ချက် · Rating</h3>
+        <el-rate v-model="f.rating" :max="5" allow-half size="large" :colors="['#f59e0b','#f59e0b','#f59e0b']"></el-rate>
+        <span style="margin-left:10px; color:var(--accent); font-weight:800; font-size:1.1rem">{{ f.rating.toFixed(1) }}</span>
+      </div>
+
+      <div class="card">
+        <h3>✅ ကောင်းချက် · Pros</h3>
+        <div class="plrow">
+          <el-input v-model="prosInput" placeholder="ကောင်းချက် ထည့်ရန်…" @keyup.enter="addPro" clearable></el-input>
+          <el-button type="success" @click="addPro">＋</el-button>
+        </div>
+        <div class="pl-list" v-if="f.pros.length">
+          <div class="pl-item good" v-for="(p, i) in f.pros" :key="'pro'+i">
+            <span class="tx">{{ p }}</span>
+            <el-button size="small" text type="danger" @click="f.pros.splice(i,1)">✕</el-button>
+          </div>
+        </div>
+        <div class="pl-empty" v-else>ကောင်းချက် မထည့်ရသေးပါ</div>
+      </div>
+
+      <div class="card">
+        <h3>❌ အားနည်းချက် · Cons</h3>
+        <div class="plrow">
+          <el-input v-model="consInput" placeholder="အားနည်းချက် ထည့်ရန်…" @keyup.enter="addCon" clearable></el-input>
+          <el-button type="danger" @click="addCon">＋</el-button>
+        </div>
+        <div class="pl-list" v-if="f.cons.length">
+          <div class="pl-item bad" v-for="(c, i) in f.cons" :key="'con'+i">
+            <span class="tx">{{ c }}</span>
+            <el-button size="small" text type="danger" @click="f.cons.splice(i,1)">✕</el-button>
+          </div>
+        </div>
+        <div class="pl-empty" v-else>အားနည်းချက် မထည့်ရသေးပါ</div>
+      </div>
+
+      <div class="card">
+        <h3>📝 နိဂုံး · Verdict</h3>
+        <el-input v-model="f.verdict" type="textarea" :rows="2" placeholder="တစ်ကြောင်းတည်း သုံးသပ်ချက်…" maxlength="120" show-word-limit></el-input>
+        <label class="fl">👤 သုံးသပ်သူ · Reviewer / Brand</label>
+        <el-input v-model="f.reviewer" placeholder="Myo's Learing Lab" clearable></el-input>
+      </div>
+    </div>
+
+    <div class="preview-box">
+      <canvas ref="cv"></canvas>
+      <div class="dl-row">
+        <el-button class="dl-btn" type="primary" @click="download">⬇ PNG Download</el-button>
+        <el-button class="dl-btn" @click="copyImg">📋 Clipboard သို့ ကူးမည်</el-button>
+      </div>
+      <div class="dim">1080 × 1350 · Portrait · FB/IG အတွက်</div>
+    </div>
+  </div>
+
+  <!-- Drafts dialog -->
+  <el-dialog v-model="showDrafts" title="📂 သိမ်းထားသော Review Draft များ" width="min(560px, 96vw)">
+    <div class="drafts" v-if="drafts.length">
+      <div class="draft" v-for="d in drafts" :key="d.id" @click="loadDraft(d)">
+        <div class="d-body">
+          <div class="d-t">{{ d.name || '(အမည်မဲ့)' }}</div>
+          <div class="d-sub">{{ d.category || '—' }} · {{ d.price || '—' }} · {{ new Date(d.t).toLocaleDateString() }}</div>
+        </div>
+        <span class="d-star">{{ starStr(d.rating) }}</span>
+        <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delDraft(d)">
+          <template #reference>
+            <el-button size="small" type="danger" plain @click.stop>🗑</el-button>
+          </template>
+        </el-popconfirm>
+      </div>
+    </div>
+    <div class="empty" v-else>Draft မရှိသေးပါ — 💾 Draft သိမ်းမည် ကို နှိပ်ပါ</div>
+  </el-dialog>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, reactive, watch, onMounted, nextTick } = Vue;
+const STORE = 'reviewcards.v1';
+const FONT = "'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',sans-serif";
+
+const app = createApp({
+  setup() {
+    const cv = ref(null), photoEl = ref(null);
+    const f = reactive({
+      name: 'Xiaomi Redmi Watch 5',
+      category: 'Smartwatch',
+      price: '၁၅၀,၀၀၀ Ks',
+      rating: 4.5,
+      pros: ['ဘက်ထရီ ကြာရှည်ခံ', 'AMOLED မျက်နှာပြင် ကြည်လင်'],
+      cons: ['GPS မပါဝင်ပါ'],
+      verdict: 'ဤစျေးနှုန်းအတွက် တန်ဖိုးရှိသော smartwatch တစ်လုံးဖြစ်သည်။',
+      reviewer: "Myo's Learing Lab",
+      photo: null,
+    });
+    const prosInput = ref(''), consInput = ref('');
+    const drafts = ref([]);
+    const showDrafts = ref(false);
+    let photoImg = null;
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2600 });
+
+    function starStr(r) {
+      r = +r || 0;
+      let s = '';
+      for (let i = 1; i <= 5; i++) s += r >= i ? '★' : (r >= i - 0.5 ? '⯨' : '☆');
+      return s;
+    }
+    function addPro() { const v = prosInput.value.trim(); if (v) { f.pros.push(v); prosInput.value = ''; } }
+    function addCon() { const v = consInput.value.trim(); if (v) { f.cons.push(v); consInput.value = ''; } }
+
+    function onPhoto(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      const r = new FileReader();
+      r.onload = () => { f.photo = r.result; };
+      r.readAsDataURL(file);
+    }
+    function clearPhoto() { f.photo = null; if (photoEl.value) photoEl.value.value = ''; }
+
+    // ---- Canvas drawing ----
+    function fitFont(ctx, text, weight, maxSize, minSize, maxW) {
+      let sz = maxSize;
+      while (sz > minSize) {
+        ctx.font = `${weight} ${sz}px ${FONT}`;
+        if (ctx.measureText(text).width <= maxW) break;
+        sz -= 2;
+      }
+      return sz;
+    }
+    function wrapLines(ctx, text, maxW) {
+      const words = String(text).split(/\s+/).filter(Boolean);
+      const lines = []; let line = '';
+      words.forEach(w => {
+        const test = line ? line + ' ' + w : w;
+        if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+        else line = test;
+      });
+      if (line) lines.push(line);
+      return lines;
+    }
+    function roundRect(ctx, x, y, w, h, r) {
+      ctx.beginPath(); ctx.roundRect(x, y, w, h, r);
+    }
+    function drawStars(ctx, cx, y, size, rating) {
+      const gap = size * 1.14, total = gap * 5, startX = cx - total / 2;
+      for (let i = 0; i < 5; i++) {
+        const x = startX + i * gap + gap / 2;
+        ctx.font = `${size}px ${FONT}`;
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        // empty base
+        ctx.fillStyle = 'rgba(255,255,255,0.18)';
+        ctx.fillText('★', x, y);
+        const fill = rating - i;
+        if (fill <= 0) continue;
+        ctx.save();
+        const clipW = fill >= 1 ? gap : gap * 0.5;
+        ctx.beginPath(); ctx.rect(x - gap / 2, y - size, clipW, size * 2); ctx.clip();
+        ctx.fillStyle = '#f59e0b';
+        ctx.fillText('★', x, y);
+        ctx.restore();
+      }
+    }
+    function draw() {
+      const canvas = cv.value; if (!canvas) return;
+      const W = 1080, H = 1350;
+      canvas.width = W; canvas.height = H;
+      const ctx = canvas.getContext('2d');
+
+      // background gradient + accent glow
+      const bg = ctx.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, '#141821'); bg.addColorStop(1, '#080b11');
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+      let glow = ctx.createRadialGradient(W * 0.85, H * 0.05, 40, W * 0.85, H * 0.05, 620);
+      glow.addColorStop(0, 'rgba(245,158,11,0.28)'); glow.addColorStop(1, 'rgba(245,158,11,0)');
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+      glow = ctx.createRadialGradient(W * 0.1, H * 1.0, 40, W * 0.1, H * 1.0, 560);
+      glow.addColorStop(0, 'rgba(249,115,22,0.18)'); glow.addColorStop(1, 'rgba(249,115,22,0)');
+      ctx.fillStyle = glow; ctx.fillRect(0, 0, W, H);
+
+      const pad = 70;
+      let y = 66;
+
+      // top badge: REVIEW
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.font = `800 26px ${FONT}`;
+      const bLabel = 'REVIEW · သုံးသပ်ချက်';
+      const bw = ctx.measureText(bLabel).width + 44, bh = 48;
+      roundRect(ctx, pad, y, bw, bh, bh / 2);
+      ctx.fillStyle = 'rgba(245,158,11,0.16)'; ctx.fill();
+      ctx.strokeStyle = 'rgba(245,158,11,0.55)'; ctx.lineWidth = 2; ctx.stroke();
+      ctx.fillStyle = '#f5b544'; ctx.fillText(bLabel, pad + 22, y + bh / 2 + 1);
+      y += bh + 34;
+
+      // product photo (rounded mask)
+      if (photoImg) {
+        const ph = 430, pw = W - pad * 2, px = pad;
+        ctx.save();
+        roundRect(ctx, px, y, pw, ph, 26); ctx.clip();
+        const scale = Math.max(pw / photoImg.width, ph / photoImg.height);
+        const iw = photoImg.width * scale, ih = photoImg.height * scale;
+        ctx.drawImage(photoImg, px + (pw - iw) / 2, y + (ph - ih) / 2, iw, ih);
+        ctx.restore();
+        roundRect(ctx, px, y, pw, ph, 26);
+        ctx.strokeStyle = 'rgba(255,255,255,0.10)'; ctx.lineWidth = 2; ctx.stroke();
+        y += ph + 40;
+      }
+
+      // product name (fit + wrap)
+      ctx.textAlign = 'left';
+      const maxW = W - pad * 2;
+      const nameSz = fitFont(ctx, f.name || 'Product', '800', 70, 40, maxW);
+      ctx.font = `800 ${nameSz}px ${FONT}`;
+      ctx.fillStyle = '#f7f9fc';
+      const nlines = wrapLines(ctx, f.name || 'Product', maxW).slice(0, 2);
+      ctx.textBaseline = 'alphabetic';
+      nlines.forEach(l => { y += nameSz; ctx.fillText(l, pad, y); y += nameSz * 0.22; });
+      y += 8;
+
+      // category chip + price
+      ctx.textBaseline = 'middle';
+      let chipX = pad;
+      if (f.category) {
+        ctx.font = `700 28px ${FONT}`;
+        const cw = ctx.measureText(f.category).width + 34, ch = 46;
+        roundRect(ctx, chipX, y, cw, ch, ch / 2);
+        ctx.fillStyle = 'rgba(255,255,255,0.08)'; ctx.fill();
+        ctx.fillStyle = '#cfd7e3'; ctx.fillText(f.category, chipX + 17, y + ch / 2 + 1);
+        chipX += cw + 16;
+      }
+      if (f.price) {
+        ctx.font = `800 34px ${FONT}`;
+        ctx.fillStyle = '#f5b544';
+        ctx.fillText(f.price, chipX, y + 24);
+      }
+      y += 46 + 40;
+
+      // rating row
+      drawStars(ctx, W / 2 - 90, y + 30, 62, +f.rating || 0);
+      ctx.font = `900 58px ${FONT}`;
+      ctx.fillStyle = '#f59e0b'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText((+f.rating || 0).toFixed(1), W / 2 + 260, y + 30);
+      ctx.font = `600 26px ${FONT}`;
+      ctx.fillStyle = 'var(--muted)'; ctx.fillStyle = '#8a94a3';
+      ctx.fillText('/ 5.0', W / 2 + 335, y + 44);
+      y += 100;
+
+      // two columns: pros / cons
+      const colGap = 26, colW = (W - pad * 2 - colGap) / 2;
+      const colH = 356;
+      const panels = [
+        { x: pad, title: '✅ ကောင်းချက်', items: f.pros, accent: '#22c55e', bg: 'rgba(34,197,94,0.10)', bd: 'rgba(34,197,94,0.35)' },
+        { x: pad + colW + colGap, title: '❌ အားနည်းချက်', items: f.cons, accent: '#ef4444', bg: 'rgba(239,68,68,0.10)', bd: 'rgba(239,68,68,0.35)' },
+      ];
+      panels.forEach(p => {
+        roundRect(ctx, p.x, y, colW, colH, 20);
+        ctx.fillStyle = p.bg; ctx.fill();
+        ctx.strokeStyle = p.bd; ctx.lineWidth = 2; ctx.stroke();
+        ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+        ctx.font = `800 30px ${FONT}`; ctx.fillStyle = p.accent;
+        ctx.fillText(p.title, p.x + 24, y + 46);
+        let iy = y + 92;
+        const items = (p.items || []).slice(0, 5);
+        if (!items.length) {
+          ctx.font = `400 24px ${FONT}`; ctx.fillStyle = 'rgba(255,255,255,0.35)';
+          ctx.fillText('—', p.x + 24, iy);
+        }
+        items.forEach(it => {
+          const itW = colW - 60;
+          const sz = fitFont(ctx, '• ' + it, '500', 25, 17, itW);
+          ctx.font = `500 ${sz}px ${FONT}`; ctx.fillStyle = '#e6ebf2';
+          const lines = wrapLines(ctx, it, itW).slice(0, 2);
+          ctx.fillStyle = p.accent; ctx.fillText('•', p.x + 24, iy);
+          ctx.fillStyle = '#e6ebf2';
+          lines.forEach((l, li) => { ctx.fillText(l, p.x + 46, iy); iy += sz * 1.3; if (li < lines.length - 1) {} });
+          iy += 12;
+        });
+      });
+      y += colH + 40;
+
+      // verdict box
+      if (f.verdict) {
+        ctx.font = `600 30px ${FONT}`;
+        const vLines = wrapLines(ctx, f.verdict, W - pad * 2 - 48).slice(0, 3);
+        const vH = 44 + vLines.length * 42 + 24;
+        roundRect(ctx, pad, y, W - pad * 2, vH, 18);
+        ctx.fillStyle = 'rgba(245,158,11,0.14)'; ctx.fill();
+        ctx.strokeStyle = 'rgba(245,158,11,0.45)'; ctx.lineWidth = 2; ctx.stroke();
+        ctx.fillStyle = '#f5b544'; ctx.font = `800 24px ${FONT}`;
+        ctx.fillText('💬 နိဂုံး', pad + 26, y + 40);
+        ctx.fillStyle = '#f2f5fa'; ctx.font = `600 30px ${FONT}`;
+        let vy = y + 84;
+        vLines.forEach(l => { ctx.fillText(l, pad + 26, vy); vy += 42; });
+        y += vH + 30;
+      }
+
+      // footer reviewer
+      ctx.textAlign = 'left'; ctx.textBaseline = 'alphabetic';
+      ctx.font = `700 28px ${FONT}`; ctx.fillStyle = '#9aa4b3';
+      ctx.fillText((f.reviewer || "Myo's Learing Lab"), pad, H - 54);
+      ctx.textAlign = 'right';
+      ctx.font = `800 24px ${FONT}`; ctx.fillStyle = '#f5b544';
+      ctx.fillText('★ REVIEW', W - pad, H - 54);
+    }
+
+    // load photo image whenever f.photo changes, then redraw
+    watch(() => f.photo, (val) => {
+      if (!val) { photoImg = null; draw(); return; }
+      const img = new Image();
+      img.onload = () => { photoImg = img; draw(); };
+      img.src = val;
+    });
+    watch(f, () => draw(), { deep: true });
+
+    // ---- drafts ----
+    function loadDrafts() { try { drafts.value = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (e) { drafts.value = []; } }
+    function persist() { localStorage.setItem(STORE, JSON.stringify(drafts.value)); }
+    function saveDraft() {
+      if (!f.name.trim()) { toast('ပစ္စည်းအမည် ထည့်ပါ', 'warning'); return; }
+      const rec = {
+        id: Date.now(),
+        name: f.name, category: f.category, price: f.price, rating: f.rating,
+        pros: [...f.pros], cons: [...f.cons], verdict: f.verdict, reviewer: f.reviewer,
+        photo: f.photo || null, t: Date.now(),
+      };
+      drafts.value.unshift(rec); persist();
+      toast('💾 Draft သိမ်းပြီး');
+    }
+    function loadDraft(d) {
+      f.name = d.name || ''; f.category = d.category || ''; f.price = d.price || '';
+      f.rating = +d.rating || 0; f.pros = [...(d.pros || [])]; f.cons = [...(d.cons || [])];
+      f.verdict = d.verdict || ''; f.reviewer = d.reviewer || "Myo's Learing Lab"; f.photo = d.photo || null;
+      showDrafts.value = false; toast('📂 Draft ဖွင့်ပြီး');
+    }
+    function delDraft(d) { drafts.value = drafts.value.filter(x => x.id !== d.id); persist(); toast('🗑 ဖျက်ပြီး'); }
+    function openDrafts() { showDrafts.value = true; }
+
+    // ---- export ----
+    function download() {
+      cv.value.toBlob(b => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(b);
+        a.download = `review-${(f.name || 'card').replace(/[^a-z0-9]+/gi, '-').slice(0, 30)}-${Date.now()}.png`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+      }, 'image/png');
+    }
+    function copyImg() {
+      cv.value.toBlob(async b => {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': b })]);
+          toast('📋 Clipboard သို့ ကူးပြီး');
+        } catch (e) { toast('⚠ Clipboard မ support ပါ', 'error'); }
+      }, 'image/png');
+    }
+
+    onMounted(() => {
+      loadDrafts();
+      document.getElementById('vue-loading').style.display = 'none';
+      nextTick(draw);
+    });
+
+    return {
+      cv, photoEl, f, prosInput, consInput, drafts, showDrafts,
+      addPro, addCon, onPhoto, clearPhoto, starStr,
+      saveDraft, loadDraft, delDraft, openDrafts, download, copyImg,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>

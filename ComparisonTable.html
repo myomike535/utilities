@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Comparison · နှိုင်းယှဉ်ဇယား</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="_effects.css">
+<link rel="stylesheet" href="_design.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#8b5cf6">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#8b5cf6; --accent-2:#a78bfa; --gold:#fbbf24;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --el-color-primary:#8b5cf6;
+    --el-color-primary-light-3:#a78bfa;
+    --el-color-primary-dark-2:#7c3aed;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(139,92,246,.15), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(167,139,250,.11), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1180px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(139,92,246,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .cols { display:grid; grid-template-columns:360px 1fr; gap:16px; align-items:start; }
+  @media(max-width:960px){ .cols{grid-template-columns:1fr} }
+  .card { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px; margin-bottom:14px; }
+  .card h3 { font-size:.75rem; text-transform:uppercase; letter-spacing:.06em; color:var(--muted); margin-bottom:10px; }
+  label.fl { display:block; font-size:.72rem; color:var(--muted); margin:9px 0 4px; font-weight:600; }
+
+  .prod-row { display:flex; gap:8px; align-items:flex-start; margin-bottom:10px; }
+  .prod-row .em { width:56px; }
+  .prod-row .nm { flex:1; }
+  .photo-mini { width:38px; height:38px; border-radius:8px; object-fit:cover; border:1px solid var(--field-border); background:var(--field); }
+
+  .spec-row { border:1px solid var(--field-border); border-radius:11px; padding:10px 11px; margin-bottom:9px; background:var(--field); }
+  .spec-top { display:flex; gap:7px; align-items:center; margin-bottom:7px; }
+  .spec-top .nm { flex:1; }
+  .val-grid { display:grid; gap:6px; }
+  .val-cell { display:flex; align-items:center; gap:6px; }
+  .val-cell .plabel { font-size:.66rem; color:var(--faint); min-width:64px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  .preview-box { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px; }
+  .tbl-scroll { overflow-x:auto; border-radius:10px; }
+  table.cmp { width:100%; border-collapse:collapse; font-size:.82rem; }
+  table.cmp th, table.cmp td { border:1px solid var(--field-border); padding:8px 10px; text-align:center; }
+  table.cmp th.attr, table.cmp td.attr { text-align:left; color:var(--muted); font-weight:600; background:var(--field); }
+  table.cmp thead th { background:linear-gradient(135deg,rgba(139,92,246,.35),rgba(167,139,250,.2)); font-weight:700; }
+  table.cmp td.win { background:rgba(251,191,36,.18); color:var(--gold); font-weight:700; }
+  .phdr { display:flex; flex-direction:column; align-items:center; gap:4px; }
+  .phdr img { width:34px; height:34px; border-radius:8px; object-fit:cover; }
+
+  canvas { width:100%; height:auto; border-radius:10px; display:block; background:#0b0e16; box-shadow:0 10px 34px rgba(0,0,0,.5); margin-top:12px; }
+  .dl-row { display:flex; gap:8px; margin-top:12px; flex-wrap:wrap; }
+  .saved-item { display:flex; align-items:center; gap:8px; padding:8px 10px; border:1px solid var(--field-border); border-radius:10px; margin-bottom:7px; background:var(--field); }
+  .saved-item .t { flex:1; font-size:.82rem; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .saved-item .when { font-size:.66rem; color:var(--faint); }
+  .empty { text-align:center; color:var(--faint); padding:14px 0; font-size:.82rem; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">⚔️</div>
+    <div class="title">
+      <h1>Comparison · နှိုင်းယှဉ်ဇယား</h1>
+      <div class="sub">Product နှစ်ခုမှ လေးခုအထိ နှိုင်းယှဉ် → X vs Y ပုံ + Markdown ဇယား</div>
+    </div>
+    <el-button @click="save">💾 သိမ်းမည်</el-button>
+  </header>
+
+  <div class="cols">
+    <div>
+      <div class="card">
+        <h3>📝 ခေါင်းစဉ် · Title</h3>
+        <el-input v-model="title" placeholder="e.g. iPhone vs Samsung"></el-input>
+        <el-button size="small" text type="primary" style="margin-top:4px" @click="autoTitle">🔁 Product နာမည်များမှ ခေါင်းစဉ်ထုတ်</el-button>
+        <label class="fl">👤 Reviewer (footer)</label>
+        <el-input v-model="reviewer" placeholder="Myo's Learing Lab"></el-input>
+      </div>
+
+      <div class="card">
+        <h3>📦 Products ({{ products.length }}/4)</h3>
+        <div v-for="(p, pi) in products" :key="pi" class="prod-row">
+          <div class="em">
+            <label class="fl">Emoji</label>
+            <el-input v-model="p.emoji" maxlength="2" placeholder="📱"></el-input>
+          </div>
+          <div class="nm">
+            <label class="fl">နာမည် · Name</label>
+            <el-input v-model="p.name" placeholder="Product name"></el-input>
+            <div style="display:flex; gap:6px; align-items:center; margin-top:6px">
+              <img v-if="p.photo" :src="p.photo" class="photo-mini" alt="">
+              <el-button size="small" @click="pickPhoto(pi)">📷 ဓာတ်ပုံ</el-button>
+              <el-button v-if="p.photo" size="small" text type="danger" @click="p.photo=''">✕</el-button>
+              <el-button v-if="products.length > 2" size="small" text type="danger" @click="removeProduct(pi)">🗑</el-button>
+            </div>
+          </div>
+        </div>
+        <el-button v-if="products.length < 4" size="small" type="primary" plain @click="addProduct">＋ Product ထည့်မည်</el-button>
+        <input type="file" ref="photoEl" accept="image/*" style="display:none" @change="onPhoto">
+      </div>
+
+      <div class="card">
+        <h3>📋 Spec Rows ({{ rows.length }})</h3>
+        <div v-for="(r, ri) in rows" :key="r.id" class="spec-row">
+          <div class="spec-top">
+            <div class="nm">
+              <el-input v-model="r.name" size="small" placeholder="Attribute e.g. Price"></el-input>
+            </div>
+            <el-select v-model="r.type" size="small" style="width:96px" @change="onType(r)">
+              <el-option value="text" label="🔤 Text"></el-option>
+              <el-option value="toggle" label="✅ Yes/No"></el-option>
+              <el-option value="rating" label="⭐ 0-5"></el-option>
+            </el-select>
+            <el-button size="small" text type="danger" @click="removeRow(ri)">🗑</el-button>
+          </div>
+          <div class="val-grid">
+            <div v-for="(p, pi) in products" :key="pi" class="val-cell">
+              <span class="plabel">{{ p.name || ('P' + (pi+1)) }}</span>
+              <template v-if="r.type === 'text'">
+                <el-input v-model="r.values[pi]" size="small" placeholder="value"></el-input>
+              </template>
+              <template v-else-if="r.type === 'toggle'">
+                <el-switch v-model="r.values[pi]"></el-switch>
+              </template>
+              <template v-else>
+                <el-rate v-model="r.values[pi]" :max="5"></el-rate>
+              </template>
+              <el-button size="small" :type="r.winner === pi ? 'warning' : 'default'"
+                :plain="r.winner !== pi" title="Winner ရွေးရန်" @click="r.winner = (r.winner === pi ? null : pi)">🏆</el-button>
+            </div>
+          </div>
+        </div>
+        <el-button size="small" type="primary" plain @click="addRow">＋ Row ထည့်မည်</el-button>
+      </div>
+
+      <div class="card" v-if="saved.length">
+        <h3>💾 သိမ်းထားသော နှိုင်းယှဉ်များ</h3>
+        <div v-for="s in saved" :key="s.id" class="saved-item">
+          <span class="t" @click="load(s)" style="cursor:pointer">{{ s.title || '(no title)' }}</span>
+          <span class="when">{{ new Date(s.t).toLocaleDateString() }}</span>
+          <el-button size="small" @click="load(s)">📂</el-button>
+          <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="del(s)">
+            <template #reference>
+              <el-button size="small" text type="danger">🗑</el-button>
+            </template>
+          </el-popconfirm>
+        </div>
+      </div>
+    </div>
+
+    <div class="preview-box">
+      <h3 style="font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 10px">👁 Preview</h3>
+      <div class="tbl-scroll">
+        <table class="cmp">
+          <thead>
+            <tr>
+              <th class="attr">{{ title || 'Comparison' }}</th>
+              <th v-for="(p, pi) in products" :key="pi">
+                <div class="phdr">
+                  <img v-if="p.photo" :src="p.photo" alt="">
+                  <span v-else style="font-size:1.2rem">{{ p.emoji || '📦' }}</span>
+                  <span>{{ p.name || ('Product ' + (pi+1)) }}</span>
+                </div>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="r in rows" :key="r.id">
+              <td class="attr">{{ r.name || '—' }}</td>
+              <td v-for="(p, pi) in products" :key="pi" :class="{ win: winnerIndex(r) === pi }">
+                {{ cellText(r, pi) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <canvas ref="cv"></canvas>
+      <div class="dl-row">
+        <el-button type="primary" @click="downloadPNG">⬇ Download PNG</el-button>
+        <el-button @click="copyImage">📋 Copy image</el-button>
+        <el-button @click="copyMarkdown">⬇ Copy as Markdown</el-button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, watch, onMounted, nextTick } = Vue;
+const STORE = 'comparisons.v1';
+
+const app = createApp({
+  setup() {
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2600 });
+    const uid = () => Date.now() + Math.floor(Math.random() * 1000);
+
+    const title = ref('iPhone vs Samsung');
+    const reviewer = ref("Myo's Learing Lab");
+    const products = ref([
+      { name: 'iPhone', emoji: '📱', photo: '' },
+      { name: 'Samsung', emoji: '📱', photo: '' },
+    ]);
+    const rows = ref([
+      { id: uid(), name: 'Price', type: 'text', values: ['$999', '$899'], winner: 1 },
+      { id: uid(), name: '5G', type: 'toggle', values: [true, true], winner: null },
+      { id: uid(), name: 'Camera', type: 'rating', values: [5, 4], winner: null },
+    ]);
+    const saved = ref([]);
+    const photoEl = ref(null); let photoTarget = -1;
+    const cv = ref(null);
+    const imgCache = new Map();
+
+    // ---- product / row management ----
+    function addProduct() {
+      if (products.value.length >= 4) return;
+      products.value.push({ name: '', emoji: '📦', photo: '' });
+      rows.value.forEach(r => {
+        r.values.push(r.type === 'toggle' ? false : r.type === 'rating' ? 0 : '');
+      });
+    }
+    function removeProduct(pi) {
+      if (products.value.length <= 2) return;
+      products.value.splice(pi, 1);
+      rows.value.forEach(r => {
+        r.values.splice(pi, 1);
+        if (r.winner === pi) r.winner = null;
+        else if (r.winner != null && r.winner > pi) r.winner--;
+      });
+    }
+    function addRow() {
+      rows.value.push({
+        id: uid(), name: '', type: 'text',
+        values: products.value.map(() => ''), winner: null,
+      });
+    }
+    function removeRow(ri) { rows.value.splice(ri, 1); }
+    function onType(r) {
+      r.values = products.value.map(() => r.type === 'toggle' ? false : r.type === 'rating' ? 0 : '');
+      r.winner = null;
+    }
+
+    // ---- photos ----
+    function pickPhoto(pi) { photoTarget = pi; if (photoEl.value) photoEl.value.click(); }
+    function onPhoto(ev) {
+      const f = ev.target.files[0]; if (!f || photoTarget < 0) return;
+      const r = new FileReader();
+      r.onload = () => { if (products.value[photoTarget]) products.value[photoTarget].photo = r.result; };
+      r.readAsDataURL(f);
+      ev.target.value = '';
+    }
+
+    function autoTitle() {
+      const names = products.value.map(p => p.name || '').filter(Boolean);
+      if (names.length >= 2) title.value = names.join(' vs ');
+      else toast('Product နာမည် နှစ်ခုလိုအပ်ပါသည်', 'warning');
+    }
+
+    // ---- winner logic ----
+    function autoWinner(r) {
+      const v = r.values;
+      if (r.type === 'rating') {
+        let best = -1, bi = -1, tie = false;
+        v.forEach((x, i) => { const n = +x || 0; if (n > best) { best = n; bi = i; tie = false; } else if (n === best) tie = true; });
+        return best > 0 && !tie ? bi : -1;
+      }
+      if (r.type === 'toggle') {
+        const trues = v.map((x, i) => x ? i : -1).filter(i => i >= 0);
+        return trues.length === 1 ? trues[0] : -1;
+      }
+      // text: numeric compare if all numeric-ish
+      const nums = v.map(x => parseFloat(String(x).replace(/[^0-9.\-]/g, '')));
+      if (nums.every(n => !isNaN(n)) && v.some(x => String(x).trim())) {
+        // ambiguous whether higher or lower is better → no auto-pick for text
+        return -1;
+      }
+      return -1;
+    }
+    function winnerIndex(r) { return r.winner != null ? r.winner : autoWinner(r); }
+
+    function cellText(r, pi) {
+      const val = r.values[pi];
+      if (r.type === 'toggle') return val ? '✅' : '❌';
+      if (r.type === 'rating') return '★'.repeat(+val || 0) + '☆'.repeat(5 - (+val || 0));
+      return (val == null || val === '') ? '—' : String(val);
+    }
+
+    // ---- canvas render ----
+    function loadImg(src) {
+      if (!src) return null;
+      if (imgCache.has(src)) return imgCache.get(src);
+      const im = new Image();
+      im.onload = () => { imgCache.set(src, im); draw(); };
+      im.src = src;
+      imgCache.set(src, null); // pending
+      return null;
+    }
+    function draw() {
+      const canvas = cv.value; if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      const n = products.value.length;
+      const DPR = 2;
+      const labelW = 300, colW = 250;
+      const W = labelW + n * colW;
+      const titleH = 108, headerH = 150, rowH = 66, footerH = 58;
+      const H = titleH + headerH + rows.value.length * rowH + footerH;
+      canvas.width = W * DPR; canvas.height = H * DPR;
+      canvas.style.aspectRatio = W + ' / ' + H;
+      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+      const F = "'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',sans-serif";
+
+      // bg
+      const bg = ctx.createLinearGradient(0, 0, W, H);
+      bg.addColorStop(0, '#12162099'); bg.addColorStop(1, '#0b0e16');
+      ctx.fillStyle = '#0b0e16'; ctx.fillRect(0, 0, W, H);
+      ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+
+      // title band
+      const tb = ctx.createLinearGradient(0, 0, W, 0);
+      tb.addColorStop(0, '#8b5cf6'); tb.addColorStop(1, '#a78bfa');
+      ctx.fillStyle = tb; ctx.fillRect(0, 0, W, titleH);
+      ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.font = '800 34px ' + F;
+      ctx.fillText(title.value || 'Comparison', W / 2, titleH / 2, W - 40);
+
+      // header row (product columns)
+      const hy = titleH;
+      ctx.fillStyle = 'rgba(139,92,246,.18)'; ctx.fillRect(0, hy, W, headerH);
+      // label col header
+      ctx.fillStyle = 'rgba(255,255,255,.05)'; ctx.fillRect(0, hy, labelW, headerH);
+      products.value.forEach((p, i) => {
+        const cx = labelW + i * colW + colW / 2;
+        const cy = hy + 44;
+        const im = loadImg(p.photo);
+        if (p.photo && im) {
+          const r = 34;
+          ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.clip();
+          const s = Math.max((r * 2) / im.width, (r * 2) / im.height);
+          const iw = im.width * s, ih = im.height * s;
+          ctx.drawImage(im, cx - iw / 2, cy - ih / 2, iw, ih);
+          ctx.restore();
+          ctx.strokeStyle = '#a78bfa'; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.stroke();
+        } else {
+          ctx.font = '46px ' + F; ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          ctx.fillText(p.emoji || '📦', cx, cy);
+        }
+        ctx.font = '700 22px ' + F; ctx.fillStyle = '#f2f5fa'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(p.name || ('Product ' + (i + 1)), cx, hy + headerH - 34, colW - 16);
+      });
+
+      // spec rows
+      rows.value.forEach((r, ri) => {
+        const ry = titleH + headerH + ri * rowH;
+        if (ri % 2 === 0) { ctx.fillStyle = 'rgba(255,255,255,.03)'; ctx.fillRect(0, ry, W, rowH); }
+        // attribute name
+        ctx.font = '600 20px ' + F; ctx.fillStyle = '#c3cad6'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(r.name || '—', 20, ry + rowH / 2, labelW - 30);
+        const win = winnerIndex(r);
+        products.value.forEach((p, pi) => {
+          const cx = labelW + pi * colW + colW / 2;
+          if (win === pi) {
+            ctx.fillStyle = 'rgba(251,191,36,.16)';
+            ctx.fillRect(labelW + pi * colW, ry, colW, rowH);
+          }
+          ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+          const val = r.values[pi];
+          if (r.type === 'toggle') {
+            ctx.font = '26px ' + F; ctx.fillStyle = '#fff';
+            ctx.fillText(val ? '✅' : '❌', cx, ry + rowH / 2);
+          } else if (r.type === 'rating') {
+            const nv = +val || 0;
+            ctx.font = '22px ' + F; ctx.fillStyle = '#fbbf24';
+            ctx.fillText('★'.repeat(nv) + '☆'.repeat(5 - nv), cx, ry + rowH / 2);
+          } else {
+            ctx.font = (win === pi ? '700 20px ' : '400 20px ') + F;
+            ctx.fillStyle = win === pi ? '#fbbf24' : '#e8ecf3';
+            ctx.fillText((val == null || val === '') ? '—' : String(val), cx, ry + rowH / 2, colW - 20);
+          }
+        });
+        // grid line
+        ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(0, ry); ctx.lineTo(W, ry); ctx.stroke();
+      });
+
+      // footer
+      const fy = H - footerH;
+      ctx.fillStyle = 'rgba(139,92,246,.12)'; ctx.fillRect(0, fy, W, footerH);
+      ctx.font = '600 18px ' + F; ctx.fillStyle = '#a78bfa'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+      ctx.fillText('⚖️ ' + (reviewer.value || 'Reviewer'), W / 2, fy + footerH / 2);
+    }
+
+    // ---- exports ----
+    function downloadPNG() {
+      const canvas = cv.value; if (!canvas) return;
+      canvas.toBlob(b => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(b);
+        a.download = 'comparison-' + Date.now() + '.png';
+        a.click(); URL.revokeObjectURL(a.href);
+      }, 'image/png');
+      toast('⬇ PNG downloaded');
+    }
+    function copyImage() {
+      const canvas = cv.value; if (!canvas) return;
+      canvas.toBlob(async b => {
+        try {
+          await navigator.clipboard.write([new ClipboardItem({ 'image/png': b })]);
+          toast('📋 Image copied');
+        } catch (e) { toast('⚠ Copy မရပါ (browser support)', 'error'); }
+      }, 'image/png');
+    }
+    function markdown() {
+      const heads = ['', ...products.value.map(p => p.name || 'Product')];
+      const sep = heads.map(() => '---');
+      const body = rows.value.map(r => {
+        const win = winnerIndex(r);
+        const cells = products.value.map((p, pi) => {
+          let t = cellText(r, pi);
+          if (r.type === 'rating') t = (+r.values[pi] || 0) + '/5';
+          if (win === pi) t = '🏆 ' + t;
+          return t;
+        });
+        return ['| ' + (r.name || '—'), ...cells].join(' | ') + ' |';
+      });
+      return [
+        '# ' + (title.value || 'Comparison'),
+        '',
+        '| ' + heads.join(' | ') + ' |',
+        '| ' + sep.join(' | ') + ' |',
+        ...body,
+        '',
+        '_— ' + (reviewer.value || 'Reviewer') + '_',
+      ].join('\n');
+    }
+    function copyMarkdown() {
+      navigator.clipboard.writeText(markdown())
+        .then(() => toast('⬇ Markdown table copied'))
+        .catch(() => toast('⚠ Copy မရပါ', 'error'));
+    }
+
+    // ---- persistence ----
+    function loadSaved() { try { saved.value = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (e) { saved.value = []; } }
+    function persist() { localStorage.setItem(STORE, JSON.stringify(saved.value)); }
+    function save() {
+      const rec = {
+        id: uid(), title: title.value,
+        products: JSON.parse(JSON.stringify(products.value)),
+        rows: JSON.parse(JSON.stringify(rows.value)),
+        reviewer: reviewer.value, t: Date.now(),
+      };
+      saved.value.unshift(rec); persist();
+      toast('💾 သိမ်းပြီး — ' + (rec.title || 'comparison'));
+    }
+    function load(s) {
+      title.value = s.title || '';
+      reviewer.value = s.reviewer || '';
+      products.value = JSON.parse(JSON.stringify(s.products || []));
+      rows.value = JSON.parse(JSON.stringify(s.rows || []));
+      toast('📂 ဖွင့်ပြီး');
+    }
+    function del(s) {
+      saved.value = saved.value.filter(x => x.id !== s.id); persist();
+      toast('🗑 ဖျက်ပြီး');
+    }
+
+    watch([title, reviewer, products, rows], () => nextTick(draw), { deep: true });
+
+    onMounted(() => {
+      loadSaved();
+      document.getElementById('vue-loading').style.display = 'none';
+      nextTick(draw);
+    });
+
+    return {
+      title, reviewer, products, rows, saved, photoEl, cv,
+      addProduct, removeProduct, addRow, removeRow, onType,
+      pickPhoto, onPhoto, autoTitle,
+      winnerIndex, cellText,
+      downloadPNG, copyImage, copyMarkdown,
+      save, load, del,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>
