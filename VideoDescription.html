@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Description · ဗီဒီယို ဖော်ပြချက်</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="_effects.css">
+<link rel="stylesheet" href="_design.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#ef4444">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#0b0708; --bg2:#140d0e;
+    --card:#1c1416; --card2:#241a1c;
+    --field:#180f11; --field-border:#3a2b2d;
+    --text:#faf3f3; --muted:#b39a9c; --faint:#7d6668;
+    --accent:#ef4444; --accent-2:#f97316;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#ef4444;
+    --el-color-primary-light-3:#f87171;
+    --el-color-primary-dark-2:#dc2626;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#1c1416; --el-bg-color-overlay:#241a1c; --el-fill-color-blank:#180f11;
+    --el-border-color:#3a2b2d; --el-border-color-light:#3a2b2d; --el-border-color-lighter:#2c2022;
+    --el-text-color-primary:#faf3f3; --el-text-color-regular:#d7c6c8;
+    --el-text-color-secondary:#b39a9c; --el-text-color-placeholder:#7d6668;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(239,68,68,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(249,115,22,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1180px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(239,68,68,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; }
+  @media (max-width:900px){ .cols { grid-template-columns:1fr; } }
+
+  .card {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:13px;
+    padding:15px 16px; margin-bottom:14px;
+  }
+  .card h3 { margin:0 0 10px; font-size:.92rem; display:flex; align-items:center; gap:7px; }
+  .card h3 .hint { margin-left:auto; font-size:.7rem; color:var(--faint); font-weight:400; }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:8px 0 5px; font-weight:600; }
+
+  .row { display:flex; gap:6px; align-items:center; margin-bottom:6px; }
+  .row .idx { flex:0 0 auto; color:var(--faint); font-size:.72rem; width:18px; text-align:center; }
+  .rowbtns { display:flex; gap:2px; }
+
+  .tagset { display:flex; align-items:center; gap:8px; padding:6px 0; border-bottom:1px dashed rgba(255,255,255,.06); }
+  .tagset .n { flex:0 0 90px; font-weight:600; font-size:.8rem; color:var(--accent); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .tagset .t { flex:1; font-size:.74rem; color:var(--muted); font-family:var(--mono); overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+
+  .preview {
+    position:sticky; top:16px;
+  }
+  .preview pre {
+    margin:0; background:var(--field); border-radius:10px; padding:14px 15px;
+    font-family:var(--mono); font-size:.78rem; line-height:1.7; color:#e8dcdd;
+    white-space:pre-wrap; word-break:break-word; max-height:60vh; overflow:auto;
+    border:1px solid var(--field-border);
+  }
+  .charbar { display:flex; align-items:center; gap:8px; margin-top:9px; font-size:.72rem; color:var(--muted); flex-wrap:wrap; }
+  .charbar .warn { color:var(--accent); }
+
+  .el-textarea__inner { font-family:var(--sans); font-size:.85rem; line-height:1.65; }
+  .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+  .draftrow { display:flex; align-items:center; gap:8px; padding:7px 0; border-bottom:1px dashed rgba(255,255,255,.06); }
+  .draftrow .dt { flex:1; overflow:hidden; }
+  .draftrow .dt .tt { font-weight:600; font-size:.82rem; }
+  .draftrow .dt .dd { font-size:.68rem; color:var(--faint); }
+  .empty { text-align:center; color:var(--faint); padding:18px 0; font-size:.8rem; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🎬</div>
+    <div class="title">
+      <h1>Video Description · ဗီဒီယို ဖော်ပြချက်</h1>
+      <div class="sub">YouTube / Facebook ဖော်ပြချက် — chapters · links · disclaimer · hashtags</div>
+    </div>
+    <el-button @click="openDrafts">🗂 မူကြမ်းများ ({{ drafts.length }})</el-button>
+    <el-button type="primary" @click="copyAll">📋 အားလုံး ကူးမည်</el-button>
+    <el-button @click="downloadTxt">⬇ .txt</el-button>
+  </header>
+
+  <div class="cols">
+    <!-- ============ LEFT: form ============ -->
+    <div>
+      <!-- Intro -->
+      <div class="card">
+        <h3>📝 နိဒါန်း / Intro</h3>
+        <el-input v-model="form.intro" type="textarea" :rows="4"
+          placeholder="ဗီဒီယိုအကြောင်း အကျဉ်းချုပ်… (What this video is about)"></el-input>
+      </div>
+
+      <!-- Chapters -->
+      <div class="card">
+        <h3>⏱ အခန်းများ / Chapters
+          <span class="hint">MM:SS သို့ H:MM:SS</span>
+        </h3>
+        <div v-for="(c,i) in form.chapters" :key="c.id" class="row">
+          <span class="idx">{{ i+1 }}</span>
+          <el-input v-model="c.time" placeholder="00:00" style="flex:0 0 92px"
+            :class="{ 'is-error': c.time && !validTime(c.time) }"></el-input>
+          <el-input v-model="c.label" placeholder="အခန်းခေါင်းစဉ် / chapter title"></el-input>
+          <div class="rowbtns">
+            <el-button size="small" text :disabled="i===0" @click="moveCh(i,-1)" title="Up">▲</el-button>
+            <el-button size="small" text :disabled="i===form.chapters.length-1" @click="moveCh(i,1)" title="Down">▼</el-button>
+            <el-button size="small" text @click="delCh(i)" title="Remove">✕</el-button>
+          </div>
+        </div>
+        <div style="display:flex; gap:6px; margin-top:8px">
+          <el-button size="small" @click="addCh">＋ အခန်းထည့်မည်</el-button>
+          <el-button size="small" @click="sortCh">↕ အချိန်အလိုက် စီမည်</el-button>
+        </div>
+      </div>
+
+      <!-- Links -->
+      <div class="card">
+        <h3>🔗 လင့်ခ်များ / Links</h3>
+        <div v-for="(l,i) in form.links" :key="l.id" class="row">
+          <el-input v-model="l.label" placeholder="အမည် / label" style="flex:0 0 130px"></el-input>
+          <el-input v-model="l.url" placeholder="https://…"></el-input>
+          <div class="rowbtns">
+            <el-button size="small" text @click="delLink(i)" title="Remove">✕</el-button>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; margin-top:8px; align-items:center; flex-wrap:wrap">
+          <el-button size="small" @click="addLink">＋ လင့်ခ်ထည့်မည်</el-button>
+          <el-switch v-model="form.disclaimer" active-text="Affiliate disclosure ထည့်ရန်"></el-switch>
+        </div>
+      </div>
+
+      <!-- Hashtags -->
+      <div class="card">
+        <h3>#️⃣ Hashtags</h3>
+        <el-input v-model="form.hashtags" type="textarea" :rows="2"
+          placeholder="#myanmar #vlog #webdev … (space သို့ comma ဖြင့် ခြားပါ)"></el-input>
+        <label class="fl"># Hashtag Sets Bank</label>
+        <div v-if="!sets.length" class="empty">Set မရှိသေးပါ — အောက်တွင် ဖန်တီးပါ</div>
+        <div v-for="(s,i) in sets" :key="i" class="tagset">
+          <span class="n">{{ s.name }}</span>
+          <span class="t">{{ s.tags }}</span>
+          <el-button size="small" text @click="appendTags(s.tags)" title="Append">＋</el-button>
+          <el-button size="small" text @click="delSet(i)" title="Delete">✕</el-button>
+        </div>
+        <div style="display:flex; gap:6px; margin-top:8px">
+          <el-input v-model="newSetName" placeholder="Name" style="flex:0 0 90px"></el-input>
+          <el-input v-model="newSetTags" placeholder="#tags…"></el-input>
+          <el-button @click="addSet">＋</el-button>
+        </div>
+      </div>
+
+      <!-- Social block -->
+      <div class="card">
+        <h3>🌐 Social Block
+          <span class="hint">prefs အဖြစ် သိမ်းသည်</span>
+        </h3>
+        <el-input v-model="form.social" type="textarea" :rows="4"
+          placeholder="FB / social links…"></el-input>
+        <div style="margin-top:8px">
+          <el-button size="small" @click="saveSocialDefault">💾 default အဖြစ် သိမ်းမည်</el-button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ RIGHT: preview ============ -->
+    <div>
+      <div class="card preview">
+        <h3>👁 အစမ်းကြည့် / Preview</h3>
+        <pre>{{ assembled || '— အချက်အလက် ထည့်ပါ —' }}</pre>
+        <div class="charbar">
+          <span :class="{ warn: assembled.length > 5000 }">{{ assembled.length }} အက္ခရာ / chars</span>
+          <span>·</span>
+          <span :class="{ warn: assembled.length > 5000 }">YouTube ကန့်သတ် 5000</span>
+          <span style="flex:1"></span>
+          <el-input v-model="draftTitle" placeholder="မူကြမ်းအမည်…" size="small" style="width:150px"></el-input>
+          <el-button size="small" type="primary" @click="saveDraft">💾 မူကြမ်း သိမ်းမည်</el-button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Drafts dialog -->
+  <el-dialog v-model="showDrafts" title="🗂 သိမ်းထားသော မူကြမ်းများ" width="min(560px, 96vw)">
+    <div v-if="!drafts.length" class="empty">မူကြမ်း မရှိသေးပါ</div>
+    <div v-for="d in draftsSorted" :key="d.id" class="draftrow">
+      <div class="dt">
+        <div class="tt">{{ d.title || '(untitled)' }}</div>
+        <div class="dd">{{ new Date(d.t).toLocaleString() }} · {{ (d.intro||'').slice(0,40) }}</div>
+      </div>
+      <el-button size="small" @click="loadDraft(d)">📂 ဖွင့်</el-button>
+      <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delDraft(d.id)">
+        <template #reference>
+          <el-button size="small" type="danger" plain>🗑</el-button>
+        </template>
+      </el-popconfirm>
+    </div>
+  </el-dialog>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted, watch } = Vue;
+const STORE = 'videodesc.v1';
+const SETS_KEY = 'videodesc.sets';
+const PREFS_KEY = 'videodesc.prefs';
+
+const DISCLAIMER = '📌 မှတ်ချက်: အထက်ပါလင့်ခ်အချို့သည် affiliate link များဖြစ်ပြီး၊ ၎င်းတို့မှတစ်ဆင့် ဝယ်ယူပါက ကျွန်ုပ်အနေဖြင့် ကော်မရှင်အနည်းငယ် ရရှိနိုင်ပါသည် (သင့်အတွက် အပိုကုန်ကျစရိတ် မရှိပါ)။ / Some links above are affiliate links — I may earn a small commission at no extra cost to you.';
+const DEFAULT_SOCIAL = '👍 Facebook: Myo\'s Learing Lab and WebDev Academy\n▶ YouTube: @MyoLearningLab';
+
+const app = createApp({
+  setup() {
+    const uid = () => Date.now() + Math.floor(Math.random() * 1000);
+    const blankForm = () => ({
+      intro: '',
+      chapters: [{ id: uid(), time: '00:00', label: '' }],
+      links: [{ id: uid(), label: '', url: '' }],
+      disclaimer: false,
+      hashtags: '',
+      social: DEFAULT_SOCIAL,
+    });
+    const form = ref(blankForm());
+    const sets = ref([]);
+    const drafts = ref([]);
+    const newSetName = ref(''); const newSetTags = ref('');
+    const draftTitle = ref('');
+    const showDrafts = ref(false);
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2800 });
+
+    // ---- time helpers ----
+    function validTime(t) {
+      if (!t) return false;
+      const p = String(t).trim().split(':');
+      if (p.length < 2 || p.length > 3) return false;
+      if (!p.every(x => /^\d+$/.test(x))) return false;
+      const sec = +p[p.length - 1], min = +p[p.length - 2];
+      if (sec > 59 || min > 59) return false;
+      return true;
+    }
+    function timeToSec(t) {
+      const p = String(t).trim().split(':').map(Number);
+      if (p.some(isNaN)) return Infinity;
+      return p.reduce((acc, n) => acc * 60 + n, 0);
+    }
+
+    // ---- persistence ----
+    function loadPrefs() {
+      try {
+        const p = JSON.parse(localStorage.getItem(PREFS_KEY) || '{}');
+        if (p.social) form.value.social = p.social;
+        if (p.hashtags) form.value.hashtags = p.hashtags;
+      } catch (e) {}
+    }
+    function savePrefs() {
+      localStorage.setItem(PREFS_KEY, JSON.stringify({ social: form.value.social, hashtags: form.value.hashtags }));
+    }
+    function loadSets() {
+      try {
+        const s = JSON.parse(localStorage.getItem(SETS_KEY) || 'null');
+        sets.value = Array.isArray(s) ? s : [
+          { name: 'WebDev', tags: '#webdev #coding #programming #html #css #javascript' },
+          { name: 'MM', tags: '#myanmar #မြန်မာ #vlog #learnwithme' },
+        ];
+      } catch (e) {}
+    }
+    function saveSets() { localStorage.setItem(SETS_KEY, JSON.stringify(sets.value)); }
+    function loadDrafts() { try { drafts.value = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (e) {} }
+    function saveDrafts() { localStorage.setItem(STORE, JSON.stringify(drafts.value)); }
+
+    // ---- chapters ----
+    function addCh() {
+      const first = form.value.chapters.length === 0;
+      form.value.chapters.push({ id: uid(), time: first ? '00:00' : '', label: '' });
+    }
+    function delCh(i) { form.value.chapters.splice(i, 1); }
+    function moveCh(i, dir) {
+      const j = i + dir;
+      if (j < 0 || j >= form.value.chapters.length) return;
+      const a = form.value.chapters;
+      [a[i], a[j]] = [a[j], a[i]];
+    }
+    function sortCh() {
+      form.value.chapters.sort((a, b) => timeToSec(a.time) - timeToSec(b.time));
+      toast('↕ အချိန်အလိုက် စီပြီး');
+    }
+
+    // ---- links ----
+    function addLink() { form.value.links.push({ id: uid(), label: '', url: '' }); }
+    function delLink(i) { form.value.links.splice(i, 1); }
+
+    // ---- hashtag sets ----
+    function appendTags(tags) {
+      const cur = form.value.hashtags.trim();
+      form.value.hashtags = (cur ? cur + ' ' : '') + tags;
+      toast('＋ Set ထည့်ပြီး');
+    }
+    function addSet() {
+      if (!newSetTags.value.trim()) { toast('Tags လိုအပ်ပါသည်', 'warning'); return; }
+      sets.value.push({ name: newSetName.value.trim() || 'Set', tags: newSetTags.value.trim() });
+      newSetName.value = ''; newSetTags.value = ''; saveSets();
+      toast('💾 Set သိမ်းပြီး');
+    }
+    function delSet(i) { sets.value.splice(i, 1); saveSets(); }
+
+    function normHashtags(str) {
+      return String(str || '').split(/[\s,]+/).map(t => t.trim()).filter(Boolean)
+        .map(t => t.startsWith('#') ? t : '#' + t).join(' ');
+    }
+    function saveSocialDefault() { savePrefs(); toast('💾 default အဖြစ် သိမ်းပြီး'); }
+
+    // ---- assemble preview (exact order) ----
+    const assembled = computed(() => {
+      const f = form.value;
+      const blocks = [];
+      // 1. intro
+      if (f.intro.trim()) blocks.push(f.intro.trim());
+      // 2. chapters
+      const chLines = f.chapters
+        .filter(c => c.time && c.label.trim())
+        .map(c => `${c.time} ${c.label.trim()}`);
+      if (chLines.length) blocks.push('⏱ Chapters:\n' + chLines.join('\n'));
+      // 3. links + disclaimer
+      const lnLines = f.links
+        .filter(l => l.url.trim())
+        .map(l => (l.label.trim() ? l.label.trim() + ': ' : '') + l.url.trim());
+      if (lnLines.length) {
+        let b = '🔗 Links:\n' + lnLines.join('\n');
+        if (f.disclaimer) b += '\n\n' + DISCLAIMER;
+        blocks.push(b);
+      } else if (f.disclaimer) {
+        blocks.push(DISCLAIMER);
+      }
+      // 4. social
+      if (f.social.trim()) blocks.push(f.social.trim());
+      // 5. hashtags
+      const tags = normHashtags(f.hashtags);
+      if (tags) blocks.push(tags);
+      return blocks.join('\n\n');
+    });
+
+    // Persist prefs on hashtag/social change (debounced-ish via watch)
+    watch(() => [form.value.social, form.value.hashtags], () => savePrefs());
+
+    // ---- copy / download ----
+    function copyAll() {
+      if (!assembled.value) { toast('ဖော်ပြချက် ဗလာဖြစ်နေသည်', 'warning'); return; }
+      navigator.clipboard.writeText(assembled.value).then(() => toast('📋 ဖော်ပြချက် ကူးပြီး'))
+        .catch(() => toast('⚠ ကူးမရပါ', 'error'));
+    }
+    function downloadTxt() {
+      const blob = new Blob([assembled.value], { type: 'text/plain;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'video-description-' + Date.now() + '.txt'; a.click();
+      URL.revokeObjectURL(a.href);
+      toast('⬇ .txt ရယူပြီး');
+    }
+
+    // ---- drafts ----
+    const draftsSorted = computed(() => [...drafts.value].sort((a, b) => b.t - a.t));
+    function openDrafts() { showDrafts.value = true; }
+    function saveDraft() {
+      const rec = {
+        id: uid(),
+        title: draftTitle.value.trim() || (form.value.intro.trim().slice(0, 40)) || 'Untitled',
+        intro: form.value.intro,
+        chapters: JSON.parse(JSON.stringify(form.value.chapters)),
+        links: JSON.parse(JSON.stringify(form.value.links)),
+        disclaimer: form.value.disclaimer,
+        hashtags: form.value.hashtags,
+        social: form.value.social,
+        t: Date.now(),
+      };
+      drafts.value.unshift(rec); saveDrafts();
+      toast('💾 မူကြမ်း သိမ်းပြီး');
+    }
+    function loadDraft(d) {
+      form.value = {
+        intro: d.intro || '',
+        chapters: (d.chapters && d.chapters.length ? JSON.parse(JSON.stringify(d.chapters)) : [{ id: uid(), time: '00:00', label: '' }]),
+        links: (d.links && d.links.length ? JSON.parse(JSON.stringify(d.links)) : [{ id: uid(), label: '', url: '' }]),
+        disclaimer: !!d.disclaimer,
+        hashtags: d.hashtags || '',
+        social: d.social || DEFAULT_SOCIAL,
+      };
+      draftTitle.value = d.title || '';
+      showDrafts.value = false;
+      toast('📂 မူကြမ်း ဖွင့်ပြီး');
+    }
+    function delDraft(id) {
+      drafts.value = drafts.value.filter(d => d.id !== id); saveDrafts();
+      toast('🗑 ဖျက်ပြီး');
+    }
+
+    onMounted(() => {
+      loadSets(); loadDrafts(); loadPrefs();
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+
+    return {
+      form, sets, drafts, newSetName, newSetTags, draftTitle, showDrafts,
+      assembled, draftsSorted,
+      validTime, addCh, delCh, moveCh, sortCh,
+      addLink, delLink,
+      appendTags, addSet, delSet, saveSocialDefault,
+      copyAll, downloadTxt,
+      openDrafts, saveDraft, loadDraft, delDraft,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>
