@@ -160,11 +160,7 @@
   <!-- Category breakdown -->
   <div class="card" v-if="catTotals.length">
     <label class="fl">📊 {{ monthLabel }} — အမျိုးအစားအလိုက် ထွက်ငွေ</label>
-    <div v-for="c in catTotals" :key="c.k" class="cat-bar-row">
-      <span class="nm">{{ c.ic }} {{ c.my }}</span>
-      <div class="bar"><div class="fill" :style="{width: c.pct+'%', background: c.color}"></div></div>
-      <span class="amt">{{ fmt(c.total) }} Ks</span>
-    </div>
+    <mini-chart type="donut" :data="catDonut" :height="200" :format-y="v => fmt(v) + ' Ks'"></mini-chart>
   </div>
 
   <!-- Entries by day -->
@@ -210,6 +206,7 @@
 <script defer src="_cloudsync.js"></script>
 <script src="vue.global.prod.js"></script>
 <script src="element-plus.full.min.js"></script>
+<script src="_vueshared.js"></script>
 <script>
 if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
   document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
@@ -276,6 +273,7 @@ const app = createApp({
         ...c, total: m[c.k], pct: Math.round(m[c.k] / max * 100),
       })).sort((a, b) => b.total - a.total);
     });
+    const catDonut = computed(() => catTotals.value.map(c => ({ label: c.ic + ' ' + c.my, value: c.total, color: c.color })));
 
     const dayGroups = computed(() => {
       const m = {};
@@ -342,13 +340,14 @@ const app = createApp({
     return {
       CATS_OUT, CATS_IN, entries, budget, addType, addCat, addAmt, addNote,
       showBudget, budgetInput, viewYm,
-      monthIn, monthOut, monthLabel, isCurrentMonth, catTotals, dayGroups,
+      monthIn, monthOut, monthLabel, isCurrentMonth, catTotals, catDonut, dayGroups,
       fmt, catIcon, catName,
       addEntry, delEntry, moveMonth, openBudget, saveBudget, exportCsv,
     };
   }
 });
 app.use(ElementPlus);
+if (typeof VueShared !== 'undefined') VueShared.install(app);
 app.mount('#app');
 }
 </script>

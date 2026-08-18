@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dev Toolbox</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="_effects.css">
+<link rel="stylesheet" href="_design.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#0ea5e9">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#060b12; --bg2:#0b1220;
+    --card:#111a27; --card2:#16202f;
+    --field:#0e1621; --field-border:#25303f;
+    --text:#eef4fb; --muted:#93a1b3; --faint:#5f6d7e;
+    --accent:#0ea5e9; --accent-2:#38bdf8;
+    --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#0ea5e9;
+    --el-color-primary-light-3:#38bdf8;
+    --el-color-primary-dark-2:#0284c7;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#111a27; --el-bg-color-overlay:#16202f; --el-fill-color-blank:#0e1621;
+    --el-border-color:#25303f; --el-border-color-light:#25303f; --el-border-color-lighter:#1c2634;
+    --el-text-color-primary:#eef4fb; --el-text-color-regular:#c3cdda;
+    --el-text-color-secondary:#93a1b3; --el-text-color-placeholder:#5f6d7e;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 8% -10%, rgba(14,165,233,.14), transparent 55%),
+      radial-gradient(900px 550px at 108% 0%, rgba(56,189,248,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:26px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1040px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(14,165,233,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .tabs { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:18px; }
+  .tab {
+    padding:8px 14px; border-radius:999px; cursor:pointer; font-family:inherit;
+    font-size:.83rem; font-weight:600; color:var(--muted);
+    background:var(--card); border:1px solid rgba(255,255,255,.07);
+    transition:all .16s; display:inline-flex; align-items:center; gap:6px;
+  }
+  .tab:hover { color:var(--text); border-color:color-mix(in srgb,var(--accent) 45%,transparent); transform:translateY(-1px); }
+  .tab.on {
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#04121c;
+    border-color:transparent; box-shadow:0 4px 14px rgba(14,165,233,.35);
+  }
+
+  .panel {
+    background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px;
+    padding:20px; margin-bottom:16px;
+  }
+  .panel h2 { margin:0 0 4px; font-size:1.05rem; }
+  .panel .lead { color:var(--muted); font-size:.8rem; margin:0 0 16px; }
+  .row { display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:12px; }
+  .row.top { align-items:flex-start; }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:0 0 5px; font-weight:600; }
+  .col { flex:1; min-width:280px; }
+  .actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .spacer { flex:1; }
+  .el-textarea__inner, .el-input__inner { font-family:var(--mono); font-size:.83rem; line-height:1.6; }
+  .out {
+    margin:0; background:var(--field); border:1px solid var(--field-border); border-radius:9px;
+    padding:12px 14px; font-family:var(--mono); font-size:.8rem; line-height:1.65; color:#cfe0f0;
+    white-space:pre-wrap; word-break:break-word; overflow:auto; max-height:520px; min-height:52px;
+  }
+  .hint { font-size:.72rem; color:var(--faint); }
+  .stat-line { font-size:.74rem; color:var(--muted); margin-top:8px; }
+  .err { color:var(--bad); }
+  .ok { color:var(--ok); }
+  .warnc { color:var(--warn); }
+
+  /* diff */
+  .diff { font-family:var(--mono); font-size:.78rem; line-height:1.6; }
+  .diff .dl { display:block; padding:0 8px; white-space:pre-wrap; word-break:break-word; }
+  .diff .add { background:rgba(34,197,94,.16); color:#b7f7cd; }
+  .diff .del { background:rgba(239,68,68,.16); color:#ffc9c9; }
+  .diff .eq  { color:var(--muted); }
+
+  /* color */
+  .swatch { width:100%; height:70px; border-radius:10px; border:1px solid var(--field-border); }
+  .kv { display:flex; gap:8px; align-items:center; margin-bottom:8px; }
+  .kv .k { width:52px; font-size:.75rem; color:var(--muted); font-weight:600; }
+
+  /* jwt segments */
+  .seg-h { color:#38bdf8; } .seg-p { color:#a78bfa; } .seg-s { color:var(--faint); }
+
+  .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+  @media (max-width:560px){ .col{min-width:100%;} }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🧰</div>
+    <div class="title">
+      <h1>Dev Toolbox</h1>
+      <div class="sub">Developer utilities — JSON · Base64 · URL · JWT · Hash · UUID · Timestamp · Diff · Case · Color · Lorem. အားလုံး offline / browser ထဲမှာ။</div>
+    </div>
+  </header>
+
+  <div class="tabs">
+    <button v-for="t in TOOLS" :key="t.id" class="tab" :class="{on: tool===t.id}" @click="setTool(t.id)">{{ t.icon }} {{ t.label }}</button>
+  </div>
+
+  <!-- ===== JSON ===== -->
+  <div class="panel" v-show="tool==='json'">
+    <h2>🧩 JSON — Format / Validate</h2>
+    <p class="lead">မွမ်းမံ (prettify), minify, validate၊ key စီ (sort)၊ tree view။</p>
+    <div class="row actions">
+      <el-input-number v-model="jsonIndent" :min="0" :max="8" size="small" controls-position="right"></el-input-number>
+      <span class="hint">indent</span>
+      <el-checkbox v-model="jsonSort">🔤 key sort</el-checkbox>
+      <span class="spacer"></span>
+      <el-button type="primary" @click="jsonFormat">✨ Prettify</el-button>
+      <el-button @click="jsonMinify">📦 Minify</el-button>
+      <el-button @click="jsonValidate">✅ Validate</el-button>
+      <el-button @click="jsonTree=!jsonTree">🌳 Tree</el-button>
+    </div>
+    <div class="row top">
+      <div class="col">
+        <label class="fl">Input JSON</label>
+        <el-input v-model="jsonIn" type="textarea" :rows="16" placeholder='{"hello":"world","n":[1,2,3]}'></el-input>
+      </div>
+      <div class="col">
+        <label class="fl">Output</label>
+        <div v-if="jsonTree && jsonTreeData!==null" class="out"><el-tree :data="jsonTreeData" default-expand-all node-key="_k"></el-tree></div>
+        <pre v-else class="out">{{ jsonOut }}</pre>
+      </div>
+    </div>
+    <div class="stat-line" :class="jsonMsgType">{{ jsonMsg }}</div>
+    <div class="row actions"><el-button size="small" @click="copy(jsonOut)">📋 ကူးမည်</el-button><el-button size="small" @click="jsonIn='';jsonOut='';jsonMsg='';jsonTreeData=null">🧹 ရှင်း</el-button></div>
+  </div>
+
+  <!-- ===== Base64 ===== -->
+  <div class="panel" v-show="tool==='base64'">
+    <h2>🔤 Base64</h2>
+    <p class="lead">စာသား encode / decode (UTF-8 safe) နှင့် file → Base64။</p>
+    <div class="row top">
+      <div class="col">
+        <label class="fl">Text</label>
+        <el-input v-model="b64In" type="textarea" :rows="8" placeholder="မင်္ဂလာပါ Hello"></el-input>
+        <div class="row actions" style="margin-top:8px">
+          <el-button type="primary" @click="b64enc">→ Encode</el-button>
+          <el-button @click="b64dec">← Decode</el-button>
+        </div>
+      </div>
+      <div class="col">
+        <label class="fl">Result</label>
+        <pre class="out">{{ b64Out }}</pre>
+        <div class="stat-line err" v-if="b64Err">{{ b64Err }}</div>
+        <div class="row actions" style="margin-top:8px"><el-button size="small" @click="copy(b64Out)">📋 ကူးမည်</el-button><el-button size="small" @click="b64In='';b64Out='';b64Err=''">🧹 ရှင်း</el-button></div>
+      </div>
+    </div>
+    <label class="fl">File → Base64</label>
+    <div class="row actions">
+      <el-button @click="b64FileEl && b64FileEl.click()">📁 File ရွေးမည်</el-button>
+      <span class="hint">{{ b64FileName || 'no file' }}</span>
+      <el-button size="small" v-if="b64FileOut" @click="copy(b64FileOut)">📋 data URL ကူး</el-button>
+    </div>
+    <input type="file" ref="b64FileEl" style="display:none" @change="b64File">
+    <pre class="out" v-if="b64FileOut" style="max-height:140px">{{ b64FileOut.slice(0,4000) }}{{ b64FileOut.length>4000 ? ' …' : '' }}</pre>
+  </div>
+
+  <!-- ===== URL ===== -->
+  <div class="panel" v-show="tool==='url'">
+    <h2>🔗 URL Encode / Decode</h2>
+    <p class="lead">component နှင့် full URL နှစ်မျိုးလုံး။</p>
+    <div class="row top">
+      <div class="col">
+        <label class="fl">Input</label>
+        <el-input v-model="urlIn" type="textarea" :rows="8" placeholder="https://x.com/?q=မင်္ဂလာ &amp; more"></el-input>
+        <div class="row actions" style="margin-top:8px">
+          <el-button type="primary" @click="urlEnc('c')">Encode (component)</el-button>
+          <el-button @click="urlEnc('f')">Encode (full)</el-button>
+          <el-button @click="urlDec('c')">Decode (component)</el-button>
+          <el-button @click="urlDec('f')">Decode (full)</el-button>
+        </div>
+      </div>
+      <div class="col">
+        <label class="fl">Result</label>
+        <pre class="out">{{ urlOut }}</pre>
+        <div class="stat-line err" v-if="urlErr">{{ urlErr }}</div>
+        <div class="row actions" style="margin-top:8px"><el-button size="small" @click="copy(urlOut)">📋 ကူးမည်</el-button><el-button size="small" @click="urlIn='';urlOut='';urlErr=''">🧹 ရှင်း</el-button></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== JWT ===== -->
+  <div class="panel" v-show="tool==='jwt'">
+    <h2>🎫 JWT Decoder</h2>
+    <p class="lead">Token paste → header + payload (verify မလုပ်ပါ)။ exp ကို လူဖတ်နိုင်သော အချိန်ပြသည်။</p>
+    <label class="fl">JWT Token</label>
+    <el-input v-model="jwtIn" type="textarea" :rows="5" placeholder="eyJhbGciOiJIUzI1Ni...header.payload.signature" @input="jwtDecode"></el-input>
+    <div class="row actions" style="margin:8px 0"><el-button type="primary" @click="jwtDecode">🔍 Decode</el-button><el-button size="small" @click="jwtIn='';jwtHeader='';jwtPayload='';jwtErr='';jwtExp=''">🧹 ရှင်း</el-button></div>
+    <div class="stat-line err" v-if="jwtErr">{{ jwtErr }}</div>
+    <div class="stat-line" v-if="jwtExp" :class="jwtExpired ? 'err' : 'ok'">{{ jwtExpired ? '⚠ သက်တမ်းကုန်ပြီ (expired)' : '✅ valid window' }} — exp: {{ jwtExp }}</div>
+    <div class="row top" v-if="jwtHeader || jwtPayload">
+      <div class="col">
+        <label class="fl seg-h">Header</label>
+        <pre class="out">{{ jwtHeader }}</pre>
+        <el-button size="small" style="margin-top:6px" @click="copy(jwtHeader)">📋 ကူး</el-button>
+      </div>
+      <div class="col">
+        <label class="fl seg-p">Payload</label>
+        <pre class="out">{{ jwtPayload }}</pre>
+        <el-button size="small" style="margin-top:6px" @click="copy(jwtPayload)">📋 ကူး</el-button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Hash ===== -->
+  <div class="panel" v-show="tool==='hash'">
+    <h2>#️⃣ Hash</h2>
+    <p class="lead">SHA-1 / 256 / 384 / 512 — crypto.subtle သုံး၍။</p>
+    <label class="fl">Text</label>
+    <el-input v-model="hashIn" type="textarea" :rows="6" placeholder="abc" @input="hashRun"></el-input>
+    <div class="row actions" style="margin:8px 0">
+      <el-button type="primary" @click="hashRun">🔐 Hash</el-button>
+      <el-button size="small" @click="hashIn='';hashOut={}">🧹 ရှင်း</el-button>
+    </div>
+    <template v-for="algo in HASHES" :key="algo">
+      <div class="row" style="margin-bottom:6px" v-if="hashOut[algo]">
+        <label class="fl" style="width:80px;margin:0">{{ algo }}</label>
+        <pre class="out" style="flex:1;min-height:0;padding:8px 12px">{{ hashOut[algo] }}</pre>
+        <el-button size="small" @click="copy(hashOut[algo])">📋</el-button>
+      </div>
+    </template>
+  </div>
+
+  <!-- ===== UUID ===== -->
+  <div class="panel" v-show="tool==='uuid'">
+    <h2>🆔 UUID v4</h2>
+    <p class="lead">crypto သုံး၍ v4 UUID ထုတ်သည် — bulk N ခု။</p>
+    <div class="row actions">
+      <el-input-number v-model="uuidN" :min="1" :max="1000" size="small" controls-position="right"></el-input-number>
+      <span class="hint">count</span>
+      <el-button type="primary" @click="uuidGen">🎲 Generate</el-button>
+      <el-button size="small" @click="copy(uuidOut)">📋 အားလုံးကူး</el-button>
+      <el-button size="small" @click="uuidOut=''">🧹 ရှင်း</el-button>
+    </div>
+    <pre class="out" style="margin-top:12px">{{ uuidOut }}</pre>
+  </div>
+
+  <!-- ===== Timestamp ===== -->
+  <div class="panel" v-show="tool==='ts'">
+    <h2>⏱ Timestamp</h2>
+    <p class="lead">Unix ↔ date နှစ်ဖက်လှည့်။ ms / s toggle။</p>
+    <div class="row actions">
+      <el-radio-group v-model="tsUnit">
+        <el-radio-button label="s">seconds</el-radio-button>
+        <el-radio-button label="ms">milliseconds</el-radio-button>
+      </el-radio-group>
+      <el-button @click="tsNow">🕒 Now</el-button>
+    </div>
+    <div class="row top">
+      <div class="col">
+        <label class="fl">Unix → Date</label>
+        <el-input v-model="tsUnix" placeholder="1700000000" @input="tsToDate"></el-input>
+        <pre class="out" style="margin-top:8px">{{ tsDateOut }}</pre>
+      </div>
+      <div class="col">
+        <label class="fl">Date → Unix (ISO or any parseable)</label>
+        <el-input v-model="tsDate" placeholder="2026-08-18T10:00:00" @input="tsToUnix"></el-input>
+        <pre class="out" style="margin-top:8px">{{ tsUnixOut }}</pre>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Diff ===== -->
+  <div class="panel" v-show="tool==='diff'">
+    <h2>🔀 Text Diff</h2>
+    <p class="lead">Textarea နှစ်ခု → line diff (+/− highlight, LCS)။</p>
+    <div class="row top">
+      <div class="col">
+        <label class="fl">A (original)</label>
+        <el-input v-model="diffA" type="textarea" :rows="10"></el-input>
+      </div>
+      <div class="col">
+        <label class="fl">B (changed)</label>
+        <el-input v-model="diffB" type="textarea" :rows="10"></el-input>
+      </div>
+    </div>
+    <div class="row actions" style="margin:8px 0"><el-button type="primary" @click="diffRun">🔍 Compare</el-button><el-button size="small" @click="diffA='';diffB='';diffRows=[]">🧹 ရှင်း</el-button><span class="hint" v-if="diffRows.length">+{{ diffAdd }} / −{{ diffDel }}</span></div>
+    <div class="out diff" v-if="diffRows.length"><span v-for="(r,i) in diffRows" :key="i" class="dl" :class="r.t">{{ r.p }}{{ r.text }}</span></div>
+  </div>
+
+  <!-- ===== Case ===== -->
+  <div class="panel" v-show="tool==='case'">
+    <h2>🔡 Case Convert</h2>
+    <p class="lead">UPPER / lower / Title / camelCase / snake_case / kebab-case。</p>
+    <label class="fl">Input</label>
+    <el-input v-model="caseIn" type="textarea" :rows="5" placeholder="hello world example" @input="caseRun"></el-input>
+    <div class="row actions" style="margin:8px 0"><el-button size="small" @click="caseIn='';caseOut={}">🧹 ရှင်း</el-button></div>
+    <template v-for="c in CASES" :key="c.k">
+      <div class="row" style="margin-bottom:6px" v-if="caseIn">
+        <label class="fl" style="width:110px;margin:0">{{ c.label }}</label>
+        <pre class="out" style="flex:1;min-height:0;padding:8px 12px">{{ caseOut[c.k] }}</pre>
+        <el-button size="small" @click="copy(caseOut[c.k])">📋</el-button>
+      </div>
+    </template>
+  </div>
+
+  <!-- ===== Color ===== -->
+  <div class="panel" v-show="tool==='color'">
+    <h2>🎨 Color</h2>
+    <p class="lead">hex ↔ rgb ↔ hsl + swatch。</p>
+    <div class="row top">
+      <div class="col" style="max-width:220px">
+        <label class="fl">Pick</label>
+        <input type="color" v-model="colorHexPick" @input="colorFromPick" style="width:100%;height:44px;border:none;background:none;cursor:pointer">
+        <div class="swatch" :style="{background: colorSwatch}" style="margin-top:10px"></div>
+      </div>
+      <div class="col">
+        <div class="kv"><span class="k">HEX</span><el-input v-model="colorHex" placeholder="#0ea5e9" @input="colorFromHex"></el-input><el-button size="small" @click="copy(colorHex)">📋</el-button></div>
+        <div class="kv"><span class="k">RGB</span><el-input v-model="colorRgb" placeholder="rgb(14, 165, 233)" @input="colorFromRgb"></el-input><el-button size="small" @click="copy(colorRgb)">📋</el-button></div>
+        <div class="kv"><span class="k">HSL</span><el-input v-model="colorHsl" placeholder="hsl(199, 89%, 48%)" @input="colorFromHsl"></el-input><el-button size="small" @click="copy(colorHsl)">📋</el-button></div>
+        <div class="stat-line err" v-if="colorErr">{{ colorErr }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Lorem ===== -->
+  <div class="panel" v-show="tool==='lorem'">
+    <h2>📝 Lorem Ipsum</h2>
+    <p class="lead">N ခု paragraph / word / sentence ထုတ်ပေးသည်။</p>
+    <div class="row actions">
+      <el-input-number v-model="loremN" :min="1" :max="200" size="small" controls-position="right"></el-input-number>
+      <el-radio-group v-model="loremUnit">
+        <el-radio-button label="paragraphs">paragraphs</el-radio-button>
+        <el-radio-button label="sentences">sentences</el-radio-button>
+        <el-radio-button label="words">words</el-radio-button>
+      </el-radio-group>
+      <el-button type="primary" @click="loremGen">✨ Generate</el-button>
+      <el-button size="small" @click="copy(loremOut)">📋 ကူး</el-button>
+      <el-button size="small" @click="loremOut=''">🧹 ရှင်း</el-button>
+    </div>
+    <pre class="out" style="margin-top:12px;max-height:420px">{{ loremOut }}</pre>
+  </div>
+
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, onMounted } = Vue;
+const PREFS = 'devtools.prefs';
+
+const app = createApp({
+  setup() {
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2400 });
+    function copy(v) {
+      if (v == null || v === '') { toast('ကူးစရာ မရှိပါ', 'info'); return; }
+      navigator.clipboard.writeText(String(v)).then(() => toast('📋 Copied'), () => toast('ကူး၍မရ', 'error'));
+    }
+
+    const TOOLS = [
+      { id:'json',   icon:'🧩', label:'JSON' },
+      { id:'base64', icon:'🔤', label:'Base64' },
+      { id:'url',    icon:'🔗', label:'URL' },
+      { id:'jwt',    icon:'🎫', label:'JWT' },
+      { id:'hash',   icon:'#️⃣', label:'Hash' },
+      { id:'uuid',   icon:'🆔', label:'UUID' },
+      { id:'ts',     icon:'⏱', label:'Timestamp' },
+      { id:'diff',   icon:'🔀', label:'Diff' },
+      { id:'case',   icon:'🔡', label:'Case' },
+      { id:'color',  icon:'🎨', label:'Color' },
+      { id:'lorem',  icon:'📝', label:'Lorem' },
+    ];
+    const tool = ref('json');
+    function setTool(id) { tool.value = id; savePrefs(); }
+    function savePrefs() { try { localStorage.setItem(PREFS, JSON.stringify({ tool: tool.value })); } catch (e) {} }
+
+    // ---------- JSON ----------
+    const jsonIn = ref(''); const jsonOut = ref(''); const jsonMsg = ref(''); const jsonMsgType = ref('');
+    const jsonIndent = ref(2); const jsonSort = ref(false); const jsonTree = ref(false); const jsonTreeData = ref(null);
+    function sortKeys(v) {
+      if (Array.isArray(v)) return v.map(sortKeys);
+      if (v && typeof v === 'object') {
+        return Object.keys(v).sort().reduce((o, k) => { o[k] = sortKeys(v[k]); return o; }, {});
+      }
+      return v;
+    }
+    function parseJson() {
+      try { return { ok: true, val: JSON.parse(jsonIn.value) }; }
+      catch (e) {
+        const m = /position (\d+)/.exec(e.message);
+        let line = '';
+        if (m) { const pos = +m[1]; line = ' (line ' + (jsonIn.value.slice(0, pos).split('\n').length) + ')'; }
+        return { ok: false, err: e.message + line };
+      }
+    }
+    function toTree(v, key) {
+      const node = { _k: key + '-' + Math.random().toString(36).slice(2, 7) };
+      if (v && typeof v === 'object') {
+        const isArr = Array.isArray(v);
+        node.label = key + (isArr ? ' [' + v.length + ']' : ' {' + Object.keys(v).length + '}');
+        node.children = Object.keys(v).map(k => toTree(v[k], k));
+      } else {
+        node.label = key + ': ' + JSON.stringify(v);
+      }
+      return node;
+    }
+    function jsonFormat() {
+      const r = parseJson();
+      if (!r.ok) { jsonOut.value = ''; jsonMsg.value = '❌ ' + r.err; jsonMsgType.value = 'err'; jsonTreeData.value = null; return; }
+      let v = jsonSort.value ? sortKeys(r.val) : r.val;
+      jsonOut.value = JSON.stringify(v, null, jsonIndent.value);
+      jsonTreeData.value = [toTree(v, 'root')];
+      jsonMsg.value = '✅ valid JSON'; jsonMsgType.value = 'ok';
+    }
+    function jsonMinify() {
+      const r = parseJson();
+      if (!r.ok) { jsonOut.value = ''; jsonMsg.value = '❌ ' + r.err; jsonMsgType.value = 'err'; return; }
+      jsonOut.value = JSON.stringify(jsonSort.value ? sortKeys(r.val) : r.val);
+      jsonMsg.value = '📦 minified — ' + jsonOut.value.length + ' chars'; jsonMsgType.value = 'ok';
+    }
+    function jsonValidate() {
+      const r = parseJson();
+      if (r.ok) { jsonMsg.value = '✅ valid JSON'; jsonMsgType.value = 'ok'; }
+      else { jsonMsg.value = '❌ ' + r.err; jsonMsgType.value = 'err'; }
+    }
+
+    // ---------- Base64 ----------
+    const b64In = ref(''); const b64Out = ref(''); const b64Err = ref('');
+    const b64FileEl = ref(null); const b64FileOut = ref(''); const b64FileName = ref('');
+    function b64enc() {
+      b64Err.value = '';
+      try { b64Out.value = btoa(String.fromCharCode(...new TextEncoder().encode(b64In.value))); }
+      catch (e) { b64Err.value = 'Encode error: ' + e.message; }
+    }
+    function b64dec() {
+      b64Err.value = '';
+      try { b64Out.value = new TextDecoder().decode(Uint8Array.from(atob(b64In.value.trim()), c => c.charCodeAt(0))); }
+      catch (e) { b64Err.value = '❌ Base64 မမှန်ပါ (invalid)'; b64Out.value = ''; }
+    }
+    function b64File(ev) {
+      const f = ev.target.files[0]; if (!f) return;
+      b64FileName.value = f.name + ' · ' + (f.size / 1024).toFixed(1) + ' KB';
+      const r = new FileReader();
+      r.onload = () => { b64FileOut.value = r.result; };
+      r.readAsDataURL(f);
+      ev.target.value = '';
+    }
+
+    // ---------- URL ----------
+    const urlIn = ref(''); const urlOut = ref(''); const urlErr = ref('');
+    function urlEnc(mode) { urlErr.value = ''; try { urlOut.value = mode === 'c' ? encodeURIComponent(urlIn.value) : encodeURI(urlIn.value); } catch (e) { urlErr.value = e.message; } }
+    function urlDec(mode) { urlErr.value = ''; try { urlOut.value = mode === 'c' ? decodeURIComponent(urlIn.value) : decodeURI(urlIn.value); } catch (e) { urlErr.value = '❌ decode error (malformed)'; } }
+
+    // ---------- JWT ----------
+    const jwtIn = ref(''); const jwtHeader = ref(''); const jwtPayload = ref(''); const jwtErr = ref('');
+    const jwtExp = ref(''); const jwtExpired = ref(false);
+    function b64urlDecode(s) {
+      s = s.replace(/-/g, '+').replace(/_/g, '/'); while (s.length % 4) s += '=';
+      return new TextDecoder().decode(Uint8Array.from(atob(s), c => c.charCodeAt(0)));
+    }
+    function jwtDecode() {
+      jwtErr.value = ''; jwtHeader.value = ''; jwtPayload.value = ''; jwtExp.value = ''; jwtExpired.value = false;
+      const t = jwtIn.value.trim(); if (!t) return;
+      const parts = t.split('.');
+      if (parts.length < 2) { jwtErr.value = '❌ JWT format မမှန်ပါ (need header.payload.signature)'; return; }
+      try {
+        const h = JSON.parse(b64urlDecode(parts[0]));
+        const p = JSON.parse(b64urlDecode(parts[1]));
+        jwtHeader.value = JSON.stringify(h, null, 2);
+        jwtPayload.value = JSON.stringify(p, null, 2);
+        if (p.exp) {
+          const d = new Date(p.exp * 1000);
+          jwtExp.value = d.toLocaleString();
+          jwtExpired.value = Date.now() > p.exp * 1000;
+        }
+      } catch (e) { jwtErr.value = '❌ decode error — invalid base64/JSON'; }
+    }
+
+    // ---------- Hash ----------
+    const HASHES = ['SHA-1', 'SHA-256', 'SHA-384', 'SHA-512'];
+    const hashIn = ref(''); const hashOut = ref({});
+    async function hashRun() {
+      const out = {};
+      if (!hashIn.value) { hashOut.value = {}; return; }
+      const data = new TextEncoder().encode(hashIn.value);
+      for (const algo of HASHES) {
+        const buf = await crypto.subtle.digest(algo, data);
+        out[algo] = [...new Uint8Array(buf)].map(b => b.toString(16).padStart(2, '0')).join('');
+      }
+      hashOut.value = out;
+    }
+
+    // ---------- UUID ----------
+    const uuidN = ref(5); const uuidOut = ref('');
+    function uuid4() {
+      if (crypto.randomUUID) return crypto.randomUUID();
+      const b = crypto.getRandomValues(new Uint8Array(16));
+      b[6] = (b[6] & 0x0f) | 0x40; b[8] = (b[8] & 0x3f) | 0x80;
+      const h = [...b].map(x => x.toString(16).padStart(2, '0'));
+      return `${h[0]}${h[1]}${h[2]}${h[3]}-${h[4]}${h[5]}-${h[6]}${h[7]}-${h[8]}${h[9]}-${h[10]}${h[11]}${h[12]}${h[13]}${h[14]}${h[15]}`;
+    }
+    function uuidGen() { uuidOut.value = Array.from({ length: uuidN.value }, () => uuid4()).join('\n'); }
+
+    // ---------- Timestamp ----------
+    const tsUnit = ref('s'); const tsUnix = ref(''); const tsDate = ref(''); const tsDateOut = ref(''); const tsUnixOut = ref('');
+    function tsToDate() {
+      if (!tsUnix.value) { tsDateOut.value = ''; return; }
+      let n = Number(tsUnix.value); if (isNaN(n)) { tsDateOut.value = '❌ number မဟုတ်ပါ'; return; }
+      const ms = tsUnit.value === 's' ? n * 1000 : n;
+      const d = new Date(ms);
+      if (isNaN(d.getTime())) { tsDateOut.value = '❌ invalid'; return; }
+      tsDateOut.value = 'Local: ' + d.toLocaleString() + '\nISO:   ' + d.toISOString() + '\nUTC:   ' + d.toUTCString();
+    }
+    function tsToUnix() {
+      if (!tsDate.value) { tsUnixOut.value = ''; return; }
+      const d = new Date(tsDate.value);
+      if (isNaN(d.getTime())) { tsUnixOut.value = '❌ parse မရပါ'; return; }
+      tsUnixOut.value = 's:  ' + Math.floor(d.getTime() / 1000) + '\nms: ' + d.getTime();
+    }
+    function tsNow() {
+      const now = Date.now();
+      tsUnix.value = String(tsUnit.value === 's' ? Math.floor(now / 1000) : now);
+      tsDate.value = new Date(now).toISOString();
+      tsToDate(); tsToUnix();
+    }
+
+    // ---------- Diff ----------
+    const diffA = ref(''); const diffB = ref(''); const diffRows = ref([]); const diffAdd = ref(0); const diffDel = ref(0);
+    function diffRun() {
+      const a = diffA.value.split('\n'), b = diffB.value.split('\n');
+      const n = a.length, m = b.length;
+      const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+      for (let i = n - 1; i >= 0; i--)
+        for (let j = m - 1; j >= 0; j--)
+          dp[i][j] = a[i] === b[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+      const rows = []; let i = 0, j = 0, add = 0, del = 0;
+      while (i < n && j < m) {
+        if (a[i] === b[j]) { rows.push({ t: 'eq', p: '  ', text: a[i] }); i++; j++; }
+        else if (dp[i + 1][j] >= dp[i][j + 1]) { rows.push({ t: 'del', p: '− ', text: a[i] }); i++; del++; }
+        else { rows.push({ t: 'add', p: '+ ', text: b[j] }); j++; add++; }
+      }
+      while (i < n) { rows.push({ t: 'del', p: '− ', text: a[i++] }); del++; }
+      while (j < m) { rows.push({ t: 'add', p: '+ ', text: b[j++] }); add++; }
+      diffRows.value = rows; diffAdd.value = add; diffDel.value = del;
+    }
+
+    // ---------- Case ----------
+    const CASES = [
+      { k: 'upper', label: 'UPPER' }, { k: 'lower', label: 'lower' }, { k: 'title', label: 'Title Case' },
+      { k: 'camel', label: 'camelCase' }, { k: 'snake', label: 'snake_case' }, { k: 'kebab', label: 'kebab-case' },
+    ];
+    const caseIn = ref(''); const caseOut = ref({});
+    function words(s) { return (s.match(/[A-Za-z0-9]+|[^\sA-Za-z0-9]+/g) || []).filter(w => /[A-Za-z0-9]/.test(w)); }
+    function caseRun() {
+      const s = caseIn.value; if (!s) { caseOut.value = {}; return; }
+      const w = words(s.replace(/([a-z0-9])([A-Z])/g, '$1 $2'));
+      const low = w.map(x => x.toLowerCase());
+      caseOut.value = {
+        upper: s.toUpperCase(),
+        lower: s.toLowerCase(),
+        title: low.map(x => x.charAt(0).toUpperCase() + x.slice(1)).join(' '),
+        camel: low.map((x, i) => i === 0 ? x : x.charAt(0).toUpperCase() + x.slice(1)).join(''),
+        snake: low.join('_'),
+        kebab: low.join('-'),
+      };
+    }
+
+    // ---------- Color ----------
+    const colorHex = ref('#0ea5e9'); const colorRgb = ref(''); const colorHsl = ref('');
+    const colorHexPick = ref('#0ea5e9'); const colorSwatch = ref('#0ea5e9'); const colorErr = ref('');
+    function rgbToHsl(r, g, b) {
+      r /= 255; g /= 255; b /= 255;
+      const max = Math.max(r, g, b), min = Math.min(r, g, b); let h = 0, s = 0; const l = (max + min) / 2;
+      if (max !== min) {
+        const d = max - min; s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        if (max === r) h = (g - b) / d + (g < b ? 6 : 0);
+        else if (max === g) h = (b - r) / d + 2; else h = (r - g) / d + 4;
+        h /= 6;
+      }
+      return [Math.round(h * 360), Math.round(s * 100), Math.round(l * 100)];
+    }
+    function hslToRgb(h, s, l) {
+      h /= 360; s /= 100; l /= 100; let r, g, b;
+      if (s === 0) { r = g = b = l; }
+      else {
+        const hue = (p, q, t) => { if (t < 0) t += 1; if (t > 1) t -= 1; if (t < 1 / 6) return p + (q - p) * 6 * t; if (t < 1 / 2) return q; if (t < 2 / 3) return p + (q - p) * (2 / 3 - t) * 6; return p; };
+        const q = l < 0.5 ? l * (1 + s) : l + s - l * s; const p = 2 * l - q;
+        r = hue(p, q, h + 1 / 3); g = hue(p, q, h); b = hue(p, q, h - 1 / 3);
+      }
+      return [Math.round(r * 255), Math.round(g * 255), Math.round(b * 255)];
+    }
+    function setFromRgb(r, g, b) {
+      colorErr.value = '';
+      const hex = '#' + [r, g, b].map(x => x.toString(16).padStart(2, '0')).join('');
+      const [h, s, l] = rgbToHsl(r, g, b);
+      colorHex.value = hex; colorHexPick.value = hex;
+      colorRgb.value = `rgb(${r}, ${g}, ${b})`;
+      colorHsl.value = `hsl(${h}, ${s}%, ${l}%)`;
+      colorSwatch.value = hex;
+    }
+    function colorFromHex() {
+      let h = colorHex.value.trim().replace('#', '');
+      if (h.length === 3) h = h.split('').map(c => c + c).join('');
+      if (!/^[0-9a-fA-F]{6}$/.test(h)) { colorErr.value = '❌ hex မမှန်ပါ'; return; }
+      setFromRgb(parseInt(h.slice(0, 2), 16), parseInt(h.slice(2, 4), 16), parseInt(h.slice(4, 6), 16));
+    }
+    function colorFromPick() { colorHex.value = colorHexPick.value; colorFromHex(); }
+    function colorFromRgb() {
+      const m = colorRgb.value.match(/(\d+)\D+(\d+)\D+(\d+)/);
+      if (!m) { colorErr.value = '❌ rgb မမှန်ပါ'; return; }
+      setFromRgb(+m[1], +m[2], +m[3]);
+    }
+    function colorFromHsl() {
+      const m = colorHsl.value.match(/(\d+)\D+(\d+)\D+(\d+)/);
+      if (!m) { colorErr.value = '❌ hsl မမှန်ပါ'; return; }
+      const [r, g, b] = hslToRgb(+m[1], +m[2], +m[3]); setFromRgb(r, g, b);
+    }
+
+    // ---------- Lorem ----------
+    const LOREM = ('lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor incididunt ut labore et dolore magna aliqua ut enim ad minim veniam quis nostrud exercitation ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit voluptate velit esse cillum eu fugiat nulla pariatur excepteur sint occaecat cupidatat non proident sunt culpa qui officia deserunt mollit anim id est laborum').split(' ');
+    const loremN = ref(3); const loremUnit = ref('paragraphs'); const loremOut = ref('');
+    function rand(n) { return Math.floor(Math.random() * n); }
+    function loremWord() { return LOREM[rand(LOREM.length)]; }
+    function loremSentence() {
+      const len = 6 + rand(10); const w = [];
+      for (let i = 0; i < len; i++) w.push(loremWord());
+      let s = w.join(' ');
+      return s.charAt(0).toUpperCase() + s.slice(1) + '.';
+    }
+    function loremGen() {
+      const n = loremN.value; const out = [];
+      if (loremUnit.value === 'words') loremOut.value = Array.from({ length: n }, loremWord).join(' ');
+      else if (loremUnit.value === 'sentences') loremOut.value = Array.from({ length: n }, loremSentence).join(' ');
+      else {
+        for (let i = 0; i < n; i++) {
+          const s = 3 + rand(4); const p = [];
+          for (let j = 0; j < s; j++) p.push(loremSentence());
+          out.push(p.join(' '));
+        }
+        loremOut.value = out.join('\n\n');
+      }
+    }
+
+    onMounted(() => {
+      try { const p = JSON.parse(localStorage.getItem(PREFS) || '{}'); if (p.tool && TOOLS.some(t => t.id === p.tool)) tool.value = p.tool; } catch (e) {}
+      document.getElementById('vue-loading').style.display = 'none';
+    });
+
+    return {
+      copy, TOOLS, tool, setTool, HASHES, CASES,
+      jsonIn, jsonOut, jsonMsg, jsonMsgType, jsonIndent, jsonSort, jsonTree, jsonTreeData, jsonFormat, jsonMinify, jsonValidate,
+      b64In, b64Out, b64Err, b64FileEl, b64FileOut, b64FileName, b64enc, b64dec, b64File,
+      urlIn, urlOut, urlErr, urlEnc, urlDec,
+      jwtIn, jwtHeader, jwtPayload, jwtErr, jwtExp, jwtExpired, jwtDecode,
+      hashIn, hashOut, hashRun,
+      uuidN, uuidOut, uuidGen,
+      tsUnit, tsUnix, tsDate, tsDateOut, tsUnixOut, tsToDate, tsToUnix, tsNow,
+      diffA, diffB, diffRows, diffAdd, diffDel, diffRun,
+      caseIn, caseOut, caseRun,
+      colorHex, colorRgb, colorHsl, colorHexPick, colorSwatch, colorErr, colorFromHex, colorFromPick, colorFromRgb, colorFromHsl,
+      loremN, loremUnit, loremOut, loremGen,
+    };
+  }
+});
+app.use(ElementPlus);
+app.mount('#app');
+}
+</script>
+</body>
+</html>

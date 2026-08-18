@@ -3,7 +3,7 @@
 // offline fallback for navigation to any cached tool.
 // Bump CACHE_VERSION to force clients to fetch fresh copies.
 
-const CACHE_VERSION = 'utilities-v82';
+const CACHE_VERSION = 'utilities-v83';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -36,9 +36,11 @@ const PRECACHE_URLS = [
   './SentencePatterns.html',
   './MiniERP.html',
   './CSVToolkit.html',
+  './ZawgyiConverter.html',
   './QRGenerator.html',
   './MarkdownEditor.html',
   './CodePlayground.html',
+  './DevToolbox.html',
   './ImageCompressor.html',
   './WinnerPicker.html',
   './CertificateMaker.html',

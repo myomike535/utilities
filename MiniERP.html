@@ -720,12 +720,7 @@
       </div>
       <div class="card">
         <h3>📊 ၁၂ လ ဝင်ငွေ <span class="en">12-month revenue trend</span></h3>
-        <div class="trend">
-          <div class="col" v-for="m in trend12" :key="m.key" :title="m.label + ' — ' + fmt(m.rev)">
-            <div class="tbar" :style="{height: m.pct+'%'}"></div>
-            <div class="tl">{{ m.label }}</div>
-          </div>
-        </div>
+        <mini-chart type="line" :data="trendRev" :labels="trendLabels" :height="180" :format-y="v => fmt(v)"></mini-chart>
       </div>
     </div>
     <div class="card">
@@ -1238,6 +1233,7 @@
 <script src="qrcode.min.js"></script>
 <script src="vue.global.prod.js"></script>
 <script src="element-plus.full.min.js"></script>
+<script src="_vueshared.js"></script>
 <script>
 if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
   document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
@@ -1897,6 +1893,8 @@ const app = createApp({
       arr.forEach(x => x.pct = Math.max(x.rev ? 4 : 1, Math.round(x.rev / max * 100)));
       return arr;
     });
+    const trendRev = computed(() => trend12.value.map(m => m.rev));
+    const trendLabels = computed(() => trend12.value.map(m => m.label));
     const repRanking = computed(() => {
       const m = {};
       repSales.value.forEach(s => s.items.forEach(li => {
@@ -2076,7 +2074,7 @@ const app = createApp({
       EXP_CATS, EXP_ICON, expDraft, expMonth, expList, saveExpense, delExpense,
       repMonth, repSales, repRevenue, repCogs, repCogsNet, repGross, repExpByCat, repExpTotal, repNet,
       repReturns, repNetSales,
-      trend12, repRanking, exportCsv,
+      trend12, trendRev, trendLabels, repRanking, exportCsv,
       stmtCustId, stmtCust, openStatement, stmtRows,
       showBiz, bizDraft, openBiz, saveBiz,
       importEl, exportAll, doImport,
@@ -2088,6 +2086,7 @@ const app = createApp({
   }
 });
 app.use(ElementPlus);
+if (typeof VueShared !== 'undefined') VueShared.install(app);
 app.mount('#app');
 }
 </script>
