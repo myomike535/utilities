@@ -148,6 +148,95 @@
   background: color-mix(in srgb, var(--accent, #6366f1) 30%, transparent);
 }
 
+/* ============================================================
+   PRO REFINEMENT PASS — make the 47-tool suite feel like ONE
+   premium product. Two mechanisms, both non-destructive:
+     (a) Element Plus theme TOKENS overridden at :root:root
+         (0,2,0) so they beat Element's own :root (0,1,0) even
+         though _design.css loads before element-plus.css. A tool
+         that sets a component property DIRECTLY still wins — tokens
+         only change Element's defaults, never a tool's own rule.
+     (b) :where() (specificity 0) for additive polish on properties
+         Element never declares on that selector, so per-tool inline
+         <style> (loaded last) always overrides us.
+   Motion is gated under prefers-reduced-motion: no-preference.
+   ============================================================ */
+
+/* P1. Element Plus design tokens — global defaults ----------- */
+:root:root {
+  --el-border-radius-base: 10px;   /* button · input · segmented base */
+  --el-border-radius-small: 8px;
+  --el-button-font-weight: 600;    /* Element reads this var on .el-button */
+}
+
+/* P2. Element components whose radius/vars live ON the element
+   (0,1,0) — matched with a doubled class (0,2,0) to beat Element,
+   while a tool's DIRECT border-radius still out-ranks our var. */
+:where(.el-dialog).el-dialog { --el-dialog-border-radius: 16px; }
+:where(.el-tag).el-tag       { --el-tag-border-radius: 8px; }
+:where(.el-table).el-table {
+  --el-table-header-bg-color: color-mix(in srgb, var(--el-color-primary, #6366f1) 5%, transparent);
+  --el-table-row-hover-bg-color: color-mix(in srgb, var(--el-color-primary, #6366f1) 9%, transparent);
+}
+/* Segmented → pill */
+:where(.el-segmented).el-segmented { border-radius: 999px; }
+:where(.el-segmented .el-segmented__item,
+       .el-segmented .el-segmented__item-selected).el-segmented__item,
+:where(.el-segmented .el-segmented__item-selected).el-segmented__item-selected {
+  border-radius: 999px;
+}
+/* Primary button — subtle accent depth (Element sets no box-shadow) */
+:where(.el-button--primary).el-button--primary {
+  box-shadow: 0 1px 2px rgba(0,0,0,.18),
+              0 4px 12px -4px color-mix(in srgb, var(--el-color-primary, #6366f1) 55%, transparent);
+}
+/* Refined input focus ring in the accent (Element ring is 0,2,0) */
+:where(.el-input__wrapper).el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--el-color-primary, #6366f1) inset,
+              0 0 0 3px color-mix(in srgb, var(--el-color-primary, #6366f1) 20%, transparent);
+}
+
+/* P3. Additive Element polish — :where() (Element leaves these
+   properties unset on these selectors, so nothing to out-rank). */
+:where(.el-button--primary) {           /* glossy sheen over any accent */
+  background-image: linear-gradient(180deg,
+    rgba(255,255,255,.16), rgba(255,255,255,0) 46%, rgba(0,0,0,.06));
+}
+:where(.el-dialog__title) { font-weight: 600; letter-spacing: -0.01em; }
+:where(.el-overlay-dialog, .el-message-box__wrapper) {
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+}
+
+/* P4. Header system — unified across tools (per-tool rules win) */
+:where(header .logo, .logo) {
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22),
+              var(--elev-2);
+}
+:where(header h1) { font-weight: 700; letter-spacing: -0.015em; }
+:where(header .sub) {
+  color: color-mix(in srgb, currentColor 62%, transparent);
+  font-size: var(--fs-caption);
+}
+
+/* P5. Card + section-heading refinement (per-tool rules win) --- */
+:where(.card) { border-radius: 16px; }
+:where(.card h3, label.fl) { letter-spacing: -0.006em; }
+
+/* P6. Numeric alignment — tabular figures for money/metrics ---- */
+:where(.tabular, [class*="amt"], [class*="val"]) {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+/* P7. Motion-gated refinements ------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  :where(.el-table .el-table__row, .el-table__cell) {
+    transition: background-color .16s ease;
+  }
+}
+
 /* 8. Print — clean paper output, suite-wide ------------------ */
 /* Guard: any page currently presenting a dedicated .print-sheet
    (MiniERP invoices / labels / statements) keeps full control of
