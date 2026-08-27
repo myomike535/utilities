@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="my" data-theme="dark" class="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Loan Calc · ချေးငွေ တွက်စက်</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="_effects.css">
+<link rel="stylesheet" href="_design.css">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<meta name="theme-color" content="#f59e0b">
+<link rel="stylesheet" href="element-plus.css">
+<link rel="stylesheet" href="element-plus.dark.css">
+<style>
+  :root {
+    --bg:#070a0f; --bg2:#0d1119;
+    --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342;
+    --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#f59e0b; --accent-2:#f97316;
+    --sans:'Pyidaungsu','Padauk','Myanmar Text','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+    --el-color-primary:#f59e0b;
+    --el-color-primary-light-3:#fbbf24;
+    --el-color-primary-dark-2:#d97706;
+    --el-font-family:var(--sans);
+  }
+  html.dark {
+    --el-bg-color:#151a24; --el-bg-color-overlay:#1b2130; --el-fill-color-blank:#12161f;
+    --el-border-color:#2b3342; --el-border-color-light:#2b3342; --el-border-color-lighter:#232a38;
+    --el-text-color-primary:#f2f5fa; --el-text-color-regular:#c3cad6;
+    --el-text-color-secondary:#9aa4b3; --el-text-color-placeholder:#616c7d;
+    --el-fill-color-light:#1b2130; --el-fill-color:#1b2130;
+  }
+  * { box-sizing:border-box; }
+  body {
+    margin:0; font-family:var(--sans);
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(245,158,11,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(249,115,22,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%);
+    background-attachment:fixed;
+    color:var(--text); min-height:100vh; padding:28px 16px 60px;
+  }
+  [v-cloak]{display:none!important}
+  #vue-loading{display:flex;align-items:center;justify-content:center;min-height:60vh;color:var(--faint)}
+  .wrap { max-width:1060px; margin:0 auto; }
+  header { display:flex; align-items:center; gap:13px; margin-bottom:18px; flex-wrap:wrap; }
+  .logo { width:44px;height:44px;border-radius:12px;display:grid;place-items:center;font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(245,158,11,.35); }
+  header h1 { font-size:1.25rem; margin:0; }
+  header .sub { color:var(--muted); font-size:.8rem; }
+  header .title { flex:1; min-width:160px; }
+
+  .panel { background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:18px 20px; margin-bottom:16px; }
+  .panel h3 { margin:0 0 14px; font-size:.95rem; display:flex; align-items:center; gap:8px; }
+  label.fl { display:block; font-size:.75rem; color:var(--muted); margin:0 0 5px; font-weight:600; }
+  .form-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:14px; }
+  .fld { display:flex; flex-direction:column; }
+  .fld .el-input-number, .fld .el-input, .fld .el-select, .fld .el-date-editor { width:100%; }
+
+  .stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:12px; }
+  .stat { background:var(--field); border:1px solid var(--field-border); border-radius:12px; padding:14px 16px; }
+  .stat .k { font-size:.72rem; color:var(--muted); font-weight:600; margin-bottom:6px; }
+  .stat .v { font-size:1.25rem; font-weight:800; color:var(--accent); font-variant-numeric:tabular-nums; }
+  .stat .v.small { font-size:1.05rem; color:var(--text); }
+
+  .cmp { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+  @media (max-width:640px){ .cmp{ grid-template-columns:1fr; } }
+  .cmp .box { background:var(--field); border:1px solid var(--field-border); border-radius:12px; padding:14px 16px; }
+  .cmp .box h4 { margin:0 0 10px; font-size:.85rem; }
+  .cmp .box .line { display:flex; justify-content:space-between; font-size:.8rem; padding:4px 0; color:var(--muted); }
+  .cmp .box .line b { color:var(--text); font-variant-numeric:tabular-nums; }
+  .cmp-note { margin-top:12px; font-size:.82rem; color:var(--faint); line-height:1.7; }
+  .cmp-note .diff { color:var(--accent-2); font-weight:700; }
+
+  .el-table { --el-table-bg-color:transparent; --el-table-tr-bg-color:transparent; --el-table-header-bg-color:var(--field);
+    border-radius:10px; overflow:hidden; }
+  .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+  .chart-wrap { margin-top:6px; }
+
+  .preset { display:flex; align-items:center; gap:10px; padding:9px 12px; background:var(--field); border:1px solid var(--field-border);
+    border-radius:10px; margin-bottom:8px; }
+  .preset .pn { flex:1; font-weight:600; font-size:.85rem; }
+  .preset .pm { font-size:.72rem; color:var(--faint); }
+  .empty { text-align:center; color:var(--faint); padding:24px 0; font-size:.85rem; }
+</style>
+</head>
+<body>
+<div id="app" v-cloak>
+<div class="wrap">
+  <header>
+    <div class="logo">🏦</div>
+    <div class="title">
+      <h1>Loan Calc · ချေးငွေ တွက်စက်</h1>
+      <div class="sub">အတိုးတွက်စက် — Flat vs Reducing · Schedule · CSV/Print · Myanmar lending</div>
+    </div>
+    <el-button @click="showPresets = true">💾 Presets</el-button>
+    <el-button type="primary" @click="savePreset">＋ သိမ်းမည်</el-button>
+  </header>
+
+  <!-- ===== Inputs ===== -->
+  <div class="panel">
+    <h3>⚙️ အချက်အလက် ထည့်ရန်</h3>
+    <div class="form-grid">
+      <div class="fld">
+        <label class="fl">ချေးငွေ ပမာဏ (Principal) — Ks</label>
+        <el-input-number v-model="principal" :min="0" :step="100000" :controls="true" controls-position="right"></el-input-number>
+      </div>
+      <div class="fld">
+        <label class="fl">အတိုးနှုန်း (Interest rate) — %</label>
+        <el-input-number v-model="rate" :min="0" :step="0.5" :precision="3" controls-position="right"></el-input-number>
+      </div>
+      <div class="fld">
+        <label class="fl">နှုန်း ယူနစ်</label>
+        <el-radio-group v-model="rateUnit">
+          <el-radio-button label="month">% / လ (MM)</el-radio-button>
+          <el-radio-button label="year">% / နှစ်</el-radio-button>
+        </el-radio-group>
+      </div>
+      <div class="fld">
+        <label class="fl">သက်တမ်း (Term) — လ</label>
+        <el-input-number v-model="term" :min="1" :max="600" :step="1" controls-position="right"></el-input-number>
+      </div>
+      <div class="fld">
+        <label class="fl">စတင်သည့်ရက် (Start date)</label>
+        <el-date-picker v-model="startDate" type="date" value-format="YYYY-MM-DD" placeholder="ရက်ရွေးပါ"></el-date-picker>
+      </div>
+      <div class="fld">
+        <label class="fl">တွက်ချက်နည်း (Method)</label>
+        <el-select v-model="method">
+          <el-option value="flat" label="Flat · အတိုးတွက်နည်း (ဆိုင်/ချေးသူပုံစံ)"></el-option>
+          <el-option value="reducing" label="Reducing / EMI · အရင်းလျော့ (banking)"></el-option>
+        </el-select>
+      </div>
+    </div>
+    <div style="margin-top:14px; display:flex; align-items:center; gap:14px; flex-wrap:wrap">
+      <el-switch v-model="compareMode" active-text="🔀 Flat vs Reducing နှိုင်းယှဉ်ကြည့်ရန်"></el-switch>
+    </div>
+  </div>
+
+  <!-- ===== Outputs ===== -->
+  <div class="panel" v-if="active">
+    <h3>📊 ရလဒ် — {{ method === 'flat' ? 'Flat · အတိုးတွက်နည်း' : 'Reducing / EMI' }}</h3>
+    <div class="stats-row">
+      <div class="stat"><div class="k">လစဉ်ပေးရန် (Monthly)</div><div class="v">{{ fmt(active.monthlyPayment) }}</div></div>
+      <div class="stat"><div class="k">စုစုပေါင်း အတိုး (Total interest)</div><div class="v">{{ fmt(active.totalInterest) }}</div></div>
+      <div class="stat"><div class="k">စုစုပေါင်း ပြန်ဆပ် (Total repay)</div><div class="v small">{{ fmt(active.totalRepayment) }}</div></div>
+      <div class="stat"><div class="k">Effective annual rate</div><div class="v small">{{ pct(active.ear) }}</div></div>
+    </div>
+
+    <!-- Compare -->
+    <div v-if="compareMode && flatResult && reduceResult" style="margin-top:16px">
+      <div class="cmp">
+        <div class="box">
+          <h4>🏪 Flat · အတိုးတွက်နည်း</h4>
+          <div class="line"><span>လစဉ်</span><b>{{ fmt(flatResult.monthlyPayment) }}</b></div>
+          <div class="line"><span>စုစုပေါင်း အတိုး</span><b>{{ fmt(flatResult.totalInterest) }}</b></div>
+          <div class="line"><span>စုစုပေါင်း ပြန်ဆပ်</span><b>{{ fmt(flatResult.totalRepayment) }}</b></div>
+          <div class="line"><span>Effective / နှစ်</span><b>{{ pct(flatResult.ear) }}</b></div>
+        </div>
+        <div class="box">
+          <h4>🏦 Reducing / EMI</h4>
+          <div class="line"><span>လစဉ်</span><b>{{ fmt(reduceResult.monthlyPayment) }}</b></div>
+          <div class="line"><span>စုစုပေါင်း အတိုး</span><b>{{ fmt(reduceResult.totalInterest) }}</b></div>
+          <div class="line"><span>စုစုပေါင်း ပြန်ဆပ်</span><b>{{ fmt(reduceResult.totalRepayment) }}</b></div>
+          <div class="line"><span>Effective / နှစ်</span><b>{{ pct(reduceResult.ear) }}</b></div>
+        </div>
+      </div>
+      <div class="cmp-note">
+        💡 Flat နည်းသည် အရင်းလျော့မှုကို ထည့်မတွက်သဖြင့် အတိုး
+        <span class="diff">{{ fmt(flatResult.totalInterest - reduceResult.totalInterest) }}</span>
+        ပိုကျသည် — Reducing ထက် စုစုပေါင်း {{ pct(flatDiffRatio) }} ပိုပေးရသည်။
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== Chart ===== -->
+  <div class="panel" v-if="active && hasChart">
+    <h3>📉 လက်ကျန်ငွေ လျော့ချမှု (Balance over time)</h3>
+    <div class="chart-wrap">
+      <mini-chart type="line" :data="active.schedule.map(r => r.balance)"
+        :labels="chartLabels" :height="200" color="#f59e0b" :format-y="fmt"></mini-chart>
+    </div>
+  </div>
+
+  <!-- ===== Schedule ===== -->
+  <div class="panel" v-if="active">
+    <h3 style="justify-content:space-between">
+      <span>🗓 အရစ်ကျ ဇယား (Amortization schedule) — {{ active.schedule.length }} လ</span>
+      <span style="display:flex; gap:8px">
+        <el-button size="small" @click="exportCsv">⬇ CSV</el-button>
+        <el-button size="small" @click="printSchedule">🖨 Print</el-button>
+      </span>
+    </h3>
+    <el-table :data="active.schedule" height="440" size="small" stripe>
+      <el-table-column prop="month" label="လ" width="60"></el-table-column>
+      <el-table-column prop="date" label="ရက်စွဲ" width="120"></el-table-column>
+      <el-table-column label="ပေးငွေ (Payment)" align="right">
+        <template #default="s"><span>{{ fmt(s.row.payment) }}</span></template>
+      </el-table-column>
+      <el-table-column label="အရင်း (Principal)" align="right">
+        <template #default="s"><span>{{ fmt(s.row.principal) }}</span></template>
+      </el-table-column>
+      <el-table-column label="အတိုး (Interest)" align="right">
+        <template #default="s"><span>{{ fmt(s.row.interest) }}</span></template>
+      </el-table-column>
+      <el-table-column label="လက်ကျန် (Balance)" align="right">
+        <template #default="s"><span>{{ fmt(s.row.balance) }}</span></template>
+      </el-table-column>
+    </el-table>
+  </div>
+
+  <!-- ===== Presets dialog ===== -->
+  <el-dialog v-model="showPresets" title="💾 သိမ်းထားသော တွက်ချက်မှုများ" width="min(560px, 96vw)">
+    <div v-if="presets.length">
+      <div v-for="p in presets" :key="p.id" class="preset">
+        <div style="flex:1; min-width:0">
+          <div class="pn">{{ p.name }}</div>
+          <div class="pm">{{ fmt(p.principal) }} · {{ p.rate }}% / {{ p.rateUnit === 'month' ? 'လ' : 'နှစ်' }} · {{ p.term }} လ · {{ p.method === 'flat' ? 'Flat' : 'Reducing' }}</div>
+        </div>
+        <el-button size="small" type="primary" @click="loadPreset(p)">📂 ဖွင့်</el-button>
+        <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delPreset(p)">
+          <template #reference><el-button size="small" text>🗑</el-button></template>
+        </el-popconfirm>
+      </div>
+    </div>
+    <div v-else class="empty">Preset မရှိသေးပါ — ＋ သိမ်းမည် နှိပ်၍ လက်ရှိတွက်ချက်မှုကို သိမ်းပါ</div>
+  </el-dialog>
+</div>
+</div>
+<div id="vue-loading">⏳ Loading…</div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script src="vue.global.prod.js"></script>
+<script src="element-plus.full.min.js"></script>
+<script src="_vueshared.js"></script>
+<script>
+if (typeof Vue === 'undefined' || typeof ElementPlus === 'undefined') {
+  document.getElementById('vue-loading').textContent = '⚠ Vue/ElementPlus မရရှိပါ — refresh လုပ်ကြည့်ပါ';
+} else {
+const { createApp, ref, computed, onMounted } = Vue;
+const STORE = 'loancalc.v1';
+
+const app = createApp({
+  setup() {
+    const principal = ref(1000000);
+    const rate = ref(3);
+    const rateUnit = ref('month');   // 'month' | 'year'
+    const term = ref(12);
+    const startDate = ref(new Date().toISOString().slice(0, 10));
+    const method = ref('flat');
+    const compareMode = ref(false);
+    const showPresets = ref(false);
+    const presets = ref([]);
+    const hasChart = typeof VueShared !== 'undefined' && !!VueShared.MiniChart;
+    const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2800 });
+
+    // ---- money / percent formatting ----
+    function fmt(n) {
+      const v = Math.round(+n || 0);
+      return v.toLocaleString('en-US') + ' Ks';
+    }
+    function pct(r) { return ((+r || 0) * 100).toFixed(2) + '%'; }
+
+    function monthlyRate() {
+      const r = (+rate.value || 0) / 100;
+      return rateUnit.value === 'year' ? r / 12 : r;
+    }
+    function addMonths(iso, m) {
+      const d = iso ? new Date(iso) : new Date();
+      const nd = new Date(d.getFullYear(), d.getMonth() + m, d.getDate());
+      return nd.toISOString().slice(0, 10);
+    }
+    // Effective annual rate via monthly IRR of the payment stream (bisection)
+    function earFromPayment(P, M, n) {
+      if (P <= 0 || M <= 0 || n <= 0) return 0;
+      const pv = i => (i === 0 ? M * n : M * (1 - Math.pow(1 + i, -n)) / i);
+      let lo = 0, hi = 1;               // monthly rate search 0%–100%
+      if (pv(hi) > P) return Math.pow(1 + hi, 12) - 1;   // cap
+      for (let k = 0; k < 100; k++) {
+        const mid = (lo + hi) / 2;
+        if (pv(mid) > P) lo = mid; else hi = mid;
+      }
+      const i = (lo + hi) / 2;
+      return Math.pow(1 + i, 12) - 1;
+    }
+
+    function computeLoan(m) {
+      const P = +principal.value || 0;
+      const n = Math.max(1, Math.round(+term.value || 0));
+      const mr = monthlyRate();
+      const rows = [];
+      if (m === 'flat') {
+        // Myanmar shop/lender style: interest = principal × monthlyRate × months, split equally
+        const totalInterest = P * mr * n;
+        const pay = (P + totalInterest) / n;
+        const prinPortion = P / n;
+        const intPortion = totalInterest / n;
+        let bal = P;
+        for (let i = 1; i <= n; i++) {
+          bal = Math.max(0, bal - prinPortion);
+          rows.push({ month: i, date: addMonths(startDate.value, i), payment: pay,
+            principal: prinPortion, interest: intPortion, balance: (i === n ? 0 : bal) });
+        }
+        return { monthlyPayment: pay, totalInterest, totalRepayment: P + totalInterest,
+          ear: earFromPayment(P, pay, n), schedule: rows };
+      }
+      // Reducing balance / EMI — standard amortization
+      const emi = mr === 0 ? P / n : P * mr * Math.pow(1 + mr, n) / (Math.pow(1 + mr, n) - 1);
+      let bal = P, totalInterest = 0;
+      for (let i = 1; i <= n; i++) {
+        const interest = bal * mr;
+        let prin = emi - interest;
+        if (i === n) prin = bal;            // clear rounding residue on final row
+        bal = Math.max(0, bal - prin);
+        totalInterest += interest;
+        rows.push({ month: i, date: addMonths(startDate.value, i),
+          payment: (i === n ? prin + interest : emi), principal: prin, interest, balance: bal });
+      }
+      return { monthlyPayment: emi, totalInterest, totalRepayment: P + totalInterest,
+        ear: Math.pow(1 + mr, 12) - 1, schedule: rows };
+    }
+
+    const flatResult = computed(() => computeLoan('flat'));
+    const reduceResult = computed(() => computeLoan('reducing'));
+    const active = computed(() => method.value === 'flat' ? flatResult.value : reduceResult.value);
+    const flatDiffRatio = computed(() => {
+      const r = reduceResult.value.totalInterest;
+      return r > 0 ? (flatResult.value.totalInterest - r) / r : 0;
+    });
+    const chartLabels = computed(() => {
+      const n = active.value.schedule.length;
+      // Sparse labels so the axis stays readable
+      return active.value.schedule.map(r => (n <= 12 || r.month % Math.ceil(n / 8) === 0) ? ('လ' + r.month) : '');
+    });
+
+    // ---- presets ----
+    function loadPresets() { try { presets.value = JSON.parse(localStorage.getItem(STORE) || '[]'); } catch (e) {} }
+    function savePresetsStore() { localStorage.setItem(STORE, JSON.stringify(presets.value)); }
+    function savePreset() {
+      const name = (principal.value ? fmt(principal.value).replace(' Ks', '') : 'Loan') + ' @ ' + rate.value + '%';
+      const rec = {
+        id: Date.now(), name, principal: +principal.value || 0, rate: +rate.value || 0,
+        rateUnit: rateUnit.value, term: +term.value || 0, start: startDate.value, method: method.value, t: Date.now(),
+      };
+      presets.value.unshift(rec);
+      savePresetsStore();
+      toast('💾 သိမ်းပြီး — ' + name);
+    }
+    function loadPreset(p) {
+      principal.value = p.principal; rate.value = p.rate; rateUnit.value = p.rateUnit;
+      term.value = p.term; startDate.value = p.start || startDate.value; method.value = p.method;
+      showPresets.value = false;
+      toast('📂 ဖွင့်ပြီး — ' + p.name);
+    }
+    function delPreset(p) {
+      presets.value = presets.value.filter(x => x.id !== p.id);
+      savePresetsStore();
+      toast('🗑 ဖျက်ပြီး');
+    }
+
+    // ---- export / print ----
+    function exportCsv() {
+      const rows = active.value.schedule;
+      const head = ['Month', 'Date', 'Payment', 'Principal', 'Interest', 'Balance'];
+      const lines = [head.join(',')];
+      rows.forEach(r => lines.push([r.month, r.date, Math.round(r.payment), Math.round(r.principal),
+        Math.round(r.interest), Math.round(r.balance)].join(',')));
+      const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'loan-schedule-' + method.value + '-' + Date.now() + '.csv';
+      a.click();
+      URL.revokeObjectURL(a.href);
+      toast('⬇ CSV ' + rows.length + ' rows exported');
+    }
+    function printSchedule() {
+      const r = active.value;
+      const body = r.schedule.map(x => `<tr><td>${x.month}</td><td>${x.date}</td>` +
+        `<td class="n">${fmt(x.payment)}</td><td class="n">${fmt(x.principal)}</td>` +
+        `<td class="n">${fmt(x.interest)}</td><td class="n">${fmt(x.balance)}</td></tr>`).join('');
+      const w = window.open('', '_blank');
+      if (!w) { toast('⚠ Popup ပိတ်ထားပါသည်', 'warning'); return; }
+      w.document.write(`<!DOCTYPE html><html><head><meta charset="utf-8"><title>Loan Schedule</title>
+        <style>body{font-family:'Pyidaungsu','Segoe UI',sans-serif;padding:24px;color:#111}
+        h2{margin:0 0 4px} .sub{color:#555;margin-bottom:14px;font-size:13px}
+        table{border-collapse:collapse;width:100%;font-size:12px}
+        th,td{border:1px solid #ccc;padding:6px 8px;text-align:left} th{background:#f4f4f4}
+        td.n{text-align:right;font-variant-numeric:tabular-nums}</style></head><body>
+        <h2>ချေးငွေ အရစ်ကျ ဇယား — ${method.value === 'flat' ? 'Flat' : 'Reducing / EMI'}</h2>
+        <div class="sub">Principal ${fmt(principal.value)} · ${rate.value}% / ${rateUnit.value === 'month' ? 'month' : 'year'} · ${term.value} months ·
+        Monthly ${fmt(r.monthlyPayment)} · Total interest ${fmt(r.totalInterest)} · Total repay ${fmt(r.totalRepayment)}</div>
+        <table><thead><tr><th>လ</th><th>ရက်စွဲ</th><th>Payment</th><th>Principal</th><th>Interest</th><th>Balance</th></tr></thead>
+        <tbody>${body}</tbody></table></body></html>`);
+      w.document.close();
+      w.focus();
+      setTimeout(() => w.print(), 300);
+    }
+
+    onMounted(() => { loadPresets(); document.getElementById('vue-loading').style.display = 'none'; });
+
+    return {
+      principal, rate, rateUnit, term, startDate, method, compareMode, showPresets, presets, hasChart,
+      flatResult, reduceResult, active, flatDiffRatio, chartLabels,
+      fmt, pct, savePreset, loadPreset, delPreset, exportCsv, printSchedule,
+    };
+  }
+});
+app.use(ElementPlus);
+if (typeof VueShared !== 'undefined' && VueShared.install) VueShared.install(app);
+app.mount('#app');
+}
+</script>
+</body>
+</html>

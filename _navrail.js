@@ -55,6 +55,7 @@
     { href: 'GradedReading.html',                  icon: 'book',       label: 'Reading',        color: '#10b981' },
     { href: 'PronunciationLab.html',               icon: 'headphones', label: 'Pronunciation',  color: '#f59e0b' },
     { href: 'MiniERP.html',                        icon: 'palette',    label: 'Mini ERP',       color: '#6366f1' },
+    { href: 'LoanCalculator.html',                 icon: 'tasks',      label: 'Loan Calc',      color: '#f59e0b' },
     { href: 'ZawgyiConverter.html',                icon: 'palette',    label: 'Zawgyi',         color: '#ec4899' },
     { href: 'CSVToolkit.html',                     icon: 'tasks',      label: 'CSV',            color: '#0ea5e9' },
     { href: 'QRGenerator.html',                    icon: 'bookmark',   label: 'QR',             color: '#10b981' },
