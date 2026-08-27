@@ -44,6 +44,7 @@
     'mddocs.v1',
     'minierp.v1',
     'loancalc.v1',
+    'whiteboard.v1',
   ];
 
   // Local sync bookkeeping (never synced themselves)

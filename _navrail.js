@@ -72,6 +72,7 @@
     { href: 'ReviewScriptBuilder.html',            icon: 'headphones', label: 'Review Script',  color: '#22c55e' },
     { href: 'VideoDescription.html',               icon: 'book',       label: 'Video Desc',     color: '#ef4444' },
     { href: 'PostStudio.html',                     icon: 'sparkles',   label: 'Post Studio',    color: '#6366f1' },
+    { href: 'Whiteboard.html',                     icon: 'palette',    label: 'Whiteboard',     color: '#14b8a6' },
     { href: 'ThumbnailMaker.html',                 icon: 'bookmark',   label: 'Thumbnails',     color: '#ec4899' },
     { href: 'ScriptPrompter.html',                 icon: 'headphones', label: 'Teleprompter',   color: '#22c55e' },
   ];
