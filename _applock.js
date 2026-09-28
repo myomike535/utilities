@@ -58,7 +58,9 @@
       backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
       border: 1px solid rgba(255,255,255,0.12);
       border-radius: 22px; padding: 38px 28px 30px;
-      box-shadow: 0 24px 70px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08);
+      /* + canvas glow: soft indigo halo grounds the card on the backdrop */
+      box-shadow: 0 24px 70px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08),
+                  0 0 130px -24px rgba(99,102,241,0.5);
       font-family: 'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',system-ui,sans-serif;
       color: #e8ecf4;
       animation: alRise 0.45s cubic-bezier(.22,1,.36,1);
@@ -71,7 +73,7 @@
       box-shadow: 0 10px 28px rgba(99,102,241,0.45);
     }
     @media (prefers-reduced-motion: reduce) { .al-backdrop, .al-card { animation: none; } }
-    .al-title { font-size: 1rem; font-weight: 700; margin-bottom: 4px; }
+    .al-title { font-size: 1.06rem; font-weight: 750; letter-spacing: -0.01em; margin-bottom: 5px; }
     .al-sub { font-size: 0.76rem; color: #8a93a5; margin-bottom: 18px; line-height: 1.6; }
     .al-input {
       width: 100%; padding: 13px 14px; border-radius: 12px;
@@ -79,15 +81,16 @@
       color: #fff; font-size: 1.15rem; text-align: center; letter-spacing: 0.4em;
       outline: none; font-family: inherit; transition: border-color 0.18s, box-shadow 0.18s;
     }
-    .al-input:focus { border-color: #818cf8; box-shadow: 0 0 0 4px rgba(99,102,241,0.28); background: rgba(0,0,0,0.42); }
+    .al-input:focus { border-color: #818cf8; box-shadow: 0 0 0 3px rgba(129,140,248,0.35); background: rgba(0,0,0,0.42); }
     .al-btn {
       width: 100%; margin-top: 14px; padding: 13px; border: none; border-radius: 12px;
-      background: linear-gradient(135deg, #6366f1, #a78bfa); color: #fff;
-      font-size: 0.95rem; font-weight: 700; cursor: pointer; font-family: inherit;
-      box-shadow: 0 8px 22px rgba(99,102,241,0.35);
-      transition: transform 0.15s, box-shadow 0.15s, filter 0.15s;
+      /* high-contrast flat indigo CTA — reads clearly active (vs the washed gradient) */
+      background: #6366f1; color: #fff;
+      font-size: 0.95rem; font-weight: 700; letter-spacing: 0.01em; cursor: pointer; font-family: inherit;
+      box-shadow: 0 8px 22px rgba(99,102,241,0.4);
+      transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
     }
-    .al-btn:hover { filter: brightness(1.08); transform: translateY(-1px); box-shadow: 0 12px 28px rgba(99,102,241,0.45); }
+    .al-btn:hover { background: #7c7ff6; transform: translateY(-1px); box-shadow: 0 12px 30px rgba(99,102,241,0.55); }
     .al-btn:active { transform: scale(0.97); }
     .al-btn::after { content: " →"; opacity: 0.85; }
     .al-input { background: rgba(0,0,0,0.28); border-radius: 14px; }
