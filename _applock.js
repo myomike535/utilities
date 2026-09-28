@@ -70,13 +70,11 @@
     @keyframes alRise { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: none; } }
     /* Left brand pane (desktop) */
     .al-brand {
-      padding: 38px 32px; display: flex; flex-direction: column;
+      padding: 38px 32px; display: flex; flex-direction: column; justify-content: center;
       border-right: 1px solid rgba(255,255,255,0.06);
       background: linear-gradient(160deg, rgba(99,102,241,0.16), rgba(139,92,246,0.05) 55%, transparent);
     }
-    .al-brand .al-title { font-size: 1.12rem; margin-bottom: 0; }
-    .al-tag { font-size: 0.78rem; color: #aab3c5; line-height: 1.65; margin-top: 8px; max-width: 15.5rem; }
-    .al-feat { margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding-top: 28px; }
+    .al-feat { margin-top: 22px; display: flex; flex-direction: column; gap: 13px; }
     .al-feat .f { display: flex; align-items: center; gap: 11px; font-size: 0.8rem; color: #c8cfda; }
     .al-feat .f .fi { width: 27px; height: 27px; border-radius: 8px; display: grid; place-items: center; font-size: 0.92rem;
       background: rgba(255,255,255,0.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.09); flex: none; }
@@ -136,8 +134,6 @@
     const brandPane = `
       <div class="al-brand">
         <div class="al-ico">🔐</div>
-        <div class="al-title">MyoMT Utilities</div>
-        <div class="al-tag">သင့် tools အားလုံး — တစ်နေရာတည်း၊ offline အလုပ်လုပ်၊ device များကြား cloud-sync။</div>
         <div class="al-feat">
           <div class="f"><span class="fi">🔒</span> ဤ device တွင်သာ — Private</div>
           <div class="f"><span class="fi">⚡</span> Offline-first PWA</div>
