@@ -103,6 +103,74 @@
     .day-group .lst-enter-active, .day-group .lst-leave-active, .day-group .lst-move { transition:none !important; }
   }
   .el-dialog { --el-dialog-bg-color:var(--card2); border-radius:14px; }
+
+  /* ============================================================
+     PRO DESIGN PASS + upgrade styles — elevation, accent rails,
+     insights, category bars, budget pace, micro-interactions.
+     ============================================================ */
+  .card { box-shadow: inset 0 1px 0 rgba(255,255,255,.045), 0 1px 2px rgba(0,0,0,.2), 0 12px 30px -16px rgba(0,0,0,.55); }
+  header h1 { font-weight:800; letter-spacing:-.02em; font-size:1.32rem; }
+
+  /* Summary cards: accent rail + corner glow + hover lift */
+  .sum { position:relative; overflow:hidden; text-align:left; padding:13px 14px 13px 16px; }
+  .sum::before { content:''; position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:0 3px 3px 0; background:var(--accent-2); opacity:.85; }
+  .sum.s-in::before { background:var(--accent); }
+  .sum.s-out::before { background:var(--danger); }
+  .sum.s-bal::before { background:var(--accent-2); }
+  .sum::after { content:''; position:absolute; right:-30px; top:-30px; width:96px; height:96px; border-radius:50%; pointer-events:none;
+    background:radial-gradient(circle, rgba(14,165,233,.15), transparent 70%); }
+  .sum.s-in::after { background:radial-gradient(circle, rgba(34,197,94,.16), transparent 70%); }
+  .sum.s-out::after { background:radial-gradient(circle, rgba(255,107,107,.15), transparent 70%); }
+  .sum .lb { font-weight:600; letter-spacing:.02em; }
+  .sum .v { font-size:1.12rem; letter-spacing:-.01em; }
+  @media (hover:hover) and (prefers-reduced-motion: no-preference) {
+    .sum { transition:transform .15s ease, box-shadow .15s ease; }
+    .sum:hover { transform:translateY(-2px); box-shadow:0 10px 24px -12px rgba(0,0,0,.6); }
+    .entry { transition:background .14s ease, transform .14s ease; }
+    .entry:hover { background:var(--field-border); }
+    .entry.clickable { cursor:pointer; }
+  }
+
+  /* Insights strip */
+  .insights { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+  @media (max-width:680px){ .insights { grid-template-columns:1fr 1fr; } }
+  .insight { background:var(--field); border-radius:11px; padding:11px 13px; position:relative; }
+  .insight .ik { font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-weight:600; margin-bottom:5px; }
+  .insight .iv { font-size:1.02rem; font-weight:800; font-variant-numeric:tabular-nums; letter-spacing:-.01em; line-height:1.2; }
+  .insight .isub { font-size:.68rem; color:var(--faint); margin-top:3px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .insight .iv.up { color:var(--danger); } .insight .iv.down { color:var(--accent); }
+
+  /* Budget pace */
+  .pace { display:inline-flex; align-items:center; gap:6px; font-size:.72rem; font-weight:700; padding:3px 9px; border-radius:20px; margin-top:8px; }
+  .pace.ok  { color:var(--accent); background:rgba(34,197,94,.14); }
+  .pace.warn{ color:#fbbf24; background:rgba(251,191,36,.15); }
+  .pace.over{ color:var(--danger); background:rgba(255,107,107,.15); }
+
+  /* Category ranked bars (list under donut) */
+  .cat-bars { margin-top:14px; }
+  .cat-bar-row .fill { transition:width .4s cubic-bezier(.4,0,.2,1); }
+  .cat-bar-row .pctv { width:42px; text-align:right; font-size:.72rem; color:var(--faint); font-variant-numeric:tabular-nums; }
+
+  /* Rich empty state */
+  .empty-rich { display:flex; flex-direction:column; align-items:center; text-align:center; padding:34px 16px 30px; gap:3px; }
+  .empty-rich .ei { width:56px; height:56px; border-radius:16px; display:grid; place-items:center; font-size:1.55rem; margin-bottom:9px;
+    background:rgba(34,197,94,.12); box-shadow:inset 0 0 0 1px rgba(34,197,94,.28); }
+  .empty-rich .et { font-size:.92rem; font-weight:700; color:var(--text); }
+  .empty-rich .eh { font-size:.76rem; color:var(--faint); max-width:300px; line-height:1.55; }
+
+  /* Savings goals */
+  .goal { background:var(--field); border-radius:12px; padding:12px 14px; margin-bottom:10px; }
+  .goal-head { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+  .goal-head .gn { font-size:.9rem; font-weight:700; }
+  .goal-head .gp { font-size:.8rem; color:var(--muted); font-variant-numeric:tabular-nums; font-weight:600; }
+  .goal-head .gp.done { color:var(--accent); }
+  .goal .budget-fill { background:linear-gradient(90deg, var(--accent-2), var(--accent)); }
+  .goal .budget-fill.done { background:linear-gradient(90deg, var(--accent), #4ade80); }
+  .goal-foot { display:flex; align-items:center; justify-content:space-between; margin-top:7px; font-size:.74rem; color:var(--muted); gap:8px; flex-wrap:wrap; }
+  .goal-foot .done { color:var(--accent); font-weight:700; }
+  .goal-foot .gactions { display:flex; gap:4px; margin-left:auto; }
+  .goal-sum { text-align:right; font-size:.85rem; color:var(--muted); margin-top:6px; }
+  .goal-sum b { color:var(--accent); font-variant-numeric:tabular-nums; }
 </style>
 </head>
 <body>
@@ -126,9 +194,9 @@
       <el-button size="small" @click="moveMonth(1)" :disabled="isCurrentMonth">›</el-button>
     </div>
     <div class="sum-row">
-      <div class="sum"><div class="lb">ဝင်ငွေ</div><div class="v in">+{{ fmt(monthIn) }}</div></div>
-      <div class="sum"><div class="lb">ထွက်ငွေ</div><div class="v out">−{{ fmt(monthOut) }}</div></div>
-      <div class="sum"><div class="lb">လက်ကျန်</div><div class="v" :class="monthIn-monthOut>=0?'in':'out'">{{ fmt(monthIn-monthOut) }}</div></div>
+      <div class="sum s-in"><div class="lb">ဝင်ငွေ</div><div class="v in">+{{ fmt(monthIn) }}</div></div>
+      <div class="sum s-out"><div class="lb">ထွက်ငွေ</div><div class="v out">−{{ fmt(monthOut) }}</div></div>
+      <div class="sum s-bal"><div class="lb">လက်ကျန်</div><div class="v" :class="monthIn-monthOut>=0?'in':'out'">{{ fmt(monthIn-monthOut) }}</div></div>
     </div>
     <template v-if="budget > 0">
       <div class="budget-bar"><div class="budget-fill" :class="{over: monthOut > budget}" :style="{width: Math.min(100, budget? monthOut/budget*100 : 0)+'%'}"></div></div>
@@ -136,7 +204,34 @@
         <span>🎯 လစဉ် သုံးစွဲရန် သတ်မှတ်ချက် — {{ fmt(budget) }} Ks</span>
         <span :style="monthOut>budget ? 'color:var(--danger);font-weight:700' : ''">{{ Math.round(budget? monthOut/budget*100 : 0) }}%{{ monthOut>budget ? ' ကျော်နေပြီ!' : '' }}</span>
       </div>
+      <div class="pace" :class="pace.cls" v-if="pace">{{ pace.txt }}</div>
     </template>
+  </div>
+
+  <!-- Insights -->
+  <div class="card" v-if="monthEntries.length">
+    <div class="insights">
+      <div class="insight">
+        <div class="ik">📅 နေ့စဉ်ပျမ်းမျှ · daily avg</div>
+        <div class="iv">{{ fmt(dailyAvg) }} <span style="font-size:.68rem;color:var(--faint)">Ks</span></div>
+        <div class="isub">{{ daysElapsed }} ရက်အတွင်း သုံးစွဲမှု</div>
+      </div>
+      <div class="insight">
+        <div class="ik">🔺 အကြီးဆုံး · biggest</div>
+        <div class="iv">{{ biggest ? fmt(biggest.amt) : '0' }} <span style="font-size:.68rem;color:var(--faint)">Ks</span></div>
+        <div class="isub">{{ biggest ? catName(biggest) + (biggest.note ? ' · '+biggest.note : '') : '—' }}</div>
+      </div>
+      <div class="insight">
+        <div class="ik">🏆 အသုံးများ · top category</div>
+        <div class="iv" style="font-size:.92rem">{{ topCat ? topCat.ic + ' ' + topCat.my : '—' }}</div>
+        <div class="isub">{{ topCat ? fmt(topCat.total) + ' Ks · ' + topCat.share + '%' : '—' }}</div>
+      </div>
+      <div class="insight">
+        <div class="ik">📈 ယခင်လနှင့် · vs last month</div>
+        <div class="iv" :class="mom.dir"><span v-if="mom.dir==='up'">▲</span><span v-else-if="mom.dir==='down'">▼</span> {{ mom.pct }}%</div>
+        <div class="isub">ယခင်လ ထွက်ငွေ {{ fmt(prevMonthOut) }} Ks</div>
+      </div>
+    </div>
   </div>
 
   <!-- Quick add -->
@@ -149,6 +244,8 @@
         @click="addCat=c.k">{{ c.ic }} {{ c.my }}</el-tag>
     </div>
     <div class="add-row">
+      <el-date-picker v-model="addDay" type="date" value-format="YYYY-MM-DD" :clearable="false"
+        :disabled-date="d => d > new Date()" style="width:150px" placeholder="နေ့စွဲ"></el-date-picker>
       <el-input class="amt" v-model="addAmt" placeholder="ပမာဏ (Ks)" @keyup.enter="addEntry">
         <template #suffix>Ks</template>
       </el-input>
@@ -161,6 +258,14 @@
   <div class="card" v-if="catTotals.length">
     <label class="fl">📊 {{ monthLabel }} — အမျိုးအစားအလိုက် ထွက်ငွေ</label>
     <mini-chart type="donut" :data="catDonut" :height="200" :format-y="v => fmt(v) + ' Ks'"></mini-chart>
+    <div class="cat-bars">
+      <div class="cat-bar-row" v-for="c in catTotals" :key="c.k">
+        <span class="nm">{{ c.ic }} {{ c.my }}</span>
+        <span class="bar"><span class="fill" :style="{width: c.share+'%', background: c.color}"></span></span>
+        <span class="pctv">{{ c.share }}%</span>
+        <span class="amt">{{ fmt(c.total) }} Ks</span>
+      </div>
+    </div>
   </div>
 
   <!-- Entries by day -->
@@ -170,18 +275,56 @@
       <div v-for="g in dayGroups" :key="g.day" class="day-group">
         <div class="day-head"><span>{{ g.label }}</span><span>−{{ fmt(g.out) }}{{ g.in ? ' · +'+fmt(g.in) : '' }} Ks</span></div>
         <transition-group name="lst">
-        <div v-for="e in g.items" :key="e.id" class="entry">
+        <div v-for="e in g.items" :key="e.id" class="entry clickable" @click="openEdit(e)" title="တည်းဖြတ်ရန် နှိပ်ပါ">
           <span class="ic">{{ catIcon(e) }}</span>
           <span class="what"><span class="c">{{ catName(e) }}</span><span class="n" v-if="e.note"> {{ e.note }}</span></span>
           <span class="val" :class="e.type">{{ e.type==='in' ? '+' : '−' }}{{ fmt(e.amt) }}</span>
           <el-popconfirm title="ဖျက်မှာ သေချာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delEntry(e.id)">
-            <template #reference><el-button size="small" text>🗑</el-button></template>
+            <template #reference><el-button size="small" text @click.stop>🗑</el-button></template>
           </el-popconfirm>
         </div>
         </transition-group>
       </div>
     </template>
-    <div v-else class="empty illus">ဤလအတွက် မှတ်တမ်း မရှိသေးပါ<br><small>အပေါ်က အကွက်မှာ ငွေပမာဏ ထည့်၍ စတင်မှတ်ပါ</small></div>
+    <div v-else class="empty-rich">
+      <div class="ei">🧾</div>
+      <div class="et">ဤလအတွက် မှတ်တမ်း မရှိသေးပါ</div>
+      <div class="eh">အပေါ်က အကွက်မှာ အမျိုးအစား ရွေး၊ ငွေပမာဏ ထည့်၍ စတင်မှတ်ပါ — နေ့စဉ်အလိုက် စုစည်းပြပါမည်။</div>
+    </div>
+  </div>
+
+  <!-- Savings goals -->
+  <div class="card">
+    <label class="fl" style="display:flex;align-items:center;gap:8px">🐖 စုငွေ ရည်မှန်းချက်များ · Savings goals
+      <span style="flex:1"></span>
+      <el-button size="small" @click="openGoal(null)">＋ ရည်မှန်းချက်</el-button>
+    </label>
+    <template v-if="goals.length">
+      <div v-for="gl in goals" :key="gl.id" class="goal">
+        <div class="goal-head">
+          <span class="gn">{{ gl.icon || '🎯' }} {{ gl.name }}</span>
+          <span class="gp" :class="{done: gl.saved >= gl.target}">{{ fmt(gl.saved) }} / {{ fmt(gl.target) }} Ks</span>
+        </div>
+        <div class="budget-bar"><div class="budget-fill" :class="{done: gl.saved >= gl.target}"
+          :style="{width: Math.min(100, gl.target ? gl.saved/gl.target*100 : 0)+'%'}"></div></div>
+        <div class="goal-foot">
+          <span :class="{done: gl.saved >= gl.target}">{{ gl.saved >= gl.target ? '✅ ပြည့်ပြီ!' : Math.round(gl.target? gl.saved/gl.target*100:0) + '% · ကျန် ' + fmt(Math.max(0,gl.target-gl.saved)) + ' Ks' }}</span>
+          <span class="gactions">
+            <el-button size="small" type="primary" plain @click="openContrib(gl)">＋ ငွေထည့်</el-button>
+            <el-button size="small" @click="openGoal(gl)">✏️</el-button>
+            <el-popconfirm title="ဤရည်မှန်းချက်ကို ဖျက်မှာလား?" confirm-button-text="ဖျက်မည်" cancel-button-text="မဖျက်ပါ" @confirm="delGoal(gl.id)">
+              <template #reference><el-button size="small" text>🗑</el-button></template>
+            </el-popconfirm>
+          </span>
+        </div>
+      </div>
+      <div class="goal-sum">💰 စုစုပေါင်း စုမိငွေ — <b>{{ fmt(totalSaved) }} Ks</b></div>
+    </template>
+    <div v-else class="empty-rich">
+      <div class="ei">🐖</div>
+      <div class="et">စုငွေ ရည်မှန်းချက် မရှိသေးပါ</div>
+      <div class="eh">＋ ရည်မှန်းချက် နှိပ်၍ ပန်းတိုင် (ဥပမာ "ဖုန်းအသစ် ၅ သိန်း") သတ်မှတ်ပြီး တစ်ဆင့်ချင်း စုဆောင်းပါ။</div>
+    </div>
   </div>
 
   <!-- Budget dialog -->
@@ -191,6 +334,62 @@
     <template #footer>
       <el-button @click="showBudget=false">မလုပ်တော့ပါ</el-button>
       <el-button type="primary" @click="saveBudget">💾 သိမ်းမည်</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Edit entry dialog -->
+  <el-dialog v-model="showEdit" title="✏️ မှတ်တမ်း ပြင်ရန်" width="min(420px, 94vw)">
+    <template v-if="editDraft">
+      <el-segmented v-model="editDraft.type" :options="[{label:'💸 ထွက်ငွေ',value:'out'},{label:'💵 ဝင်ငွေ',value:'in'}]" block></el-segmented>
+      <div class="cat-chips">
+        <el-tag v-for="c in (editDraft.type==='out'?CATS_OUT:CATS_IN)" :key="c.k" size="large"
+          :effect="editDraft.cat===c.k ? 'dark' : 'plain'" style="cursor:pointer" @click="editDraft.cat=c.k">{{ c.ic }} {{ c.my }}</el-tag>
+      </div>
+      <label class="fl">နေ့စွဲ</label>
+      <el-date-picker v-model="editDraft.day" type="date" value-format="YYYY-MM-DD" :clearable="false"
+        :disabled-date="d => d > new Date()" style="width:100%"></el-date-picker>
+      <label class="fl">ပမာဏ (Ks)</label>
+      <el-input v-model="editDraft.amt"><template #suffix>Ks</template></el-input>
+      <label class="fl">မှတ်ချက်</label>
+      <el-input v-model="editDraft.note" placeholder="optional"></el-input>
+    </template>
+    <template #footer>
+      <el-button @click="showEdit=false">မလုပ်တော့ပါ</el-button>
+      <el-button type="primary" @click="saveEdit">💾 သိမ်းမည်</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Savings goal dialog -->
+  <el-dialog v-model="showGoal" :title="goalDraft && goalDraft.id ? '✏️ ရည်မှန်းချက် ပြင်ရန်' : '🎯 ရည်မှန်းချက် အသစ်'" width="min(420px, 94vw)">
+    <template v-if="goalDraft">
+      <div class="cat-chips">
+        <el-tag v-for="ic in GOAL_ICONS" :key="ic" size="large" :effect="goalDraft.icon===ic ? 'dark' : 'plain'"
+          style="cursor:pointer" @click="goalDraft.icon=ic">{{ ic }}</el-tag>
+      </div>
+      <label class="fl">ရည်မှန်းချက် အမည်</label>
+      <el-input v-model="goalDraft.name" placeholder="ဥပမာ — ဖုန်းအသစ်" @keyup.enter="saveGoal"></el-input>
+      <label class="fl">ပန်းတိုင် ငွေပမာဏ (Ks)</label>
+      <el-input v-model="goalDraft.target" placeholder="500000"></el-input>
+      <label class="fl" v-if="!goalDraft.id">စတင် စုမိပြီး (optional)</label>
+      <el-input v-if="!goalDraft.id" v-model="goalDraft.saved" placeholder="0"></el-input>
+    </template>
+    <template #footer>
+      <el-button @click="showGoal=false">မလုပ်တော့ပါ</el-button>
+      <el-button type="primary" @click="saveGoal">💾 သိမ်းမည်</el-button>
+    </template>
+  </el-dialog>
+
+  <!-- Contribute-to-goal dialog -->
+  <el-dialog v-model="showContrib" title="💰 စုငွေ ထည့်ရန်" width="min(360px, 94vw)">
+    <template v-if="contribGoal">
+      <div style="font-size:.85rem;margin-bottom:10px">{{ contribGoal.icon || '🎯' }} <b>{{ contribGoal.name }}</b>
+        <span style="color:var(--muted)"> — {{ fmt(contribGoal.saved) }} / {{ fmt(contribGoal.target) }} Ks</span></div>
+      <label class="fl">ထည့်မည့် ပမာဏ (Ks) — နုတ်ရန် အနုတ်လက္ခဏာ သုံးပါ</label>
+      <el-input v-model="contribAmt" placeholder="50000" @keyup.enter="saveContrib"></el-input>
+    </template>
+    <template #footer>
+      <el-button @click="showContrib=false">မလုပ်တော့ပါ</el-button>
+      <el-button type="primary" @click="saveContrib">💾 ထည့်မည်</el-button>
     </template>
   </el-dialog>
 </div>
@@ -240,6 +439,14 @@ const app = createApp({
     const addType = ref('out'); const addCat = ref('food');
     const addAmt = ref(''); const addNote = ref('');
     const showBudget = ref(false); const budgetInput = ref('');
+    const addDay = ref(dayOf(new Date()));
+    // edit entry
+    const showEdit = ref(false); const editDraft = ref(null);
+    // savings goals
+    const GOAL_ICONS = ['🎯','🐖','📱','🏠','🚗','✈️','🎓','💍','🎁','🏥'];
+    const goals = ref([]);      // {id, name, target, saved, icon}
+    const showGoal = ref(false); const goalDraft = ref(null);
+    const showContrib = ref(false); const contribGoal = ref(null); const contribAmt = ref('');
     const toast = (m, type = 'success') => ElementPlus.ElMessage({ message: m, type, duration: 2600 });
 
     function ymOf(d) { return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
@@ -251,9 +458,10 @@ const app = createApp({
         const d = JSON.parse(localStorage.getItem(STORE) || '{}');
         entries.value = d.entries || [];
         budget.value = d.budget || 0;
+        goals.value = d.goals || [];
       } catch (e) {}
     }
-    function save() { localStorage.setItem(STORE, JSON.stringify({ entries: entries.value, budget: budget.value })); }
+    function save() { localStorage.setItem(STORE, JSON.stringify({ entries: entries.value, budget: budget.value, goals: goals.value })); }
 
     const monthEntries = computed(() => entries.value.filter(e => e.day.startsWith(viewYm.value)));
     const monthIn = computed(() => monthEntries.value.filter(e => e.type === 'in').reduce((a, e) => a + e.amt, 0));
@@ -269,11 +477,46 @@ const app = createApp({
       const m = {};
       monthEntries.value.filter(e => e.type === 'out').forEach(e => { m[e.cat] = (m[e.cat] || 0) + e.amt; });
       const max = Math.max(1, ...Object.values(m));
+      const sum = Math.max(1, Object.values(m).reduce((a, v) => a + v, 0));
       return CATS_OUT.filter(c => m[c.k]).map(c => ({
-        ...c, total: m[c.k], pct: Math.round(m[c.k] / max * 100),
+        ...c, total: m[c.k], pct: Math.round(m[c.k] / max * 100), share: Math.round(m[c.k] / sum * 100),
       })).sort((a, b) => b.total - a.total);
     });
     const catDonut = computed(() => catTotals.value.map(c => ({ label: c.ic + ' ' + c.my, value: c.total, color: c.color })));
+    const topCat = computed(() => catTotals.value[0] || null);
+
+    // ---- insights ----
+    const daysElapsed = computed(() => {
+      if (!isCurrentMonth.value) { const [y, m] = viewYm.value.split('-').map(Number); return new Date(y, m, 0).getDate(); }
+      return new Date().getDate();
+    });
+    const dailyAvg = computed(() => Math.round(monthOut.value / Math.max(1, daysElapsed.value)));
+    const biggest = computed(() => monthEntries.value.filter(e => e.type === 'out').sort((a, b) => b.amt - a.amt)[0] || null);
+    const prevMonthOut = computed(() => {
+      const [y, m] = viewYm.value.split('-').map(Number);
+      const pv = ymOf(new Date(y, m - 2, 1));
+      return entries.value.filter(e => e.type === 'out' && e.day.startsWith(pv)).reduce((a, e) => a + e.amt, 0);
+    });
+    const mom = computed(() => {
+      const cur = monthOut.value, prev = prevMonthOut.value;
+      if (!prev) return { dir: cur ? 'up' : 'flat', pct: cur ? 100 : 0 };
+      const d = Math.round((cur - prev) / prev * 100);
+      return { dir: d > 0 ? 'up' : d < 0 ? 'down' : 'flat', pct: Math.abs(d) };
+    });
+    // budget pace: are we spending faster than the month elapses?
+    const pace = computed(() => {
+      if (!budget.value || !isCurrentMonth.value) return null;
+      const [y, m] = viewYm.value.split('-').map(Number);
+      const daysInMonth = new Date(y, m, 0).getDate();
+      const monthFrac = new Date().getDate() / daysInMonth;
+      const spentFrac = monthOut.value / budget.value;
+      if (spentFrac >= 1) return { cls: 'over', txt: '🔴 Budget ကျော်နေပြီ' };
+      const expected = Math.round(monthFrac * 100);
+      const actual = Math.round(spentFrac * 100);
+      if (spentFrac > monthFrac + 0.08) return { cls: 'warn', txt: `🟡 အသုံးမြန်နေသည် — လ ${expected}% ကုန်ချိန် ${actual}% သုံးပြီ` };
+      return { cls: 'ok', txt: `🟢 လမ်းကြောင်းမှန်နေသည် — လ ${expected}% ကုန်ချိန် ${actual}% သာ သုံးထား` };
+    });
+    const totalSaved = computed(() => goals.value.reduce((a, g) => a + (g.saved || 0), 0));
 
     const dayGroups = computed(() => {
       const m = {};
@@ -298,15 +541,59 @@ const app = createApp({
     function addEntry() {
       const amt = parseFloat(String(addAmt.value).replace(/[^\d.]/g, ''));
       if (!amt || amt <= 0) { toast('ပမာဏ မှန်ကန်စွာ ထည့်ပါ', 'warning'); return; }
+      const day = addDay.value || dayOf(new Date());
       entries.value.unshift({
         id: Date.now(), type: addType.value, cat: addCat.value,
-        amt, note: addNote.value.trim(), day: dayOf(new Date()), t: Date.now(),
+        amt, note: addNote.value.trim(), day, t: Date.now(),
       });
       save();
       addAmt.value = ''; addNote.value = '';
+      if (day.slice(0, 7) !== viewYm.value) viewYm.value = day.slice(0, 7); // jump to the month we just logged
       toast((addType.value === 'in' ? '+' : '−') + fmt(amt) + ' Ks မှတ်ပြီး');
     }
     function delEntry(id) { entries.value = entries.value.filter(e => e.id !== id); save(); }
+
+    // ---- edit entry ----
+    function openEdit(e) { editDraft.value = { ...e }; showEdit.value = true; }
+    function saveEdit() {
+      const d = editDraft.value; if (!d) return;
+      const amt = parseFloat(String(d.amt).replace(/[^\d.]/g, ''));
+      if (!amt || amt <= 0) { toast('ပမာဏ မှန်ကန်စွာ ထည့်ပါ', 'warning'); return; }
+      const i = entries.value.findIndex(x => x.id === d.id);
+      if (i >= 0) entries.value[i] = { ...entries.value[i], type: d.type, cat: d.cat, amt, note: (d.note || '').trim(), day: d.day };
+      save(); showEdit.value = false; toast('✏️ ပြင်ဆင်ပြီး');
+    }
+
+    // ---- savings goals ----
+    function openGoal(gl) {
+      goalDraft.value = gl ? { ...gl } : { name: '', target: '', saved: '', icon: '🎯' };
+      showGoal.value = true;
+    }
+    function saveGoal() {
+      const d = goalDraft.value; if (!d) return;
+      const name = (d.name || '').trim();
+      const target = parseFloat(String(d.target).replace(/[^\d.]/g, '')) || 0;
+      if (!name) { toast('အမည် ထည့်ပါ', 'warning'); return; }
+      if (!target) { toast('ပန်းတိုင် ငွေပမာဏ ထည့်ပါ', 'warning'); return; }
+      if (d.id) {
+        const i = goals.value.findIndex(g => g.id === d.id);
+        if (i >= 0) goals.value[i] = { ...goals.value[i], name, target, icon: d.icon || '🎯' };
+      } else {
+        goals.value.push({ id: Date.now(), name, target, saved: parseFloat(String(d.saved).replace(/[^\d.]/g, '')) || 0, icon: d.icon || '🎯' });
+      }
+      save(); showGoal.value = false; toast('🎯 ရည်မှန်းချက် သိမ်းပြီး');
+    }
+    function delGoal(id) { goals.value = goals.value.filter(g => g.id !== id); save(); }
+    function openContrib(gl) { contribGoal.value = gl; contribAmt.value = ''; showContrib.value = true; }
+    function saveContrib() {
+      const g = contribGoal.value; if (!g) return;
+      const amt = parseFloat(String(contribAmt.value).replace(/[^\d.\-]/g, ''));
+      if (!amt) { toast('ပမာဏ ထည့်ပါ', 'warning'); return; }
+      const i = goals.value.findIndex(x => x.id === g.id);
+      if (i >= 0) goals.value[i].saved = Math.max(0, (goals.value[i].saved || 0) + amt);
+      save(); showContrib.value = false;
+      toast((amt >= 0 ? '＋' : '−') + fmt(amt) + ' Ks — ' + g.name);
+    }
 
     function moveMonth(dir) {
       const [y, m] = viewYm.value.split('-').map(Number);
@@ -338,11 +625,15 @@ const app = createApp({
     onMounted(() => { load(); document.getElementById('vue-loading').style.display = 'none'; });
 
     return {
-      CATS_OUT, CATS_IN, entries, budget, addType, addCat, addAmt, addNote,
+      CATS_OUT, CATS_IN, GOAL_ICONS, entries, budget, addType, addCat, addAmt, addNote, addDay,
       showBudget, budgetInput, viewYm,
-      monthIn, monthOut, monthLabel, isCurrentMonth, catTotals, catDonut, dayGroups,
+      monthEntries, monthIn, monthOut, monthLabel, isCurrentMonth, catTotals, catDonut, dayGroups,
+      topCat, daysElapsed, dailyAvg, biggest, prevMonthOut, mom, pace,
+      goals, totalSaved, showGoal, goalDraft, showContrib, contribGoal, contribAmt,
+      showEdit, editDraft,
       fmt, catIcon, catName,
-      addEntry, delEntry, moveMonth, openBudget, saveBudget, exportCsv,
+      addEntry, delEntry, openEdit, saveEdit, moveMonth, openBudget, saveBudget, exportCsv,
+      openGoal, saveGoal, delGoal, openContrib, saveContrib,
     };
   }
 });
