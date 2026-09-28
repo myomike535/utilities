@@ -52,23 +52,46 @@
     }
     .al-card { position: relative; z-index: 2; }
     @media (prefers-reduced-motion: reduce) { .al-backdrop::before { animation: none; } }
+    /* ===== Pro split-screen card: brand pane + form pane ===== */
     .al-card {
-      width: 100%; max-width: 330px; text-align: center;
-      background: rgba(255,255,255,0.055);
-      backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+      width: 100%; max-width: 720px;
+      display: grid; grid-template-columns: 1.05fr 1fr;
+      background: rgba(255,255,255,0.05);
+      backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
       border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 22px; padding: 38px 28px 30px;
-      /* + canvas glow: soft indigo halo grounds the card on the backdrop */
-      box-shadow: 0 24px 70px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.08),
-                  0 0 130px -24px rgba(99,102,241,0.5);
+      border-radius: 24px; overflow: hidden;
+      /* canvas glow: soft indigo halo grounds the card on the backdrop */
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.08),
+                  0 0 140px -26px rgba(99,102,241,0.5);
       font-family: 'Pyidaungsu','Padauk','Myanmar Text','Segoe UI',system-ui,sans-serif;
       color: #e8ecf4;
-      animation: alRise 0.45s cubic-bezier(.22,1,.36,1);
+      animation: alRise 0.5s cubic-bezier(.22,1,.36,1);
     }
     @keyframes alRise { from { opacity: 0; transform: translateY(16px) scale(0.97); } to { opacity: 1; transform: none; } }
+    /* Left brand pane (desktop) */
+    .al-brand {
+      padding: 38px 32px; display: flex; flex-direction: column;
+      border-right: 1px solid rgba(255,255,255,0.06);
+      background: linear-gradient(160deg, rgba(99,102,241,0.16), rgba(139,92,246,0.05) 55%, transparent);
+    }
+    .al-brand .al-title { font-size: 1.12rem; margin-bottom: 0; }
+    .al-tag { font-size: 0.78rem; color: #aab3c5; line-height: 1.65; margin-top: 8px; max-width: 15.5rem; }
+    .al-feat { margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding-top: 28px; }
+    .al-feat .f { display: flex; align-items: center; gap: 11px; font-size: 0.8rem; color: #c8cfda; }
+    .al-feat .f .fi { width: 27px; height: 27px; border-radius: 8px; display: grid; place-items: center; font-size: 0.92rem;
+      background: rgba(255,255,255,0.06); box-shadow: inset 0 0 0 1px rgba(255,255,255,0.09); flex: none; }
+    /* Right form pane */
+    .al-form { padding: 38px 32px; display: flex; flex-direction: column; justify-content: center; }
+    .al-form .al-title { font-size: 1.16rem; }
+    .al-form .al-sub { margin-bottom: 20px; }
+    @media (max-width: 640px) {
+      .al-card { grid-template-columns: 1fr; max-width: 384px; }
+      .al-brand { display: none; }
+      .al-form { padding: 34px 26px 28px; }
+    }
     .al-ico {
-      width: 62px; height: 62px; margin: 0 auto 14px; font-size: 1.7rem;
-      display: grid; place-items: center; border-radius: 20px;
+      width: 54px; height: 54px; margin: 0 0 16px; font-size: 1.5rem;
+      display: grid; place-items: center; border-radius: 16px;
       background: linear-gradient(135deg, #6366f1, #a78bfa);
       box-shadow: 0 10px 28px rgba(99,102,241,0.45);
     }
@@ -110,26 +133,42 @@
   function showLock(mode) {
     const bd = document.createElement('div');
     bd.className = 'al-backdrop';
-    bd.innerHTML = mode === 'create' ? `
-      <div class="al-card">
+    const brandPane = `
+      <div class="al-brand">
         <div class="al-ico">🔐</div>
         <div class="al-title">MyoMT Utilities</div>
-        <div class="al-sub">ပထမဆုံးအကြိမ် — နာမည်နှင့် PIN သတ်မှတ်ပါ</div>
-        <input class="al-input al-name" type="text" autocomplete="off" maxlength="24" placeholder="နာမည် · Your name" aria-label="Name" style="letter-spacing:normal;font-size:0.95rem;margin-bottom:8px">
-        <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN အသစ် (၄ လုံး+)" aria-label="New PIN">
-        <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="ထပ်မံ အတည်ပြုပါ" aria-label="Confirm PIN" style="margin-top:8px">
-        <button class="al-btn">🔒 သတ်မှတ်မည် · Set PIN</button>
-        <div class="al-err"></div>
-        <button class="al-reset">PIN မလိုပါ — ဆက်သွားမည် (skip)</button>
+        <div class="al-tag">သင့် tools အားလုံး — တစ်နေရာတည်း၊ offline အလုပ်လုပ်၊ device များကြား cloud-sync။</div>
+        <div class="al-feat">
+          <div class="f"><span class="fi">🔒</span> ဤ device တွင်သာ — Private</div>
+          <div class="f"><span class="fi">⚡</span> Offline-first PWA</div>
+          <div class="f"><span class="fi">☁️</span> Device များကြား Cloud-sync</div>
+          <div class="f"><span class="fi">🧰</span> Tools ၄၀+ တစ်နေရာတည်း</div>
+        </div>
+      </div>`;
+    bd.innerHTML = mode === 'create' ? `
+      <div class="al-card">
+        ${brandPane}
+        <div class="al-form">
+          <div class="al-title">စတင်ရန်</div>
+          <div class="al-sub">ပထမဆုံးအကြိမ် — နာမည်နှင့် PIN သတ်မှတ်ပါ</div>
+          <input class="al-input al-name" type="text" autocomplete="off" maxlength="24" placeholder="နာမည် · Your name" aria-label="Name" style="letter-spacing:normal;font-size:0.95rem;margin-bottom:8px">
+          <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="PIN အသစ် (၄ လုံး+)" aria-label="New PIN">
+          <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" placeholder="ထပ်မံ အတည်ပြုပါ" aria-label="Confirm PIN" style="margin-top:8px">
+          <button class="al-btn">🔒 သတ်မှတ်မည် · Set PIN</button>
+          <div class="al-err"></div>
+          <button class="al-reset">PIN မလိုပါ — ဆက်သွားမည် (skip)</button>
+        </div>
       </div>` : `
       <div class="al-card">
-        <div class="al-ico">🔒</div>
-        <div class="al-title">${(localStorage.getItem('applock.name') || 'MyoMT Utilities').replace(/[<>&]/g, '')}</div>
-        <div class="al-sub">${localStorage.getItem('applock.name') ? 'မင်္ဂလာပါ — PIN ထည့်၍ ဖွင့်ပါ' : 'PIN ထည့်၍ ဖွင့်ပါ'}</div>
-        <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" aria-label="PIN">
-        <button class="al-btn">ဖွင့်မည် · Unlock</button>
-        <div class="al-err"></div>
-        <button class="al-reset">PIN မေ့သွားလား? — Lock ဖြုတ်ရန် (data မပျက်ပါ)</button>
+        ${brandPane}
+        <div class="al-form">
+          <div class="al-title">${(localStorage.getItem('applock.name') || 'ပြန်လည် ဖွင့်ရန်').replace(/[<>&]/g, '')}</div>
+          <div class="al-sub">${localStorage.getItem('applock.name') ? 'မင်္ဂလာပါ — PIN ထည့်၍ ဖွင့်ပါ' : 'PIN ထည့်၍ ဖွင့်ပါ'}</div>
+          <input class="al-input" type="password" inputmode="numeric" autocomplete="off" maxlength="12" aria-label="PIN">
+          <button class="al-btn">ဖွင့်မည် · Unlock</button>
+          <div class="al-err"></div>
+          <button class="al-reset">PIN မေ့သွားလား? — Lock ဖြုတ်ရန် (data မပျက်ပါ)</button>
+        </div>
       </div>`;
     document.documentElement.appendChild(bd);
     const inputs = bd.querySelectorAll('.al-input');
