@@ -739,6 +739,6 @@
     }
   });
 
-  // Expose for external control
-  window.NavRail = { setExpanded: setRail };
+  // Expose for external control + shared grouped tool list (consumed by the command palette)
+  window.NavRail = { setExpanded: setRail, groups: GROUPS };
 })();

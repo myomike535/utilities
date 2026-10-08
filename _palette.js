@@ -128,13 +128,30 @@
     } catch { return []; }
   }
 
+  // Emoji per sidebar icon name — keeps the palette visually consistent with the rail
+  const NAV_ICO = {
+    dashboard:'🏠', tasks:'📋', mic:'🎙', sparkles:'✨', headphones:'🎧',
+    bookmark:'🔖', shield:'🔐', palette:'🎨', braces:'💻', trending:'📈',
+    book:'📖', study:'🎓', scroll:'📜', mala:'📿',
+  };
   function coreActions() {
+    // Mirror the nav rail's grouped sections (single source of truth: window.NavRail.groups)
+    const groups = window.NavRail && window.NavRail.groups;
+    if (groups && groups.length) {
+      const out = [];
+      groups.forEach(g => g.items.forEach(t => {
+        if (t.href.toLowerCase() === HERE) return;
+        out.push({ section: g.title, ico: NAV_ICO[t.icon] || '•', text: t.label, hint: t.href, run: () => go(t.href) });
+      }));
+      return out;
+    }
+    // Fallback if the rail hasn't loaded yet
     return [
-      { section:'Go to', ico:'🏠', text:'Dashboard',           hint:'index.html',           run: () => go('index.html') },
-      { section:'Go to', ico:'📋', text:'Task Manager',        hint:'ToDo.html',            run: () => go('ToDo.html') },
-      { section:'Go to', ico:'🎙', text:'AI Note Taker',       hint:'AINoteTaker.html',     run: () => go('AINoteTaker.html') },
-      { section:'Go to', ico:'🔐', text:'Password Manager',    hint:'PasswordManager.html', run: () => go('PasswordManager.html') },
-      { section:'Go to', ico:'🔧', text:'SQL Formatter',       hint:'SqlFormatter.html',    run: () => go('SqlFormatter.html') },
+      { section:'Go to', ico:'🏠', text:'Dashboard',        hint:'index.html',           run: () => go('index.html') },
+      { section:'Go to', ico:'📋', text:'Task Manager',     hint:'ToDo.html',            run: () => go('ToDo.html') },
+      { section:'Go to', ico:'🎙', text:'AI Note Taker',    hint:'AINoteTaker.html',     run: () => go('AINoteTaker.html') },
+      { section:'Go to', ico:'🔐', text:'Password Manager', hint:'PasswordManager.html', run: () => go('PasswordManager.html') },
+      { section:'Go to', ico:'🔧', text:'SQL Formatter',    hint:'SqlFormatter.html',    run: () => go('SqlFormatter.html') },
     ].filter(a => !a.hint || a.hint.toLowerCase() !== HERE);
   }
 
@@ -161,7 +178,7 @@
     if (q) all.sort((a, b) => rank(a.haystack, q) - rank(b.haystack, q));
 
     // Limit
-    items = all.slice(0, 80);
+    items = all.slice(0, 120);
     selectedIdx = 0;
     renderList();
   }
