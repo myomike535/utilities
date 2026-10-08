@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snip &amp; Annotate — MyoMT Utilities</title>
+<link rel="icon" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="_motion.css">
+<link rel="stylesheet" href="_effects.css">
+<link rel="stylesheet" href="_design.css">
+<style>
+  :root{
+    --bg:#070a0f; --bg2:#0d1119; --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342; --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#6366f1; --accent-2:#8b5cf6; --danger:#ff6b6b; --ok:#34d399;
+    --sans:'Pyidaungsu','Padauk','Inter','Segoe UI',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:var(--sans); color:var(--text); min-height:100vh; padding:20px 16px 50px;
+    background:
+      radial-gradient(1000px 600px at 10% -10%, rgba(99,102,241,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(139,92,246,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%); background-attachment:fixed;}
+  .wrap{max-width:1180px; margin:0 auto}
+  header{display:flex; align-items:center; gap:13px; margin-bottom:16px; flex-wrap:wrap}
+  .logo{width:44px; height:44px; border-radius:12px; display:grid; place-items:center; font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(99,102,241,.35)}
+  header h1{font-size:1.25rem; margin:0; font-weight:800; letter-spacing:-.02em}
+  header .sub{color:var(--muted); font-size:.8rem}
+  header .title{flex:1; min-width:160px}
+
+  .bar{display:flex; align-items:center; gap:7px; flex-wrap:wrap; background:var(--card);
+    border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:9px 11px; margin-bottom:12px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 12px 30px -16px rgba(0,0,0,.55)}
+  .bar .sep{width:1px; align-self:stretch; background:rgba(255,255,255,.09); margin:2px 3px}
+  .tbtn{display:inline-flex; align-items:center; gap:6px; min-height:38px; padding:0 11px; border-radius:10px;
+    border:1px solid rgba(255,255,255,.1); background:var(--field); color:var(--text); cursor:pointer;
+    font-family:var(--sans); font-size:.82rem; font-weight:600; transition:transform .13s, border-color .14s, background .14s}
+  .tbtn:hover{transform:translateY(-1px); border-color:color-mix(in srgb, var(--accent) 45%, transparent)}
+  .tbtn:active{transform:translateY(0) scale(.97)}
+  .tbtn.on{background:color-mix(in srgb, var(--accent) 22%, transparent); border-color:var(--accent); color:#fff}
+  .tbtn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2)); border:none; color:#fff; box-shadow:0 6px 16px rgba(99,102,241,.35)}
+  .tbtn.danger:hover{border-color:var(--danger); color:var(--danger)}
+  .tbtn svg{width:17px; height:17px; fill:none; stroke:currentColor; stroke-width:1.9; stroke-linecap:round; stroke-linejoin:round}
+  .tbtn:disabled{opacity:.4; cursor:not-allowed; transform:none}
+  .tbtn .k{font-size:.62rem; opacity:.6; font-weight:500}
+
+  .swatches{display:flex; align-items:center; gap:5px}
+  .sw{width:22px; height:22px; border-radius:6px; cursor:pointer; border:2px solid transparent; transition:transform .12s}
+  .sw:hover{transform:scale(1.12)}
+  .sw.on{border-color:#fff; box-shadow:0 0 0 2px rgba(0,0,0,.4)}
+  input[type=color]{width:26px; height:26px; padding:0; border:1px solid var(--field-border); border-radius:6px; background:none; cursor:pointer}
+  .wrange{display:flex; align-items:center; gap:7px; font-size:.74rem; color:var(--muted)}
+  .wrange input[type=range]{width:88px}
+  .wval{width:26px; text-align:right; font-variant-numeric:tabular-nums; color:var(--text); font-weight:700}
+
+  .stage{position:relative; background:
+      linear-gradient(45deg,#0c0f16 25%,transparent 25%,transparent 75%,#0c0f16 75%),
+      linear-gradient(45deg,#0c0f16 25%,#10141d 25%,#10141d 75%,#0c0f16 75%);
+    background-size:22px 22px; background-position:0 0, 11px 11px;
+    border:1px solid rgba(255,255,255,.08); border-radius:16px; min-height:440px;
+    display:flex; align-items:center; justify-content:center; overflow:auto; padding:18px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 16px 40px -20px rgba(0,0,0,.6)}
+  #cv{max-width:100%; display:none; border-radius:6px; box-shadow:0 10px 40px rgba(0,0,0,.5); cursor:crosshair; touch-action:none}
+  #cv.sel-mode{cursor:default}
+
+  .drop{display:flex; flex-direction:column; align-items:center; text-align:center; gap:6px; color:var(--muted); padding:40px 20px}
+  .drop .di{width:72px; height:72px; border-radius:20px; display:grid; place-items:center; font-size:2rem; margin-bottom:10px;
+    background:color-mix(in srgb, var(--accent) 13%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 26%, transparent)}
+  .drop .dt{font-size:1rem; font-weight:700; color:var(--text)}
+  .drop .dh{font-size:.82rem; max-width:420px; line-height:1.6}
+  .drop kbd{background:var(--field); border:1px solid var(--field-border); border-radius:5px; padding:1px 6px; font-size:.74rem; font-family:inherit}
+  .drop .dactions{display:flex; gap:8px; flex-wrap:wrap; justify-content:center; margin-top:10px}
+  .stage.dragover{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 7%, transparent)}
+
+  /* inline text editor */
+  .txt-edit{position:absolute; z-index:20; background:rgba(10,14,22,.95); border:1px solid var(--accent);
+    border-radius:8px; color:var(--text); font-family:var(--sans); padding:5px 8px; outline:none; min-width:120px;
+    box-shadow:0 8px 24px rgba(0,0,0,.5)}
+
+  .hintbar{font-size:.74rem; color:var(--faint); margin-top:9px; text-align:center}
+  .hintbar kbd{background:var(--card); border:1px solid var(--field-border); border-radius:4px; padding:1px 5px; font-family:inherit}
+  footer{text-align:center; color:var(--faint); font-size:.72rem; margin-top:22px}
+  .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); opacity:0;
+    background:var(--card2); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:10px 16px;
+    font-size:.84rem; font-weight:600; box-shadow:0 12px 30px rgba(0,0,0,.5); transition:.25s; z-index:9999; pointer-events:none}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  @media(max-width:640px){ .wrange input[type=range]{width:64px} .tbtn .k{display:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">✂️</div>
+    <div class="title">
+      <h1>Snip &amp; Annotate</h1>
+      <div class="sub">ပုံဖမ်း/paste လုပ်ပြီး — arrow, box, text, highlight, blur, step နဲ့ မှတ်သားပါ · offline</div>
+    </div>
+  </header>
+
+  <!-- Toolbar -->
+  <div class="bar" id="toolbar">
+    <button class="tbtn" data-tool="select" title="Select / move (V)"><svg viewBox="0 0 24 24"><path d="m3 3 7.5 18 2-7.5L20 10.5z"/></svg></button>
+    <button class="tbtn on" data-tool="arrow" title="Arrow (A)"><svg viewBox="0 0 24 24"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg></button>
+    <button class="tbtn" data-tool="line" title="Line (L)"><svg viewBox="0 0 24 24"><path d="M5 19 19 5"/></svg></button>
+    <button class="tbtn" data-tool="box" title="Rectangle (R)"><svg viewBox="0 0 24 24"><rect x="4" y="5" width="16" height="14" rx="2"/></svg></button>
+    <button class="tbtn" data-tool="ellipse" title="Ellipse (O)"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="12" rx="9" ry="7"/></svg></button>
+    <button class="tbtn" data-tool="pen" title="Pen (P)"><svg viewBox="0 0 24 24"><path d="M12 19l7-7 3 3-7 7-3-3z"/><path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18z"/><path d="M2 2l7.586 7.586"/></svg></button>
+    <button class="tbtn" data-tool="highlight" title="Highlight (H)"><svg viewBox="0 0 24 24"><path d="m9 11-6 6v3h3l6-6"/><path d="M22 12 15 5l-3 3 7 7z"/></svg></button>
+    <button class="tbtn" data-tool="text" title="Text (T)"><svg viewBox="0 0 24 24"><path d="M4 7V5h16v2"/><path d="M12 5v14"/><path d="M9 19h6"/></svg></button>
+    <button class="tbtn" data-tool="step" title="Numbered step (S)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="currentColor" stroke="none">1</text></svg></button>
+    <button class="tbtn" data-tool="blur" title="Blur / redact (B)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M7 8h.01M11 8h.01M15 8h.01M9 11h.01M13 11h.01M17 11h.01M7 14h.01M11 14h.01M15 14h.01"/></svg></button>
+    <button class="tbtn" data-tool="crop" title="Crop (C)"><svg viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg></button>
+    <div class="sep"></div>
+    <div class="swatches" id="swatches"></div>
+    <input type="color" id="colorPick" value="#ff3b30" title="Custom colour">
+    <div class="sep"></div>
+    <div class="wrange"><span>Size</span><input type="range" id="widthRange" min="1" max="24" value="4"><span class="wval" id="widthVal">4</span></div>
+    <div class="sep"></div>
+    <button class="tbtn" id="undoBtn" title="Undo (Ctrl+Z)" disabled><svg viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-1"/></svg></button>
+    <button class="tbtn" id="redoBtn" title="Redo (Ctrl+Shift+Z)" disabled><svg viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h1"/></svg></button>
+    <div class="sep"></div>
+    <button class="tbtn" id="pasteBtn" title="Paste image (Ctrl+V)"><svg viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg><span class="k">Paste</span></button>
+    <button class="tbtn" id="uploadBtn" title="Upload"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg><span class="k">Upload</span></button>
+    <button class="tbtn" id="captureBtn" title="Capture screen"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg><span class="k">Capture</span></button>
+    <div class="sep"></div>
+    <button class="tbtn" id="copyBtn" title="Copy to clipboard" disabled><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="k">Copy</span></button>
+    <button class="tbtn primary" id="dlBtn" title="Download PNG" disabled><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><span class="k">PNG</span></button>
+    <button class="tbtn danger" id="clearBtn" title="Clear" disabled><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="cv"></canvas>
+    <div class="drop" id="drop">
+      <div class="di">✂️</div>
+      <div class="dt">ပုံတစ်ပုံ ထည့်ပြီး စတင်ပါ</div>
+      <div class="dh"><kbd>Ctrl</kbd>+<kbd>V</kbd> ဖြင့် paste လုပ်ပါ · ပုံကို ဤနေရာသို့ ဆွဲချပါ · သို့မဟုတ် အောက်ကခလုတ်များ သုံးပါ</div>
+      <div class="dactions">
+        <button class="tbtn" id="dropUpload"><svg viewBox="0 0 24 24"><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/></svg> Upload</button>
+        <button class="tbtn" id="dropCapture"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg> Capture screen</button>
+        <button class="tbtn" id="dropSample"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="m3 15 5-5 4 4 3-3 6 6"/></svg> Sample</button>
+      </div>
+    </div>
+  </div>
+  <div class="hintbar">Tools: <kbd>V</kbd> select · <kbd>A</kbd> arrow · <kbd>R</kbd> box · <kbd>O</kbd> ellipse · <kbd>T</kbd> text · <kbd>S</kbd> step · <kbd>B</kbd> blur · <kbd>C</kbd> crop · <kbd>Del</kbd> delete selected · <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo</div>
+  <footer>Developed by <b>MyoMT</b> · ပုံအားလုံးကို ဤ device ပေါ်မှာသာ ပြုပြင်သည် — upload မလုပ်ပါ</footer>
+</div>
+
+<input type="file" id="fileInput" accept="image/*" style="display:none">
+<div class="toast" id="toast"></div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script>
+(function(){
+  'use strict';
+  const cv = document.getElementById('cv');
+  const ctx = cv.getContext('2d');
+  const stage = document.getElementById('stage');
+  const drop = document.getElementById('drop');
+  const fileInput = document.getElementById('fileInput');
+  const toastEl = document.getElementById('toast');
+
+  const COLORS = ['#ff3b30','#ff9f0a','#ffd60a','#34c759','#0ea5e9','#5856d6','#af52de','#ff2d92','#ffffff','#111111'];
+  let color = '#ff3b30';
+  let width = 4;
+  let tool = 'arrow';
+
+  // state: base (ImageBitmap/HTMLImage/Canvas drawable) + shapes list
+  let base = null;             // drawable source at natural resolution
+  let baseW = 0, baseH = 0;
+  let shapes = [];             // committed annotations
+  let history = [], hIndex = -1;
+  let selected = null;         // reference to a shape when select tool used
+  let draft = null;            // in-progress shape
+  let drag = null;             // {mode, startX, startY, orig}
+
+  function toast(msg){ toastEl.textContent = msg; toastEl.classList.add('show'); clearTimeout(toast._t); toast._t = setTimeout(()=>toastEl.classList.remove('show'), 1800); }
+
+  // ---------- swatches ----------
+  const swWrap = document.getElementById('swatches');
+  COLORS.forEach(c => {
+    const s = document.createElement('div');
+    s.className = 'sw' + (c===color?' on':''); s.style.background = c; s.dataset.c = c;
+    s.addEventListener('click', () => setColor(c));
+    swWrap.appendChild(s);
+  });
+  function setColor(c){
+    color = c;
+    document.querySelectorAll('.sw').forEach(s => s.classList.toggle('on', s.dataset.c===c));
+    document.getElementById('colorPick').value = /^#[0-9a-f]{6}$/i.test(c) ? c : '#ffffff';
+  }
+  document.getElementById('colorPick').addEventListener('input', e => { setColor(e.target.value); });
+  const widthRange = document.getElementById('widthRange');
+  widthRange.addEventListener('input', e => { width = +e.target.value; document.getElementById('widthVal').textContent = width; });
+
+  // ---------- tool selection ----------
+  document.querySelectorAll('#toolbar [data-tool]').forEach(btn => {
+    btn.addEventListener('click', () => setTool(btn.dataset.tool));
+  });
+  function setTool(t){
+    tool = t; selected = null;
+    document.querySelectorAll('#toolbar [data-tool]').forEach(b => b.classList.toggle('on', b.dataset.tool===t));
+    cv.classList.toggle('sel-mode', t==='select');
+    render();
+  }
+
+  // ---------- loading images ----------
+  function setBase(drawable, w, h){
+    base = drawable; baseW = w; baseH = h;
+    cv.width = w; cv.height = h;
+    shapes = []; selected = null;
+    // fit display: cap to stage width/height while preserving ratio
+    fitDisplay();
+    drop.style.display = 'none'; cv.style.display = 'block';
+    history = []; hIndex = -1; pushHistory();
+    render(); updateButtons();
+  }
+  function fitDisplay(){
+    const maxW = Math.min(stage.clientWidth - 36, baseW);
+    const maxH = window.innerHeight * 0.72;
+    let w = baseW, h = baseH;
+    const r = Math.min(maxW / baseW, maxH / baseH, 1);
+    cv.style.width = (baseW * r) + 'px';
+    cv.style.height = (baseH * r) + 'px';
+  }
+  window.addEventListener('resize', () => { if(base) fitDisplay(); });
+
+  function loadFromSource(src){
+    const img = new Image();
+    img.onload = () => setBase(img, img.naturalWidth, img.naturalHeight);
+    img.onerror = () => toast('⚠ ပုံ ဖွင့်၍ မရပါ');
+    img.src = src;
+  }
+  function loadFromBlob(blob){
+    if(!blob || !/^image\//.test(blob.type)) { toast('⚠ ပုံ မဟုတ်ပါ'); return; }
+    const url = URL.createObjectURL(blob);
+    const img = new Image();
+    img.onload = () => { setBase(img, img.naturalWidth, img.naturalHeight); URL.revokeObjectURL(url); toast('✓ ပုံ ထည့်ပြီး'); };
+    img.src = url;
+  }
+
+  // paste
+  window.addEventListener('paste', e => {
+    const items = (e.clipboardData || {}).items || [];
+    for(const it of items){ if(it.type && it.type.startsWith('image/')){ loadFromBlob(it.getAsFile()); e.preventDefault(); return; } }
+  });
+  // drag & drop
+  ['dragenter','dragover'].forEach(ev => stage.addEventListener(ev, e => { e.preventDefault(); stage.classList.add('dragover'); }));
+  ['dragleave','drop'].forEach(ev => stage.addEventListener(ev, e => { e.preventDefault(); if(ev==='dragleave' && e.target!==stage) return; stage.classList.remove('dragover'); }));
+  stage.addEventListener('drop', e => { const f = (e.dataTransfer.files||[])[0]; if(f) loadFromBlob(f); });
+  // upload
+  function openFile(){ fileInput.value=''; fileInput.click(); }
+  fileInput.addEventListener('change', e => { const f = e.target.files[0]; if(f) loadFromBlob(f); });
+  document.getElementById('uploadBtn').addEventListener('click', openFile);
+  document.getElementById('dropUpload').addEventListener('click', openFile);
+  document.getElementById('pasteBtn').addEventListener('click', async () => {
+    try{
+      const items = await navigator.clipboard.read();
+      for(const it of items){ const type = it.types.find(t => t.startsWith('image/')); if(type){ loadFromBlob(await it.getType(type)); return; } }
+      toast('Clipboard တွင် ပုံ မတွေ့ပါ — Ctrl+V သုံးကြည့်ပါ');
+    }catch(err){ toast('Ctrl+V ဖြင့် paste လုပ်ပါ'); }
+  });
+  // screen capture
+  async function capture(){
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getDisplayMedia){ toast('⚠ ဒီ browser က screen capture မရပါ'); return; }
+    try{
+      const stream = await navigator.mediaDevices.getDisplayMedia({ video:{ cursor:'always' }, audio:false });
+      const video = document.createElement('video'); video.srcObject = stream; await video.play();
+      await new Promise(r => setTimeout(r, 180));
+      const w = video.videoWidth, h = video.videoHeight;
+      const c = document.createElement('canvas'); c.width = w; c.height = h;
+      c.getContext('2d').drawImage(video, 0, 0, w, h);
+      stream.getTracks().forEach(t => t.stop());
+      const img = new Image(); img.onload = () => { setBase(img, w, h); toast('✓ Screen ဖမ်းပြီး'); }; img.src = c.toDataURL('image/png');
+    }catch(err){ /* user cancelled */ }
+  }
+  document.getElementById('captureBtn').addEventListener('click', capture);
+  document.getElementById('dropCapture').addEventListener('click', capture);
+  // sample
+  document.getElementById('dropSample').addEventListener('click', () => {
+    const w=960, h=560, c=document.createElement('canvas'); c.width=w; c.height=h; const g=c.getContext('2d');
+    const grd=g.createLinearGradient(0,0,w,h); grd.addColorStop(0,'#1b2130'); grd.addColorStop(1,'#0d1119'); g.fillStyle=grd; g.fillRect(0,0,w,h);
+    g.strokeStyle='rgba(255,255,255,.08)'; for(let x=0;x<w;x+=40){g.beginPath();g.moveTo(x,0);g.lineTo(x,h);g.stroke();} for(let y=0;y<h;y+=40){g.beginPath();g.moveTo(0,y);g.lineTo(w,y);g.stroke();}
+    g.fillStyle='#5aa9ff'; g.font='bold 42px Inter,sans-serif'; g.fillText('Sample screenshot', 60, 110);
+    g.fillStyle='#9aa4b3'; g.font='18px Inter,sans-serif'; g.fillText('Paste a real screenshot, or annotate this one.', 60, 150);
+    g.fillStyle='#151a24'; g.fillRect(60,210,360,120); g.strokeStyle='#2b3342'; g.strokeRect(60,210,360,120);
+    g.fillStyle='#616c7d'; g.font='14px Inter'; g.fillText('username:  admin', 84, 255); g.fillText('password:  s3cr3t-demo', 84, 290);
+    const img=new Image(); img.onload=()=>setBase(img,w,h); img.src=c.toDataURL();
+  });
+
+  // ---------- coordinate mapping ----------
+  function pos(e){
+    const r = cv.getBoundingClientRect();
+    const px = (e.touches ? e.touches[0].clientX : e.clientX) - r.left;
+    const py = (e.touches ? e.touches[0].clientY : e.clientY) - r.top;
+    return { x: px * (cv.width / r.width), y: py * (cv.height / r.height) };
+  }
+
+  // ---------- drawing / interaction ----------
+  cv.addEventListener('pointerdown', e => {
+    if(!base) return;
+    cv.setPointerCapture(e.pointerId);
+    const p = pos(e);
+    if(tool === 'select'){
+      selected = hitTest(p.x, p.y);
+      if(selected){ drag = { mode:'move', x:p.x, y:p.y, orig: JSON.parse(JSON.stringify(selected)) }; }
+      render(); return;
+    }
+    if(tool === 'text'){ startTextInput(p, e); return; }
+    if(tool === 'step'){ addStep(p); return; }
+    // drag-to-draw tools
+    draft = newShape(tool, p);
+  });
+  cv.addEventListener('pointermove', e => {
+    if(!base) return;
+    const p = pos(e);
+    if(drag && selected){
+      const dx = p.x - drag.x, dy = p.y - drag.y;
+      moveShape(selected, drag.orig, dx, dy);
+      render(); return;
+    }
+    if(!draft) return;
+    updateShape(draft, p);
+    render(); drawShape(ctx, draft); // live preview
+  });
+  cv.addEventListener('pointerup', e => {
+    if(drag){ drag = null; pushHistory(); return; }
+    if(!draft) return;
+    const s = draft; draft = null;
+    if(shapeValid(s)){ shapes.push(s); pushHistory(); }
+    render();
+  });
+
+  function newShape(t, p){
+    const base = { type:t, color, width };
+    if(t==='pen' || t==='highlight' && false){ }
+    if(t==='pen'){ return { type:'pen', color, width, points:[{x:p.x,y:p.y}] }; }
+    if(t==='highlight'){ return { type:'highlight', color, x:p.x, y:p.y, w:0, h:0 }; }
+    if(t==='blur'){ return { type:'blur', x:p.x, y:p.y, w:0, h:0 }; }
+    if(t==='crop'){ return { type:'crop', x:p.x, y:p.y, w:0, h:0 }; }
+    if(t==='box' || t==='ellipse'){ return { type:t, color, width, x:p.x, y:p.y, w:0, h:0 }; }
+    return { type:t, color, width, x1:p.x, y1:p.y, x2:p.x, y2:p.y }; // arrow, line
+  }
+  function updateShape(s, p){
+    if(s.type==='pen'){ s.points.push({x:p.x,y:p.y}); return; }
+    if(s.x1!==undefined){ s.x2=p.x; s.y2=p.y; return; }
+    s.w = p.x - s.x; s.h = p.y - s.y;
+  }
+  function shapeValid(s){
+    if(s.type==='pen') return s.points.length > 1;
+    if(s.x1!==undefined) return Math.hypot(s.x2-s.x1, s.y2-s.y1) > 4;
+    if(s.type==='crop'){ applyCrop(s); return false; }
+    return Math.abs(s.w) > 5 && Math.abs(s.h) > 5;
+  }
+
+  function addStep(p){
+    const nextN = shapes.filter(s=>s.type==='step').reduce((m,s)=>Math.max(m,s.n),0) + 1;
+    shapes.push({ type:'step', x:p.x, y:p.y, n:nextN, color }); pushHistory(); render();
+  }
+
+  // ---------- crop ----------
+  function applyCrop(s){
+    const x = Math.min(s.x, s.x+s.w), y = Math.min(s.y, s.y+s.h), w = Math.abs(s.w), h = Math.abs(s.h);
+    if(w < 8 || h < 8) { render(); return; }
+    render(); // flatten current base + shapes
+    const c = document.createElement('canvas'); c.width = Math.round(w); c.height = Math.round(h);
+    c.getContext('2d').drawImage(cv, x, y, w, h, 0, 0, w, h);
+    const img = new Image();
+    img.onload = () => { base = img; baseW = img.width; baseH = img.height; cv.width = baseW; cv.height = baseH; shapes = []; selected = null; fitDisplay(); pushHistory(); render(); toast('✓ Crop ပြီး'); };
+    img.src = c.toDataURL('image/png');
+  }
+
+  // ---------- inline text ----------
+  function startTextInput(p, e){
+    const inp = document.createElement('input');
+    inp.className = 'txt-edit';
+    inp.style.left = ((e.touches?e.touches[0].clientX:e.clientX)) + 'px';
+    inp.style.top = ((e.touches?e.touches[0].clientY:e.clientY)) + 'px';
+    inp.style.color = color; inp.style.fontSize = Math.max(14, width*5) + 'px';
+    document.body.appendChild(inp); setTimeout(()=>inp.focus(), 10);
+    const commit = () => {
+      const t = inp.value.trim();
+      if(t){ shapes.push({ type:'text', x:p.x, y:p.y, text:t, color, size: Math.max(14, width*5) }); pushHistory(); render(); }
+      inp.remove();
+    };
+    inp.addEventListener('keydown', ev => { if(ev.key==='Enter'){ ev.preventDefault(); commit(); } else if(ev.key==='Escape'){ inp.remove(); } });
+    inp.addEventListener('blur', commit);
+  }
+
+  // ---------- hit test + move (select tool) ----------
+  function bbox(s){
+    if(s.type==='pen'){ const xs=s.points.map(p=>p.x), ys=s.points.map(p=>p.y); return {x:Math.min(...xs),y:Math.min(...ys),w:Math.max(...xs)-Math.min(...xs),h:Math.max(...ys)-Math.min(...ys)}; }
+    if(s.x1!==undefined){ return {x:Math.min(s.x1,s.x2),y:Math.min(s.y1,s.y2),w:Math.abs(s.x2-s.x1),h:Math.abs(s.y2-s.y1)}; }
+    if(s.type==='text'){ ctx.font='bold '+s.size+'px '+'Inter,sans-serif'; const m=ctx.measureText(s.text); return {x:s.x, y:s.y-s.size, w:m.width, h:s.size*1.25}; }
+    if(s.type==='step'){ const r=stepR(s); return {x:s.x-r, y:s.y-r, w:r*2, h:r*2}; }
+    return {x:Math.min(s.x,s.x+s.w), y:Math.min(s.y,s.y+s.h), w:Math.abs(s.w), h:Math.abs(s.h)};
+  }
+  function hitTest(x, y){
+    for(let i=shapes.length-1;i>=0;i--){ const b=bbox(shapes[i]); const pad=8; if(x>=b.x-pad && x<=b.x+b.w+pad && y>=b.y-pad && y<=b.y+b.h+pad) return shapes[i]; }
+    return null;
+  }
+  function moveShape(s, orig, dx, dy){
+    if(s.type==='pen'){ s.points = orig.points.map(p=>({x:p.x+dx,y:p.y+dy})); return; }
+    if(s.x1!==undefined){ s.x1=orig.x1+dx; s.y1=orig.y1+dy; s.x2=orig.x2+dx; s.y2=orig.y2+dy; return; }
+    s.x=orig.x+dx; s.y=orig.y+dy;
+  }
+  function deleteSelected(){ if(selected){ shapes = shapes.filter(s=>s!==selected); selected=null; pushHistory(); render(); } }
+
+  // ---------- render ----------
+  function stepR(s){ return Math.max(13, (s.width||4)*3 + 6); }
+  function render(){
+    if(!base){ return; }
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.drawImage(base, 0, 0, cv.width, cv.height);
+    for(const s of shapes) drawShape(ctx, s);
+    if(selected){ const b=bbox(selected); ctx.save(); ctx.strokeStyle='#5aa9ff'; ctx.lineWidth=1.5; ctx.setLineDash([6,4]); ctx.strokeRect(b.x-4,b.y-4,b.w+8,b.h+8); ctx.restore(); }
+  }
+  function drawShape(c, s){
+    c.save();
+    c.lineCap='round'; c.lineJoin='round';
+    c.strokeStyle = s.color || '#ff3b30'; c.fillStyle = s.color || '#ff3b30'; c.lineWidth = s.width || 4;
+    const nx = () => { const x=Math.min(s.x,s.x+s.w), y=Math.min(s.y,s.y+s.h); return {x,y,w:Math.abs(s.w),h:Math.abs(s.h)}; };
+    if(s.type==='arrow'){ arrow(c, s.x1,s.y1,s.x2,s.y2, s.width||4); }
+    else if(s.type==='line'){ c.beginPath(); c.moveTo(s.x1,s.y1); c.lineTo(s.x2,s.y2); c.stroke(); }
+    else if(s.type==='box'){ const r=nx(); c.strokeRect(r.x,r.y,r.w,r.h); }
+    else if(s.type==='ellipse'){ const r=nx(); c.beginPath(); c.ellipse(r.x+r.w/2, r.y+r.h/2, r.w/2, r.h/2, 0, 0, 7); c.stroke(); }
+    else if(s.type==='pen'){ c.beginPath(); s.points.forEach((p,i)=> i?c.lineTo(p.x,p.y):c.moveTo(p.x,p.y)); c.stroke(); }
+    else if(s.type==='highlight'){ const r=nx(); c.globalAlpha=.32; c.fillRect(r.x,r.y,r.w,r.h); c.globalAlpha=1; }
+    else if(s.type==='blur'){ const r=nx(); c.save(); c.beginPath(); c.rect(r.x,r.y,r.w,r.h); c.clip(); c.filter='blur(9px)'; c.drawImage(base,0,0,cv.width,cv.height); c.filter='none'; c.restore(); }
+    else if(s.type==='text'){ c.font='bold '+s.size+'px Inter, '+'"Segoe UI", sans-serif'; c.textBaseline='alphabetic'; c.lineWidth=Math.max(3,s.size/7); c.strokeStyle='rgba(0,0,0,.55)'; c.strokeText(s.text,s.x,s.y); c.fillStyle=s.color; c.fillText(s.text,s.x,s.y); }
+    else if(s.type==='step'){ const r=stepR(s); c.beginPath(); c.arc(s.x,s.y,r,0,7); c.fillStyle=s.color; c.fill(); c.lineWidth=2.5; c.strokeStyle='rgba(255,255,255,.9)'; c.stroke(); c.fillStyle='#fff'; c.font='bold '+Math.round(r*1.1)+'px Inter, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(String(s.n), s.x, s.y+1); c.textAlign='start'; }
+    else if(s.type==='crop' || s.type==='blur-preview'){ const r=nx(); c.setLineDash([6,4]); c.strokeStyle='#5aa9ff'; c.lineWidth=1.5; c.strokeRect(r.x,r.y,r.w,r.h); }
+    c.restore();
+  }
+  function arrow(c,x1,y1,x2,y2,w){
+    const ang=Math.atan2(y2-y1,x2-x1), head=Math.max(12, w*3.2);
+    c.beginPath(); c.moveTo(x1,y1); c.lineTo(x2,y2); c.stroke();
+    c.beginPath(); c.moveTo(x2,y2);
+    c.lineTo(x2 - head*Math.cos(ang - Math.PI/7), y2 - head*Math.sin(ang - Math.PI/7));
+    c.lineTo(x2 - head*Math.cos(ang + Math.PI/7), y2 - head*Math.sin(ang + Math.PI/7));
+    c.closePath(); c.fill();
+  }
+
+  // ---------- history ----------
+  function clone(arr){ return arr.map(s => JSON.parse(JSON.stringify(s))); }
+  function pushHistory(){
+    history = history.slice(0, hIndex+1);
+    history.push({ base, baseW, baseH, shapes: clone(shapes) });
+    hIndex = history.length - 1;
+    if(history.length > 60){ history.shift(); hIndex--; }
+    updateButtons();
+  }
+  function applyState(st){
+    base = st.base; baseW = st.baseW; baseH = st.baseH;
+    cv.width = baseW; cv.height = baseH; fitDisplay();
+    shapes = clone(st.shapes); selected = null;
+    render(); updateButtons();
+  }
+  function undo(){ if(hIndex > 0){ hIndex--; applyState(history[hIndex]); } }
+  function redo(){ if(hIndex < history.length-1){ hIndex++; applyState(history[hIndex]); } }
+  document.getElementById('undoBtn').addEventListener('click', undo);
+  document.getElementById('redoBtn').addEventListener('click', redo);
+
+  function updateButtons(){
+    const has = !!base;
+    document.getElementById('undoBtn').disabled = hIndex <= 0;
+    document.getElementById('redoBtn').disabled = hIndex >= history.length-1;
+    ['copyBtn','dlBtn','clearBtn'].forEach(id => document.getElementById(id).disabled = !has);
+  }
+
+  // ---------- export ----------
+  function flatten(){ selected=null; render(); return cv; }
+  document.getElementById('dlBtn').addEventListener('click', () => {
+    flatten().toBlob(b => { const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='snip-'+Date.now()+'.png'; a.click(); URL.revokeObjectURL(a.href); toast('✓ PNG သိမ်းပြီး'); }, 'image/png');
+  });
+  document.getElementById('copyBtn').addEventListener('click', () => {
+    flatten().toBlob(async b => {
+      try{ await navigator.clipboard.write([new ClipboardItem({'image/png': b})]); toast('✓ Clipboard သို့ ကူးပြီး'); }
+      catch(err){ toast('⚠ Copy မရပါ — PNG download သုံးပါ'); }
+    }, 'image/png');
+  });
+  document.getElementById('clearBtn').addEventListener('click', () => {
+    if(!confirm('ပုံနှင့် မှတ်သားချက် အားလုံး ဖျက်မလား?')) return;
+    base=null; shapes=[]; history=[]; hIndex=-1; selected=null;
+    cv.style.display='none'; drop.style.display='flex'; updateButtons();
+  });
+
+  // ---------- keyboard ----------
+  const TOOLKEYS = { v:'select', a:'arrow', l:'line', r:'box', o:'ellipse', p:'pen', h:'highlight', t:'text', s:'step', b:'blur', c:'crop' };
+  document.addEventListener('keydown', e => {
+    if(e.target.matches('input, textarea')) return;
+    if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
+    if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='y'){ e.preventDefault(); redo(); return; }
+    if(e.ctrlKey || e.metaKey || e.altKey) return;
+    if((e.key==='Delete'||e.key==='Backspace') && selected){ e.preventDefault(); deleteSelected(); return; }
+    const t = TOOLKEYS[e.key.toLowerCase()];
+    if(t && base){ setTool(t); }
+  });
+
+  updateButtons();
+})();
+</script>
+</body>
+</html>

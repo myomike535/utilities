@@ -66,6 +66,7 @@
       { href: 'ThumbnailMaker.html',                 icon: 'bookmark',   label: 'Thumbnails',      color: '#ec4899' },
       { href: 'ScriptPrompter.html',                 icon: 'headphones', label: 'Teleprompter',    color: '#22c55e' },
       { href: 'Whiteboard.html',                     icon: 'palette',    label: 'Whiteboard',      color: '#14b8a6' },
+      { href: 'SnipAnnotate.html',                   icon: 'palette',    label: 'Snip & Annotate', color: '#f59e0b' },
       { href: 'ComparisonTable.html',                icon: 'tasks',      label: 'Compare',         color: '#8b5cf6' },
       { href: 'CertificateMaker.html',               icon: 'study',      label: 'Certificates',    color: '#b8860b' },
       { href: 'WinnerPicker.html',                   icon: 'sparkles',   label: 'ကံစမ်းမဲ',         color: '#ec4899' },
