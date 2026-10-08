@@ -27,55 +27,71 @@
     study:      '<svg viewBox="0 0 24 24"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>',
   };
 
-  const TOOLS = [
-    { href: 'index.html',                          icon: 'dashboard',  label: 'Dashboard',      color: '#8b5cf6' },
-    { href: 'ToDo.html',                           icon: 'tasks',      label: 'Task Manager',   color: '#6366f1' },
-    { href: 'AINoteTaker.html',                    icon: 'mic',        label: 'Notes (Classic)', color: '#a78bfa' },
-    { href: 'NoteTakerVue.html',                   icon: 'mic',        label: 'Note Taker (Vue)', color: '#42b883' },
-    { href: 'ai_note_taker_enterprise_suite.html', icon: 'sparkles',   label: 'Enterprise',     color: '#cba6f7' },
-    { href: 'RecapAudioMaker.html',                icon: 'headphones', label: 'Recap Audio',    color: '#f472b6' },
-    { href: 'PasswordManager.html',                icon: 'shield',     label: 'Passwords',      color: '#22c55e' },
-    { href: 'BackupRestore.html',                  icon: 'shield',     label: 'Backup',         color: '#ef4444' },
-    { href: 'SqlFormatter.html',                   icon: 'braces',     label: 'SQL Formatter',  color: '#ec4899' },
-    { href: 'GithubTrending.html',                 icon: 'trending',   label: 'GH Trending',    color: '#58a6ff' },
-    { href: 'BookmarkManager.html',                icon: 'bookmark',   label: 'Bookmarks',      color: '#6366f1' },
-    { href: 'StudyRoom.html',                      icon: 'study',      label: 'Study Room',     color: '#f59e0b' },
-    { href: 'dhammapada.html',                     icon: 'book',       label: 'Dhammapada',     color: '#c62d2d' },
-    { href: 'jataka550.html',                      icon: 'scroll',     label: 'Jataka 550',     color: '#b8860b' },
-    { href: 'tipitaka.html',                       icon: 'book',       label: 'Tipiṭaka',       color: '#8b6f47' },
-    { href: 'MalaCounter.html',                    icon: 'mala',       label: 'ပုတီးစိပ်',       color: '#c62d2d' },
-    { href: 'MeditationTimer.html',                icon: 'study',      label: 'ကမ္မဋ္ဌာန်း',      color: '#8b6f47' },
-    { href: 'Chanting.html',                       icon: 'book',       label: 'ဘုရားရှိခိုး',     color: '#b8860b' },
-    { href: 'MeritJournal.html',                   icon: 'tasks',      label: 'ကုသိုလ်မှတ်တမ်း',  color: '#c62d2d' },
-    { href: 'UposathaCalendar.html',               icon: 'scroll',     label: 'ဥပုသ်ပြက္ခဒိန်',   color: '#8b6f47' },
-    { href: 'SentencePatterns.html',               icon: 'book',       label: 'Patterns',       color: '#f97316' },
-    { href: 'VocabTrainer.html',                   icon: 'study',      label: 'Vocab',          color: '#8b5cf6' },
-    { href: 'EnglishTutor.html',                   icon: 'sparkles',   label: 'English Tutor',  color: '#0ea5e9' },
-    { href: 'Translator.html',                     icon: 'palette',    label: 'Translator',     color: '#6366f1' },
-    { href: 'GradedReading.html',                  icon: 'book',       label: 'Reading',        color: '#10b981' },
-    { href: 'PronunciationLab.html',               icon: 'headphones', label: 'Pronunciation',  color: '#f59e0b' },
-    { href: 'MiniERP.html',                        icon: 'palette',    label: 'Mini ERP',       color: '#6366f1' },
-    { href: 'LoanCalculator.html',                 icon: 'tasks',      label: 'Loan Calc',      color: '#f59e0b' },
-    { href: 'ZawgyiConverter.html',                icon: 'palette',    label: 'Zawgyi',         color: '#ec4899' },
-    { href: 'CSVToolkit.html',                     icon: 'tasks',      label: 'CSV',            color: '#0ea5e9' },
-    { href: 'QRGenerator.html',                    icon: 'bookmark',   label: 'QR',             color: '#10b981' },
-    { href: 'MarkdownEditor.html',                 icon: 'book',       label: 'Markdown',       color: '#a78bfa' },
-    { href: 'CodePlayground.html',                 icon: 'braces',     label: 'Playground',     color: '#0ea5e9' },
-    { href: 'ImageCompressor.html',                icon: 'bookmark',   label: 'Img Compress',   color: '#a78bfa' },
-    { href: 'WinnerPicker.html',                   icon: 'sparkles',   label: 'ကံစမ်းမဲ',        color: '#ec4899' },
-    { href: 'CertificateMaker.html',               icon: 'study',      label: 'Certificates',   color: '#b8860b' },
-    { href: 'DevToolbox.html',                     icon: 'braces',     label: 'Dev Toolbox',    color: '#0ea5e9' },
-    { href: 'SnippetManager.html',                 icon: 'braces',     label: 'Snippets',       color: '#f59e0b' },
-    { href: 'ExpenseTracker.html',                 icon: 'palette',    label: 'ငွေစာရင်း',       color: '#22c55e' },
-    { href: 'ComparisonTable.html',               icon: 'tasks',      label: 'Compare',        color: '#8b5cf6' },
-    { href: 'ReviewCardMaker.html',                icon: 'sparkles',   label: 'Review Card',    color: '#f59e0b' },
-    { href: 'ReviewScriptBuilder.html',            icon: 'headphones', label: 'Review Script',  color: '#22c55e' },
-    { href: 'VideoDescription.html',               icon: 'book',       label: 'Video Desc',     color: '#ef4444' },
-    { href: 'PostStudio.html',                     icon: 'sparkles',   label: 'Post Studio',    color: '#6366f1' },
-    { href: 'Whiteboard.html',                     icon: 'palette',    label: 'Whiteboard',     color: '#14b8a6' },
-    { href: 'ThumbnailMaker.html',                 icon: 'bookmark',   label: 'Thumbnails',     color: '#ec4899' },
-    { href: 'ScriptPrompter.html',                 icon: 'headphones', label: 'Teleprompter',   color: '#22c55e' },
+  // Grouped sections (real-world app-sidebar structure). Flat TOOLS derived below.
+  const GROUPS = [
+    { title: 'Workspace', items: [
+      { href: 'index.html',                          icon: 'dashboard',  label: 'Dashboard',       color: '#8b5cf6' },
+      { href: 'ToDo.html',                           icon: 'tasks',      label: 'Task Manager',    color: '#6366f1' },
+      { href: 'AINoteTaker.html',                    icon: 'mic',        label: 'Notes (Classic)', color: '#a78bfa' },
+      { href: 'NoteTakerVue.html',                   icon: 'mic',        label: 'Note Taker (Vue)', color: '#42b883' },
+      { href: 'ai_note_taker_enterprise_suite.html', icon: 'sparkles',   label: 'Enterprise',      color: '#cba6f7' },
+      { href: 'RecapAudioMaker.html',                icon: 'headphones', label: 'Recap Audio',     color: '#f472b6' },
+      { href: 'BookmarkManager.html',                icon: 'bookmark',   label: 'Bookmarks',       color: '#6366f1' },
+    ]},
+    { title: 'Security', items: [
+      { href: 'PasswordManager.html',                icon: 'shield',     label: 'Passwords',       color: '#22c55e' },
+      { href: 'BackupRestore.html',                  icon: 'shield',     label: 'Backup',          color: '#ef4444' },
+    ]},
+    { title: 'Finance', items: [
+      { href: 'MiniERP.html',                        icon: 'palette',    label: 'Mini ERP',        color: '#6366f1' },
+      { href: 'ExpenseTracker.html',                 icon: 'palette',    label: 'ငွေစာရင်း',        color: '#22c55e' },
+      { href: 'LoanCalculator.html',                 icon: 'tasks',      label: 'Loan Calc',       color: '#f59e0b' },
+    ]},
+    { title: 'Developer', items: [
+      { href: 'SqlFormatter.html',                   icon: 'braces',     label: 'SQL Formatter',   color: '#ec4899' },
+      { href: 'DevToolbox.html',                     icon: 'braces',     label: 'Dev Toolbox',     color: '#0ea5e9' },
+      { href: 'SnippetManager.html',                 icon: 'braces',     label: 'Snippets',        color: '#f59e0b' },
+      { href: 'CodePlayground.html',                 icon: 'braces',     label: 'Playground',      color: '#0ea5e9' },
+      { href: 'MarkdownEditor.html',                 icon: 'book',       label: 'Markdown',        color: '#a78bfa' },
+      { href: 'CSVToolkit.html',                     icon: 'tasks',      label: 'CSV',             color: '#0ea5e9' },
+      { href: 'QRGenerator.html',                    icon: 'bookmark',   label: 'QR',              color: '#10b981' },
+      { href: 'ImageCompressor.html',                icon: 'bookmark',   label: 'Img Compress',    color: '#a78bfa' },
+      { href: 'GithubTrending.html',                 icon: 'trending',   label: 'GH Trending',     color: '#58a6ff' },
+    ]},
+    { title: 'Creator', items: [
+      { href: 'PostStudio.html',                     icon: 'sparkles',   label: 'Post Studio',     color: '#6366f1' },
+      { href: 'ReviewCardMaker.html',                icon: 'sparkles',   label: 'Review Card',     color: '#f59e0b' },
+      { href: 'ReviewScriptBuilder.html',            icon: 'headphones', label: 'Review Script',   color: '#22c55e' },
+      { href: 'VideoDescription.html',               icon: 'book',       label: 'Video Desc',      color: '#ef4444' },
+      { href: 'ThumbnailMaker.html',                 icon: 'bookmark',   label: 'Thumbnails',      color: '#ec4899' },
+      { href: 'ScriptPrompter.html',                 icon: 'headphones', label: 'Teleprompter',    color: '#22c55e' },
+      { href: 'Whiteboard.html',                     icon: 'palette',    label: 'Whiteboard',      color: '#14b8a6' },
+      { href: 'ComparisonTable.html',                icon: 'tasks',      label: 'Compare',         color: '#8b5cf6' },
+      { href: 'CertificateMaker.html',               icon: 'study',      label: 'Certificates',    color: '#b8860b' },
+      { href: 'WinnerPicker.html',                   icon: 'sparkles',   label: 'ကံစမ်းမဲ',         color: '#ec4899' },
+    ]},
+    { title: 'Learning', items: [
+      { href: 'SentencePatterns.html',               icon: 'book',       label: 'Patterns',        color: '#f97316' },
+      { href: 'VocabTrainer.html',                   icon: 'study',      label: 'Vocab',           color: '#8b5cf6' },
+      { href: 'EnglishTutor.html',                   icon: 'sparkles',   label: 'English Tutor',   color: '#0ea5e9' },
+      { href: 'Translator.html',                     icon: 'palette',    label: 'Translator',      color: '#6366f1' },
+      { href: 'GradedReading.html',                  icon: 'book',       label: 'Reading',         color: '#10b981' },
+      { href: 'PronunciationLab.html',               icon: 'headphones', label: 'Pronunciation',   color: '#f59e0b' },
+      { href: 'StudyRoom.html',                      icon: 'study',      label: 'Study Room',      color: '#f59e0b' },
+      { href: 'ZawgyiConverter.html',                icon: 'palette',    label: 'Zawgyi',          color: '#ec4899' },
+    ]},
+    { title: 'ဓမ္မ · Dhamma', items: [
+      { href: 'dhammapada.html',                     icon: 'book',       label: 'Dhammapada',      color: '#c62d2d' },
+      { href: 'jataka550.html',                      icon: 'scroll',     label: 'Jataka 550',      color: '#b8860b' },
+      { href: 'tipitaka.html',                       icon: 'book',       label: 'Tipiṭaka',        color: '#8b6f47' },
+      { href: 'MalaCounter.html',                    icon: 'mala',       label: 'ပုတီးစိပ်',        color: '#c62d2d' },
+      { href: 'MeditationTimer.html',                icon: 'study',      label: 'ကမ္မဋ္ဌာန်း',       color: '#8b6f47' },
+      { href: 'Chanting.html',                       icon: 'book',       label: 'ဘုရားရှိခိုး',      color: '#b8860b' },
+      { href: 'MeritJournal.html',                   icon: 'tasks',      label: 'ကုသိုလ်မှတ်တမ်း',   color: '#c62d2d' },
+      { href: 'UposathaCalendar.html',               icon: 'scroll',     label: 'ဥပုသ်ပြက္ခဒိန်',    color: '#8b6f47' },
+    ]},
   ];
+  const TOOLS = GROUPS.flatMap(g => g.items);
 
   // ---- Styles (scoped by .nr- prefix, so no collisions with host page) ----
   const style = document.createElement('style');
@@ -189,6 +205,43 @@
       transition: opacity 0.15s ease;
     }
     .nr.expanded .nr-label { opacity: 1; }
+
+    /* ===== Search box (expanded / mobile only) ===== */
+    .nr-search { position: relative; margin: 0 2px 8px; display: none; }
+    .nr.expanded .nr-search { display: block; }
+    .nr-search svg { position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
+      width: 14px; height: 14px; stroke: #6c7086; fill: none; stroke-width: 2; pointer-events: none; }
+    .nr-search input {
+      width: 100%; box-sizing: border-box; background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.09); border-radius: 9px;
+      padding: 8px 10px 8px 30px; color: #cdd6f4; font-size: 0.82rem; outline: none;
+      transition: border-color 0.15s ease, background 0.15s ease;
+    }
+    .nr-search input::placeholder { color: #6c7086; }
+    .nr-search input:focus { border-color: #8b5cf6; background: rgba(139,92,246,0.08); }
+    html[data-theme="light"] .nr-search input { background: rgba(139,100,40,0.08); border-color: rgba(139,100,40,0.2); color: #2d241e; }
+    .nr-noresult { display: none; padding: 14px 10px; font-size: 0.8rem; color: #6c7086; text-align: center; }
+
+    /* ===== Section groups ===== */
+    .nr-group { display: flex; flex-direction: column; gap: 2px; }
+    .nr-group.hidden { display: none; }
+    .nr-group-title {
+      font-size: 0.64rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.09em;
+      color: #6c7086; padding: 12px 10px 4px; white-space: nowrap; overflow: hidden;
+      opacity: 0; height: 0; padding-top: 0; padding-bottom: 0;
+      transition: opacity 0.15s ease;
+    }
+    html[data-theme="light"] .nr-group-title { color: #998573; }
+    .nr.expanded .nr-group-title { opacity: 1; height: auto; padding: 12px 10px 4px; }
+    .nr.expanded .nr-group:first-child .nr-group-title { padding-top: 4px; }
+    /* Collapsed rail: thin divider between groups instead of a text header */
+    .nr:not(.expanded) .nr-group + .nr-group {
+      margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.07);
+    }
+    html[data-theme="light"] .nr:not(.expanded) .nr-group + .nr-group { border-top-color: rgba(139,100,40,0.18); }
+
+    /* Refined active pill */
+    .nr-item.active { font-weight: 600; }
 
     /* Tooltip when collapsed */
     .nr:not(.expanded) .nr-item::after {
@@ -363,6 +416,9 @@
 
       .nr .nr-brand-text { display: inline !important; }
       .nr .nr-label { opacity: 1 !important; display: inline !important; }
+      .nr .nr-search { display: block !important; }
+      .nr .nr-group-title { opacity: 1 !important; height: auto !important; padding: 12px 10px 4px !important; }
+      .nr .nr-group + .nr-group { margin-top: 0; padding-top: 0; border-top: none; }
       .nr .rail-toggle .lbl, .nr .rail-newsession .lbl { display: inline !important; }
       .nr .sessions-list li .s-body { display: block !important; }
       .nr-bottom .nr-toggle { display: none; }
@@ -395,26 +451,77 @@
   brand.onclick = () => location.href = 'index.html';
   rail.appendChild(brand);
 
-  // Items
+  // Search (shown when expanded / on mobile)
+  const search = document.createElement('div');
+  search.className = 'nr-search';
+  search.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>'
+    + '<input type="text" placeholder="Search tools…" aria-label="Search tools" autocomplete="off" spellcheck="false">';
+  rail.appendChild(search);
+
+  // Items — grouped sections
   const items = document.createElement('div');
   items.className = 'nr-items';
-  TOOLS.forEach(t => {
-    const a = document.createElement('a');
-    a.className = 'nr-item';
-    a.href = t.href;
-    a.style.setProperty('--nr-color', t.color);
-    a.dataset.tip = t.label;
-    if (t.href.toLowerCase() === HERE) a.classList.add('active');
-    const iconWrap = document.createElement('span');
-    iconWrap.className = 'nr-icon';
-    iconWrap.innerHTML = ICONS[t.icon] || '';
-    const label = document.createElement('span');
-    label.className = 'nr-label';
-    label.textContent = t.label;
-    a.append(iconWrap, label);
-    items.appendChild(a);
+  const groupEls = [];
+  GROUPS.forEach(g => {
+    const grp = document.createElement('div');
+    grp.className = 'nr-group';
+    const title = document.createElement('div');
+    title.className = 'nr-group-title';
+    title.textContent = g.title;
+    grp.appendChild(title);
+    g.items.forEach(t => {
+      const a = document.createElement('a');
+      a.className = 'nr-item';
+      a.href = t.href;
+      a.style.setProperty('--nr-color', t.color);
+      a.dataset.tip = t.label;
+      a.dataset.label = t.label.toLowerCase();
+      if (t.href.toLowerCase() === HERE) a.classList.add('active');
+      const iconWrap = document.createElement('span');
+      iconWrap.className = 'nr-icon';
+      iconWrap.innerHTML = ICONS[t.icon] || '';
+      const label = document.createElement('span');
+      label.className = 'nr-label';
+      label.textContent = t.label;
+      a.append(iconWrap, label);
+      grp.appendChild(a);
+    });
+    items.appendChild(grp);
+    groupEls.push(grp);
   });
+  const noRes = document.createElement('div');
+  noRes.className = 'nr-noresult';
+  noRes.textContent = 'ရှာမတွေ့ပါ · No tools found';
+  items.appendChild(noRes);
   rail.appendChild(items);
+
+  // Live search filter
+  const searchInput = search.querySelector('input');
+  function resetSearch() {
+    searchInput.value = '';
+    groupEls.forEach(grp => {
+      grp.classList.remove('hidden');
+      grp.querySelectorAll('.nr-item').forEach(a => { a.style.display = ''; });
+    });
+    noRes.style.display = 'none';
+  }
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim().toLowerCase();
+    let anyVisible = false;
+    groupEls.forEach(grp => {
+      let groupHas = false;
+      grp.querySelectorAll('.nr-item').forEach(a => {
+        const match = !q || a.dataset.label.includes(q);
+        a.style.display = match ? '' : 'none';
+        if (match) groupHas = true;
+      });
+      grp.classList.toggle('hidden', !groupHas);
+      if (groupHas) anyVisible = true;
+    });
+    noRes.style.display = anyVisible ? 'none' : 'block';
+  });
+  // Don't let the rail collapse while typing in search
+  search.addEventListener('mouseenter', (e) => e.stopPropagation());
 
   // Bottom: expand/collapse toggle
   const bottom = document.createElement('div');
@@ -559,6 +666,7 @@
     rail.classList.toggle('expanded', expanded);
     document.body.classList.toggle('nr-expanded', expanded);
     localStorage.setItem(RAIL_KEY, expanded ? '1' : '0');
+    if (!expanded) resetSearch();
   }
   setRail(localStorage.getItem(RAIL_KEY) === '1');
 
@@ -578,6 +686,7 @@
     if (localStorage.getItem(RAIL_KEY) !== '1' && window.innerWidth >= 641) {
       rail.classList.remove('expanded');
       document.body.classList.remove('nr-expanded');
+      resetSearch();
     }
   });
 
