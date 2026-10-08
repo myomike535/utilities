@@ -86,7 +86,30 @@
     background:var(--card2); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:10px 16px;
     font-size:.84rem; font-weight:600; box-shadow:0 12px 30px rgba(0,0,0,.5); transition:.25s; z-index:9999; pointer-events:none}
   .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
-  @media(max-width:640px){ .wrange input[type=range]{width:64px} .tbtn .k{display:none} }
+  /* ---- Tablet ---- */
+  @media(max-width:860px){
+    body{padding:14px 10px 72px}
+    header{margin-bottom:12px}
+    .bar{padding:7px 8px; gap:5px; position:sticky; top:4px; z-index:30}
+    .tbtn{min-height:38px; padding:0 9px; font-size:.8rem}
+    .tbtn svg{width:16px; height:16px}
+    .sw{width:21px; height:21px}
+    .wrange input[type=range]{width:78px}
+  }
+  /* ---- Phone ---- */
+  @media(max-width:600px){
+    header .sub{display:none}
+    .tbtn .k{display:none}            /* icon-only actions */
+    .tbtn{min-height:40px; min-width:40px; justify-content:center; padding:0 7px}  /* bigger touch targets */
+    .sw{width:24px; height:24px}
+    .wrange{font-size:.68rem; gap:5px}
+    .wrange input[type=range]{width:56px}
+    .bar .sep{margin:2px 0}
+    .stage{min-height:320px; padding:9px}
+    .hintbar{display:none}            /* keyboard hints irrelevant on touch */
+    #captureDelay{min-width:76px}
+    footer{margin-top:14px}
+  }
 </style>
 </head>
 <body>
@@ -111,7 +134,15 @@
     <button class="tbtn" data-tool="text" title="Text (T)"><svg viewBox="0 0 24 24"><path d="M4 7V5h16v2"/><path d="M12 5v14"/><path d="M9 19h6"/></svg></button>
     <button class="tbtn" data-tool="step" title="Numbered step (S)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><text x="12" y="16" font-size="11" text-anchor="middle" fill="currentColor" stroke="none">1</text></svg></button>
     <button class="tbtn" data-tool="blur" title="Blur / redact (B)"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="2"/><path d="M7 8h.01M11 8h.01M15 8h.01M9 11h.01M13 11h.01M17 11h.01M7 14h.01M11 14h.01M15 14h.01"/></svg></button>
+    <button class="tbtn" data-tool="spotlight" title="Spotlight — dim around a region (G)"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5 19 19M19 5l-1.5 1.5M6.5 17.5 5 19"/></svg></button>
+    <button class="tbtn" data-tool="callout" title="Callout bubble (Q)"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H9l-5 4V5a2 2 0 0 1 2-2h13a2 2 0 0 1 2 2z"/></svg></button>
+    <button class="tbtn" data-tool="magnify" title="Magnifier loupe (M)"><svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3M11 8v6M8 11h6"/></svg></button>
     <button class="tbtn" data-tool="crop" title="Crop (C)"><svg viewBox="0 0 24 24"><path d="M6 2v14a2 2 0 0 0 2 2h14"/><path d="M18 22V8a2 2 0 0 0-2-2H2"/></svg></button>
+    <div class="sep"></div>
+    <button class="tbtn" id="rotL" title="Rotate left"><svg viewBox="0 0 24 24"><path d="M3 2v6h6"/><path d="M3 8a9 9 0 1 0 2.5-5.5L3 8"/></svg></button>
+    <button class="tbtn" id="rotR" title="Rotate right"><svg viewBox="0 0 24 24"><path d="M21 2v6h-6"/><path d="M21 8A9 9 0 1 0 18.5 2.5L21 8"/></svg></button>
+    <button class="tbtn" id="flipH" title="Flip horizontal"><svg viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M16 7l4 5-4 5V7z"/><path d="M8 7l-4 5 4 5V7z"/></svg></button>
+    <button class="tbtn" id="flipV" title="Flip vertical"><svg viewBox="0 0 24 24"><path d="M3 12h18"/><path d="M7 8l5-4 5 4H7z"/><path d="M7 16l5 4 5-4H7z"/></svg></button>
     <div class="sep"></div>
     <div class="swatches" id="swatches"></div>
     <input type="color" id="colorPick" value="#ff3b30" title="Custom colour">
@@ -124,7 +155,13 @@
     <button class="tbtn" id="pasteBtn" title="Paste image (Ctrl+V)"><svg viewBox="0 0 24 24"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/></svg><span class="k">Paste</span></button>
     <button class="tbtn" id="uploadBtn" title="Upload"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg><span class="k">Upload</span></button>
     <button class="tbtn" id="captureBtn" title="Capture screen"><svg viewBox="0 0 24 24"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3"/></svg><span class="k">Capture</span></button>
+    <select id="captureDelay" title="Delay before capture" style="min-height:38px; padding:0 8px; border-radius:10px; border:1px solid rgba(255,255,255,.1); background:var(--field); color:var(--text); font-family:var(--sans); font-size:.78rem; cursor:pointer">
+      <option value="0">no delay</option>
+      <option value="3">3s delay</option>
+      <option value="5">5s delay</option>
+    </select>
     <div class="sep"></div>
+    <button class="tbtn" id="frameBtn" title="Add a drop-shadow frame on export"><svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><rect x="7" y="7" width="10" height="10" rx="1"/></svg><span class="k">Frame</span></button>
     <button class="tbtn" id="copyBtn" title="Copy to clipboard" disabled><svg viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="k">Copy</span></button>
     <button class="tbtn primary" id="dlBtn" title="Download PNG" disabled><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg><span class="k">PNG</span></button>
     <button class="tbtn danger" id="clearBtn" title="Clear" disabled><svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
@@ -143,7 +180,7 @@
       </div>
     </div>
   </div>
-  <div class="hintbar">Tools: <kbd>V</kbd> select · <kbd>A</kbd> arrow · <kbd>R</kbd> box · <kbd>O</kbd> ellipse · <kbd>T</kbd> text · <kbd>S</kbd> step · <kbd>B</kbd> blur · <kbd>C</kbd> crop · <kbd>Del</kbd> delete selected · <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo</div>
+  <div class="hintbar">Tools: <kbd>V</kbd> select · <kbd>A</kbd> arrow · <kbd>R</kbd> box · <kbd>T</kbd> text · <kbd>S</kbd> step · <kbd>B</kbd> blur · <kbd>G</kbd> spotlight · <kbd>Q</kbd> callout · <kbd>M</kbd> magnify · <kbd>C</kbd> crop · <kbd>Del</kbd> delete · <kbd>Ctrl</kbd>+<kbd>Z</kbd> undo</div>
   <footer>Developed by <b>MyoMT</b> · ပုံအားလုံးကို ဤ device ပေါ်မှာသာ ပြုပြင်သည် — upload မလုပ်ပါ</footer>
 </div>
 
@@ -222,8 +259,8 @@
     render(); updateButtons();
   }
   function fitDisplay(){
-    const maxW = Math.min(stage.clientWidth - 36, baseW);
-    const maxH = window.innerHeight * 0.72;
+    const maxW = Math.min(stage.clientWidth - (window.innerWidth < 600 ? 20 : 36), baseW);
+    const maxH = window.innerHeight * (window.innerWidth < 760 ? 0.56 : 0.72);
     let w = baseW, h = baseH;
     const r = Math.min(maxW / baseW, maxH / baseH, 1);
     cv.style.width = (baseW * r) + 'px';
@@ -272,6 +309,8 @@
     try{
       const stream = await navigator.mediaDevices.getDisplayMedia({ video:{ cursor:'always' }, audio:false });
       const video = document.createElement('video'); video.srcObject = stream; await video.play();
+      const delay = +document.getElementById('captureDelay').value || 0;
+      for(let i=delay; i>0; i--){ toast('📸 ' + i + ' ...'); await new Promise(r => setTimeout(r, 1000)); }
       await new Promise(r => setTimeout(r, 180));
       const w = video.videoWidth, h = video.videoHeight;
       const c = document.createElement('canvas'); c.width = w; c.height = h;
@@ -313,6 +352,7 @@
       render(); return;
     }
     if(tool === 'text'){ startTextInput(p, e); return; }
+    if(tool === 'callout'){ startCalloutInput(p, e); return; }
     if(tool === 'step'){ addStep(p); return; }
     // drag-to-draw tools
     draft = newShape(tool, p);
@@ -343,17 +383,21 @@
     if(t==='pen'){ return { type:'pen', color, width, points:[{x:p.x,y:p.y}] }; }
     if(t==='highlight'){ return { type:'highlight', color, x:p.x, y:p.y, w:0, h:0 }; }
     if(t==='blur'){ return { type:'blur', x:p.x, y:p.y, w:0, h:0 }; }
+    if(t==='spotlight'){ return { type:'spotlight', x:p.x, y:p.y, w:0, h:0 }; }
+    if(t==='magnify'){ return { type:'magnify', color, cx:p.x, cy:p.y, r:0, zoom:2 }; }
     if(t==='crop'){ return { type:'crop', x:p.x, y:p.y, w:0, h:0 }; }
     if(t==='box' || t==='ellipse'){ return { type:t, color, width, x:p.x, y:p.y, w:0, h:0 }; }
     return { type:t, color, width, x1:p.x, y1:p.y, x2:p.x, y2:p.y }; // arrow, line
   }
   function updateShape(s, p){
     if(s.type==='pen'){ s.points.push({x:p.x,y:p.y}); return; }
+    if(s.type==='magnify'){ s.r = Math.hypot(p.x - s.cx, p.y - s.cy); return; }
     if(s.x1!==undefined){ s.x2=p.x; s.y2=p.y; return; }
     s.w = p.x - s.x; s.h = p.y - s.y;
   }
   function shapeValid(s){
     if(s.type==='pen') return s.points.length > 1;
+    if(s.type==='magnify') return s.r > 12;
     if(s.x1!==undefined) return Math.hypot(s.x2-s.x1, s.y2-s.y1) > 4;
     if(s.type==='crop'){ applyCrop(s); return false; }
     return Math.abs(s.w) > 5 && Math.abs(s.h) > 5;
@@ -392,6 +436,24 @@
     inp.addEventListener('keydown', ev => { if(ev.key==='Enter'){ ev.preventDefault(); commit(); } else if(ev.key==='Escape'){ inp.remove(); } });
     inp.addEventListener('blur', commit);
   }
+  function startCalloutInput(p, e){
+    const inp = document.createElement('input');
+    inp.className = 'txt-edit';
+    inp.style.left = ((e.touches?e.touches[0].clientX:e.clientX)) + 'px';
+    inp.style.top = ((e.touches?e.touches[0].clientY:e.clientY)) + 'px';
+    inp.placeholder = 'callout text…'; inp.style.color = color;
+    document.body.appendChild(inp); setTimeout(()=>inp.focus(), 10);
+    const commit = () => {
+      const t = inp.value.trim();
+      if(t){ const fs = Math.max(14, width*4); ctx.font = '600 '+fs+'px Inter, sans-serif';
+        const tw = ctx.measureText(t).width;
+        shapes.push({ type:'callout', x:p.x, y:p.y, text:t, color, size:fs, w:Math.round(tw+20), h:Math.round(fs*1.25+20) });
+        pushHistory(); render(); }
+      inp.remove();
+    };
+    inp.addEventListener('keydown', ev => { if(ev.key==='Enter'){ ev.preventDefault(); commit(); } else if(ev.key==='Escape'){ inp.remove(); } });
+    inp.addEventListener('blur', commit);
+  }
 
   // ---------- hit test + move (select tool) ----------
   function bbox(s){
@@ -399,6 +461,8 @@
     if(s.x1!==undefined){ return {x:Math.min(s.x1,s.x2),y:Math.min(s.y1,s.y2),w:Math.abs(s.x2-s.x1),h:Math.abs(s.y2-s.y1)}; }
     if(s.type==='text'){ ctx.font='bold '+s.size+'px '+'Inter,sans-serif'; const m=ctx.measureText(s.text); return {x:s.x, y:s.y-s.size, w:m.width, h:s.size*1.25}; }
     if(s.type==='step'){ const r=stepR(s); return {x:s.x-r, y:s.y-r, w:r*2, h:r*2}; }
+    if(s.type==='magnify'){ return {x:s.cx-s.r, y:s.cy-s.r, w:s.r*2, h:s.r*2}; }
+    if(s.type==='callout'){ return {x:s.x, y:s.y, w:s.w, h:s.h+16}; }
     return {x:Math.min(s.x,s.x+s.w), y:Math.min(s.y,s.y+s.h), w:Math.abs(s.w), h:Math.abs(s.h)};
   }
   function hitTest(x, y){
@@ -407,6 +471,7 @@
   }
   function moveShape(s, orig, dx, dy){
     if(s.type==='pen'){ s.points = orig.points.map(p=>({x:p.x+dx,y:p.y+dy})); return; }
+    if(s.type==='magnify'){ s.cx=orig.cx+dx; s.cy=orig.cy+dy; return; }
     if(s.x1!==undefined){ s.x1=orig.x1+dx; s.y1=orig.y1+dy; s.x2=orig.x2+dx; s.y2=orig.y2+dy; return; }
     s.x=orig.x+dx; s.y=orig.y+dy;
   }
@@ -435,8 +500,21 @@
     else if(s.type==='blur'){ const r=nx(); c.save(); c.beginPath(); c.rect(r.x,r.y,r.w,r.h); c.clip(); c.filter='blur(9px)'; c.drawImage(base,0,0,cv.width,cv.height); c.filter='none'; c.restore(); }
     else if(s.type==='text'){ c.font='bold '+s.size+'px Inter, '+'"Segoe UI", sans-serif'; c.textBaseline='alphabetic'; c.lineWidth=Math.max(3,s.size/7); c.strokeStyle='rgba(0,0,0,.55)'; c.strokeText(s.text,s.x,s.y); c.fillStyle=s.color; c.fillText(s.text,s.x,s.y); }
     else if(s.type==='step'){ const r=stepR(s); c.beginPath(); c.arc(s.x,s.y,r,0,7); c.fillStyle=s.color; c.fill(); c.lineWidth=2.5; c.strokeStyle='rgba(255,255,255,.9)'; c.stroke(); c.fillStyle='#fff'; c.font='bold '+Math.round(r*1.1)+'px Inter, sans-serif'; c.textAlign='center'; c.textBaseline='middle'; c.fillText(String(s.n), s.x, s.y+1); c.textAlign='start'; }
+    else if(s.type==='spotlight'){ const r=nx(); c.fillStyle='rgba(0,0,0,.58)'; c.fillRect(0,0,cv.width,cv.height); c.save(); c.beginPath(); c.rect(r.x,r.y,r.w,r.h); c.clip(); c.drawImage(base,0,0,cv.width,cv.height); c.restore(); c.strokeStyle='rgba(255,255,255,.5)'; c.lineWidth=1.5; c.strokeRect(r.x,r.y,r.w,r.h); }
+    else if(s.type==='magnify'){ c.save(); c.beginPath(); c.arc(s.cx,s.cy,s.r,0,7); c.closePath(); c.clip(); c.translate(s.cx,s.cy); c.scale(s.zoom||2,s.zoom||2); c.translate(-s.cx,-s.cy); c.drawImage(base,0,0,cv.width,cv.height); c.restore(); c.beginPath(); c.arc(s.cx,s.cy,s.r,0,7); c.lineWidth=3; c.strokeStyle=s.color||'#ffd60a'; c.stroke(); }
+    else if(s.type==='callout'){ drawCallout(c, s); }
     else if(s.type==='crop' || s.type==='blur-preview'){ const r=nx(); c.setLineDash([6,4]); c.strokeStyle='#5aa9ff'; c.lineWidth=1.5; c.strokeRect(r.x,r.y,r.w,r.h); }
     c.restore();
+  }
+  function drawCallout(c, s){
+    const x=s.x, y=s.y, w=s.w, h=s.h, rad=10;
+    c.beginPath();
+    c.moveTo(x+rad,y); c.arcTo(x+w,y,x+w,y+h,rad); c.arcTo(x+w,y+h,x,y+h,rad); c.arcTo(x,y+h,x,y,rad); c.arcTo(x,y,x+w,y,rad); c.closePath();
+    c.fillStyle='rgba(20,26,36,.92)'; c.fill(); c.lineWidth=2; c.strokeStyle=s.color||'#5aa9ff'; c.stroke();
+    // tail (down-left)
+    c.beginPath(); c.moveTo(x+16,y+h-1); c.lineTo(x+6,y+h+16); c.lineTo(x+34,y+h-1); c.closePath(); c.fillStyle='rgba(20,26,36,.92)'; c.fill();
+    c.beginPath(); c.moveTo(x+16,y+h); c.lineTo(x+6,y+h+16); c.lineTo(x+34,y+h); c.lineWidth=2; c.strokeStyle=s.color||'#5aa9ff'; c.stroke();
+    c.fillStyle='#f2f5fa'; c.textBaseline='top'; c.font='600 '+s.size+'px Inter, "Segoe UI", sans-serif'; c.fillText(s.text, x+10, y+10);
   }
   function arrow(c,x1,y1,x2,y2,w){
     const ang=Math.atan2(y2-y1,x2-x1), head=Math.max(12, w*3.2);
@@ -474,13 +552,38 @@
     ['copyBtn','dlBtn','clearBtn'].forEach(id => document.getElementById(id).disabled = !has);
   }
 
-  // ---------- export ----------
-  function flatten(){ selected=null; render(); return cv; }
+  // ---------- transforms (bake + re-base, like crop) ----------
+  function bake(){ selected=null; render(); const c=document.createElement('canvas'); c.width=cv.width; c.height=cv.height; c.getContext('2d').drawImage(cv,0,0); return c; }
+  function rebase(c){ const img=new Image(); img.onload=()=>{ base=img; baseW=img.width; baseH=img.height; cv.width=baseW; cv.height=baseH; shapes=[]; selected=null; fitDisplay(); pushHistory(); render(); }; img.src=c.toDataURL('image/png'); }
+  function rotate(deg){ if(!base) return; const flat=bake(); const c=document.createElement('canvas');
+    if(Math.abs(deg)%180!==0){ c.width=flat.height; c.height=flat.width; } else { c.width=flat.width; c.height=flat.height; }
+    const g=c.getContext('2d'); g.translate(c.width/2,c.height/2); g.rotate(deg*Math.PI/180); g.drawImage(flat,-flat.width/2,-flat.height/2); rebase(c); toast('✓ လှည့်ပြီး'); }
+  function flip(dir){ if(!base) return; const flat=bake(); const c=document.createElement('canvas'); c.width=flat.width; c.height=flat.height; const g=c.getContext('2d');
+    if(dir==='h'){ g.translate(c.width,0); g.scale(-1,1); } else { g.translate(0,c.height); g.scale(1,-1); } g.drawImage(flat,0,0); rebase(c); toast('✓ Flip ပြီး'); }
+  document.getElementById('rotL').addEventListener('click', ()=>rotate(-90));
+  document.getElementById('rotR').addEventListener('click', ()=>rotate(90));
+  document.getElementById('flipH').addEventListener('click', ()=>flip('h'));
+  document.getElementById('flipV').addEventListener('click', ()=>flip('v'));
+
+  // ---------- export (with optional pro shadow-frame) ----------
+  let frameOn = false;
+  document.getElementById('frameBtn').addEventListener('click', e => { frameOn=!frameOn; e.currentTarget.classList.toggle('on', frameOn); toast(frameOn?'🖼 Frame ON':'Frame OFF'); });
+  function exportCanvas(){
+    selected=null; render();
+    if(!frameOn) return cv;
+    const pad = Math.round(Math.max(cv.width,cv.height)*0.05) + 16;
+    const c = document.createElement('canvas'); c.width = cv.width+pad*2; c.height = cv.height+pad*2;
+    const g = c.getContext('2d');
+    const grd = g.createLinearGradient(0,0,c.width,c.height); grd.addColorStop(0,'#1b2130'); grd.addColorStop(1,'#0d1119'); g.fillStyle=grd; g.fillRect(0,0,c.width,c.height);
+    g.save(); g.shadowColor='rgba(0,0,0,.6)'; g.shadowBlur=pad*0.8; g.shadowOffsetY=pad*0.3; g.drawImage(cv,pad,pad); g.restore();
+    g.strokeStyle='rgba(255,255,255,.1)'; g.lineWidth=1; g.strokeRect(pad+0.5,pad+0.5,cv.width-1,cv.height-1);
+    return c;
+  }
   document.getElementById('dlBtn').addEventListener('click', () => {
-    flatten().toBlob(b => { const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='snip-'+Date.now()+'.png'; a.click(); URL.revokeObjectURL(a.href); toast('✓ PNG သိမ်းပြီး'); }, 'image/png');
+    exportCanvas().toBlob(b => { const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='snip-'+Date.now()+'.png'; a.click(); URL.revokeObjectURL(a.href); toast('✓ PNG သိမ်းပြီး'); }, 'image/png');
   });
   document.getElementById('copyBtn').addEventListener('click', () => {
-    flatten().toBlob(async b => {
+    exportCanvas().toBlob(async b => {
       try{ await navigator.clipboard.write([new ClipboardItem({'image/png': b})]); toast('✓ Clipboard သို့ ကူးပြီး'); }
       catch(err){ toast('⚠ Copy မရပါ — PNG download သုံးပါ'); }
     }, 'image/png');
@@ -492,7 +595,7 @@
   });
 
   // ---------- keyboard ----------
-  const TOOLKEYS = { v:'select', a:'arrow', l:'line', r:'box', o:'ellipse', p:'pen', h:'highlight', t:'text', s:'step', b:'blur', c:'crop' };
+  const TOOLKEYS = { v:'select', a:'arrow', l:'line', r:'box', o:'ellipse', p:'pen', h:'highlight', t:'text', s:'step', b:'blur', g:'spotlight', q:'callout', m:'magnify', c:'crop' };
   document.addEventListener('keydown', e => {
     if(e.target.matches('input, textarea')) return;
     if((e.ctrlKey||e.metaKey) && e.key.toLowerCase()==='z'){ e.preventDefault(); e.shiftKey ? redo() : undo(); return; }
