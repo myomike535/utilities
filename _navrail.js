@@ -243,6 +243,33 @@
     /* Refined active pill */
     .nr-item.active { font-weight: 600; }
 
+    /* Collapsible section headers (expanded mode) */
+    .nr.expanded .nr-group-title { cursor: pointer; display: flex; align-items: center; user-select: none; }
+    .nr-group-title .gc { margin-left: auto; width: 12px; height: 12px; flex: none; opacity: 0.55;
+      transform: rotate(90deg); transition: transform 0.2s ease; }
+    .nr-group-title .gc svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+    .nr-group.collapsed .nr-group-title .gc { transform: rotate(0deg); }
+    .nr.expanded .nr-group.collapsed .nr-item { display: none; }
+
+    /* Profile footer */
+    .nr-profile {
+      display: flex; align-items: center; gap: 10px; padding: 7px 5px; border-radius: 9px;
+      cursor: pointer; overflow: hidden; transition: background 0.15s ease;
+    }
+    .nr-profile:hover { background: rgba(255,255,255,0.06); }
+    html[data-theme="light"] .nr-profile:hover { background: rgba(139,100,40,0.12); }
+    .nr-av {
+      width: 30px; height: 30px; flex: none; border-radius: 50%;
+      background: linear-gradient(135deg, #a78bfa, #ec4899); color: #fff;
+      display: grid; place-items: center; font-weight: 700; font-size: 0.8rem;
+      box-shadow: 0 3px 10px rgba(167,139,250,0.35);
+    }
+    .nr-pname {
+      opacity: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      font-size: 0.82rem; font-weight: 600; transition: opacity 0.15s ease; min-width: 0;
+    }
+    .nr.expanded .nr-pname { opacity: 1; }
+
     /* Tooltip when collapsed */
     .nr:not(.expanded) .nr-item::after {
       content: attr(data-tip);
@@ -417,8 +444,9 @@
       .nr .nr-brand-text { display: inline !important; }
       .nr .nr-label { opacity: 1 !important; display: inline !important; }
       .nr .nr-search { display: block !important; }
-      .nr .nr-group-title { opacity: 1 !important; height: auto !important; padding: 12px 10px 4px !important; }
+      .nr .nr-group-title { opacity: 1 !important; height: auto !important; padding: 12px 10px 4px !important; cursor: pointer; display: flex; align-items: center; }
       .nr .nr-group + .nr-group { margin-top: 0; padding-top: 0; border-top: none; }
+      .nr .nr-pname { opacity: 1 !important; }
       .nr .rail-toggle .lbl, .nr .rail-newsession .lbl { display: inline !important; }
       .nr .sessions-list li .s-body { display: block !important; }
       .nr-bottom .nr-toggle { display: none; }
@@ -458,16 +486,26 @@
     + '<input type="text" placeholder="Search tools…" aria-label="Search tools" autocomplete="off" spellcheck="false">';
   rail.appendChild(search);
 
-  // Items — grouped sections
+  // Items — grouped sections (collapsible, persisted)
+  const COLLAPSE_KEY = 'utilities.navrail.collapsedSections';
+  let collapsedSet;
+  try { collapsedSet = new Set(JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '[]')); }
+  catch (e) { collapsedSet = new Set(); }
   const items = document.createElement('div');
   items.className = 'nr-items';
   const groupEls = [];
   GROUPS.forEach(g => {
     const grp = document.createElement('div');
     grp.className = 'nr-group';
+    if (collapsedSet.has(g.title)) grp.classList.add('collapsed');
     const title = document.createElement('div');
     title.className = 'nr-group-title';
-    title.textContent = g.title;
+    title.innerHTML = `<span>${g.title}</span><span class="gc">${ICONS.chevron}</span>`;
+    title.addEventListener('click', () => {
+      const nowCollapsed = grp.classList.toggle('collapsed');
+      if (nowCollapsed) collapsedSet.add(g.title); else collapsedSet.delete(g.title);
+      try { localStorage.setItem(COLLAPSE_KEY, JSON.stringify([...collapsedSet])); } catch (e) {}
+    });
     grp.appendChild(title);
     g.items.forEach(t => {
       const a = document.createElement('a');
@@ -512,7 +550,8 @@
       let groupHas = false;
       grp.querySelectorAll('.nr-item').forEach(a => {
         const match = !q || a.dataset.label.includes(q);
-        a.style.display = match ? '' : 'none';
+        // explicit 'flex' while searching so matches show even inside collapsed sections
+        a.style.display = !match ? 'none' : (q ? 'flex' : '');
         if (match) groupHas = true;
       });
       grp.classList.toggle('hidden', !groupHas);
@@ -523,9 +562,19 @@
   // Don't let the rail collapse while typing in search
   search.addEventListener('mouseenter', (e) => e.stopPropagation());
 
-  // Bottom: expand/collapse toggle
+  // Bottom: profile + expand/collapse toggle
   const bottom = document.createElement('div');
   bottom.className = 'nr-bottom';
+  // Profile row (name from applock; opens the Ctrl+K command palette on click)
+  const pname = (localStorage.getItem('applock.name') || 'MyoMT').replace(/[<>&]/g, '');
+  const profile = document.createElement('div');
+  profile.className = 'nr-profile';
+  profile.title = pname + ' — Quick actions (Ctrl+K)';
+  profile.innerHTML = `<span class="nr-av">${(pname.trim()[0] || 'M').toUpperCase()}</span><span class="nr-pname">${pname}</span>`;
+  profile.addEventListener('click', () => {
+    document.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true, bubbles: true }));
+  });
+  bottom.appendChild(profile);
   const toggle = document.createElement('button');
   toggle.className = 'nr-toggle';
   toggle.innerHTML = ICONS.chevron;
