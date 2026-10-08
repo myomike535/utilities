@@ -297,3 +297,67 @@
     color: #000 !important;
   }
 }
+
+/* ============================================================
+   Native form-control normalization — suite-wide. Makes bare
+   <select>, checkbox, radio, and range match the theme instead of
+   the OS. Element Plus controls are excluded; cosmetic rules use
+   :where() (zero specificity) so any tool's own styles win.
+   ============================================================ */
+
+/* <select>: strip the OS arrow, add a themed chevron. Only the arrow
+   bits are forced (!important) so each tool keeps its own colour,
+   border, radius, and left padding — nothing else is overridden. */
+select:not([multiple]):not([size]) {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239aa4b3' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 9px center !important;
+  background-size: 13px !important;
+  padding-right: 28px !important;
+}
+:where(select) option { background: #1b2130; color: #f2f5fa; }
+:where(html[data-theme="light"] select) option { background: #fff; color: #1a1a1a; }
+
+/* Checkbox + radio (exclude Element Plus hidden native inputs) */
+:where(input[type="checkbox"]:not(.el-checkbox__original)),
+:where(input[type="radio"]:not(.el-radio__original)) {
+  -webkit-appearance: none; appearance: none; box-sizing: border-box;
+  width: 17px; height: 17px; margin: 0 2px 0 0; flex: none; vertical-align: -3px;
+  border: 1.5px solid var(--field-border, rgba(255,255,255,.28));
+  background: var(--field, rgba(255,255,255,.05));
+  cursor: pointer; position: relative;
+  transition: background .15s ease, border-color .15s ease;
+}
+:where(input[type="checkbox"]:not(.el-checkbox__original)) { border-radius: 5px; }
+:where(input[type="radio"]:not(.el-radio__original)) { border-radius: 50%; }
+:where(input[type="checkbox"]:not(.el-checkbox__original)):checked,
+:where(input[type="radio"]:not(.el-radio__original)):checked {
+  background: var(--accent, #6366f1); border-color: var(--accent, #6366f1);
+}
+:where(input[type="checkbox"]:not(.el-checkbox__original)):checked::after {
+  content: ''; position: absolute; left: 4.5px; top: 1.5px; width: 4px; height: 8px;
+  border: solid #fff; border-width: 0 2px 2px 0; transform: rotate(45deg);
+}
+:where(input[type="radio"]:not(.el-radio__original)):checked::after {
+  content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #fff;
+}
+:where(input[type="checkbox"]:not(.el-checkbox__original)):focus-visible,
+:where(input[type="radio"]:not(.el-radio__original)):focus-visible {
+  outline: none; box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent, #6366f1) 30%, transparent);
+}
+
+/* Range slider */
+:where(input[type="range"]) {
+  -webkit-appearance: none; appearance: none; height: 5px; border-radius: 3px; cursor: pointer;
+  background: var(--field-border, rgba(255,255,255,.18));
+}
+:where(input[type="range"])::-webkit-slider-thumb {
+  -webkit-appearance: none; appearance: none; width: 16px; height: 16px; border-radius: 50%;
+  border: none; background: var(--accent, #6366f1); box-shadow: 0 1px 5px rgba(0,0,0,.4); cursor: pointer;
+}
+:where(input[type="range"])::-moz-range-thumb {
+  width: 16px; height: 16px; border-radius: 50%; border: none;
+  background: var(--accent, #6366f1); box-shadow: 0 1px 5px rgba(0,0,0,.4); cursor: pointer;
+}
