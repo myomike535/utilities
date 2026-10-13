@@ -37,6 +37,7 @@
       { href: 'ai_note_taker_enterprise_suite.html', icon: 'sparkles',   label: 'Enterprise',      color: '#cba6f7' },
       { href: 'RecapAudioMaker.html',                icon: 'headphones', label: 'Recap Audio',     color: '#f472b6' },
       { href: 'HabitTracker.html',                   icon: 'tasks',      label: 'Habit Tracker',   color: '#22c55e' },
+      { href: 'ResumeBuilder.html',                  icon: 'scroll',     label: 'Resume / CV',     color: '#0ea5e9' },
       { href: 'BookmarkManager.html',                icon: 'bookmark',   label: 'Bookmarks',       color: '#6366f1' },
     ]},
     { title: 'Security', items: [

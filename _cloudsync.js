@@ -51,6 +51,7 @@
     'colormatch.v1',
     'invoices.v1',
     'invoices.profile',
+    'resume.v1',
   ];
 
   // Local sync bookkeeping (never synced themselves)

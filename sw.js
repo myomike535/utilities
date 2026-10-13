@@ -3,7 +3,7 @@
 // offline fallback for navigation to any cached tool.
 // Bump CACHE_VERSION to force clients to fetch fresh copies.
 
-const CACHE_VERSION = 'utilities-v107';
+const CACHE_VERSION = 'utilities-v108';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -59,6 +59,7 @@ const PRECACHE_URLS = [
   './RegexTester.html',
   './ColorStudio.html',
   './HabitTracker.html',
+  './ResumeBuilder.html',
   './ColorMatchStudio.html',
   './BackgroundStudio.html',
   './ScriptPrompter.html',
