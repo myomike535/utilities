@@ -72,6 +72,7 @@
       { href: 'Whiteboard.html',                     icon: 'palette',    label: 'Whiteboard',      color: '#14b8a6' },
       { href: 'SnipAnnotate.html',                   icon: 'palette',    label: 'Snip & Annotate', color: '#f59e0b' },
       { href: 'ColorMatchStudio.html',               icon: 'sparkles',   label: 'Color Match',     color: '#d4a24e' },
+      { href: 'BackgroundStudio.html',               icon: 'palette',    label: 'Background Studio',color: '#ec4899' },
       { href: 'ComparisonTable.html',                icon: 'tasks',      label: 'Compare',         color: '#8b5cf6' },
       { href: 'CertificateMaker.html',               icon: 'study',      label: 'Certificates',    color: '#b8860b' },
       { href: 'WinnerPicker.html',                   icon: 'sparkles',   label: 'ကံစမ်းမဲ',         color: '#ec4899' },
