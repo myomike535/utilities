@@ -36,6 +36,7 @@
       { href: 'NoteTakerVue.html',                   icon: 'mic',        label: 'Note Taker (Vue)', color: '#42b883' },
       { href: 'ai_note_taker_enterprise_suite.html', icon: 'sparkles',   label: 'Enterprise',      color: '#cba6f7' },
       { href: 'RecapAudioMaker.html',                icon: 'headphones', label: 'Recap Audio',     color: '#f472b6' },
+      { href: 'HabitTracker.html',                   icon: 'tasks',      label: 'Habit Tracker',   color: '#22c55e' },
       { href: 'BookmarkManager.html',                icon: 'bookmark',   label: 'Bookmarks',       color: '#6366f1' },
     ]},
     { title: 'Security', items: [
@@ -56,6 +57,8 @@
       { href: 'CSVToolkit.html',                     icon: 'tasks',      label: 'CSV',             color: '#0ea5e9' },
       { href: 'QRGenerator.html',                    icon: 'bookmark',   label: 'QR',              color: '#10b981' },
       { href: 'ImageCompressor.html',                icon: 'bookmark',   label: 'Img Compress',    color: '#a78bfa' },
+      { href: 'RegexTester.html',                    icon: 'braces',     label: 'Regex Tester',    color: '#0ea5e9' },
+      { href: 'ColorStudio.html',                    icon: 'palette',    label: 'Color Studio',    color: '#8b5cf6' },
       { href: 'GithubTrending.html',                 icon: 'trending',   label: 'GH Trending',     color: '#58a6ff' },
     ]},
     { title: 'Creator', items: [
@@ -67,6 +70,7 @@
       { href: 'ScriptPrompter.html',                 icon: 'headphones', label: 'Teleprompter',    color: '#22c55e' },
       { href: 'Whiteboard.html',                     icon: 'palette',    label: 'Whiteboard',      color: '#14b8a6' },
       { href: 'SnipAnnotate.html',                   icon: 'palette',    label: 'Snip & Annotate', color: '#f59e0b' },
+      { href: 'ColorMatchStudio.html',               icon: 'sparkles',   label: 'Color Match',     color: '#d4a24e' },
       { href: 'ComparisonTable.html',                icon: 'tasks',      label: 'Compare',         color: '#8b5cf6' },
       { href: 'CertificateMaker.html',               icon: 'study',      label: 'Certificates',    color: '#b8860b' },
       { href: 'WinnerPicker.html',                   icon: 'sparkles',   label: 'ကံစမ်းမဲ',         color: '#ec4899' },

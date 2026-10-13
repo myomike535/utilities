@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Regex Tester — MyoMT Utilities</title>
+<link rel="icon" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="_motion.css">
+<link rel="stylesheet" href="_effects.css">
+<link rel="stylesheet" href="_design.css">
+<style>
+  :root{
+    --bg:#070a0f; --bg2:#0d1119; --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342; --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#0ea5e9; --accent-2:#6366f1; --danger:#ff6b6b; --ok:#34d399; --warn:#fbbf24;
+    --sans:'Pyidaungsu','Padauk','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas','JetBrains Mono',monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:var(--sans); color:var(--text); min-height:100vh; padding:20px 16px 50px;
+    background:radial-gradient(1000px 600px at 10% -10%, rgba(14,165,233,.13), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(99,102,241,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%); background-attachment:fixed}
+  .wrap{max-width:980px; margin:0 auto}
+  header{display:flex; align-items:center; gap:13px; margin-bottom:16px; flex-wrap:wrap}
+  .logo{width:44px; height:44px; border-radius:12px; display:grid; place-items:center; font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(14,165,233,.35)}
+  header h1{font-size:1.25rem; margin:0; font-weight:800; letter-spacing:-.02em}
+  header .sub{color:var(--muted); font-size:.8rem}
+  header .title{flex:1; min-width:160px}
+  .card{background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:15px 17px; margin-bottom:13px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 12px 30px -16px rgba(0,0,0,.55)}
+  label.fl{display:block; font-size:.72rem; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:7px}
+
+  .pat-row{display:flex; align-items:stretch; gap:0; background:var(--field); border:1px solid var(--field-border); border-radius:11px; overflow:hidden; transition:.15s}
+  .pat-row.err{border-color:var(--danger)}
+  .pat-row.ok{border-color:color-mix(in srgb, var(--ok) 55%, transparent)}
+  .pat-row .slash{display:grid; place-items:center; padding:0 11px; color:var(--faint); font-family:var(--mono); font-size:1.1rem; background:rgba(255,255,255,.03)}
+  .pat-row input{flex:1; min-width:0; background:transparent; border:none; outline:none; color:var(--text); font-family:var(--mono); font-size:15px; padding:12px 8px}
+  .flags{display:flex; gap:5px; flex-wrap:wrap; margin-top:10px}
+  .flag{min-width:34px; height:30px; padding:0 8px; border-radius:8px; border:1px solid var(--field-border); background:var(--field);
+    color:var(--muted); font-family:var(--mono); font-size:13px; cursor:pointer; display:inline-flex; align-items:center; gap:4px; transition:.14s}
+  .flag.on{background:color-mix(in srgb, var(--accent) 22%, transparent); border-color:var(--accent); color:#fff}
+  .flag .fn{font-size:.62rem; opacity:.65; font-family:var(--sans)}
+  .err-msg{color:var(--danger); font-size:.78rem; margin-top:8px; min-height:1em; font-family:var(--mono)}
+
+  .re-editor{position:relative; border:1px solid var(--field-border); border-radius:11px; overflow:hidden; background:var(--field)}
+  .re-editor textarea, .re-editor .backdrop{
+    margin:0; border:0; width:100%; min-height:150px; padding:12px 13px; box-sizing:border-box;
+    font-family:var(--mono); font-size:13.5px; line-height:1.6; letter-spacing:0; tab-size:2;
+    white-space:pre-wrap; word-break:break-word; overflow-wrap:break-word;
+  }
+  .re-editor textarea{position:relative; z-index:2; background:transparent; color:transparent; caret-color:var(--text); outline:none; resize:vertical; display:block}
+  .re-editor textarea::selection{background:rgba(14,165,233,.3)}
+  .re-editor .backdrop{position:absolute; inset:0; z-index:1; color:var(--text); pointer-events:none; overflow:hidden}
+  .backdrop mark{background:rgba(14,165,233,.32); color:inherit; border-radius:2px; box-shadow:0 0 0 1px rgba(14,165,233,.5)}
+  .backdrop mark.alt{background:rgba(99,102,241,.32); box-shadow:0 0 0 1px rgba(99,102,241,.5)}
+
+  .meta{display:flex; align-items:center; gap:12px; flex-wrap:wrap; font-size:.8rem; color:var(--muted); margin-top:10px}
+  .meta .pill{background:var(--field); border:1px solid var(--field-border); border-radius:20px; padding:3px 11px; font-variant-numeric:tabular-nums}
+  .meta .pill b{color:var(--accent)}
+  .meta .pill.ms{color:var(--faint)}
+
+  .matches{margin-top:10px; display:flex; flex-direction:column; gap:7px}
+  .m-row{background:var(--field); border:1px solid rgba(255,255,255,.06); border-radius:10px; padding:9px 11px; font-family:var(--mono); font-size:12.5px}
+  .m-row .m-head{display:flex; gap:10px; align-items:center; color:var(--faint); font-size:.72rem; margin-bottom:4px; font-family:var(--sans)}
+  .m-row .m-head b{color:var(--accent); font-family:var(--mono)}
+  .m-row .m-val{color:var(--text); word-break:break-all}
+  .m-row .grp{display:flex; gap:8px; margin-top:4px; color:var(--muted); font-size:12px}
+  .m-row .grp .gi{color:var(--accent-2); flex:none}
+  .m-row .grp .gv{word-break:break-all; color:var(--text)}
+
+  .chips{display:flex; flex-wrap:wrap; gap:6px}
+  .chip{background:var(--field); border:1px solid var(--field-border); border-radius:20px; padding:6px 12px; font-size:.78rem; cursor:pointer; transition:.14s}
+  .chip:hover{border-color:var(--accent); color:var(--accent)}
+  .btn{display:inline-flex; align-items:center; gap:6px; padding:8px 14px; border-radius:9px; border:1px solid rgba(255,255,255,.1);
+    background:var(--field); color:var(--text); cursor:pointer; font-family:var(--sans); font-size:.82rem; font-weight:600; transition:.14s}
+  .btn:hover{border-color:var(--accent); transform:translateY(-1px)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2)); border:none; color:#fff}
+  .row{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  details{margin-top:10px} summary{cursor:pointer; font-size:.82rem; color:var(--muted); font-weight:600}
+  summary:hover{color:var(--text)}
+  .cheat{display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:5px 16px; margin-top:10px; font-size:.78rem}
+  .cheat div{display:flex; gap:8px} .cheat code{font-family:var(--mono); color:var(--accent); background:var(--field); padding:0 5px; border-radius:4px; flex:none}
+  .cheat span{color:var(--muted)}
+  textarea.rep{width:100%; background:var(--field); border:1px solid var(--field-border); border-radius:10px; color:var(--text); font-family:var(--mono); font-size:13px; padding:10px 12px; outline:none; resize:vertical; min-height:44px}
+  .rep-out{background:var(--field); border:1px dashed var(--field-border); border-radius:10px; padding:10px 12px; font-family:var(--mono); font-size:13px; white-space:pre-wrap; word-break:break-word; color:var(--ok); margin-top:8px; min-height:40px}
+  footer{text-align:center; color:var(--faint); font-size:.72rem; margin-top:22px}
+  .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--card2); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:10px 16px; font-size:.84rem; font-weight:600; box-shadow:0 12px 30px rgba(0,0,0,.5); transition:.25s; z-index:9999; pointer-events:none}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  @media(max-width:600px){ header .sub{display:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">⚙️</div>
+    <div class="title"><h1>Regex Tester</h1><div class="sub">Live match highlighting · groups · replace · cheatsheet — offline</div></div>
+  </header>
+
+  <div class="card">
+    <label class="fl">Pattern</label>
+    <div class="pat-row" id="patRow">
+      <span class="slash">/</span>
+      <input id="pattern" spellcheck="false" autocomplete="off" placeholder="\b\w+@\w+\.\w+\b" value="\b[\w.]+@[\w.]+\.\w{2,}\b">
+      <span class="slash" id="flagShow">/g</span>
+    </div>
+    <div class="flags" id="flags"></div>
+    <div class="err-msg" id="errMsg"></div>
+    <details>
+      <summary>📚 Common patterns</summary>
+      <div class="chips" id="library" style="margin-top:10px"></div>
+    </details>
+  </div>
+
+  <div class="card">
+    <label class="fl">Test string</label>
+    <div class="re-editor">
+      <div class="backdrop" id="backdrop"></div>
+      <textarea id="test" spellcheck="false" placeholder="Paste text to test against…">Contact us at hello@example.com or support@myomt.dev.
+Invalid: foo@bar, name @ host . com
+Phone: +95 9 123 456 789, order #A1024 on 2026-10-13.</textarea>
+    </div>
+    <div class="meta">
+      <span class="pill"><b id="matchCount">0</b> matches</span>
+      <span class="pill ms" id="timing">—</span>
+      <span style="flex:1"></span>
+      <button class="btn" id="copyMatches">⧉ Copy matches</button>
+    </div>
+    <div class="matches" id="matchList"></div>
+  </div>
+
+  <div class="card">
+    <label class="fl">Replace</label>
+    <textarea class="rep" id="replace" spellcheck="false" placeholder="Replacement — use $1, $2 for groups, $& for whole match">[$&]</textarea>
+    <div class="row" style="margin-top:8px"><button class="btn primary" id="applyReplace">▶ Preview replace</button><button class="btn" id="copyReplace">⧉ Copy result</button></div>
+    <div class="rep-out" id="repOut">—</div>
+  </div>
+
+  <div class="card">
+    <details open>
+      <summary>🧩 Cheatsheet</summary>
+      <div class="cheat" id="cheat"></div>
+    </details>
+  </div>
+  <footer>Developed by <b>MyoMT</b> · JavaScript RegExp engine · offline</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script>
+(function(){
+  'use strict';
+  const $ = id => document.getElementById(id);
+  const patEl=$('pattern'), testEl=$('test'), backdrop=$('backdrop'), errMsg=$('errMsg'), patRow=$('patRow'),
+        flagShow=$('flagShow'), matchCount=$('matchCount'), matchList=$('matchList'), timing=$('timing'),
+        toastEl=$('toast'), replaceEl=$('replace'), repOut=$('repOut');
+  const STORE='regextester.v1';
+  const FLAGS=[['g','global'],['i','ignore case'],['m','multiline'],['s','dotall'],['u','unicode'],['y','sticky']];
+  let flags=new Set(['g']);
+
+  function toast(m){ toastEl.textContent=m; toastEl.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>toastEl.classList.remove('show'),1600); }
+  function esc(s){ return s.replace(/[&<>]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+
+  // flags UI
+  const flagsWrap=$('flags');
+  FLAGS.forEach(([f,name])=>{
+    const b=document.createElement('button'); b.className='flag'+(flags.has(f)?' on':''); b.dataset.f=f;
+    b.innerHTML=`${f}<span class="fn">${name}</span>`;
+    b.addEventListener('click',()=>{ flags.has(f)?flags.delete(f):flags.add(f); b.classList.toggle('on'); save(); run(); });
+    flagsWrap.appendChild(b);
+  });
+
+  // library
+  const LIB=[
+    ['Email','\\b[\\w.%+-]+@[\\w.-]+\\.[A-Za-z]{2,}\\b'],
+    ['URL','https?:\\/\\/[^\\s/$.?#].[^\\s]*'],
+    ['IPv4','\\b(?:(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\.){3}(?:25[0-5]|2[0-4]\\d|[01]?\\d?\\d)\\b'],
+    ['Date YYYY-MM-DD','\\b\\d{4}-(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\\d|3[01])\\b'],
+    ['Hex colour','#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})\\b'],
+    ['Myanmar phone','(?:\\+?95|0)?9\\d{7,9}'],
+    ['Digits','\\d+'],
+    ['Word','\\b\\w+\\b'],
+    ['Whitespace','\\s+'],
+    ['HTML tag','<\\/?[a-zA-Z][^>]*>'],
+    ['Slug','[a-z0-9]+(?:-[a-z0-9]+)*'],
+    ['Strong pass','(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\w]).{8,}'],
+  ];
+  const libWrap=$('library');
+  LIB.forEach(([name,rx])=>{ const c=document.createElement('button'); c.className='chip'; c.textContent=name;
+    c.addEventListener('click',()=>{ patEl.value=rx; save(); run(); toast('✓ '+name); }); libWrap.appendChild(c); });
+
+  // cheatsheet
+  const CHEAT=[['.','any char'],['\\d','digit'],['\\w','word char'],['\\s','whitespace'],['\\b','word boundary'],
+    ['^ $','start / end'],['*','0 or more'],['+','1 or more'],['?','0 or 1'],['{n,m}','n to m times'],
+    ['[abc]','any of a,b,c'],['[^abc]','none of'],['(…)','capture group'],['(?:…)','non-capture'],
+    ['a|b','a or b'],['(?=…)','lookahead'],['(?<=…)','lookbehind'],['\\1 $1','backref / group']];
+  const cheatWrap=$('cheat');
+  CHEAT.forEach(([c,d])=>{ const el=document.createElement('div'); el.innerHTML=`<code>${esc(c)}</code><span>${d}</span>`; cheatWrap.appendChild(el); });
+
+  function buildFlags(){ return FLAGS.map(f=>f[0]).filter(f=>flags.has(f)).join(''); }
+
+  function run(){
+    const fl=buildFlags(); flagShow.textContent='/'+fl;
+    const src=patEl.value, text=testEl.value;
+    let re=null; errMsg.textContent=''; patRow.classList.remove('err','ok');
+    if(src===''){ backdrop.innerHTML=esc(text); matchCount.textContent='0'; matchList.innerHTML=''; timing.textContent='—'; return; }
+    try{ re=new RegExp(src, fl); patRow.classList.add('ok'); }
+    catch(e){ errMsg.textContent='⚠ '+e.message; patRow.classList.add('err'); backdrop.innerHTML=esc(text); return; }
+
+    const t0=performance.now();
+    const matches=[]; let html='', last=0, i=0, alt=false;
+    const gre=new RegExp(src, fl.includes('g')?fl:fl+'g');
+    let m, guard=0;
+    while((m=gre.exec(text))!==null){
+      if(guard++>50000) break;
+      if(m.index===gre.lastIndex) gre.lastIndex++;   // avoid zero-width infinite loop
+      matches.push({ index:m.index, match:m[0], groups:m.slice(1), named:m.groups||null });
+      html += esc(text.slice(last, m.index)) + '<mark class="'+(alt?'alt':'')+'">'+ (m[0]===''?'':esc(m[0])) +'</mark>';
+      last = m.index + m[0].length; alt=!alt;
+      if(!fl.includes('g')) break;
+    }
+    html += esc(text.slice(last));
+    backdrop.innerHTML = html + '\n';   // trailing newline keeps scroll in sync
+    const t1=performance.now();
+
+    matchCount.textContent=String(matches.length);
+    timing.textContent=(t1-t0).toFixed(2)+' ms';
+    renderMatches(matches);
+  }
+  function renderMatches(matches){
+    matchList.innerHTML='';
+    matches.slice(0,200).forEach((mm,i)=>{
+      const row=document.createElement('div'); row.className='m-row';
+      let g='';
+      mm.groups.forEach((gv,gi)=>{ if(gv!==undefined) g+=`<div class="grp"><span class="gi">$${gi+1}</span><span class="gv">${esc(gv)}</span></div>`; });
+      if(mm.named){ for(const k in mm.named){ g+=`<div class="grp"><span class="gi">&lt;${esc(k)}&gt;</span><span class="gv">${esc(mm.named[k]??'')}</span></div>`; } }
+      row.innerHTML=`<div class="m-head">Match ${i+1} · at index <b>${mm.index}</b></div><div class="m-val">${mm.match===''?'<i style="color:var(--faint)">(empty)</i>':esc(mm.match)}</div>${g}`;
+      matchList.appendChild(row);
+    });
+    if(matches.length>200){ const d=document.createElement('div'); d.className='m-row'; d.style.color='var(--faint)'; d.textContent='… '+(matches.length-200)+' more (showing first 200)'; matchList.appendChild(d); }
+  }
+  function applyReplace(){
+    const src=patEl.value; if(!src){ repOut.textContent='—'; return; }
+    try{ const re=new RegExp(src, buildFlags()); repOut.textContent = testEl.value.replace(re, replaceEl.value); }
+    catch(e){ repOut.textContent='⚠ '+e.message; }
+  }
+
+  // sync scroll
+  testEl.addEventListener('scroll',()=>{ backdrop.scrollTop=testEl.scrollTop; backdrop.scrollLeft=testEl.scrollLeft; });
+  [patEl,testEl].forEach(el=>el.addEventListener('input',()=>{ run(); save(); }));
+  $('applyReplace').addEventListener('click',applyReplace);
+  $('copyMatches').addEventListener('click',()=>{ try{ const re=new RegExp(patEl.value, buildFlags()); const arr=testEl.value.match(re)||[]; navigator.clipboard.writeText(arr.join('\n')); toast('✓ '+arr.length+' matches copied'); }catch(e){ toast('⚠ invalid regex'); } });
+  $('copyReplace').addEventListener('click',()=>{ navigator.clipboard.writeText(repOut.textContent); toast('✓ copied'); });
+  replaceEl.addEventListener('input',applyReplace);
+
+  function save(){ try{ localStorage.setItem(STORE, JSON.stringify({ pattern:patEl.value, flags:[...flags], test:testEl.value, replace:replaceEl.value })); }catch(e){} }
+  function load(){ try{ const d=JSON.parse(localStorage.getItem(STORE)||'null'); if(d){ patEl.value=d.pattern??patEl.value; if(d.flags) flags=new Set(d.flags); if(d.test!=null) testEl.value=d.test; if(d.replace!=null) replaceEl.value=d.replace;
+    document.querySelectorAll('.flag').forEach(b=>b.classList.toggle('on', flags.has(b.dataset.f))); } }catch(e){} }
+
+  load(); run(); applyReplace();
+})();
+</script>
+</body>
+</html>

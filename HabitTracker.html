@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Habit Tracker — MyoMT Utilities</title>
+<link rel="icon" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="_motion.css">
+<link rel="stylesheet" href="_effects.css">
+<link rel="stylesheet" href="_design.css">
+<style>
+  :root{
+    --bg:#070a0f; --bg2:#0d1119; --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342; --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#22c55e; --accent-2:#0ea5e9; --warn:#fbbf24; --danger:#ff6b6b;
+    --sans:'Pyidaungsu','Padauk','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas',monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:var(--sans); color:var(--text); min-height:100vh; padding:20px 16px 50px;
+    background:radial-gradient(1000px 600px at 10% -10%, rgba(34,197,94,.12), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(14,165,233,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%); background-attachment:fixed}
+  .wrap{max-width:900px; margin:0 auto}
+  header{display:flex; align-items:center; gap:13px; margin-bottom:16px; flex-wrap:wrap}
+  .logo{width:44px; height:44px; border-radius:12px; display:grid; place-items:center; font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(34,197,94,.3)}
+  header h1{font-size:1.25rem; margin:0; font-weight:800; letter-spacing:-.02em}
+  header .sub{color:var(--muted); font-size:.8rem}
+  header .title{flex:1; min-width:160px}
+  .card{background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px 18px; margin-bottom:13px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 12px 30px -16px rgba(0,0,0,.55)}
+  .btn{display:inline-flex; align-items:center; gap:6px; padding:9px 15px; border-radius:10px; border:1px solid rgba(255,255,255,.1);
+    background:var(--field); color:var(--text); cursor:pointer; font-family:var(--sans); font-size:.84rem; font-weight:600; transition:.14s}
+  .btn:hover{border-color:var(--accent); transform:translateY(-1px)} .btn:active{transform:translateY(0) scale(.97)}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2)); border:none; color:#fff; box-shadow:0 6px 16px rgba(34,197,94,.3)}
+  .btn.sm{padding:6px 10px; font-size:.76rem}
+
+  .summary{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:13px}
+  .stat{background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:14px 16px; position:relative; overflow:hidden;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04)}
+  .stat::before{content:''; position:absolute; left:0; top:0; bottom:0; width:3px; background:var(--accent)}
+  .stat.s2::before{background:var(--accent-2)} .stat.s3::before{background:var(--warn)}
+  .stat .k{font-size:.68rem; color:var(--muted); text-transform:uppercase; letter-spacing:.05em; font-weight:600}
+  .stat .v{font-size:1.5rem; font-weight:900; font-variant-numeric:tabular-nums; margin-top:4px; letter-spacing:-.02em}
+  .stat .v small{font-size:.7rem; color:var(--faint); font-weight:400}
+
+  .hb{display:flex; flex-direction:column; gap:13px}
+  .habit{background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:15px 17px; position:relative; overflow:hidden;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 10px 26px -18px rgba(0,0,0,.6); transition:transform .14s, border-color .14s}
+  .habit:hover{transform:translateY(-2px)}
+  .habit::before{content:''; position:absolute; left:0; top:0; bottom:0; width:4px; background:var(--hc)}
+  .h-head{display:flex; align-items:center; gap:12px; margin-bottom:12px}
+  .h-ic{width:40px; height:40px; border-radius:11px; display:grid; place-items:center; font-size:1.3rem; flex:none;
+    background:color-mix(in srgb, var(--hc) 18%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--hc) 35%, transparent)}
+  .h-info{flex:1; min-width:0}
+  .h-info .nm{font-size:1rem; font-weight:700}
+  .h-info .streaks{font-size:.74rem; color:var(--muted); margin-top:2px; display:flex; gap:12px; flex-wrap:wrap}
+  .h-info .streaks b{color:var(--hc); font-variant-numeric:tabular-nums}
+  .h-actions{display:flex; align-items:center; gap:7px; flex:none}
+  .today-btn{min-width:108px; justify-content:center; border-radius:11px; padding:10px 14px; font-weight:700; cursor:pointer; border:1.5px solid var(--hc); color:var(--hc); background:transparent; font-family:var(--sans); font-size:.82rem; display:inline-flex; align-items:center; gap:6px; transition:.14s}
+  .today-btn.done{background:var(--hc); color:#04140a; border-color:var(--hc)}
+  .ico-btn{width:32px; height:32px; border-radius:8px; border:1px solid var(--field-border); background:var(--field); color:var(--muted); cursor:pointer; display:grid; place-items:center; font-size:.9rem}
+  .ico-btn:hover{color:var(--text); border-color:var(--hc)}
+
+  .heat{display:flex; gap:3px; overflow-x:auto; padding-bottom:4px; scrollbar-width:thin}
+  .heat .wk{display:flex; flex-direction:column; gap:3px}
+  .heat .d{width:13px; height:13px; border-radius:3px; background:var(--field); position:relative}
+  .heat .d.on{background:var(--hc); box-shadow:0 0 0 1px color-mix(in srgb, var(--hc) 40%, transparent)}
+  .heat .d.future{opacity:.25}
+  .heat .d.today{box-shadow:0 0 0 1.5px var(--text)}
+  .heat-legend{display:flex; align-items:center; gap:6px; font-size:.68rem; color:var(--faint); margin-top:7px}
+
+  .empty{text-align:center; color:var(--faint); padding:40px 16px}
+  .empty .ei{width:64px; height:64px; border-radius:18px; display:grid; place-items:center; font-size:1.8rem; margin:0 auto 10px;
+    background:rgba(34,197,94,.12); box-shadow:inset 0 0 0 1px rgba(34,197,94,.28)}
+  .empty .et{font-size:1rem; font-weight:700; color:var(--text)}
+  .empty .eh{font-size:.82rem; max-width:320px; margin:4px auto 0; line-height:1.6}
+
+  /* dialog */
+  .ov{position:fixed; inset:0; background:rgba(4,6,10,.6); backdrop-filter:blur(4px); display:none; align-items:center; justify-content:center; z-index:1000; padding:16px}
+  .ov.show{display:flex}
+  .modal{background:var(--card2); border:1px solid rgba(255,255,255,.1); border-radius:18px; padding:22px; width:100%; max-width:400px; box-shadow:0 30px 70px rgba(0,0,0,.6)}
+  .modal h3{margin:0 0 16px; font-size:1.05rem}
+  .modal label{display:block; font-size:.74rem; color:var(--muted); font-weight:600; margin:12px 0 6px}
+  .modal input[type=text]{width:100%; background:var(--field); border:1px solid var(--field-border); border-radius:10px; color:var(--text); font-size:15px; padding:11px 13px; outline:none; font-family:var(--sans)}
+  .modal input:focus{border-color:var(--accent)}
+  .ic-pick,.co-pick{display:flex; gap:7px; flex-wrap:wrap; margin-top:4px}
+  .ic-pick span{width:38px; height:38px; border-radius:10px; display:grid; place-items:center; font-size:1.2rem; background:var(--field); border:1.5px solid transparent; cursor:pointer}
+  .ic-pick span.on{border-color:var(--accent)}
+  .co-pick i{width:30px; height:30px; border-radius:50%; cursor:pointer; border:2px solid transparent; display:block}
+  .co-pick i.on{border-color:#fff; box-shadow:0 0 0 2px rgba(0,0,0,.4)}
+  .modal .foot{display:flex; gap:9px; justify-content:flex-end; margin-top:20px}
+  footer{text-align:center; color:var(--faint); font-size:.72rem; margin-top:22px}
+  .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--card2); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:10px 16px; font-size:.84rem; font-weight:600; box-shadow:0 12px 30px rgba(0,0,0,.5); transition:.25s; z-index:9999; pointer-events:none}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  @media(max-width:600px){ header .sub{display:none} .summary{grid-template-columns:1fr 1fr} .summary .stat.s3{grid-column:1/-1} .today-btn{min-width:auto} .today-btn .lbl{display:none} .h-info .nm{font-size:.94rem} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🔥</div>
+    <div class="title"><h1>Habit Tracker</h1><div class="sub">နေ့စဉ် အလေ့အကျင့် · streaks + heatmap — offline · cloud-sync</div></div>
+    <button class="btn primary" id="addBtn">＋ Habit အသစ်</button>
+  </header>
+
+  <div class="summary">
+    <div class="stat"><div class="k">📅 ယနေ့ ပြီးမြောက်</div><div class="v" id="stToday">0 / 0</div></div>
+    <div class="stat s2"><div class="k">🔥 အရှည်ဆုံး streak</div><div class="v" id="stBest">0 <small>ရက်</small></div></div>
+    <div class="stat s3"><div class="k">✅ စုစုပေါင်း မှတ်တမ်း</div><div class="v" id="stTotal">0</div></div>
+  </div>
+
+  <div class="hb" id="list"></div>
+  <div class="card empty" id="empty" style="display:none">
+    <div class="ei">🔥</div>
+    <div class="et">Habit မရှိသေးပါ</div>
+    <div class="eh">＋ Habit အသစ် ဖြင့် ပထမဆုံး အလေ့အကျင့် (ဥပမာ "ကမ္မဋ္ဌာန်း ၁၀ မိနစ်") ထည့်ပြီး နေ့စဉ် တစ်ချက်နှိပ်၍ မှတ်ပါ။ Streak ပေါ်လာပါမည်။</div>
+  </div>
+  <footer>Developed by <b>MyoMT</b> · ဒေတာ ဤ device ပေါ်မှာသာ · cloud-sync</footer>
+</div>
+
+<!-- Add/Edit modal -->
+<div class="ov" id="ov">
+  <div class="modal">
+    <h3 id="mTitle">Habit အသစ်</h3>
+    <label>အမည်</label>
+    <input type="text" id="mName" placeholder="ဥပမာ — ကမ္မဋ္ဌာန်း ၁၀ မိနစ်" maxlength="40">
+    <label>Icon</label>
+    <div class="ic-pick" id="mIcons"></div>
+    <label>အရောင်</label>
+    <div class="co-pick" id="mColors"></div>
+    <div class="foot"><button class="btn" id="mCancel">မလုပ်တော့ပါ</button><button class="btn primary" id="mSave">💾 သိမ်းမည်</button></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script>
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const STORE='habits.v1';
+  const ICONS=['🔥','🧘','📖','💧','🏃','💪','🍎','😴','✍️','🙏','📿','🎯','🎸','🌱','☀️','🧹','💊','🚭'];
+  const COLORS=['#22c55e','#0ea5e9','#8b5cf6','#ec4899','#f59e0b','#ef4444','#14b8a6','#f97316','#eab308','#06b6d4'];
+  const WEEKS=18; // heatmap length
+  let habits=[]; let editId=null; let draft={icon:'🔥', color:'#22c55e'};
+  const toastEl=$('toast');
+  function toast(m){ toastEl.textContent=m; toastEl.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>toastEl.classList.remove('show'),1500); }
+
+  const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const today=()=>ymd(new Date());
+  function addDays(base,n){ const d=new Date(base+'T00:00:00'); d.setDate(d.getDate()+n); return ymd(d); }
+
+  function curStreak(done){ let s=0; let day=today(); if(!done[day]) day=addDays(day,-1); // allow today-not-yet-done
+    while(done[day]){ s++; day=addDays(day,-1); } return s; }
+  function bestStreak(done){ const days=Object.keys(done).filter(k=>done[k]).sort(); if(!days.length)return 0; let best=1,cur=1;
+    for(let i=1;i<days.length;i++){ if(addDays(days[i-1],1)===days[i]){cur++; best=Math.max(best,cur);} else cur=1; } return best; }
+
+  function render(){
+    const list=$('list'); list.innerHTML=''; $('empty').style.display=habits.length?'none':'block';
+    let doneToday=0, best=0, total=0;
+    const t=today();
+    habits.forEach(h=>{ const done=h.done||{}; if(done[t])doneToday++; best=Math.max(best,bestStreak(done)); total+=Object.values(done).filter(Boolean).length; });
+    $('stToday').textContent=doneToday+' / '+habits.length;
+    $('stBest').innerHTML=best+' <small>ရက်</small>';
+    $('stTotal').textContent=total;
+
+    habits.forEach(h=>{
+      const done=h.done||{}; const cs=curStreak(done), bs=bestStreak(done); const isDone=!!done[t];
+      const el=document.createElement('div'); el.className='habit'; el.style.setProperty('--hc',h.color);
+      el.innerHTML=`
+        <div class="h-head">
+          <div class="h-ic">${h.icon}</div>
+          <div class="h-info"><div class="nm">${escapeHtml(h.name)}</div>
+            <div class="streaks"><span>🔥 လက်ရှိ <b>${cs}</b> ရက်</span><span>🏆 အကောင်းဆုံး <b>${bs}</b></span><span>✅ <b>${Object.values(done).filter(Boolean).length}</b> ကြိမ်</span></div></div>
+          <div class="h-actions">
+            <button class="today-btn ${isDone?'done':''}" data-act="toggle">${isDone?'✓':'○'}<span class="lbl">&nbsp;${isDone?'ပြီးပြီ':'ယနေ့'}</span></button>
+            <button class="ico-btn" data-act="edit" title="Edit">✏️</button>
+            <button class="ico-btn" data-act="del" title="Delete">🗑</button>
+          </div>
+        </div>
+        <div class="heat"></div>
+        <div class="heat-legend">${WEEKS} ပတ် · <span>Less</span><span style="display:inline-flex;gap:3px"><i style="width:11px;height:11px;border-radius:3px;background:var(--field);display:inline-block"></i><i style="width:11px;height:11px;border-radius:3px;background:color-mix(in srgb,${h.color} 45%,transparent);display:inline-block"></i><i style="width:11px;height:11px;border-radius:3px;background:${h.color};display:inline-block"></i></span><span>More</span></div>`;
+      // heatmap: build weeks, ending this week; align so columns are weeks (Sun-start)
+      const heat=el.querySelector('.heat');
+      const end=new Date(t+'T00:00:00'); const endDow=end.getDay();
+      const totalDays=WEEKS*7; const start=new Date(end); start.setDate(start.getDate()-(totalDays-1-(6-endDow)));
+      for(let w=0; w<WEEKS; w++){ const col=document.createElement('div'); col.className='wk';
+        for(let d=0; d<7; d++){ const day=new Date(start); day.setDate(day.getDate()+w*7+d); const key=ymd(day);
+          const cell=document.createElement('div'); cell.className='d';
+          if(key>t) cell.classList.add('future'); else if(done[key]) cell.classList.add('on');
+          if(key===t) cell.classList.add('today');
+          cell.title=key+(done[key]?' ✓':''); cell.dataset.day=key;
+          col.appendChild(cell); }
+        heat.appendChild(col); }
+      heat.scrollLeft=9999;
+      // handlers
+      el.querySelector('[data-act="toggle"]').addEventListener('click',()=>{ h.done=h.done||{}; if(h.done[t])delete h.done[t]; else h.done[t]=true; persist(); render(); toast(h.done[t]?'🔥 '+curStreak(h.done)+' ရက် streak!':'ပြန်ဖြုတ်ပြီး'); });
+      el.querySelector('[data-act="edit"]').addEventListener('click',()=>openModal(h));
+      el.querySelector('[data-act="del"]').addEventListener('click',()=>{ if(confirm('"'+h.name+'" ကို ဖျက်မလား? မှတ်တမ်းအားလုံး ပျက်ပါမည်။')){ habits=habits.filter(x=>x.id!==h.id); persist(); render(); } });
+      // toggle a past day by clicking a heat cell
+      heat.querySelectorAll('.d').forEach(c=>c.addEventListener('click',()=>{ const day=c.dataset.day; if(day>t)return; h.done=h.done||{}; if(h.done[day])delete h.done[day]; else h.done[day]=true; persist(); render(); }));
+      list.appendChild(el);
+    });
+  }
+  function escapeHtml(s){ return s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+  // modal
+  const icWrap=$('mIcons'), coWrap=$('mColors');
+  ICONS.forEach(ic=>{ const s=document.createElement('span'); s.textContent=ic; s.addEventListener('click',()=>{ draft.icon=ic; syncPick(); }); icWrap.appendChild(s); });
+  COLORS.forEach(c=>{ const i=document.createElement('i'); i.style.background=c; i.addEventListener('click',()=>{ draft.color=c; syncPick(); }); coWrap.appendChild(i); });
+  function syncPick(){ [...icWrap.children].forEach(s=>s.classList.toggle('on',s.textContent===draft.icon)); [...coWrap.children].forEach(i=>i.classList.toggle('on',i.style.background===draft.color||rgbEq(i.style.background,draft.color))); }
+  function rgbEq(a,b){ return false; }
+  function openModal(h){ editId=h?h.id:null; $('mTitle').textContent=h?'Habit ပြင်ရန်':'Habit အသစ်';
+    $('mName').value=h?h.name:''; draft={icon:h?h.icon:'🔥', color:h?h.color:'#22c55e'}; syncPick(); $('ov').classList.add('show'); setTimeout(()=>$('mName').focus(),30); }
+  function closeModal(){ $('ov').classList.remove('show'); }
+  $('addBtn').addEventListener('click',()=>openModal(null));
+  $('mCancel').addEventListener('click',closeModal);
+  $('ov').addEventListener('click',e=>{ if(e.target===$('ov'))closeModal(); });
+  $('mSave').addEventListener('click',()=>{ const name=$('mName').value.trim(); if(!name){ toast('အမည် ထည့်ပါ'); return; }
+    if(editId){ const h=habits.find(x=>x.id===editId); h.name=name; h.icon=draft.icon; h.color=draft.color; }
+    else { habits.push({id:Date.now(), name, icon:draft.icon, color:draft.color, done:{}}); }
+    persist(); render(); closeModal(); toast('💾 သိမ်းပြီး'); });
+  $('mName').addEventListener('keydown',e=>{ if(e.key==='Enter')$('mSave').click(); });
+
+  function persist(){ try{ localStorage.setItem(STORE, JSON.stringify(habits)); }catch(e){} }
+  function load(){ try{ habits=JSON.parse(localStorage.getItem(STORE)||'[]'); if(!Array.isArray(habits))habits=[]; }catch(e){ habits=[]; } }
+
+  load(); render();
+  window.addEventListener('focus',()=>{ load(); render(); }); // refresh if cloud-sync updated
+})();
+</script>
+</body>
+</html>

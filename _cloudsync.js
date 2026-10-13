@@ -45,6 +45,10 @@
     'minierp.v1',
     'loancalc.v1',
     'whiteboard.v1',
+    'regextester.v1',
+    'colorstudio.v1',
+    'habits.v1',
+    'colormatch.v1',
   ];
 
   // Local sync bookkeeping (never synced themselves)

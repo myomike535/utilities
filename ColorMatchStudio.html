@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Color Match Studio — MyoMT Utilities</title>
+<link rel="icon" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="_motion.css">
+<link rel="stylesheet" href="_effects.css">
+<link rel="stylesheet" href="_design.css">
+<style>
+  :root{
+    --bg:#0a0810; --bg2:#120d18; --card:#1b1624; --card2:#241c30;
+    --field:#171220; --field-border:#352b44; --text:#f6f2fa; --muted:#a99fb8; --faint:#6e6480;
+    --accent:#d4a24e; --accent-2:#b06ab3; --rose:#e6799f; --danger:#ff6b6b;
+    --sans:'Pyidaungsu','Padauk','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas',monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:var(--sans); color:var(--text); min-height:100vh; padding:20px 16px 50px;
+    background:radial-gradient(1000px 600px at 12% -10%, rgba(212,162,78,.12), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(176,106,179,.12), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%); background-attachment:fixed}
+  .wrap{max-width:1020px; margin:0 auto}
+  header{display:flex; align-items:center; gap:13px; margin-bottom:16px; flex-wrap:wrap}
+  .logo{width:46px; height:46px; border-radius:13px; display:grid; place-items:center; font-size:1.35rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 20px rgba(212,162,78,.35)}
+  header h1{font-size:1.25rem; margin:0; font-weight:800; letter-spacing:-.02em}
+  header .sub{color:var(--muted); font-size:.8rem}
+  header .title{flex:1; min-width:170px}
+  .card{background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:16px; padding:17px 19px; margin-bottom:14px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 14px 34px -18px rgba(0,0,0,.6)}
+  .card h3{margin:0 0 13px; font-size:.95rem; font-weight:750; display:flex; align-items:center; gap:8px; flex-wrap:wrap}
+  .card h3 .en{color:var(--faint); font-size:.68rem; font-weight:400; text-transform:uppercase; letter-spacing:.06em}
+
+  .controls{display:flex; gap:16px; flex-wrap:wrap; align-items:center}
+  .swatch-big{width:110px; height:110px; border-radius:18px; flex:none; position:relative; overflow:hidden; cursor:pointer;
+    box-shadow:0 10px 28px rgba(0,0,0,.45), inset 0 0 0 1px rgba(255,255,255,.12)}
+  .swatch-big input[type=color]{position:absolute; inset:0; width:100%; height:100%; opacity:0; cursor:pointer; border:none; padding:0}
+  .swatch-big .lbl{position:absolute; left:0; right:0; bottom:0; padding:6px 8px; font-family:var(--mono); font-size:11px; font-weight:700; text-align:center; background:rgba(0,0,0,.35); color:#fff}
+  .ctl-col{flex:1; min-width:230px; display:flex; flex-direction:column; gap:12px}
+  .seg{display:inline-flex; background:var(--field); border:1px solid var(--field-border); border-radius:11px; padding:4px; gap:3px}
+  .seg button{border:none; background:transparent; color:var(--muted); font-family:var(--sans); font-size:.82rem; font-weight:600; padding:8px 15px; border-radius:8px; cursor:pointer; transition:.14s; display:inline-flex; align-items:center; gap:6px}
+  .seg button.on{background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; box-shadow:0 4px 12px rgba(176,106,179,.35)}
+  .seg.lady button.on{background:linear-gradient(135deg,var(--rose),var(--accent-2))}
+  .field-lbl{font-size:.68rem; color:var(--faint); text-transform:uppercase; letter-spacing:.05em; margin-bottom:5px}
+  .occ{display:flex; gap:6px; flex-wrap:wrap}
+  .occ button{padding:7px 13px; border-radius:20px; border:1px solid var(--field-border); background:var(--field); color:var(--muted); font-size:.78rem; cursor:pointer; transition:.14s; font-family:var(--sans)}
+  .occ button.on{background:color-mix(in srgb, var(--accent) 22%, transparent); border-color:var(--accent); color:#fff}
+  .hexin{display:flex; align-items:center; gap:8px}
+  .hexin input{width:120px; background:var(--field); border:1px solid var(--field-border); border-radius:9px; color:var(--text); font-family:var(--mono); font-size:13.5px; padding:9px 11px; outline:none}
+  .hexin input:focus{border-color:var(--accent)}
+  .btn{display:inline-flex; align-items:center; gap:6px; padding:8px 13px; border-radius:9px; border:1px solid rgba(255,255,255,.1); background:var(--field); color:var(--text); cursor:pointer; font-family:var(--sans); font-size:.8rem; font-weight:600; transition:.14s}
+  .btn:hover{border-color:var(--accent); transform:translateY(-1px)}
+
+  .combos{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px}
+  .combo{background:var(--card2); border:1px solid rgba(255,255,255,.07); border-radius:15px; padding:14px; transition:transform .14s, border-color .14s; position:relative; overflow:hidden}
+  .combo:hover{transform:translateY(-3px); border-color:rgba(255,255,255,.14)}
+  .combo .ct{display:flex; align-items:center; justify-content:space-between; margin-bottom:11px}
+  .combo .ct .nm{font-size:.92rem; font-weight:700}
+  .combo .ct .tag{font-size:.64rem; color:var(--faint); text-transform:uppercase; letter-spacing:.05em; border:1px solid var(--field-border); border-radius:20px; padding:2px 8px}
+  .combo .pieces{display:flex; gap:8px}
+  .piece{flex:1; min-width:0; text-align:center; cursor:pointer}
+  .piece .sw{height:72px; border-radius:11px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.12), 0 4px 12px rgba(0,0,0,.35); position:relative; transition:transform .12s}
+  .piece:hover .sw{transform:scale(1.04)}
+  .piece .ro{font-size:.64rem; color:var(--muted); margin-top:5px; font-weight:600}
+  .piece .hx{font-size:.6rem; color:var(--faint); font-family:var(--mono)}
+  .combo .bar{display:flex; height:10px; border-radius:6px; overflow:hidden; margin-top:11px; box-shadow:inset 0 0 0 1px rgba(255,255,255,.08)}
+  .combo .bar i{flex:1}
+  .combo .fav{position:absolute; top:11px; right:12px; cursor:pointer; color:var(--faint); font-size:1rem; background:none; border:none}
+  .combo .fav.on{color:var(--accent)}
+
+  .saved{display:flex; gap:9px; flex-wrap:wrap}
+  .saved .sv{display:flex; border-radius:9px; overflow:hidden; cursor:pointer; box-shadow:0 3px 10px rgba(0,0,0,.35); position:relative; height:40px}
+  .saved .sv i{width:26px; display:block}
+  .saved .sv .del{position:absolute; top:-6px; right:-6px; width:16px; height:16px; border-radius:50%; background:var(--danger); color:#fff; font-size:10px; display:none; align-items:center; justify-content:center}
+  .saved .sv:hover .del{display:flex}
+  footer{text-align:center; color:var(--faint); font-size:.72rem; margin-top:22px}
+  .tipbar{font-size:.76rem; color:var(--muted); background:var(--field); border:1px solid var(--field-border); border-radius:11px; padding:10px 14px; line-height:1.6}
+  .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--card2); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:10px 16px; font-size:.84rem; font-weight:600; box-shadow:0 12px 30px rgba(0,0,0,.5); transition:.25s; z-index:9999; pointer-events:none}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  @media(max-width:600px){ header .sub{display:none} .swatch-big{width:86px; height:86px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">👗</div>
+    <div class="title"><h1>Color Match Studio</h1><div class="sub">အဝတ်အစား အရောင် တွဲဖက် — Lady / Gentleman · ဝတ်စုံ အကြံပြုချက် · offline</div></div>
+  </header>
+
+  <div class="card">
+    <div class="controls">
+      <div class="swatch-big" id="bigSw"><input type="color" id="colorInput" value="#7a2e46"><div class="lbl" id="bigHex">#7a2e46</div></div>
+      <div class="ctl-col">
+        <div>
+          <div class="field-lbl">ဘယ်သူအတွက်</div>
+          <div class="seg" id="genderSeg">
+            <button data-g="gentleman" class="on">👔 Gentleman</button>
+            <button data-g="lady">👗 Lady</button>
+          </div>
+        </div>
+        <div>
+          <div class="field-lbl">သင့်အဝတ် အရောင် (base)</div>
+          <div class="hexin">
+            <input type="text" id="hex" spellcheck="false" value="#7a2e46">
+            <button class="btn" id="randBtn">🎲 Random</button>
+          </div>
+        </div>
+        <div>
+          <div class="field-lbl">အခမ်းအနား</div>
+          <div class="occ" id="occ">
+            <button data-o="all" class="on">အားလုံး</button>
+            <button data-o="casual">Casual</button>
+            <button data-o="office">Office</button>
+            <button data-o="formal">Formal</button>
+            <button data-o="festive">ပွဲတော်</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>✨ ဝတ်စုံ အကြံပြုချက်များ <span class="en" id="comboSub">Gentleman looks</span></h3>
+    <div class="combos" id="combos"></div>
+  </div>
+
+  <div class="card">
+    <h3>💡 အရောင်တွဲ နည်းလမ်း</h3>
+    <div class="tipbar" id="tip"></div>
+  </div>
+
+  <div class="card">
+    <h3>★ သိမ်းထားသော look များ</h3>
+    <div class="saved" id="saved"></div>
+    <div id="savedEmpty" style="color:var(--faint); font-size:.82rem">look တစ်ခု ကြိုက်ရင် ★ နှိပ်၍ သိမ်းပါ။</div>
+  </div>
+  <footer>Developed by <b>MyoMT</b> · offline · cloud-sync</footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script defer src="_cloudsync.js"></script>
+<script>
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const STORE='colormatch.v1';
+  let gender='gentleman', occasion='all', base={h:339,s:45,l:33}, saved=[];
+  const toastEl=$('toast');
+  function toast(m){ toastEl.textContent=m; toastEl.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>toastEl.classList.remove('show'),1500); }
+
+  // colour math
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  function hsl2rgb(h,s,l){ s/=100;l/=100; const k=n=>(n+h/30)%12; const a=s*Math.min(l,1-l); const f=n=>l-a*Math.max(-1,Math.min(k(n)-3,Math.min(9-k(n),1))); return [Math.round(f(0)*255),Math.round(f(8)*255),Math.round(f(4)*255)]; }
+  function rgb2hsl(r,g,b){ r/=255;g/=255;b/=255; const mx=Math.max(r,g,b),mn=Math.min(r,g,b); let h,s,l=(mx+mn)/2; if(mx===mn){h=s=0;}else{const d=mx-mn;s=l>.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:h=(g-b)/d+(g<b?6:0);break;case g:h=(b-r)/d+2;break;default:h=(r-g)/d+4;}h/=6;} return [Math.round(h*360),Math.round(s*100),Math.round(l*100)]; }
+  function hex2rgb(x){ x=x.replace('#',''); if(x.length===3)x=x.split('').map(c=>c+c).join(''); const n=parseInt(x,16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+  const rgb2hex=(r,g,b)=>'#'+[r,g,b].map(v=>clamp(Math.round(v),0,255).toString(16).padStart(2,'0')).join('');
+  const H=(h,s,l)=>rgb2hex(...hsl2rgb((h%360+360)%360,clamp(s,0,100),clamp(l,0,100)));
+  const curHex=()=>H(base.h,base.s,base.l);
+  function lum(hex){ const a=hex2rgb(hex).map(v=>{v/=255;return v<=.03928?v/12.92:Math.pow((v+.055)/1.055,2.4);}); return .2126*a[0]+.7152*a[1]+.0722*a[2]; }
+  const textOn=hex=>lum(hex)>.38?'#111':'#fff';
+
+  // neutral anchors per gender
+  const NEU={
+    gentleman:{ white:'#ece7df', cream:'#e4dccb', charcoal:'#2d3038', black:'#15161a', navy:'#28324a', khaki:'#9a8a6b', brown:'#5a4433', grey:'#8b8f98', tan:'#b79b76', denim:'#3f5c7a' },
+    lady:{ white:'#f3ece8', cream:'#efe3d6', nude:'#dcc3b0', blush:'#e8c9cf', charcoal:'#2f2a33', black:'#17141b', navy:'#2b2c4a', beige:'#d8c7ad', grey:'#9a94a1', taupe:'#8d7a74', denim:'#4a6283' }
+  };
+  const ROLES={ gentleman:['Shirt','Trousers','Shoes','Accent'], lady:['Top','Bottom','Shoes','Accent'] };
+
+  // build combos from base + gender + occasion
+  function buildCombos(){
+    const n=NEU[gender]; const b=curHex(); const roles=ROLES[gender];
+    const comp=H(base.h+180,base.s*0.85,base.l); const ana1=H(base.h+30,base.s,base.l); const ana2=H(base.h-30,base.s,base.l);
+    const darker=H(base.h,base.s*0.9,Math.max(14,base.l-20)); const lighter=H(base.h,base.s*0.6,Math.min(88,base.l+30));
+    const jewel=H(base.h+150,Math.min(85,base.s+15),Math.max(28,base.l-5));
+    const all=[
+      {name:'Classic Neutral', occ:['office','formal','casual'], pieces:[b, n.white, gender==='gentleman'?n.brown:n.black, darker]},
+      {name:'Monochrome', occ:['office','formal','casual'], pieces:[b, darker, n.black, lighter]},
+      {name:'Earthy Tone', occ:['casual','office'], pieces:[b, n.khaki||n.beige, n.brown||n.taupe, n.cream]},
+      {name:'Denim Pair', occ:['casual'], pieces:[b, n.denim, n.white, darker]},
+      {name:'Bold Contrast', occ:['festive','casual'], pieces:[b, n.charcoal, n.black, comp]},
+      {name:'Analogous Flow', occ:['casual','festive'], pieces:[b, ana1, n.charcoal, ana2]},
+      {name:'Formal Dark', occ:['formal','office'], pieces:[b, n.navy, n.black, n.cream]},
+      {name:'Festive Jewel', occ:['festive'], pieces:[b, jewel, n.black, H(base.h+60,70,50)]},
+    ];
+    if(gender==='lady'){
+      all.push({name:'Soft Pastel', occ:['casual','office'], pieces:[b, H(base.h,30,80), n.nude, H(base.h+180,35,78)]});
+      all.push({name:'Blush Romance', occ:['festive','formal'], pieces:[b, n.blush, n.nude, darker]});
+    } else {
+      all.push({name:'Navy & Tan', occ:['office','formal'], pieces:[b, n.navy, n.tan, n.white]});
+    }
+    return all.filter(c=> occasion==='all' || c.occ.includes(occasion)).map(c=>({...c, tag:c.occ[0]}));
+  }
+
+  function render(){
+    $('bigSw').style.background=curHex(); $('bigHex').textContent=curHex(); $('bigHex').style.color=textOn(curHex());
+    $('colorInput').value=curHex(); if($('hex').value.toLowerCase()!==curHex()) $('hex').value=curHex();
+    $('comboSub').textContent=(gender==='lady'?'Lady':'Gentleman')+' looks'+(occasion!=='all'?' · '+occasion:'');
+    const roles=ROLES[gender]; const wrap=$('combos'); wrap.innerHTML='';
+    buildCombos().forEach((c,ci)=>{
+      const el=document.createElement('div'); el.className='combo';
+      const favKey=c.name+'|'+c.pieces.join(',');
+      el.innerHTML=`<button class="fav ${saved.some(s=>s.key===favKey)?'on':''}" title="Save look">★</button>
+        <div class="ct"><span class="nm">${c.name}</span><span class="tag">${c.tag}</span></div>
+        <div class="pieces">${c.pieces.map((p,i)=>`<div class="piece" data-c="${p}"><div class="sw" style="background:${p}"></div><div class="ro">${roles[i]}</div><div class="hx">${p}</div></div>`).join('')}</div>
+        <div class="bar">${c.pieces.map(p=>`<i style="background:${p}"></i>`).join('')}</div>`;
+      el.querySelectorAll('.piece').forEach(pc=>pc.addEventListener('click',()=>{ navigator.clipboard.writeText(pc.dataset.c); toast('✓ '+pc.dataset.c); }));
+      el.querySelector('.fav').addEventListener('click',()=>{ const i=saved.findIndex(s=>s.key===favKey); if(i>=0)saved.splice(i,1); else saved.unshift({key:favKey, name:c.name, pieces:c.pieces}); persist(); render(); toast(i>=0?'ဖြုတ်ပြီး':'★ သိမ်းပြီး'); });
+      wrap.appendChild(el);
+    });
+    renderTip(); renderSaved();
+  }
+  function renderTip(){
+    const tips={
+      all:'Base အရောင်ကို neutral (အဖြူ/အမည်း/khaki) တွဲရင် အမြဲ လုံခြုံ။ Accent တစ်ခုသာ ထည့်ပါ — များရင် ရှုပ်။',
+      casual:'Casual — denim + အဖြူ သည် မည်သည့်အရောင်နှင့်မဆို တွဲလို့ရ။ ဖိနပ်ကို neutral ထား။',
+      office:'Office — saturation နိမ့်သော tone (muted) + navy/charcoal က professional ဆန်။',
+      formal:'Formal — အမည်းရောင် base + metallic/cream accent။ ဖိနပ်နဲ့ ခါးပတ် အရောင်တူအောင်။',
+      festive:'ပွဲတော် — jewel tone (eg. ruby, emerald) နှင့် ရွှေ/ကြေးရောင် accent က တင့်တယ်။ ရိုးရာ အတွက် ထဘီ/ပုဆိုးနှင့် အင်္ကျီ contrast ပေးပါ။'
+    };
+    $('tip').innerHTML='👉 '+(tips[occasion]||tips.all);
+  }
+  function renderSaved(){ const w=$('saved'); w.innerHTML=''; $('savedEmpty').style.display=saved.length?'none':'block';
+    saved.forEach((s,idx)=>{ const sv=document.createElement('div'); sv.className='sv'; sv.title=s.name;
+      s.pieces.forEach(c=>{ const i=document.createElement('i'); i.style.background=c; sv.appendChild(i); });
+      const del=document.createElement('span'); del.className='del'; del.textContent='×'; sv.appendChild(del);
+      sv.addEventListener('click',e=>{ if(e.target===del){ saved.splice(idx,1); persist(); render(); return;} const [r,g,b]=hex2rgb(s.pieces[0]); base={h:rgb2hsl(r,g,b)[0],s:rgb2hsl(r,g,b)[1],l:rgb2hsl(r,g,b)[2]}; render(); toast('✓ loaded'); });
+      w.appendChild(sv); }); }
+
+  function setBaseHex(hx){ const [r,g,b]=hex2rgb(hx); const [h,s,l]=rgb2hsl(r,g,b); base={h,s,l}; render(); }
+  $('colorInput').addEventListener('input',e=>setBaseHex(e.target.value));
+  $('hex').addEventListener('input',e=>{ const v=e.target.value.trim(); if(/^#?[0-9a-fA-F]{6}$/.test(v)) setBaseHex(v.startsWith('#')?v:'#'+v); });
+  $('randBtn').addEventListener('click',()=>{ base={h:Math.floor(Math.random()*360), s:35+Math.floor(Math.random()*45), l:28+Math.floor(Math.random()*40)}; render(); });
+  $('genderSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; gender=b.dataset.g;
+    [...$('genderSeg').children].forEach(x=>x.classList.toggle('on',x===b)); $('genderSeg').classList.toggle('lady',gender==='lady'); persist(); render(); });
+  $('occ').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; occasion=b.dataset.o;
+    [...$('occ').children].forEach(x=>x.classList.toggle('on',x===b)); render(); });
+
+  function persist(){ try{ localStorage.setItem(STORE, JSON.stringify({gender,base,saved})); }catch(e){} }
+  function load(){ try{ const d=JSON.parse(localStorage.getItem(STORE)||'null'); if(d){ if(d.gender)gender=d.gender; if(d.base)base=d.base; if(d.saved)saved=d.saved;
+    [...$('genderSeg').children].forEach(x=>x.classList.toggle('on',x.dataset.g===gender)); $('genderSeg').classList.toggle('lady',gender==='lady'); } }catch(e){} }
+
+  load(); render();
+})();
+</script>
+</body>
+</html>
