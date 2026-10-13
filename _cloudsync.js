@@ -49,6 +49,8 @@
     'colorstudio.v1',
     'habits.v1',
     'colormatch.v1',
+    'invoices.v1',
+    'invoices.profile',
   ];
 
   // Local sync bookkeeping (never synced themselves)

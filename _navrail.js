@@ -47,6 +47,7 @@
       { href: 'MiniERP.html',                        icon: 'palette',    label: 'Mini ERP',        color: '#6366f1' },
       { href: 'ExpenseTracker.html',                 icon: 'palette',    label: 'ငွေစာရင်း',        color: '#22c55e' },
       { href: 'LoanCalculator.html',                 icon: 'tasks',      label: 'Loan Calc',       color: '#f59e0b' },
+      { href: 'InvoiceMaker.html',                   icon: 'scroll',     label: 'Invoice Maker',   color: '#6366f1' },
     ]},
     { title: 'Developer', items: [
       { href: 'SqlFormatter.html',                   icon: 'braces',     label: 'SQL Formatter',   color: '#ec4899' },
