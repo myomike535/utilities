@@ -207,6 +207,20 @@
   .cat-head .cat-chev { font-size: 0.8rem; color: var(--text-dim, #9a9ab0); transition: transform 0.2s; }
   .cat-head.open .cat-chev { transform: rotate(90deg); }
   .tool-card.cat-hidden { display: none; }
+  /* Pin-to-Favorites + Favorites/Recent menu (real-world launcher) */
+  .cat-btn.special.on { background: linear-gradient(135deg, #f59e0b, #ef4444); box-shadow: 0 4px 14px rgba(245,158,11,0.35); }
+  .tool-card > .card-pin {
+    position: absolute; top: 10px; right: 10px; z-index: 5;
+    width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); color: #6b7280;
+    font-size: 0.95rem; line-height: 1; cursor: pointer; opacity: 0;
+    transition: opacity .15s, color .15s, background .15s, border-color .15s, transform .12s;
+  }
+  .tool-card:hover > .card-pin, .tool-card:focus-within > .card-pin { opacity: 1; }
+  .tool-card > .card-pin:hover { color: #f59e0b; background: rgba(245,158,11,0.14); border-color: rgba(245,158,11,0.45); transform: scale(1.1); }
+  .tool-card > .card-pin.on { opacity: 1; color: #f59e0b; background: rgba(245,158,11,0.16); border-color: rgba(245,158,11,0.5); }
+  .dash-empty { display: none; grid-column: 1 / -1; text-align: center; color: var(--text-dim, #9a9ab0); font-size: 0.9rem; padding: 40px 10px; line-height: 1.7; }
+  .dash-empty.show { display: block; }
   .tool-card {
     transform-style: preserve-3d;
     will-change: transform;
@@ -2421,10 +2435,26 @@
     return { name: h.textContent.trim(), cards };
   });
 
+  const allCards = groups.flatMap(g => g.cards);
+  const FAV_KEY = 'dash.favorites', RECENT_KEY = 'dash.recent';
+  const getFavs = () => { try { return new Set(JSON.parse(localStorage.getItem(FAV_KEY) || '[]')); } catch (e) { return new Set(); } };
+  const getRecent = () => { try { const r = JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); return Array.isArray(r) ? r : []; } catch (e) { return []; } };
+
   // Build the menu bar above the tools grid
   const grid = heads[0].parentElement;
   const bar = document.createElement('div');
   bar.className = 'cat-menu';
+
+  // Favorites + Recent (personalised launcher) — prepended
+  const favBtn = document.createElement('button'); favBtn.className = 'cat-btn special';
+  const recBtn = document.createElement('button'); recBtn.className = 'cat-btn special';
+  function updateSpecialCounts() {
+    favBtn.innerHTML = '⭐ Favorites <span class="cb-n">' + getFavs().size + '</span>';
+    recBtn.innerHTML = '🕐 Recent <span class="cb-n">' + getRecent().length + '</span>';
+  }
+  updateSpecialCounts();
+  bar.appendChild(favBtn); bar.appendChild(recBtn);
+
   const btns = groups.map(g => {
     const b = document.createElement('button');
     b.className = 'cat-btn';
@@ -2433,22 +2463,64 @@
     return b;
   });
   const allBtn = document.createElement('button');
-  allBtn.className = 'cat-btn'; allBtn.innerHTML = '⊞ All <span class="cb-n">' + groups.reduce((a, g) => a + g.cards.length, 0) + '</span>';
+  allBtn.className = 'cat-btn'; allBtn.innerHTML = '⊞ All <span class="cb-n">' + allCards.length + '</span>';
   bar.appendChild(allBtn);
   grid.parentElement.insertBefore(bar, grid);
 
-  function select(idx) {                     // idx = group index, -1 = All
-    groups.forEach((g, i) => g.cards.forEach(c => c.classList.toggle('cat-hidden', idx !== -1 && i !== idx)));
-    btns.forEach((b, i) => b.classList.toggle('on', i === idx));
-    allBtn.classList.toggle('on', idx === -1);
-    localStorage.setItem(KEY, String(idx));
-  }
-  btns.forEach((b, i) => b.addEventListener('click', () => select(i)));
-  allBtn.addEventListener('click', () => select(-1));
+  // Empty-state element (for Favorites / Recent when empty)
+  const empty = document.createElement('div'); empty.className = 'dash-empty'; grid.appendChild(empty);
 
-  let saved = parseInt(localStorage.getItem(KEY), 10);
-  if (isNaN(saved) || saved < -1 || saved >= groups.length) saved = 0;
-  select(saved);
+  // Inject a pin ★ onto each card + track recency on open
+  allCards.forEach(card => {
+    const href = card.getAttribute('href');
+    const favs = getFavs();
+    const pin = document.createElement('span');
+    pin.className = 'card-pin' + (favs.has(href) ? ' on' : '');
+    pin.textContent = '★'; pin.title = 'Pin to Favorites'; pin.setAttribute('aria-label', 'Pin to Favorites');
+    pin.addEventListener('click', e => {
+      e.preventDefault(); e.stopPropagation();
+      const f = getFavs(); if (f.has(href)) f.delete(href); else f.add(href);
+      localStorage.setItem(FAV_KEY, JSON.stringify([...f]));
+      pin.classList.toggle('on', f.has(href));
+      updateSpecialCounts();
+      if (cur === 'fav') apply('fav');
+    });
+    card.appendChild(pin);
+    card.addEventListener('click', () => {
+      let r = getRecent().filter(x => x !== href); r.unshift(href); r = r.slice(0, 12);
+      try { localStorage.setItem(RECENT_KEY, JSON.stringify(r)); } catch (e) {}
+    });
+  });
+
+  let cur = 'all';
+  function apply(mode) {                      // mode: 'all' | 'fav' | 'recent' | group index
+    cur = mode;
+    const favSet = getFavs(), recArr = getRecent(), recSet = new Set(recArr);
+    allCards.forEach(c => {
+      const href = c.getAttribute('href'); let show;
+      if (mode === 'all') show = true;
+      else if (mode === 'fav') show = favSet.has(href);
+      else if (mode === 'recent') show = recSet.has(href);
+      else show = groups[mode] && groups[mode].cards.includes(c);
+      c.classList.toggle('cat-hidden', !show);
+    });
+    favBtn.classList.toggle('on', mode === 'fav');
+    recBtn.classList.toggle('on', mode === 'recent');
+    allBtn.classList.toggle('on', mode === 'all');
+    btns.forEach((b, i) => b.classList.toggle('on', mode === i));
+    if (mode === 'fav' && favSet.size === 0) { empty.textContent = '⭐ No favorites yet — hover any tool and tap its ★ to pin it here.'; empty.classList.add('show'); }
+    else if (mode === 'recent' && recArr.length === 0) { empty.textContent = '🕐 No recent tools yet — open a few and they will show up here.'; empty.classList.add('show'); }
+    else empty.classList.remove('show');
+    try { localStorage.setItem(KEY, String(mode)); } catch (e) {}
+  }
+  favBtn.addEventListener('click', () => apply('fav'));
+  recBtn.addEventListener('click', () => apply('recent'));
+  btns.forEach((b, i) => b.addEventListener('click', () => apply(i)));
+  allBtn.addEventListener('click', () => apply('all'));
+
+  const saved = localStorage.getItem(KEY);
+  if (saved === 'fav' || saved === 'recent' || saved === 'all') apply(saved);
+  else { let n = parseInt(saved, 10); if (isNaN(n) || n < 0 || n >= groups.length) n = 0; apply(n); }
 })();
 </script>
 
