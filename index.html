@@ -2483,6 +2483,7 @@
       localStorage.setItem(FAV_KEY, JSON.stringify([...f]));
       pin.classList.toggle('on', f.has(href));
       updateSpecialCounts();
+      try { window.dispatchEvent(new CustomEvent('dash:favorites')); } catch (e) {}  // live-update the sidebar Favorites group
       if (cur === 'fav') apply('fav');
     });
     card.appendChild(pin);

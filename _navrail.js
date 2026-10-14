@@ -242,6 +242,9 @@
     html[data-theme="light"] .nr-group-title { color: #998573; }
     .nr.expanded .nr-group-title { opacity: 1; height: auto; padding: 12px 10px 4px; }
     .nr.expanded .nr-group:first-child .nr-group-title { padding-top: 4px; }
+    /* Pinned favourites group */
+    .nr-group.is-fav .nr-group-title { color: #f59e0b; }
+    .nr:not(.expanded) .nr-group.is-fav { border-bottom: 1px solid rgba(245,158,11,.2); padding-bottom: 6px; margin-bottom: 4px; }
     /* Collapsed rail: thin divider between groups instead of a text header */
     .nr:not(.expanded) .nr-group + .nr-group {
       margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(255,255,255,0.07);
@@ -502,9 +505,17 @@
   const items = document.createElement('div');
   items.className = 'nr-items';
   const groupEls = [];
-  GROUPS.forEach(g => {
+  // Favorites pinned on the dashboard surface at the top of the sidebar too
+  const FAV_KEY = 'dash.favorites';
+  const byHref = {}; TOOLS.forEach(t => { byHref[t.href.toLowerCase()] = t; });
+  function favGroup() {
+    let hrefs = []; try { hrefs = JSON.parse(localStorage.getItem(FAV_KEY) || '[]'); } catch (e) {}
+    const its = hrefs.map(h => byHref[String(h).toLowerCase()]).filter(Boolean);
+    return its.length ? { title: '★ Favorites', items: its, fav: true } : null;
+  }
+  function makeGroup(g) {
     const grp = document.createElement('div');
-    grp.className = 'nr-group';
+    grp.className = 'nr-group' + (g.fav ? ' is-fav' : '');
     if (collapsedSet.has(g.title)) grp.classList.add('collapsed');
     const title = document.createElement('div');
     title.className = 'nr-group-title';
@@ -532,9 +543,24 @@
       a.append(iconWrap, label);
       grp.appendChild(a);
     });
+    return grp;
+  }
+  const favG = favGroup();
+  (favG ? [favG, ...GROUPS] : GROUPS).forEach(g => {
+    const grp = makeGroup(g);
     items.appendChild(grp);
     groupEls.push(grp);
   });
+  // Live-refresh the Favorites group when pins change (same page via custom event, or another tab)
+  function refreshFav() {
+    for (let i = groupEls.length - 1; i >= 0; i--) {
+      if (groupEls[i].classList.contains('is-fav')) { groupEls[i].remove(); groupEls.splice(i, 1); }
+    }
+    const fg = favGroup();
+    if (fg) { const grp = makeGroup(fg); items.insertBefore(grp, items.firstChild); groupEls.unshift(grp); }
+  }
+  window.addEventListener('dash:favorites', refreshFav);
+  window.addEventListener('storage', e => { if (e.key === FAV_KEY) refreshFav(); });
   const noRes = document.createElement('div');
   noRes.className = 'nr-noresult';
   noRes.textContent = 'ရှာမတွေ့ပါ · No tools found';
