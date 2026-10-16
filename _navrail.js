@@ -68,6 +68,7 @@
       { href: 'ReviewCardMaker.html',                icon: 'sparkles',   label: 'Review Card',     color: '#f59e0b' },
       { href: 'ReviewScriptBuilder.html',            icon: 'headphones', label: 'Review Script',   color: '#22c55e' },
       { href: 'VideoDescription.html',               icon: 'book',       label: 'Video Desc',      color: '#ef4444' },
+      { href: 'VideoConverter.html',                 icon: 'headphones', label: 'Video Converter', color: '#ef4444' },
       { href: 'ThumbnailMaker.html',                 icon: 'bookmark',   label: 'Thumbnails',      color: '#ec4899' },
       { href: 'ScriptPrompter.html',                 icon: 'headphones', label: 'Teleprompter',    color: '#22c55e' },
       { href: 'Whiteboard.html',                     icon: 'palette',    label: 'Whiteboard',      color: '#14b8a6' },

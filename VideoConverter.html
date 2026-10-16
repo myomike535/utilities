@@ -1,0 +1,263 @@
+<!doctype html>
+<html lang="en" class="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Video Converter &amp; Compressor — MyoMT Utilities</title>
+<link rel="icon" href="favicon.svg">
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="_motion.css">
+<link rel="stylesheet" href="_effects.css">
+<link rel="stylesheet" href="_design.css">
+<style>
+  :root{
+    --bg:#070a0f; --bg2:#0d1119; --card:#151a24; --card2:#1b2130;
+    --field:#12161f; --field-border:#2b3342; --text:#f2f5fa; --muted:#9aa4b3; --faint:#616c7d;
+    --accent:#ef4444; --accent-2:#f59e0b; --ok:#34d399; --danger:#ff6b6b;
+    --sans:'Pyidaungsu','Padauk','Inter','Segoe UI',system-ui,sans-serif;
+    --mono:'Cascadia Code','Consolas',monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0; font-family:var(--sans); color:var(--text); min-height:100vh; padding:20px 16px 50px;
+    background:radial-gradient(1000px 600px at 10% -10%, rgba(239,68,68,.12), transparent 55%),
+      radial-gradient(900px 550px at 105% 0%, rgba(245,158,11,.10), transparent 55%),
+      linear-gradient(180deg, var(--bg2), var(--bg) 60%); background-attachment:fixed}
+  .wrap{max-width:960px; margin:0 auto}
+  header{display:flex; align-items:center; gap:13px; margin-bottom:14px; flex-wrap:wrap}
+  .logo{width:44px; height:44px; border-radius:12px; display:grid; place-items:center; font-size:1.3rem;
+    background:linear-gradient(135deg,var(--accent),var(--accent-2)); box-shadow:0 6px 18px rgba(239,68,68,.35)}
+  header h1{font-size:1.25rem; margin:0; font-weight:800; letter-spacing:-.02em}
+  header .sub{color:var(--muted); font-size:.8rem}
+  header .title{flex:1; min-width:160px}
+  .card{background:var(--card); border:1px solid rgba(255,255,255,.07); border-radius:14px; padding:16px 18px; margin-bottom:13px;
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.04), 0 12px 30px -16px rgba(0,0,0,.55)}
+  .card h3{margin:0 0 12px; font-size:.86rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:.05em}
+  .note{font-size:.78rem; color:var(--muted); background:var(--field); border:1px solid var(--field-border); border-radius:11px; padding:10px 13px; line-height:1.6; margin-bottom:13px}
+  .note b{color:var(--ok)}
+
+  .drop{display:flex; flex-direction:column; align-items:center; text-align:center; gap:5px; color:var(--muted); padding:40px 20px;
+    border:1.5px dashed var(--field-border); border-radius:14px; cursor:pointer; transition:.15s}
+  .drop.over{border-color:var(--accent); background:color-mix(in srgb, var(--accent) 7%, transparent)}
+  .drop .di{width:66px; height:66px; border-radius:18px; display:grid; place-items:center; font-size:1.9rem; margin-bottom:8px;
+    background:color-mix(in srgb, var(--accent) 13%, transparent); box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--accent) 26%, transparent)}
+  .drop .dt{font-size:1rem; font-weight:700; color:var(--text)}
+  .drop .dh{font-size:.8rem; max-width:360px; line-height:1.55}
+
+  video{width:100%; max-height:340px; border-radius:12px; background:#000; display:block}
+  .vinfo{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+  .vinfo .pill{background:var(--field); border:1px solid var(--field-border); border-radius:20px; padding:4px 11px; font-size:.76rem; color:var(--muted); font-variant-numeric:tabular-nums}
+  .vinfo .pill b{color:var(--text)}
+
+  .opts{display:grid; grid-template-columns:1fr 1fr; gap:14px}
+  @media(max-width:620px){ .opts{grid-template-columns:1fr} }
+  label.fl{display:block; font-size:.7rem; color:var(--faint); font-weight:600; margin:0 0 6px; text-transform:uppercase; letter-spacing:.04em}
+  select{width:100%; background:var(--field); border:1px solid var(--field-border); border-radius:9px; color:var(--text); font-family:var(--sans); font-size:14px; padding:9px 11px; outline:none}
+  .seg{display:flex; gap:4px; background:var(--field); border:1px solid var(--field-border); border-radius:10px; padding:4px}
+  .seg button{flex:1; border:none; background:transparent; color:var(--muted); font-family:var(--sans); font-size:.78rem; font-weight:600; padding:8px; border-radius:7px; cursor:pointer}
+  .seg button.on{background:var(--accent); color:#fff}
+  .chk{display:flex; align-items:center; gap:8px; font-size:.84rem; color:var(--text); cursor:pointer; margin-top:4px}
+  .trim{display:flex; align-items:center; gap:10px; font-size:.76rem; color:var(--muted); font-variant-numeric:tabular-nums}
+  .trim input[type=range]{flex:1}
+  .btn{display:inline-flex; align-items:center; justify-content:center; gap:7px; padding:11px 18px; border-radius:11px; border:1px solid rgba(255,255,255,.1);
+    background:var(--field); color:var(--text); cursor:pointer; font-family:var(--sans); font-size:.9rem; font-weight:700; transition:.14s}
+  .btn:hover{border-color:var(--accent); transform:translateY(-1px)} .btn:disabled{opacity:.5; cursor:not-allowed; transform:none}
+  .btn.primary{background:linear-gradient(135deg,var(--accent),var(--accent-2)); border:none; color:#fff; box-shadow:0 6px 18px rgba(239,68,68,.35)}
+  .btn-row{display:flex; gap:9px; flex-wrap:wrap; margin-top:4px}
+
+  .prog{height:10px; background:var(--field); border-radius:6px; overflow:hidden; margin:12px 0 6px}
+  .prog .bar{height:100%; width:0; background:linear-gradient(90deg,var(--accent),var(--accent-2)); transition:width .2s}
+  .result{background:var(--field); border:1px solid rgba(52,211,153,.3); border-radius:12px; padding:14px 16px; margin-top:12px}
+  .result .sz{display:flex; gap:16px; flex-wrap:wrap; font-size:.84rem; margin-bottom:10px; font-variant-numeric:tabular-nums}
+  .result .sz .down{color:var(--ok); font-weight:700}
+  footer{text-align:center; color:var(--faint); font-size:.72rem; margin-top:22px}
+  .toast{position:fixed; left:50%; bottom:24px; transform:translateX(-50%) translateY(20px); opacity:0; background:var(--card2); border:1px solid rgba(255,255,255,.12); border-radius:10px; padding:10px 16px; font-size:.84rem; font-weight:600; box-shadow:0 12px 30px rgba(0,0,0,.5); transition:.25s; z-index:9999; pointer-events:none}
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0)}
+  @media(max-width:600px){ header .sub{display:none} }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo">🎞️</div>
+    <div class="title"><h1>Video Converter &amp; Compressor</h1><div class="sub">In-browser · private · no upload — convert, compress, trim, extract</div></div>
+  </header>
+
+  <div class="note">🔒 <b>Fully in-browser</b> — your video never leaves this device (no upload, no server). Uses your browser's native encoder, so it works offline. Output format depends on browser support (WebM everywhere; MP4 on some). Conversion runs in real-time.</div>
+
+  <div class="card" id="dropCard">
+    <div class="drop" id="drop">
+      <div class="di">🎞️</div>
+      <div class="dt">ဗီဒီယို ထည့်ပါ · Drop or choose a video</div>
+      <div class="dh">MP4 · WebM · MOV · MKV… — ဤနေရာသို့ ဆွဲချပါ သို့မဟုတ် နှိပ်၍ ရွေးပါ</div>
+    </div>
+  </div>
+
+  <div class="card" id="editor" style="display:none">
+    <video id="video" controls playsinline></video>
+    <div class="vinfo" id="vinfo"></div>
+  </div>
+
+  <div class="card" id="optsCard" style="display:none">
+    <h3>⚙️ Options</h3>
+    <div class="opts">
+      <div><label class="fl">Output format</label><select id="fmt"></select></div>
+      <div><label class="fl">Resolution</label><select id="res">
+        <option value="1">Original</option><option value="720">720p</option><option value="480" selected>480p</option><option value="360">360p</option><option value="240">240p</option></select></div>
+      <div><label class="fl">Quality / bitrate</label><div class="seg" id="qSeg"><button data-q="high">High</button><button data-q="med" class="on">Medium</button><button data-q="low">Low</button></div></div>
+      <div><label class="fl">Speed</label><select id="speed"><option value="1" selected>1× (normal)</option><option value="1.5">1.5× faster</option><option value="2">2× faster</option><option value="0.5">0.5× slow-mo</option></select></div>
+      <div style="grid-column:1/-1"><label class="fl">Trim</label>
+        <div class="trim"><span id="tStartV">0:00</span><input type="range" id="tStart" min="0" max="100" value="0" step="0.1"><input type="range" id="tEnd" min="0" max="100" value="100" step="0.1"><span id="tEndV">0:00</span></div>
+      </div>
+      <div style="grid-column:1/-1"><label class="chk"><input type="checkbox" id="noAudio"> 🔇 Remove audio</label></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn primary" id="convertBtn">▶ Convert</button>
+      <button class="btn" id="audioBtn">🎵 Extract audio</button>
+      <button class="btn" id="frameBtn">📸 Grab frame (PNG)</button>
+      <button class="btn" id="resetBtn">🗑 New video</button>
+    </div>
+    <div id="progWrap" style="display:none"><div class="prog"><div class="bar" id="bar"></div></div><div style="font-size:.76rem; color:var(--muted)" id="progTxt">Converting… 0%</div></div>
+    <div class="result" id="result" style="display:none"></div>
+  </div>
+
+  <footer>Developed by <b>MyoMT</b> · MediaRecorder + Canvas · offline</footer>
+</div>
+<input type="file" id="fileInput" accept="video/*" style="display:none">
+<div class="toast" id="toast"></div>
+
+<script defer src="_palette.js"></script>
+<script defer src="_navrail.js"></script>
+<script defer src="_ui.js"></script>
+<script defer src="_pwa.js"></script>
+<script defer src="_settings.js"></script>
+<script defer src="_applock.js"></script>
+<script>
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const video=$('video'), toastEl=$('toast'), fileInput=$('fileInput');
+  let srcBlob=null, srcURL=null, quality='med', dur=0, converting=false;
+  function toast(m){ toastEl.textContent=m; toastEl.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>toastEl.classList.remove('show'),2000); }
+  const fmtSize=b=> b>1048576? (b/1048576).toFixed(1)+' MB' : (b/1024).toFixed(0)+' KB';
+  const fmtTime=s=>{ s=Math.max(0,s||0); const m=Math.floor(s/60), ss=Math.floor(s%60); return m+':'+String(ss).padStart(2,'0'); };
+
+  // supported output formats
+  const CANDIDATES=[
+    ['video/mp4;codecs=h264,aac','MP4 (H.264)'],
+    ['video/mp4','MP4'],
+    ['video/webm;codecs=vp9,opus','WebM (VP9)'],
+    ['video/webm;codecs=vp8,opus','WebM (VP8)'],
+    ['video/webm','WebM'],
+  ];
+  function supportedFormats(){ const seen=new Set(); const out=[]; CANDIDATES.forEach(([m,l])=>{ try{ if(window.MediaRecorder && MediaRecorder.isTypeSupported(m)){ const key=l.split(' ')[0]; if(!seen.has(key)){ seen.add(key); out.push([m,l]); } } }catch(e){} }); return out; }
+  function initFormats(){ const sel=$('fmt'); const f=supportedFormats(); sel.innerHTML=f.map(([m,l])=>`<option value="${m}">${l}</option>`).join('')||'<option value="video/webm">WebM</option>'; }
+
+  // load
+  function load(file){
+    if(!file || !file.type.startsWith('video/')){ toast('⚠ ဗီဒီယို မဟုတ်ပါ'); return; }
+    if(srcURL) URL.revokeObjectURL(srcURL);
+    srcBlob=file; srcURL=URL.createObjectURL(file); video.src=srcURL;
+    video.onloadedmetadata=()=>{ dur=video.duration;
+      $('dropCard').style.display='none'; $('editor').style.display='block'; $('optsCard').style.display='block';
+      $('vinfo').innerHTML=`<span class="pill">📐 <b>${video.videoWidth}×${video.videoHeight}</b></span><span class="pill">⏱ <b>${fmtTime(dur)}</b></span><span class="pill">💾 <b>${fmtSize(file.size)}</b></span><span class="pill">📄 ${(file.type||'video').replace('video/','')}</span>`;
+      $('tStart').value=0; $('tEnd').value=100; updateTrim();
+      $('result').style.display='none';
+    };
+  }
+  const drop=$('drop');
+  drop.addEventListener('click',()=>fileInput.click());
+  $('dropCard').addEventListener('dragover',e=>{e.preventDefault();drop.classList.add('over');});
+  $('dropCard').addEventListener('dragleave',()=>drop.classList.remove('over'));
+  $('dropCard').addEventListener('drop',e=>{e.preventDefault();drop.classList.remove('over'); const f=e.dataTransfer.files[0]; if(f)load(f);});
+  fileInput.addEventListener('change',e=>{ const f=e.target.files[0]; if(f)load(f); });
+  window.addEventListener('paste',e=>{ for(const it of (e.clipboardData?.items||[])){ if(it.type.startsWith('video/')){ load(it.getAsFile()); return; } } });
+
+  // trim
+  function trimRange(){ return [ (+$('tStart').value/100)*dur, (+$('tEnd').value/100)*dur ]; }
+  function updateTrim(){ let a=+$('tStart').value, b=+$('tEnd').value; if(a>b-1){ if(event&&event.target&&event.target.id==='tStart') a=b-1,$('tStart').value=a; else b=a+1,$('tEnd').value=b; }
+    const [s,e]=trimRange(); $('tStartV').textContent=fmtTime(s); $('tEndV').textContent=fmtTime(e); }
+  $('tStart').addEventListener('input',updateTrim); $('tEnd').addEventListener('input',updateTrim);
+  $('qSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; quality=b.dataset.q; [...$('qSeg').children].forEach(x=>x.classList.toggle('on',x===b)); });
+  $('speed').addEventListener('change',()=>{});
+  $('resetBtn').addEventListener('click',()=>{ $('dropCard').style.display='block'; $('editor').style.display='none'; $('optsCard').style.display='none'; video.pause(); fileInput.value=''; });
+  $('frameBtn').addEventListener('click',()=>{ const c=document.createElement('canvas'); c.width=video.videoWidth; c.height=video.videoHeight; c.getContext('2d').drawImage(video,0,0); c.toBlob(bl=>{ dl(bl,'frame-'+Math.round(video.currentTime)+'s.png'); toast('📸 frame saved'); },'image/png'); });
+
+  function dl(blob,name){ const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=name; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000); }
+  function bitrate(h){ const base={high:0.12,med:0.06,low:0.03}[quality]; return Math.round(video.videoWidth*video.videoHeight*30*base/8*8); } // rough bps
+  function targetSize(){ const r=$('res').value; if(r==='1') return [video.videoWidth,video.videoHeight]; const h=+r; const w=Math.round(video.videoWidth*(h/video.videoHeight)/2)*2; return [w,h]; }
+
+  function getStream(withAudio){
+    const [w,h]=targetSize();
+    const canvas=document.createElement('canvas'); canvas.width=w; canvas.height=h; const ctx=canvas.getContext('2d');
+    const cStream=canvas.captureStream(30);
+    let tracks=[...cStream.getVideoTracks()];
+    if(withAudio){ try{ const vs=video.captureStream?video.captureStream():(video.mozCaptureStream?video.mozCaptureStream():null); if(vs){ const at=vs.getAudioTracks(); tracks=tracks.concat(at); } }catch(e){} }
+    return { stream:new MediaStream(tracks), canvas, ctx, w, h };
+  }
+
+  async function record(mime, withAudio, onProgress){
+    const [s,e]=trimRange(); const speed=+$('speed').value;
+    const {stream,canvas,ctx,w,h}=getStream(withAudio);
+    const opts={mimeType:mime}; if(mime.startsWith('video')) opts.videoBitsPerSecond=bitrate(h);
+    let rec; try{ rec=new MediaRecorder(stream,opts); }catch(err){ rec=new MediaRecorder(stream); }
+    const chunks=[]; rec.ondataavailable=ev=>ev.data&&ev.data.size&&chunks.push(ev.data);
+    const stopped=new Promise(res=>rec.onstop=res);
+    video.muted=true; video.playbackRate=speed; video.currentTime=s;
+    await new Promise(r=>{ const h=()=>{video.removeEventListener('seeked',h);r();}; video.addEventListener('seeked',h); });
+    rec.start(100);
+    await video.play();
+    await new Promise(resolve=>{
+      function tick(){
+        if(video.currentTime>=e || video.ended){ video.pause(); try{rec.stop();}catch(_){}; resolve(); return; }
+        if(mime.startsWith('video')) ctx.drawImage(video,0,0,w,h);
+        onProgress && onProgress((video.currentTime-s)/Math.max(0.1,(e-s)));
+        requestAnimationFrame(tick);
+      }
+      tick();
+    });
+    await stopped;
+    stream.getTracks().forEach(t=>t.stop());
+    return new Blob(chunks,{type:mime});
+  }
+
+  $('convertBtn').addEventListener('click',async()=>{
+    if(converting)return; if(!window.MediaRecorder){ toast('⚠ ဒီ browser မှာ မရပါ'); return; }
+    converting=true; $('convertBtn').disabled=true; $('progWrap').style.display='block'; $('result').style.display='none';
+    const mime=$('fmt').value; const withAudio=!$('noAudio').checked;
+    try{
+      const blob=await record(mime, withAudio, pct=>{ const p=Math.min(100,Math.round(pct*100)); $('bar').style.width=p+'%'; $('progTxt').textContent='Converting… '+p+'%'; });
+      $('bar').style.width='100%'; $('progTxt').textContent='Done';
+      const ext=mime.includes('mp4')?'mp4':'webm'; const name='converted-'+Date.now()+'.'+ext;
+      const save=Math.max(0,1-blob.size/srcBlob.size);
+      $('result').style.display='block';
+      $('result').innerHTML=`<div class="sz"><span>Original: <b>${fmtSize(srcBlob.size)}</b></span><span>New: <b>${fmtSize(blob.size)}</b></span>${blob.size<srcBlob.size?`<span class="down">↓ ${Math.round(save*100)}% smaller</span>`:''}</div>
+        <div class="btn-row"><button class="btn primary" id="dlBtn">⬇ Download ${ext.toUpperCase()}</button></div>`;
+      $('dlBtn').onclick=()=>{ dl(blob,name); toast('✓ saved'); };
+      toast('✓ Converted');
+    }catch(err){ toast('⚠ '+(err.message||'failed')); console.error(err); }
+    finally{ converting=false; $('convertBtn').disabled=false; video.muted=false; video.playbackRate=1; }
+  });
+
+  $('audioBtn').addEventListener('click',async()=>{
+    if(converting)return; const vs=video.captureStream?video.captureStream():(video.mozCaptureStream?video.mozCaptureStream():null);
+    if(!vs || !vs.getAudioTracks().length){ toast('⚠ Audio မတွေ့ပါ'); return; }
+    converting=true; $('audioBtn').disabled=true; $('progWrap').style.display='block';
+    const mime = MediaRecorder.isTypeSupported('audio/mp4')?'audio/mp4':(MediaRecorder.isTypeSupported('audio/webm;codecs=opus')?'audio/webm;codecs=opus':'audio/webm');
+    const stream=new MediaStream(vs.getAudioTracks());
+    try{
+      const rec=new MediaRecorder(stream,{mimeType:mime}); const chunks=[]; rec.ondataavailable=e=>e.data.size&&chunks.push(e.data);
+      const stopped=new Promise(r=>rec.onstop=r); const [s,e]=trimRange();
+      video.muted=false; video.currentTime=s; await new Promise(r=>{const h=()=>{video.removeEventListener('seeked',h);r();};video.addEventListener('seeked',h);});
+      rec.start(100); await video.play();
+      await new Promise(res=>{ function tick(){ if(video.currentTime>=e||video.ended){ video.pause(); try{rec.stop();}catch(_){}; res(); return; } $('bar').style.width=Math.round((video.currentTime-s)/Math.max(.1,e-s)*100)+'%'; $('progTxt').textContent='Extracting audio…'; requestAnimationFrame(tick); } tick(); });
+      await stopped; const blob=new Blob(chunks,{type:mime}); const ext=mime.includes('mp4')?'m4a':'webm';
+      dl(blob,'audio-'+Date.now()+'.'+ext); toast('🎵 audio saved ('+fmtSize(blob.size)+')');
+    }catch(err){ toast('⚠ '+err.message); }
+    finally{ converting=false; $('audioBtn').disabled=false; $('progWrap').style.display='none'; }
+  });
+
+  initFormats();
+})();
+</script>
+</body>
+</html>
