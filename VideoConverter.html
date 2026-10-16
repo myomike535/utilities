@@ -111,6 +111,10 @@
       <div style="grid-column:1/-1"><label class="chk"><input type="checkbox" id="noAudio"> 🔇 Remove audio</label></div>
     </div>
     <div class="note" id="longWarn" style="display:none; border-color:rgba(245,158,11,.45); color:var(--text)"></div>
+    <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin:0 0 11px">
+      <button class="btn" id="fastBtn" style="border-color:rgba(245,158,11,.5); color:var(--accent-2)">⚡ Fast engine (FFmpeg) · OFF</button>
+      <span id="engineStatus" style="font-size:.76rem; color:var(--muted); line-height:1.4"></span>
+    </div>
     <div class="btn-row">
       <button class="btn primary" id="convertBtn">▶ Convert</button>
       <button class="btn" id="stopBtn" style="display:none; border-color:var(--danger); color:var(--danger)">⏹ Stop &amp; save partial</button>
@@ -180,8 +184,9 @@
     const [s,e]=trimRange(); $('tStartV').textContent=fmtTime(s); $('tEndV').textContent=fmtTime(e); updateEstimate(); }
   function updateEstimate(){
     if(!srcBlob) return;
-    const [s,e]=trimRange(); const clip=e-s; const speed=+$('speed').value; const est=clip/Math.max(0.1,speed);
     const w=$('longWarn');
+    if(typeof fastMode!=='undefined' && fastMode){ w.style.display='none'; return; }  // FFmpeg isn't real-time
+    const [s,e]=trimRange(); const clip=e-s; const speed=+$('speed').value; const est=clip/Math.max(0.1,speed);
     if(clip>90 || srcBlob.size>80*1048576){
       w.style.display='block';
       w.innerHTML='⏳ <b>Converts in real time</b> — this clip is '+fmtTime(clip)+', so it takes about <b>'+fmtTime(est)+'</b> at '+speed+'×. '
@@ -233,28 +238,87 @@
     return new Blob(chunks,{type:mime});
   }
 
+  // ---- Fast engine (FFmpeg.wasm) — opt-in, lazy-loaded from CDN (needs internet first time) ----
+  let ffmpeg=null, ffUtil=null, ffLoading=false, fastMode=false;
+  function setEngineStatus(t){ $('engineStatus').innerHTML=t; }
+  async function loadFFmpeg(){
+    if(ffmpeg) return ffmpeg; if(ffLoading) return null; ffLoading=true;
+    setEngineStatus('⏳ Loading fast engine (~30 MB · first time only · needs internet)…');
+    try{
+      const mod = await import('https://unpkg.com/@ffmpeg/ffmpeg@0.12.10/dist/esm/index.js');
+      ffUtil = await import('https://unpkg.com/@ffmpeg/util@0.12.1/dist/esm/index.js');
+      const base='https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm';
+      const f=new mod.FFmpeg();
+      await f.load({ coreURL: await ffUtil.toBlobURL(base+'/ffmpeg-core.js','text/javascript'), wasmURL: await ffUtil.toBlobURL(base+'/ffmpeg-core.wasm','application/wasm') });
+      ffmpeg=f; setEngineStatus('⚡ <b style="color:var(--ok)">Fast engine ready</b> — reliable MP4, faster than real-time. (Very large files may still run out of memory.)');
+      return f;
+    }catch(err){ console.error(err); setEngineStatus('⚠ Could not load the fast engine — your network may block unpkg. Falling back to real-time.'); ffmpeg=null; return null; }
+    finally{ ffLoading=false; }
+  }
+  function ensureMp4Option(){ const sel=$('fmt'); if(![...sel.options].some(o=>o.value.includes('mp4'))){ const o=document.createElement('option'); o.value='video/mp4'; o.textContent='MP4 (H.264) ⚡'; sel.insertBefore(o, sel.firstChild); } }
+  $('fastBtn').addEventListener('click', async()=>{
+    if(converting) return;
+    if(!fastMode){ $('fastBtn').disabled=true; const f=await loadFFmpeg(); $('fastBtn').disabled=false; if(f){ fastMode=true; ensureMp4Option(); } }
+    else { fastMode=false; setEngineStatus('Fast engine off — using the browser\'s real-time encoder.'); }
+    $('fastBtn').textContent='⚡ Fast engine (FFmpeg) · '+(fastMode?'ON':'OFF');
+    $('fastBtn').style.background = fastMode ? 'color-mix(in srgb, var(--accent-2) 22%, transparent)' : '';
+    if(srcBlob) updateEstimate();
+  });
+  async function transcodeFFmpeg(onProgress){
+    const f=ffmpeg; const inExt=(srcBlob.name.match(/\.(\w+)$/)||[,'mp4'])[1].toLowerCase(); const inName='in.'+inExt;
+    await f.writeFile(inName, await ffUtil.fetchFile(srcBlob));
+    const mp4=$('fmt').value.includes('mp4'); const outName=mp4?'out.mp4':'out.webm';
+    const [s,e]=trimRange(); const speed=+$('speed').value; const res=$('res').value; const noAudio=$('noAudio').checked;
+    const crf={high:22,med:28,low:34}[quality];
+    const args=[];
+    if(s>0.1) args.push('-ss', s.toFixed(2));
+    args.push('-i', inName);
+    if(e-s < dur-0.2) args.push('-t', (e-s).toFixed(2));
+    const vf=[]; if(res!=='1') vf.push('scale=-2:'+res); if(speed!==1) vf.push('setpts=PTS/'+speed);
+    if(vf.length) args.push('-vf', vf.join(','));
+    if(noAudio) args.push('-an'); else if(speed!==1) args.push('-af','atempo='+Math.max(0.5,Math.min(2,speed)));
+    if(mp4){ args.push('-c:v','libx264','-preset','veryfast','-crf',String(crf),'-pix_fmt','yuv420p','-movflags','+faststart'); if(!noAudio) args.push('-c:a','aac','-b:a','128k'); }
+    else { args.push('-c:v','libvpx-vp9','-crf',String(crf),'-b:v','0','-row-mt','1','-deadline','realtime','-cpu-used','5'); if(!noAudio) args.push('-c:a','libopus'); }
+    args.push(outName);
+    const onP=ev=>{ onProgress && onProgress(Math.max(0,Math.min(1, ev.progress||0))); };
+    f.on('progress', onP);
+    await f.exec(args);
+    try{ f.off('progress', onP); }catch(_){}
+    const data=await f.readFile(outName);
+    try{ await f.deleteFile(inName); await f.deleteFile(outName); }catch(_){}
+    return new Blob([data.buffer], { type: mp4?'video/mp4':'video/webm' });
+  }
+
   $('stopBtn').addEventListener('click',()=>{ cancelReq=true; $('stopBtn').textContent='Stopping…'; });
   $('convertBtn').addEventListener('click',async()=>{
-    if(converting)return; if(!window.MediaRecorder){ toast('⚠ ဒီ browser မှာ မရပါ'); return; }
-    converting=true; cancelReq=false; $('convertBtn').disabled=true; $('stopBtn').style.display='inline-flex'; $('stopBtn').textContent='⏹ Stop & save partial';
+    if(converting)return; if(!window.MediaRecorder && !fastMode){ toast('⚠ ဒီ browser မှာ မရပါ'); return; }
+    converting=true; cancelReq=false; $('convertBtn').disabled=true;
     $('progWrap').style.display='block'; $('result').style.display='none';
     const mime=$('fmt').value; const withAudio=!$('noAudio').checked; const speed=+$('speed').value;
+    let partial=false;
     try{
-      const blob=await record(mime, withAudio, (pct,el,tot)=>{
-        const p=Math.min(100,Math.round(pct*100)); $('bar').style.width=p+'%';
-        const remain=Math.max(0,(tot-el)/speed);
-        $('progTxt').textContent='Converting… '+p+'% · '+fmtTime(el)+' / '+fmtTime(tot)+(tot>25?' · ~'+fmtTime(remain)+' left · runs in real time':'');
-      });
-      const partial=cancelReq;
+      let blob;
+      if(fastMode && ffmpeg){
+        $('stopBtn').style.display='none'; $('progTxt').textContent='⚡ Transcoding (FFmpeg)… 0%'; $('bar').style.width='0%';
+        blob=await transcodeFFmpeg(pct=>{ const p=Math.min(100,Math.round(pct*100)); $('bar').style.width=p+'%'; $('progTxt').textContent='⚡ Transcoding (FFmpeg)… '+p+'%'; });
+      } else {
+        $('stopBtn').style.display='inline-flex'; $('stopBtn').textContent='⏹ Stop & save partial';
+        blob=await record(mime, withAudio, (pct,el,tot)=>{
+          const p=Math.min(100,Math.round(pct*100)); $('bar').style.width=p+'%';
+          const remain=Math.max(0,(tot-el)/speed);
+          $('progTxt').textContent='Converting… '+p+'% · '+fmtTime(el)+' / '+fmtTime(tot)+(tot>25?' · ~'+fmtTime(remain)+' left · runs in real time':'');
+        });
+        partial=cancelReq;
+      }
       $('bar').style.width=partial?$('bar').style.width:'100%'; $('progTxt').textContent=partial?'Stopped — saved what was converted':'Done';
-      const ext=mime.includes('mp4')?'mp4':'webm'; const name='converted-'+Date.now()+'.'+ext;
+      const ext=blob.type.includes('mp4')?'mp4':'webm'; const name='converted-'+Date.now()+'.'+ext;
       const save=Math.max(0,1-blob.size/srcBlob.size);
       $('result').style.display='block';
       $('result').innerHTML=`<div class="sz">${partial?'<span style="color:var(--warn)">⏹ Partial</span>':''}<span>Original: <b>${fmtSize(srcBlob.size)}</b></span><span>New: <b>${fmtSize(blob.size)}</b></span>${blob.size<srcBlob.size?`<span class="down">↓ ${Math.round(save*100)}% smaller</span>`:''}</div>
         <div class="btn-row"><button class="btn primary" id="dlBtn">⬇ Download ${ext.toUpperCase()}</button></div>`;
       $('dlBtn').onclick=()=>{ dl(blob,name); toast('✓ saved'); };
       toast(partial?'⏹ Stopped — partial saved':'✓ Converted');
-    }catch(err){ toast('⚠ '+(err.message||'failed')); console.error(err); }
+    }catch(err){ toast('⚠ '+(err.message||'failed')); console.error(err); if(fastMode) setEngineStatus('⚠ Transcode failed — the file may be too large for in-browser memory. Try Trim, a lower resolution, or a desktop app.'); }
     finally{ converting=false; cancelReq=false; $('convertBtn').disabled=false; $('stopBtn').style.display='none'; video.muted=false; video.playbackRate=1; }
   });
 
