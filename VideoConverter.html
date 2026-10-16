@@ -113,6 +113,7 @@
     <div class="note" id="longWarn" style="display:none; border-color:rgba(245,158,11,.45); color:var(--text)"></div>
     <div class="btn-row">
       <button class="btn primary" id="convertBtn">▶ Convert</button>
+      <button class="btn" id="stopBtn" style="display:none; border-color:var(--danger); color:var(--danger)">⏹ Stop &amp; save partial</button>
       <button class="btn" id="audioBtn">🎵 Extract audio</button>
       <button class="btn" id="frameBtn">📸 Grab frame (PNG)</button>
       <button class="btn" id="resetBtn">🗑 New video</button>
@@ -137,7 +138,7 @@
   'use strict';
   const $=id=>document.getElementById(id);
   const video=$('video'), toastEl=$('toast'), fileInput=$('fileInput');
-  let srcBlob=null, srcURL=null, quality='med', dur=0, converting=false;
+  let srcBlob=null, srcURL=null, quality='med', dur=0, converting=false, cancelReq=false;
   function toast(m){ toastEl.textContent=m; toastEl.classList.add('show'); clearTimeout(toast._t); toast._t=setTimeout(()=>toastEl.classList.remove('show'),2000); }
   const fmtSize=b=> b>1048576? (b/1048576).toFixed(1)+' MB' : (b/1024).toFixed(0)+' KB';
   const fmtTime=s=>{ s=Math.max(0,s||0); const m=Math.floor(s/60), ss=Math.floor(s%60); return m+':'+String(ss).padStart(2,'0'); };
@@ -214,14 +215,15 @@
     const chunks=[]; rec.ondataavailable=ev=>ev.data&&ev.data.size&&chunks.push(ev.data);
     const stopped=new Promise(res=>rec.onstop=res);
     video.muted=true; video.playbackRate=speed; video.currentTime=s;
-    await new Promise(r=>{ const h=()=>{video.removeEventListener('seeked',h);r();}; video.addEventListener('seeked',h); });
+    // wait for the seek — but resolve immediately if already there / after a short fallback (avoids a hang)
+    await new Promise(r=>{ if(Math.abs(video.currentTime-s)<0.08){ r(); return; } const h=()=>{video.removeEventListener('seeked',h);r();}; video.addEventListener('seeked',h); setTimeout(r,2500); });
     rec.start(100);
-    await video.play();
+    try { await video.play(); } catch(err){ throw new Error('Could not play the video to encode it — tap the video once, then Convert.'); }
     await new Promise(resolve=>{
       function tick(){
-        if(video.currentTime>=e || video.ended){ video.pause(); try{rec.stop();}catch(_){}; resolve(); return; }
+        if(cancelReq || video.currentTime>=e || video.ended){ video.pause(); try{rec.stop();}catch(_){}; resolve(); return; }
         if(mime.startsWith('video')) ctx.drawImage(video,0,0,w,h);
-        onProgress && onProgress((video.currentTime-s)/Math.max(0.1,(e-s)));
+        onProgress && onProgress((video.currentTime-s)/Math.max(0.1,(e-s)), video.currentTime-s, e-s);
         requestAnimationFrame(tick);
       }
       tick();
@@ -231,22 +233,29 @@
     return new Blob(chunks,{type:mime});
   }
 
+  $('stopBtn').addEventListener('click',()=>{ cancelReq=true; $('stopBtn').textContent='Stopping…'; });
   $('convertBtn').addEventListener('click',async()=>{
     if(converting)return; if(!window.MediaRecorder){ toast('⚠ ဒီ browser မှာ မရပါ'); return; }
-    converting=true; $('convertBtn').disabled=true; $('progWrap').style.display='block'; $('result').style.display='none';
-    const mime=$('fmt').value; const withAudio=!$('noAudio').checked;
+    converting=true; cancelReq=false; $('convertBtn').disabled=true; $('stopBtn').style.display='inline-flex'; $('stopBtn').textContent='⏹ Stop & save partial';
+    $('progWrap').style.display='block'; $('result').style.display='none';
+    const mime=$('fmt').value; const withAudio=!$('noAudio').checked; const speed=+$('speed').value;
     try{
-      const blob=await record(mime, withAudio, pct=>{ const p=Math.min(100,Math.round(pct*100)); $('bar').style.width=p+'%'; $('progTxt').textContent='Converting… '+p+'%'; });
-      $('bar').style.width='100%'; $('progTxt').textContent='Done';
+      const blob=await record(mime, withAudio, (pct,el,tot)=>{
+        const p=Math.min(100,Math.round(pct*100)); $('bar').style.width=p+'%';
+        const remain=Math.max(0,(tot-el)/speed);
+        $('progTxt').textContent='Converting… '+p+'% · '+fmtTime(el)+' / '+fmtTime(tot)+(tot>25?' · ~'+fmtTime(remain)+' left · runs in real time':'');
+      });
+      const partial=cancelReq;
+      $('bar').style.width=partial?$('bar').style.width:'100%'; $('progTxt').textContent=partial?'Stopped — saved what was converted':'Done';
       const ext=mime.includes('mp4')?'mp4':'webm'; const name='converted-'+Date.now()+'.'+ext;
       const save=Math.max(0,1-blob.size/srcBlob.size);
       $('result').style.display='block';
-      $('result').innerHTML=`<div class="sz"><span>Original: <b>${fmtSize(srcBlob.size)}</b></span><span>New: <b>${fmtSize(blob.size)}</b></span>${blob.size<srcBlob.size?`<span class="down">↓ ${Math.round(save*100)}% smaller</span>`:''}</div>
+      $('result').innerHTML=`<div class="sz">${partial?'<span style="color:var(--warn)">⏹ Partial</span>':''}<span>Original: <b>${fmtSize(srcBlob.size)}</b></span><span>New: <b>${fmtSize(blob.size)}</b></span>${blob.size<srcBlob.size?`<span class="down">↓ ${Math.round(save*100)}% smaller</span>`:''}</div>
         <div class="btn-row"><button class="btn primary" id="dlBtn">⬇ Download ${ext.toUpperCase()}</button></div>`;
       $('dlBtn').onclick=()=>{ dl(blob,name); toast('✓ saved'); };
-      toast('✓ Converted');
+      toast(partial?'⏹ Stopped — partial saved':'✓ Converted');
     }catch(err){ toast('⚠ '+(err.message||'failed')); console.error(err); }
-    finally{ converting=false; $('convertBtn').disabled=false; video.muted=false; video.playbackRate=1; }
+    finally{ converting=false; cancelReq=false; $('convertBtn').disabled=false; $('stopBtn').style.display='none'; video.muted=false; video.playbackRate=1; }
   });
 
   $('audioBtn').addEventListener('click',async()=>{
