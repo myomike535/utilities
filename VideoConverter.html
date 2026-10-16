@@ -110,6 +110,7 @@
       </div>
       <div style="grid-column:1/-1"><label class="chk"><input type="checkbox" id="noAudio"> 🔇 Remove audio</label></div>
     </div>
+    <div class="note" id="longWarn" style="display:none; border-color:rgba(245,158,11,.45); color:var(--text)"></div>
     <div class="btn-row">
       <button class="btn primary" id="convertBtn">▶ Convert</button>
       <button class="btn" id="audioBtn">🎵 Extract audio</button>
@@ -175,10 +176,20 @@
   // trim
   function trimRange(){ return [ (+$('tStart').value/100)*dur, (+$('tEnd').value/100)*dur ]; }
   function updateTrim(){ let a=+$('tStart').value, b=+$('tEnd').value; if(a>b-1){ if(event&&event.target&&event.target.id==='tStart') a=b-1,$('tStart').value=a; else b=a+1,$('tEnd').value=b; }
-    const [s,e]=trimRange(); $('tStartV').textContent=fmtTime(s); $('tEndV').textContent=fmtTime(e); }
+    const [s,e]=trimRange(); $('tStartV').textContent=fmtTime(s); $('tEndV').textContent=fmtTime(e); updateEstimate(); }
+  function updateEstimate(){
+    if(!srcBlob) return;
+    const [s,e]=trimRange(); const clip=e-s; const speed=+$('speed').value; const est=clip/Math.max(0.1,speed);
+    const w=$('longWarn');
+    if(clip>90 || srcBlob.size>80*1048576){
+      w.style.display='block';
+      w.innerHTML='⏳ <b>Converts in real time</b> — this clip is '+fmtTime(clip)+', so it takes about <b>'+fmtTime(est)+'</b> at '+speed+'×. '
+        + 'For a long/large video, <b>Trim</b> to just the part you need, or pick a faster speed. Keep this tab active while it runs.';
+    } else w.style.display='none';
+  }
   $('tStart').addEventListener('input',updateTrim); $('tEnd').addEventListener('input',updateTrim);
   $('qSeg').addEventListener('click',e=>{ const b=e.target.closest('button'); if(!b)return; quality=b.dataset.q; [...$('qSeg').children].forEach(x=>x.classList.toggle('on',x===b)); });
-  $('speed').addEventListener('change',()=>{});
+  $('speed').addEventListener('change',updateEstimate);
   $('resetBtn').addEventListener('click',()=>{ $('dropCard').style.display='block'; $('editor').style.display='none'; $('optsCard').style.display='none'; video.pause(); fileInput.value=''; });
   $('frameBtn').addEventListener('click',()=>{ const c=document.createElement('canvas'); c.width=video.videoWidth; c.height=video.videoHeight; c.getContext('2d').drawImage(video,0,0); c.toBlob(bl=>{ dl(bl,'frame-'+Math.round(video.currentTime)+'s.png'); toast('📸 frame saved'); },'image/png'); });
 
