@@ -20,7 +20,7 @@
     'pmvault.v2',
     'recap.history.v1',
     'bookmarks.v1',
-    'mala.counter.v1',
+    'dhamma_patee_app_state_v1',
     'ainotes.vue.v1',
     'medi.timer.v1',
     'merit.journal.v1',

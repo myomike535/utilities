@@ -3,7 +3,7 @@
 // offline fallback for navigation to any cached tool.
 // Bump CACHE_VERSION to force clients to fetch fresh copies.
 
-const CACHE_VERSION = 'utilities-v114';
+const CACHE_VERSION = 'utilities-v115';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -66,6 +66,9 @@ const PRECACHE_URLS = [
   './ScriptPrompter.html',
   './BookmarkManager.html',
   './NoteTakerVue.html',
+  './tailwind-play.js',
+  './fa-all.min.css',
+  './webfonts/fa-solid-900.woff2',
   './vue.global.prod.js',
   './qrcode.min.js',
   './marked.min.js',
