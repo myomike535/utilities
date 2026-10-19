@@ -2,7 +2,7 @@
 <html lang="my">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>ဓမ္မပုတီး - ပုတီးစိပ် App</title>
     <!-- Suite offline assets (no CDN — fully offline PWA) -->
     <link rel="manifest" href="manifest.json">
@@ -25,6 +25,13 @@
             background: radial-gradient(circle at top, #2a1b12 0%, #140d08 60%, #0a0604 100%);
             color: #fef3c7;
             overflow-x: hidden;
+            /* Stable screen while tapping beads: no double-tap/pinch zoom, no pull-to-refresh bounce */
+            touch-action: pan-y;
+            overscroll-behavior: none;
+        }
+        /* The tap target never zooms or selects on rapid taps */
+        #mainTapButton, #beadTouchZone, button {
+            touch-action: manipulation;
         }
         /* Custom scrollbar */
         ::-webkit-scrollbar {
