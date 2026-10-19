@@ -137,7 +137,7 @@
 
     <div class="date-nav">
       <el-button @click="shiftDay(-1)">‹</el-button>
-      <div class="cur">{{ dateLabel }}<small v-if="!isToday">({{ daysAgo }} ရက်အလို — ပြင်နိုင်သည်)</small><small v-else>ယနေ့</small></div>
+      <div class="cur">{{ dateLabel }}<small v-if="!isToday">({{ mm(daysAgo) }} ရက်အလို — ပြင်နိုင်သည်)</small><small v-else>ယနေ့</small></div>
       <el-button @click="shiftDay(1)" :disabled="isToday">›</el-button>
     </div>
 
@@ -152,13 +152,13 @@
     <el-input class="note" type="textarea" :rows="3" v-model="entry.note" @change="save" placeholder="မှတ်စု — ယနေ့ ပြုခဲ့သော ကုသိုလ်များ… (ဥပမာ - ဆွမ်းလောင်း၊ တရားနာ၊ လှူဒါန်း)"></el-input>
 
     <div class="sect">
-      <div class="sect-title">📅 ၂၈ ရက် · Streak <b style="color:var(--accent)">{{ streak }}</b> ရက်</div>
+      <div class="sect-title">📅 ၂၈ ရက် · Streak <b style="color:var(--accent)">{{ mm(streak) }}</b> ရက်</div>
       <div class="heat">
         <div v-for="(d,i) in calendar" :key="i" class="d" :class="[d.lvl?'l'+d.lvl:'', d.today?'today':'']" :title="d.tip" @click="jumpTo(d.off)"></div>
       </div>
       <div class="stat-row">
-        <span>ယနေ့ <b>{{ entryFor(todayKey).acts.length }}</b>/၆ ပါး</span>
-        <span>ဤလ <b>{{ monthDays }}</b> ရက် ကုသိုလ်ပြု</span>
+        <span>ယနေ့ <b>{{ mm(entryFor(todayKey).acts.length) }}</b>/၆ ပါး</span>
+        <span>ဤလ <b>{{ mm(monthDays) }}</b> ရက် ကုသိုလ်ပြု</span>
       </div>
     </div>
 
@@ -193,6 +193,10 @@ const app = createApp({
       { k: 'metta',  ic: '💛', my: 'မေတ္တာ — မေတ္တာပွားခြင်း',       pali: 'Mettā' },
       { k: 'serve',  ic: '🤝', my: 'ဝေယျာဝစ္စ — ကူညီစောင့်ရှောက်',   pali: 'Veyyāvacca' },
     ];
+    // Myanmar numeral helper — the whole UI is Myanmar, so counts/streaks match
+    const MM_DIGITS = ['၀','၁','၂','၃','၄','၅','၆','၇','၈','၉'];
+    const mm = (v) => String(v).replace(/[0-9]/g, d => MM_DIGITS[+d]);
+
     const data = ref({});           // { 'YYYY-MM-DD': {acts:[], note:''} }
     const offset = ref(0);          // 0 = today, -1 = yesterday …
     const theme = ref(localStorage.getItem(THEME_KEY) || 'parchment');
@@ -248,7 +252,7 @@ const app = createApp({
         out.push({
           lvl: cnt >= 6 ? 4 : cnt >= 4 ? 3 : cnt >= 2 ? 2 : cnt > 0 ? 1 : 0,
           today: i === 0, off: -i,
-          tip: k + ' — ' + cnt + ' ပါး',
+          tip: k + ' — ' + mm(cnt) + ' ပါး',
         });
       }
       return out;
@@ -283,7 +287,7 @@ const app = createApp({
     return {
       MERITS, entry, entryFor, todayKey,
       offset, dateLabel, isToday, daysAgo,
-      streak, calendar, monthDays,
+      streak, calendar, monthDays, mm,
       toggle, save, shiftDay, jumpTo, cycleTheme, themeIcon,
     };
   }
