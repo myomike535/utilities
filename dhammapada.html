@@ -60,6 +60,33 @@
     --shadow: 0 2px 10px rgba(0, 0, 0, 0.45);
     --shadow-lift: 0 8px 28px rgba(230, 185, 60, 0.18);
   }
+  /* Sepia — warm, low-glare reading theme (shared with Tipitaka) */
+  [data-theme="sepia"] {
+    --bg: #ece0c7;
+    --panel: #f6efdc;
+    --ink: #4a3f2d;
+    --muted: #8a7a5e;
+    --accent: #9c6b3f;
+    --accent-soft: #e6d6b4;
+    --border: #ddccaa;
+    --pali: #6b4a26;
+    --mm: #3a4a66;
+    --en: #5c5244;
+    --shadow: 0 2px 8px rgba(120, 90, 50, 0.12);
+    --shadow-lift: 0 8px 24px rgba(120, 90, 50, 0.2);
+  }
+  /* Back-to-top floating button (shared pattern) */
+  .to-top {
+    position: fixed; right: 18px; bottom: 20px; z-index: 40;
+    width: 44px; height: 44px; border-radius: 50%;
+    border: 1px solid var(--border); background: var(--panel); color: var(--accent);
+    font-size: 20px; line-height: 1; cursor: pointer; box-shadow: var(--shadow-lift);
+    opacity: 0; transform: translateY(12px); pointer-events: none;
+    transition: opacity .2s var(--ease), transform .2s var(--ease), border-color .2s;
+  }
+  .to-top.show { opacity: 1; transform: none; pointer-events: auto; }
+  .to-top:hover { border-color: var(--accent); }
+  @media (max-width: 640px) { .to-top { bottom: 76px; right: 12px; } }
   [data-theme="royal"] header { border-bottom: 2px solid var(--accent); }
   [data-theme="royal"] .verse-card { border: 1px solid var(--border); box-shadow: inset 0 0 0 1px rgba(230,185,60,0.12), var(--shadow); }
   [data-theme="royal"] .verse-card:hover { box-shadow: inset 0 0 0 1px rgba(230,185,60,0.3), var(--shadow-lift); }
@@ -6458,8 +6485,8 @@ function showToast(msg) {
 }
 
 // ---- Theme (dm_theme: light | dark | royal — legacy values mapped safely) ----
-const THEME_CYCLE = ['light', 'dark', 'royal'];
-const THEME_NAMES = { light: '☀️ Light', dark: '🌙 Dark', royal: '👑 Royal (ရွှေချ)' };
+const THEME_CYCLE = ['light', 'sepia', 'dark', 'royal'];
+const THEME_NAMES = { light: '☀️ Light', sepia: '📖 Sepia', dark: '🌙 Dark', royal: '👑 Royal (ရွှေချ)' };
 function normalizeTheme(t) {
   if (THEME_CYCLE.includes(t)) return t;
   if (t === 'parchment') return 'light';
@@ -7043,5 +7070,7 @@ if (loadingEl) loadingEl.remove();
 // First observation pass
 nextTick(observeVerses);
 </script>
+<button id="toTopBtn" class="to-top" title="အပေါ်ဆုံးသို့ ပြန်တက်ရန်" onclick="window.scrollTo({top:0,behavior:'smooth'})">↑</button>
+<script>addEventListener('scroll',function(){var b=document.getElementById('toTopBtn');if(b)b.classList.toggle('show',window.scrollY>600);},{passive:true});</script>
 </body>
 </html>
