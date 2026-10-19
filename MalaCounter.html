@@ -106,6 +106,23 @@
             border-color: rgba(251, 191, 36, 0.8) !important;
             background-color: rgba(217, 119, 6, 0.25) !important;
         }
+
+        /* Reclaim vertical space on phones so the header isn't scrolled off at rest.
+           The bead zone is content-bound (large tap target), so we trim paddings/gaps
+           rather than its min-height. Use dynamic viewport height so the mobile URL bar
+           doesn't push content past the visible area. */
+        @media (max-width: 640px) {
+            body > main {
+                padding-top: 0.25rem !important;
+                padding-bottom: 0.25rem !important;
+                gap: 0.375rem !important;
+            }
+            #statsGridSection > div { padding-top: 0.4rem !important; padding-bottom: 0.4rem !important; }
+            #quickBottomControls { gap: 0.375rem !important; }
+            /* Trim the bead zone's inner breathing room (real height driver) */
+            #beadTouchZone { min-height: 0 !important; }
+            #beadTouchZone > .relative.z-10 { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; }
+        }
     </style>
 </head>
 
@@ -115,7 +132,7 @@
     <div class="pointer-events-none fixed inset-x-0 top-0 h-48 bg-gradient-to-b from-amber-500/10 via-amber-700/5 to-transparent z-0"></div>
 
     <!-- Header Navigation -->
-    <header class="relative z-10 w-full max-w-lg mx-auto px-4 pt-3 pb-2 flex items-center justify-between border-b border-amber-500/20">
+    <header class="sticky top-0 z-30 w-full max-w-lg mx-auto px-4 pt-3 pb-2 flex items-center justify-between border-b border-amber-500/20 bg-[#160d07]/92 backdrop-blur-sm">
         <div class="flex items-center gap-2.5">
             <!-- Lotus SVG Icon -->
             <div class="w-10 h-10 rounded-full bg-gradient-to-br from-amber-400 to-amber-700 p-0.5 shadow-lg shadow-amber-900/50 flex items-center justify-center lotus-glow">
@@ -294,6 +311,14 @@
             <!-- Ripple Effect Container -->
             <div id="rippleContainer" class="absolute inset-0 pointer-events-none flex items-center justify-center"></div>
 
+            <!-- Focus-mode mini progress (shown only in Zen mode, where stat cards are hidden) -->
+            <div id="zenProgressPill" class="hidden absolute top-2 left-1/2 -translate-x-1/2 z-20 flex items-center gap-1.5 text-[11px] text-amber-200/90 bg-black/55 border border-amber-500/25 rounded-full px-3 py-1 pointer-events-none whitespace-nowrap">
+                <i class="fa-solid fa-dharmachakra text-amber-400/80 text-[10px]"></i>
+                <span>အပတ် <strong id="zenRounds" class="text-amber-300">၀/၉</strong></span>
+                <span class="text-amber-500/40">·</span>
+                <span>စုစုပေါင်း <strong id="zenTotal" class="text-emerald-300">၀</strong> လုံး</span>
+            </div>
+
             <!-- Vertical Mala Cord & Moving Beads on Left/Center -->
             <div class="relative z-10 w-full h-full flex flex-col items-center justify-between py-4 px-5">
 
@@ -336,7 +361,7 @@
                             <span id="bigCenterCount" class="text-4xl sm:text-5xl font-extrabold text-amber-100 drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] my-0.5">
                                 ၀
                             </span>
-                            <span id="centerSubLabel" class="text-[11px] text-amber-200/80 mt-0.5 flex items-center gap-1">
+                            <span id="centerSubLabel" class="text-[10px] text-amber-200/80 mt-0.5 flex items-center gap-1 whitespace-nowrap">
                                 <i class="fa-solid fa-hand-pointer text-[10px] animate-bounce"></i> တစ်ချက်နှိပ် / ဆွဲချပါ
                             </span>
                         </div>
@@ -413,13 +438,13 @@
                 <button onclick="openModal('parittaModal')"
                     class="flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-2xl bg-amber-950/85 hover:bg-amber-900/80 border border-amber-400/40 text-xs font-semibold text-amber-200 shadow transition active:scale-95">
                     <i class="fa-solid fa-scroll text-amber-400"></i>
-                    <span class="truncate">ပဋ္ဌာန်း / ပရိတ်</span>
+                    <span class="truncate">ပဋ္ဌာန်း/ပရိတ်</span>
                 </button>
 
                 <button onclick="openModal('prePrayerModal')"
                     class="flex items-center justify-center gap-1.5 py-2.5 px-2 rounded-2xl bg-amber-950/80 hover:bg-amber-900/80 border border-amber-500/35 text-xs font-semibold text-amber-200 shadow transition active:scale-95">
                     <i class="fa-solid fa-spa text-amber-400"></i>
-                    <span class="truncate">သီလ / တရားထိုင်</span>
+                    <span class="truncate">သီလ/တရား</span>
                 </button>
             </div>
 
@@ -428,7 +453,7 @@
                 <button onclick="openModal('prayerModal')"
                     class="flex items-center justify-center gap-2 py-2.5 px-3 rounded-2xl bg-amber-950/60 hover:bg-amber-900/70 border border-amber-500/30 text-xs sm:text-sm font-semibold text-amber-200 shadow transition active:scale-95">
                     <i class="fa-solid fa-book-open text-amber-400"></i>
-                    <span>ဂုဏ်တော်များ</span>
+                    <span>ရွတ်ဖတ်ဖွယ်များ</span>
                 </button>
 
                 <button onclick="openModal('historyModal')"
@@ -447,7 +472,7 @@
     </main>
 
     <!-- Floating Toast Banner -->
-    <div id="toastBanner" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
+    <div id="toastBanner" class="fixed top-3 left-1/2 -translate-x-1/2 z-[900] pointer-events-none opacity-0 transition-all duration-300 transform -translate-y-2">
         <div class="bg-gradient-to-r from-amber-500 via-yellow-400 to-amber-500 text-black font-bold text-xs sm:text-sm px-4 py-2 rounded-full shadow-xl flex items-center gap-2 border border-white/40">
             <i class="fa-solid fa-bell"></i>
             <span id="toastMessage">ပုတီး (၁) ပတ် ပြည့်ပါပြီ။ သာဓု သာဓု သာဓု!</span>
@@ -859,12 +884,12 @@
                 </div>
 
                 <div class="bg-black/40 border border-amber-500/25 rounded-2xl p-3.5 space-y-2">
-                    <div class="flex items-center justify-between">
+                    <div class="space-y-2">
                         <h4 class="font-bold text-amber-300">၃။ သီလ ခံယူဆောက်တည်ပုံ</h4>
-                        <div class="flex gap-1 bg-black/50 p-1 rounded-xl border border-amber-500/20">
-                            <button onclick="switchSilaType('five')" id="btnSila5" class="px-2 py-0.5 rounded-lg text-[11px] font-bold bg-amber-500 text-black">၅ ပါးသီလ</button>
-                            <button onclick="switchSilaType('eight')" id="btnSila8" class="px-2 py-0.5 rounded-lg text-[11px] text-amber-200">၈ ပါး (ဥပုသ်)</button>
-                            <button onclick="switchSilaType('nine')" id="btnSila9" class="px-2 py-0.5 rounded-lg text-[11px] text-amber-200">၉ ပါးသီလ</button>
+                        <div class="flex flex-wrap gap-1.5 bg-black/50 p-1 rounded-xl border border-amber-500/20">
+                            <button onclick="switchSilaType('five')" id="btnSila5" class="px-2.5 py-1 rounded-lg text-[11px] font-bold bg-amber-500 text-black whitespace-nowrap">၅ ပါးသီလ</button>
+                            <button onclick="switchSilaType('eight')" id="btnSila8" class="px-2.5 py-1 rounded-lg text-[11px] text-amber-200 whitespace-nowrap">၈ ပါး (ဥပုသ်)</button>
+                            <button onclick="switchSilaType('nine')" id="btnSila9" class="px-2.5 py-1 rounded-lg text-[11px] text-amber-200 whitespace-nowrap">၉ ပါးသီလ</button>
                         </div>
                     </div>
                     <ul id="silaTextList" class="space-y-1 text-amber-100/90 list-disc pl-4">
@@ -1107,6 +1132,8 @@
         ];
 
         const WEEKDAYS_MY = ['တနင်္ဂနွေ', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓဟူး', 'ကြာသပတေး', 'သောကြာ', 'စနေ'];
+        // Concise, mutually-distinct day labels for the 7-day chart (Sun..Sat) — no ellipsis collisions
+        const WEEKDAYS_SHORT_MY = ['နွေ', 'လာ', 'အင်္ဂါ', 'ဗုဒ္ဓ', 'ကြာ', 'သော', 'စနေ'];
 
         // Other Popular Adhitthana Programs
         const OTHER_ADHITTHANAS = [
@@ -1519,20 +1546,22 @@
         function getActivePrayer() {
             // If cycle mode is enabled, dynamically return the current Gunjaw or Patthana condition!
             if (state.chantCycleMode === 'gunjaw9') {
-                const idx = state.currentBead % 9;
+                // Bead 0 (round start) shows item 1; thereafter bead N shows item N
+                // (bead 9/18/.. -> 9/9, not 1/9). 0-based index = (N-1) mod 9.
+                const idx = state.currentBead === 0 ? 0 : (state.currentBead - 1) % 9;
                 const gObj = KONAWIN_GUNJAWS[idx];
                 const found = DEFAULT_PRAYERS.find(p => p.id === gObj.id) || DEFAULT_PRAYERS[0];
                 return {
                     ...found,
-                    title: `ဂုဏ်တော် (${formatNum(idx + 1)}/၉) - ${gObj.name}`
+                    title: `ဂုဏ်တော် (${formatNum(idx + 1)}/${formatNum(9)}) - ${gObj.name}`
                 };
             }
             if (state.chantCycleMode === 'patthana24') {
-                const idx = state.currentBead % 24;
+                const idx = state.currentBead === 0 ? 0 : (state.currentBead - 1) % 24;
                 const pObj = PATTHANA_24_LIST[idx];
                 return {
                     id: 'patthana_cycle',
-                    title: `ပဋ္ဌာန်း (${formatNum(pObj.num)}/၂၄) ပစ္စည်း`,
+                    title: `ပဋ္ဌာန်း (${formatNum(pObj.num)}/${formatNum(24)}) ပစ္စည်း`,
                     pali: pObj.pali,
                     meaning: pObj.meaning
                 };
@@ -1754,6 +1783,7 @@
             [108, 54, 27, 24, 9].forEach(num => {
                 const btn = document.getElementById(`preset-${num}`);
                 if (!btn) return;
+                btn.textContent = formatNum(num);
                 if (state.beadsPerRound === num) {
                     btn.className = 'preset-btn px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-500 text-black shadow transition';
                 } else {
@@ -1765,9 +1795,9 @@
             const cycleLabel = document.getElementById('cycleModeLabel');
             if (cycleLabel) {
                 if (state.chantCycleMode === 'gunjaw9') {
-                    cycleLabel.textContent = 'ဂုဏ်တော် ၉ ပါး လှည့်ကျ';
+                    cycleLabel.textContent = `ဂုဏ်တော် ${formatNum(9)} ပါး လှည့်ကျ`;
                 } else if (state.chantCycleMode === 'patthana24') {
-                    cycleLabel.textContent = 'ပဋ္ဌာန်း ၂၄ လှည့်ကျ';
+                    cycleLabel.textContent = `ပဋ္ဌာန်း ${formatNum(24)} လှည့်ကျ`;
                 } else {
                     cycleLabel.textContent = 'ရိုးရိုးမုဒ်';
                 }
@@ -1832,6 +1862,14 @@
 
             const speedSel = document.getElementById('selectAutoSpeed');
             if (speedSel) speedSel.value = String(state.autoChantSpeed || 3000);
+
+            // Focus-mode mini progress pill
+            const zenPill = document.getElementById('zenProgressPill');
+            if (zenPill) {
+                zenPill.classList.toggle('hidden', !zenModeActive);
+                setTextSafe('zenRounds', `${formatNum(state.completedRounds)}/${formatNum(state.targetRounds)}`);
+                setTextSafe('zenTotal', formatNum(state.todayTotal));
+            }
         }
 
         // Generate exact 9-day schedule for a given Ko Nawin stage (0-8)
@@ -2449,6 +2487,8 @@
             if (icon) {
                 icon.className = zenModeActive ? 'fa-solid fa-compress text-xs text-amber-400' : 'fa-solid fa-expand text-xs';
             }
+            const zenPill = document.getElementById('zenProgressPill');
+            if (zenPill) zenPill.classList.toggle('hidden', !zenModeActive);
             showToast(zenModeActive ? 'အာရုံစူးစိုက်မုဒ် ဖွင့်ထားပါသည်' : 'ပုံမှန်မြင်ကွင်းသို့ ပြန်ပြောင်းပါပြီ');
         }
 
@@ -2554,7 +2594,7 @@
                     const d = new Date();
                     d.setDate(d.getDate() - i);
                     const key = d.toLocaleDateString('en-CA');
-                    const weekdayShort = WEEKDAYS_MY[d.getDay()].slice(0, 4);
+                    const weekdayShort = WEEKDAYS_SHORT_MY[d.getDay()];
                     const val = (i === 0) ? state.todayTotal : ((state.dailyBeadHistory && state.dailyBeadHistory[key]) || 0);
                     days.push({ label: weekdayShort, val, isToday: i === 0 });
                 }
@@ -2565,7 +2605,7 @@
                         <div class="flex flex-col items-center justify-end h-full gap-1">
                             <span class="text-[9px] text-amber-200/80">${formatNum(d.val)}</span>
                             <div class="w-full max-w-[24px] rounded-t-lg transition-all ${d.isToday ? 'bg-gradient-to-t from-amber-600 to-yellow-300' : 'bg-amber-500/40'}" style="height: ${hPct}%"></div>
-                            <span class="text-[9px] ${d.isToday ? 'text-amber-300 font-bold' : 'text-amber-300/60'}">${d.label}</span>
+                            <span class="text-[10px] whitespace-nowrap ${d.isToday ? 'text-amber-300 font-bold' : 'text-amber-300/60'}">${d.label}</span>
                         </div>
                     `;
                 }).join('');
@@ -2601,9 +2641,8 @@
         }
 
         function copyMeritReport() {
-            const prayer = getActivePrayer();
             const text = `🙏 ဓမ္မပုတီး ကုသိုလ်မှတ်တမ်း 🙏\n` +
-                `• လက်ရှိပွားများမှု - ${prayer.title}\n` +
+                `• လက်ရှိပွားများမှု - ${getChantDisplayName()}\n` +
                 `• ယနေ့ ပုတီးအလုံးရေ - ${formatNum(state.todayTotal)} လုံး (${formatNum(state.completedRounds)} ပတ်)\n` +
                 `• စုစုပေါင်း ကုသိုလ် - ${formatNum(state.lifetimeRounds)} ပတ် (${formatNum(state.lifetimeBeads)} လုံး)\n` +
                 `• နေ့စဉ် ရက်ဆက် - ${formatNum(state.streakDays || 1)} ရက်\n` +
@@ -2683,10 +2722,17 @@
             showToast('အပတ်ရေနှင့် အလုံးရေကို အစမှ ပြန်စပါပြီ');
         }
 
+        // Human-facing chant name — in cycle modes use the overarching title,
+        // not the individual step (e.g. not "ပဋ္ဌာန်း (၁၃/၂၄) ပစ္စည်း").
+        function getChantDisplayName() {
+            if (state.chantCycleMode === 'gunjaw9') return 'ဘုရားဂုဏ်တော် (၉) ပါး';
+            if (state.chantCycleMode === 'patthana24') return 'ပဋ္ဌာန်း (၂၄) ပစ္စည်း ဒေသနာတော်';
+            return getActivePrayer().title;
+        }
+
         function openMeritModal() {
-            const prayer = getActivePrayer();
             const summary = document.getElementById('meritSummaryText');
-            summary.textContent = `ယနေ့ "${prayer.title}" ပုတီး (${formatNum(state.completedRounds)}) ပတ်၊ စုစုပေါင်း (${formatNum(state.todayTotal)}) လုံး ပွားများအားထုတ်ရသော ကုသိုလ်ကောင်းမှုအစုစုတို့ကို -`;
+            summary.textContent = `ယနေ့ "${getChantDisplayName()}" ပုတီး (${formatNum(state.completedRounds)}) ပတ်၊ စုစုပေါင်း (${formatNum(state.todayTotal)}) လုံး ပွားများအားထုတ်ရသော ကုသိုလ်ကောင်းမှုအစုစုတို့ကို -`;
             openModal('meritModal');
             playBellSound();
         }
@@ -2711,7 +2757,7 @@
             toastTimer = setTimeout(() => {
                 banner.classList.remove('opacity-100', 'translate-y-0');
                 banner.classList.add('opacity-0', '-translate-y-2');
-            }, 2800);
+            }, 1800);
         }
 
         // LocalStorage Save & Load
