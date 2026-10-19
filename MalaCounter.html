@@ -2,7 +2,7 @@
 <html lang="my">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>ဓမ္မပုတီး - ပုတီးစိပ် App</title>
     <!-- Suite offline assets (no CDN — fully offline PWA) -->
     <link rel="manifest" href="manifest.json">
@@ -1296,6 +1296,25 @@
         let ambientGainNode = null;
         let zenModeActive = false;
 
+        // Screen Wake Lock — keep the display on during meditation & auto-chant
+        let wakeLockSentinel = null;
+        async function refreshWakeLock() {
+            const shouldHold = !!(meditationInterval || autoChantInterval);
+            try {
+                if (shouldHold && !wakeLockSentinel && 'wakeLock' in navigator) {
+                    wakeLockSentinel = await navigator.wakeLock.request('screen');
+                    wakeLockSentinel.addEventListener('release', () => { wakeLockSentinel = null; });
+                } else if (!shouldHold && wakeLockSentinel) {
+                    await wakeLockSentinel.release();
+                    wakeLockSentinel = null;
+                }
+            } catch (e) { /* wake lock unavailable or denied — silently ignore */ }
+        }
+        // Re-acquire when returning to the tab if a session is still active
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') refreshWakeLock();
+        });
+
         // Web Audio API Synthesizer for Wooden Mala Click & Kyeezee Bell
         let audioCtx = null;
 
@@ -2149,6 +2168,7 @@
             autoChantInterval = setInterval(() => {
                 countBead();
             }, state.autoChantSpeed || 3000);
+            refreshWakeLock();
         }
 
         function stopAutoChant() {
@@ -2160,6 +2180,7 @@
             const icon = document.getElementById('iconAutoChant');
             if (btn) btn.classList.remove('bg-amber-500/30', 'border-amber-400');
             if (icon) icon.className = 'fa-solid fa-play text-xs';
+            refreshWakeLock();
         }
 
         function updateAutoChantSpeed() {
@@ -2185,6 +2206,7 @@
                 clearInterval(meditationInterval);
                 meditationInterval = null;
             }
+            refreshWakeLock();
             meditationTotalSec = mins * 60;
             meditationRemainingSec = meditationTotalSec;
             document.getElementById('meditationTimerDisplay').textContent = formatMeditationTime(meditationRemainingSec);
@@ -2197,6 +2219,7 @@
                 clearInterval(meditationInterval);
                 meditationInterval = null;
                 btn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> ဆက်မှတ်မည်';
+                refreshWakeLock();
             } else {
                 playBellSound();
                 btn.innerHTML = '<i class="fa-solid fa-pause mr-1"></i> ခေတ္တရပ်မည်';
@@ -2213,8 +2236,10 @@
                         playBellSound();
                         btn.innerHTML = '<i class="fa-solid fa-play mr-1"></i> စတင်မည်';
                         showToast('တရားထိုင်ချိန် ပြည့်မြောက်ပါပြီ။ သာဓု သာဓု သာဓု!');
+                        refreshWakeLock();
                     }
                 }, 1000);
+                refreshWakeLock();
             }
         }
 
@@ -2226,6 +2251,7 @@
             meditationRemainingSec = meditationTotalSec;
             document.getElementById('meditationTimerDisplay').textContent = formatMeditationTime(meditationRemainingSec);
             document.getElementById('btnMeditationStart').innerHTML = '<i class="fa-solid fa-play mr-1"></i> စတင်မည်';
+            refreshWakeLock();
         }
 
         function renderPrayerList() {
