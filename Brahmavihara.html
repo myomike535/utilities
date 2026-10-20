@@ -59,9 +59,74 @@
             #app-body .nr-bottom-nav, #app-body .nr-mobile-hamburger { display: none !important; }
             #app-body { padding-bottom: 0 !important; }
         }
+
+        /* ═══════════════ Art-design polish layer ═══════════════ */
+        /* Per-mode mood tint (behind everything) */
+        :root { --bv-glow: 245,158,11; }
+        body.bv-metta   { --bv-glow: 245,158,11; }   /* gold  */
+        body.bv-karuna  { --bv-glow: 70,160,214; }   /* blue  */
+        body.bv-mudita  { --bv-glow: 52,180,130; }   /* green */
+        body.bv-upekkha { --bv-glow: 176,181,196; }  /* silver */
+
+        /* Atmospheric, layered temple-dark background + soft mood glow + vignette */
+        html { background: #0a0807; }
+        #app-body { background: transparent !important; }
+        #app-body::before {
+            content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background:
+                radial-gradient(135% 60% at 50% -10%, rgba(var(--bv-glow), 0.20), transparent 56%),
+                radial-gradient(95% 55% at 50% 118%, rgba(var(--bv-glow), 0.10), transparent 60%);
+            transition: background 0.7s ease;
+        }
+        #app-body::after {
+            content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+            background: radial-gradient(142% 100% at 50% 34%, transparent 56%, rgba(0,0,0,0.5) 100%);
+        }
+
+        /* Refined header: hairline gold glow */
+        header { box-shadow: 0 1px 0 rgba(245,191,36,0.08), 0 8px 22px -14px rgba(0,0,0,0.65); }
+
+        /* Gentle elevation + inner highlight on the top-level cards */
+        #view-practice > div, #view-528 > div, #view-sutta > div,
+        #view-merit > div, #view-mala > div {
+            box-shadow: 0 14px 36px -20px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.035);
+        }
+
+        /* Hero lotus — meditative pulsing aura + expanding ring */
+        #hero-bead-btn { isolation: isolate; }
+        #hero-bead-btn::before {
+            content: ''; position: absolute; inset: -18px; border-radius: 9999px; z-index: -1;
+            background: radial-gradient(circle, rgba(var(--bv-glow),0.48), transparent 70%);
+            filter: blur(8px); animation: bvHalo 3.4s ease-in-out infinite;
+        }
+        #hero-bead-btn::after {
+            content: ''; position: absolute; inset: -5px; border-radius: 9999px; z-index: -1;
+            border: 1px solid rgba(var(--bv-glow),0.5); animation: bvRing 2.9s ease-out infinite;
+        }
+        @keyframes bvHalo { 0%,100% { opacity: .5; transform: scale(.95); } 50% { opacity: .9; transform: scale(1.05); } }
+        @keyframes bvRing { 0% { opacity: .6; transform: scale(1); } 100% { opacity: 0; transform: scale(1.4); } }
+
+        /* Recitation card — elegant surface, gold top-accent, airier Pali/Burmese */
+        #recitation-box {
+            background: linear-gradient(180deg, rgba(30,27,24,0.92), rgba(12,10,9,0.96)) !important;
+            box-shadow: 0 12px 30px -16px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.04);
+        }
+        #recitation-box::before {
+            content: ''; position: absolute; left: 22%; right: 22%; top: 0; height: 2px; border-radius: 2px;
+            background: linear-gradient(90deg, transparent, rgba(var(--bv-glow),0.8), transparent);
+        }
+        #recitation-pali { letter-spacing: 0.015em; line-height: 2.05; }
+        #recitation-burmese { line-height: 2.18; }
+
+        /* Smooth view transition on tab switch */
+        @keyframes bvRise { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+        #main-container > div:not(.hidden) { animation: bvRise 0.4s cubic-bezier(0.22,1,0.36,1) both; }
+
+        /* Soften all card transitions */
+        #main-container [class*="rounded-"] { transition: border-color .25s ease, box-shadow .25s ease, background .25s ease; }
     </style>
 </head>
-<body id="app-body" class="bg-stone-950 text-stone-100 h-full flex flex-col justify-between overflow-x-hidden selection:bg-amber-500 selection:text-stone-950">
+<body id="app-body" class="bg-stone-950 text-stone-100 h-full flex flex-col justify-between overflow-x-hidden selection:bg-amber-500 selection:text-stone-950 bv-metta">
 
     <!-- TOP HEADER BAR -->
     <header class="sticky top-0 z-40 bg-stone-950/90 backdrop-blur-md border-b border-stone-800/80 px-4 py-2.5 flex items-center justify-between">
@@ -271,7 +336,7 @@
             </div>
 
             <!-- Main Contemplation & Recitation Card (With Quick Tap Counter built-in for Mobile!) -->
-            <div class="rounded-3xl bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-950 border border-amber-500/30 p-4 sm:p-6 shadow-2xl relative overflow-hidden">
+            <div id="practice-card" class="rounded-3xl bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-950 border border-amber-500/30 p-4 sm:p-6 shadow-2xl relative overflow-hidden">
                 <div class="flex items-center justify-between mb-3">
                     <span class="text-xs font-semibold text-amber-300 flex items-center gap-1.5">
                         <i class="ph-fill ph-book-open-text"></i>
@@ -302,7 +367,7 @@
                 </div>
 
                 <!-- Recitation Box -->
-                <div class="p-4 sm:p-5 rounded-2xl bg-stone-950 border border-stone-800 space-y-3 myanmar-text text-center">
+                <div id="recitation-box" class="p-4 sm:p-5 rounded-2xl bg-stone-950 border border-stone-800 space-y-3 myanmar-text text-center">
                     <div id="target-display-label" class="inline-block px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 text-xs font-semibold">
                         [၁] မိမိကိုယ်တိုင် (အတ္တာ)
                     </div>
@@ -316,7 +381,7 @@
 
                 <!-- Huge Tap Counter Button for Mobile Practice -->
                 <div class="mt-4 flex flex-col items-center justify-center">
-                    <button onclick="incrementBead()" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 p-1.5 shadow-2xl shadow-amber-500/30 active:scale-95 transition group relative">
+                    <button id="hero-bead-btn" onclick="incrementBead()" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 p-1.5 shadow-2xl shadow-amber-500/30 active:scale-95 transition group relative">
                         <div class="w-full h-full rounded-full bg-stone-950 flex flex-col items-center justify-center border-2 border-amber-400/60 group-hover:bg-stone-900 transition">
                             <i class="ph-fill ph-lotus text-amber-400 text-2xl sm:text-3xl float-anim"></i>
                             <span id="mala-count-big" class="text-xl sm:text-2xl font-bold font-mono text-amber-300 mt-0.5">0</span>
@@ -1354,6 +1419,9 @@
 
         function switchMode(mode) {
             currentMode = mode;
+            const bodyEl = document.getElementById('app-body');
+            ['metta', 'karuna', 'mudita', 'upekkha'].forEach(m => bodyEl.classList.remove('bv-' + m));
+            bodyEl.classList.add('bv-' + mode);
             currentTargetIndex = 0;
             currentPhraseIndex = 0;
             customTargetName = '';
