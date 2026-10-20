@@ -52,6 +52,10 @@
     'invoices.v1',
     'invoices.profile',
     'resume.v1',
+    'brahmavihara_stats_v1',
+    'brahmavihara_saved_targets',
+    'brahmavihara_vow_duration',
+    'brahmavihara_vow_days',
   ];
 
   // Local sync bookkeeping (never synced themselves)

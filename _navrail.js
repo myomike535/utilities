@@ -94,6 +94,7 @@
       { href: 'jataka550.html',                      icon: 'scroll',     label: 'Jataka 550',      color: '#b8860b' },
       { href: 'tipitaka.html',                       icon: 'book',       label: 'Tipiṭaka',        color: '#8b6f47' },
       { href: 'MalaCounter.html',                    icon: 'mala',       label: 'ပုတီးစိပ်',        color: '#c62d2d' },
+      { href: 'Brahmavihara.html',                   icon: 'study',      label: 'ဗြဟ္မစိုရ် ၄ ပါး',  color: '#d97706' },
       { href: 'MeditationTimer.html',                icon: 'study',      label: 'ကမ္မဋ္ဌာန်း',       color: '#8b6f47' },
       { href: 'Chanting.html',                       icon: 'book',       label: 'ဘုရားရှိခိုး',      color: '#b8860b' },
       { href: 'MeritJournal.html',                   icon: 'tasks',      label: 'ကုသိုလ်မှတ်တမ်း',   color: '#c62d2d' },

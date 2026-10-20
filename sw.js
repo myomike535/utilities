@@ -3,7 +3,7 @@
 // offline fallback for navigation to any cached tool.
 // Bump CACHE_VERSION to force clients to fetch fresh copies.
 
-const CACHE_VERSION = 'utilities-v122';
+const CACHE_VERSION = 'utilities-v123';
 const STATIC_CACHE = `${CACHE_VERSION}-static`;
 const RUNTIME_CACHE = `${CACHE_VERSION}-runtime`;
 
@@ -24,6 +24,7 @@ const PRECACHE_URLS = [
   './jataka550.html',
   './tipitaka.html',
   './MalaCounter.html',
+  './Brahmavihara.html',
   './MeditationTimer.html',
   './Chanting.html',
   './MeritJournal.html',
@@ -69,6 +70,10 @@ const PRECACHE_URLS = [
   './tailwind-play.js',
   './fa-all.min.css',
   './webfonts/fa-solid-900.woff2',
+  './phosphor-regular.css',
+  './phosphor-fill.css',
+  './Phosphor.woff2',
+  './Phosphor-Fill.woff2',
   './fonts-myanmar.css',
   './webfonts/noto-myanmar.woff2',
   './webfonts/noto-myanmar-latin-ext.woff2',

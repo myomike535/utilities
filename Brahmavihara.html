@@ -1,0 +1,2053 @@
+<!DOCTYPE html>
+<html lang="my" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ဗြဟ္မစိုရ်တရား (၄) ပါး ပွားများခြင်း (Mobile Edition)</title>
+    <!-- Suite offline assets (no CDN — fully offline PWA) -->
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="tailwind-play.js"></script>
+    <link rel="stylesheet" href="phosphor-regular.css">
+    <link rel="stylesheet" href="phosphor-fill.css">
+    <link rel="stylesheet" href="fonts-myanmar.css">
+    <link rel="stylesheet" href="_effects.css">
+    <link rel="stylesheet" href="_design.css">
+    <style>
+        body {
+            font-family: 'Pyidaungsu', 'Noto Sans Myanmar', 'Padauk', 'Inter', system-ui, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes ripple {
+            0% { transform: scale(0.95); opacity: 1; }
+            50% { transform: scale(1.05); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .ripple-anim {
+            animation: ripple 0.25s ease-in-out;
+        }
+        @keyframes floatSlow {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        .float-anim {
+            animation: floatSlow 3s ease-in-out infinite;
+        }
+        /* Safe bottom spacing for mobile navigation */
+        .pb-safe-nav {
+            padding-bottom: 5.75rem;
+        }
+        body.font-scale-lg .myanmar-text {
+            font-size: 1.15rem !important;
+            line-height: 2.15 !important;
+        }
+        body.font-scale-xl .myanmar-text {
+            font-size: 1.32rem !important;
+            line-height: 2.25 !important;
+        }
+        /* This app has its OWN 5-tab bottom nav — suppress the suite nav-rail's
+           mobile bottom bar so they don't stack. Desktop left rail stays. */
+        @media (max-width: 640px) {
+            #app-body .nr-bottom-nav, #app-body .nr-mobile-hamburger { display: none !important; }
+            #app-body { padding-bottom: 0 !important; }
+        }
+    </style>
+</head>
+<body id="app-body" class="bg-stone-950 text-stone-100 h-full flex flex-col justify-between overflow-x-hidden selection:bg-amber-500 selection:text-stone-950">
+
+    <!-- TOP HEADER BAR -->
+    <header class="sticky top-0 z-40 bg-stone-950/90 backdrop-blur-md border-b border-stone-800/80 px-4 py-2.5 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+            <div class="w-9 h-9 rounded-2xl bg-gradient-to-br from-amber-500 to-amber-700 flex items-center justify-center text-stone-950 shadow-lg shadow-amber-500/20">
+                <i class="ph-fill ph-lotus text-lg"></i>
+            </div>
+            <div>
+                <h1 class="text-xs sm:text-sm font-bold text-amber-200 tracking-wide">ဗြဟ္မစိုရ် (၄) ပါး ဘာဝနာ</h1>
+                <p class="text-[10px] text-stone-400">မေတ္တာ၊ ကရုဏာ၊ မုဒိတာ၊ ဥပေက္ခာ</p>
+            </div>
+        </div>
+
+        <!-- Quick Mobile Toggles: Kyeezee Bell, Vibration, Total Count -->
+        <div class="flex items-center gap-1.5">
+            <a href="index.html" class="w-9 h-9 rounded-xl bg-stone-900/90 active:scale-90 border border-stone-800 text-stone-400 flex items-center justify-center transition" title="မူလစာမျက်နှာသို့ (Home)">
+                <i class="ph ph-house text-base"></i>
+            </a>
+            <button onclick="toggleWakeLock()" id="wakelock-btn" class="w-9 h-9 rounded-xl bg-stone-900/90 active:scale-90 border border-stone-800 text-stone-400 flex items-center justify-center transition" title="ဖုန်းမျက်နှာပြင် မပိတ်စေရန် (Keep Screen On)">
+                <i id="wakelock-icon" class="ph-fill ph-device-mobile-camera text-base"></i>
+            </button>
+            <button onclick="cycleFontSize()" id="font-size-btn" class="w-9 h-9 rounded-xl bg-stone-900/90 active:scale-90 border border-stone-800 text-amber-300 flex items-center justify-center text-xs font-bold transition" title="စာလုံးအရွယ်အစား ပြောင်းရန်">
+                A+
+            </button>
+            <button onclick="playSingingBowl(false)" class="w-9 h-9 rounded-xl bg-stone-900/90 active:scale-90 border border-amber-500/30 text-amber-400 flex items-center justify-center transition" title="ကြေးစည်တီးရန်">
+                <i class="ph-fill ph-bell-ringing text-base"></i>
+            </button>
+            <button id="vibrate-toggle-btn" onclick="toggleVibration()" class="w-9 h-9 rounded-xl bg-stone-900/90 active:scale-90 border border-stone-800 text-amber-300 flex items-center justify-center transition" title="တုန်ခါမှု (Vibration)">
+                <i id="vibrate-icon" class="ph-fill ph-vibrate text-base"></i>
+            </button>
+            <button id="sound-toggle-btn" onclick="toggleSound()" class="w-9 h-9 rounded-xl bg-stone-900/90 active:scale-90 border border-stone-800 text-amber-300 flex items-center justify-center transition" title="အသံ ဖွင့်/ပိတ်">
+                <i id="sound-icon" class="ph-fill ph-speaker-high text-base"></i>
+            </button>
+            <button onclick="switchBottomTab('merit')" class="px-2.5 h-9 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 flex items-center gap-1 text-xs font-bold">
+                <i class="ph-fill ph-sparkle text-amber-400"></i>
+                <span id="header-total-count">0</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- MAIN VIEW CONTAINER -->
+    <main id="main-container" class="flex-1 max-w-xl w-full mx-auto p-4 pb-safe-nav overflow-y-auto">
+
+        <!-- ========================================== -->
+        <!-- TAB 1: ပွားများရန် (PRACTICE / CONTEMPLATE) -->
+        <!-- ========================================== -->
+        <div id="view-practice" class="space-y-4">
+            <!-- 4 Brahmavihara Mode Switcher Tabs -->
+            <div class="grid grid-cols-4 gap-1.5 p-1 rounded-2xl bg-stone-900 border border-stone-800">
+                <button onclick="switchMode('metta')" id="mode-btn-metta" class="py-2 px-1 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs flex flex-col items-center justify-center transition shadow">
+                    <span class="text-sm">💛</span>
+                    <span class="mt-0.5">မေတ္တာ</span>
+                </button>
+                <button onclick="switchMode('karuna')" id="mode-btn-karuna" class="py-2 px-1 rounded-xl text-stone-300 font-medium text-xs flex flex-col items-center justify-center transition">
+                    <span class="text-sm">💙</span>
+                    <span class="mt-0.5">ကရုဏာ</span>
+                </button>
+                <button onclick="switchMode('mudita')" id="mode-btn-mudita" class="py-2 px-1 rounded-xl text-stone-300 font-medium text-xs flex flex-col items-center justify-center transition">
+                    <span class="text-sm">💚</span>
+                    <span class="mt-0.5">မုဒိတာ</span>
+                </button>
+                <button onclick="switchMode('upekkha')" id="mode-btn-upekkha" class="py-2 px-1 rounded-xl text-stone-300 font-medium text-xs flex flex-col items-center justify-center transition">
+                    <span class="text-sm">🤍</span>
+                    <span class="mt-0.5">ဥပေက္ခာ</span>
+                </button>
+            </div>
+
+            <!-- Preliminary Preparation Drawer (Refuge, Precepts, Khadapana) -->
+            <div class="rounded-2xl bg-stone-900/80 border border-amber-500/25 p-3.5 space-y-2.5 myanmar-text">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                        <i class="ph-fill ph-hands-praying text-sm"></i>
+                        ဘာဝနာ မစတင်မီ ပဏာမ (၃) ဆင့်
+                    </span>
+                    <button onclick="togglePreliminaryModal()" id="prelim-toggle-btn" class="text-[11px] text-amber-400 hover:text-amber-300 underline font-medium">
+                        ဖွင့်ဖတ်ရန် ▼
+                    </button>
+                </div>
+                <div id="prelim-content" class="hidden space-y-2 pt-1 text-xs border-t border-stone-800">
+                    <div class="p-2.5 rounded-xl bg-stone-950 border border-stone-800 space-y-1">
+                        <div class="text-amber-300 font-bold">၁။ နမောတဿ (၃) ကြိမ်</div>
+                        <p class="text-stone-300">"နမော တဿ ဘဂဝတော အရဟတော သမ္မာသမ္ဗုဒ္ဓဿ" (၃) ကြိမ် ရွတ်ဆို၍ ဘုရားရှိခိုးပါ။</p>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-stone-950 border border-stone-800 space-y-1">
+                        <div class="text-amber-300 font-bold">၂။ သရဏဂုံနှင့် ငါးပါးသီလ ခံယူဆောက်တည်ခြင်း</div>
+                        <p class="text-stone-300">ဗုဒ္ဓံ သရဏံ ဂစ္ဆာမိ ... စသည်ဖြင့် ဆောက်တည်ပြီး ငါးပါးသီလကို လုံခြုံအောင် နှလုံးသွင်းပါ။</p>
+                    </div>
+                    <div class="p-2.5 rounded-xl bg-stone-950 border border-stone-800 space-y-1">
+                        <div class="text-amber-300 font-bold">၃။ ခမာပန (အပြစ်မှ ဝန်ချတောင်းပန်ခြင်း)</div>
+                        <p class="text-stone-300">"ကာယကမ္မံ ဝစီကမ္မံ မနောကမ္မံ၊ သဗ္ဗေ အပရာဓံ ခမထ မေ ဘန္တေ" - သတ္တဝါအားလုံးအပေါ် လွန်ကျူးခဲ့သမျှ ခွင့်လွှတ်ကြပါစေဟု ဝန်ချပါ။</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mode Details Box (Characteristics & Enemies) -->
+            <div id="mode-details-card" class="rounded-2xl bg-gradient-to-br from-amber-950/30 via-stone-900 to-stone-900 border border-amber-500/30 p-4 space-y-2.5 myanmar-text">
+                <div class="flex items-center justify-between">
+                    <h2 id="mode-title" class="text-sm sm:text-base font-bold text-amber-200">မေတ္တာဘာဝနာ (သတ္တဝါတို့၏ ချမ်းသာလိုခြင်း)</h2>
+                    <span id="mode-badge" class="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-bold">အနီးရန်သူ: ရာဂ / အဝေးရန်သူ: ဒေါသ</span>
+                </div>
+                <p id="mode-desc" class="text-xs text-stone-300 leading-relaxed">
+                    သတ္တဝါအားလုံးတို့အား မိမိ၏ တစ်ဦးတည်းသော ရင်သွေးရင်နှစ်ငယ်အပေါ် ထားရှိသည့် မေတ္တာစက်ကဲ့သို့ အပိုင်းအခြားမရှိ (အပ္ပမာဏာ) ဖြန့်ကြက်ပွားများခြင်း ဖြစ်ပါသည်။
+                </p>
+            </div>
+
+            <!-- Target Selection & Custom Input Bar -->
+            <div class="rounded-2xl bg-stone-900/90 border border-stone-800 p-3.5 space-y-3 myanmar-text">
+                <div class="flex items-center justify-between text-xs">
+                    <span class="font-semibold text-amber-300 flex items-center gap-1.5">
+                        <i class="ph-fill ph-users-three text-sm"></i>
+                        မေတ္တာပို့လွှတ်မည့် ပုဂ္ဂိုလ် (Target Selection)
+                    </span>
+                    <button onclick="cycleTargetNext()" class="text-[11px] text-stone-400 hover:text-stone-200 bg-stone-800 px-2 py-1 rounded-lg">
+                        အလှည့်ကျပြောင်းရန် &rarr;
+                    </button>
+                </div>
+
+                <!-- 5 Core Target Levels (Theravada Visuddhimagga Flow) -->
+                <div id="target-buttons-grid" class="grid grid-cols-5 gap-1 text-[11px]">
+                    <!-- Populated via JS -->
+                </div>
+
+                <!-- Specific Person Input -->
+                <div class="flex gap-2 items-center">
+                    <div class="relative flex-1">
+                        <i class="ph ph-user-focus absolute left-3 top-1/2 -translate-y-1/2 text-stone-400 text-sm"></i>
+                        <input
+                            type="text"
+                            id="custom-target-input"
+                            oninput="updateCustomTarget(this.value)"
+                            placeholder="သီးသန့်အမည် ထည့်ရန် (ဥပမာ - မိဘနှစ်ပါး၊ မောင်ဖြူ...)"
+                            class="w-full pl-9 pr-3 py-2 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-100 placeholder-stone-500 focus:outline-none focus:border-amber-500/60"
+                        >
+                    </div>
+                    <button onclick="saveCurrentTargetName()" class="px-2.5 py-2 rounded-xl bg-amber-500/20 border border-amber-500/40 text-xs text-amber-300 font-semibold shrink-0 active:scale-95" title="အမည်မှတ်သားထားရန်">
+                        + မှတ်မည်
+                    </button>
+                    <button onclick="clearCustomTarget()" id="clear-target-btn" class="hidden px-2.5 py-2 rounded-xl bg-stone-800 text-xs text-stone-300 shrink-0">
+                        ဖျက်မည်
+                    </button>
+                </div>
+
+                <!-- Saved Quick Target Names Bar -->
+                <div class="pt-1">
+                    <div class="flex items-center justify-between text-[11px] text-stone-400 mb-1.5">
+                        <span>အမြန်ရွေးချယ်ရန် ပုဂ္ဂိုလ်များ (နှိပ်၍ မေတ္တာပို့ပါ)</span>
+                    </div>
+                    <div id="saved-targets-list" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+
+                <!-- 7-Day Beings (ခုနစ်ရက် သားသမီး နေ့နံအလိုက် မေတ္တာပို့) -->
+                <div class="pt-2 border-t border-stone-800/70">
+                    <div class="flex items-center justify-between text-[11px] text-amber-300/90 mb-1.5">
+                        <span class="flex items-center gap-1 font-medium">
+                            <i class="ph-fill ph-calendar-star"></i>
+                            ခုနစ်ရက် သားသမီး (နေ့နံအလိုက် ရွေးချယ်ပွားရန်)
+                        </span>
+                        <button onclick="start7DayCycle()" id="cycle-7day-btn" class="text-[10px] px-2 py-0.5 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 font-semibold active:scale-95">
+                            နေ့စုံ အလှည့်ကျပို့မည်
+                        </button>
+                    </div>
+                    <div id="day-targets-list" class="flex gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Authentic Buddhist Guided Sequential Mode (အစဉ်လိုက် ဘာဝနာလမ်းညွှန် နှင့် သီမာသမ္ဘေဒ) -->
+            <div class="rounded-2xl bg-gradient-to-r from-amber-950/35 via-stone-900 to-stone-900 border border-amber-500/25 p-3.5 space-y-2.5">
+                <div class="flex items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <div class="w-8 h-8 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-300 shrink-0">
+                            <i class="ph-fill ph-steps text-base"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-xs font-bold text-amber-200">ထေရဝါဒ အစဉ်လိုက် ပွားများနည်း (Guided Flow)</h3>
+                            <p class="text-[10px] text-stone-400" id="guided-flow-status">ပုတီးချတိုင်း ပုဂ္ဂိုလ်အဆင့်နှင့် စာသား အလိုအလျောက် ပြောင်းပေးစနစ်</p>
+                        </div>
+                    </div>
+                    <button onclick="toggleGuidedFlow()" id="guided-flow-btn" class="px-3 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-amber-300 text-xs font-bold shrink-0 active:scale-95">
+                        စတင်မည်
+                    </button>
+                </div>
+
+                <!-- Simasambheda (Breaking the Barriers between 4 classes of people) -->
+                <div id="simasambheda-box" class="hidden pt-2 border-t border-stone-800/80 space-y-2 myanmar-text">
+                    <div class="flex items-center justify-between text-[11px]">
+                        <span class="text-amber-300 font-semibold">သီမာသမ္ဘေဒ (ပုဂ္ဂိုလ် ၄ ဦး စိတ်ထားတူညီမှု လေ့ကျင့်ခန်း)</span>
+                        <span id="guided-step-badge" class="px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 text-[10px] font-mono">အဆင့် ၁/၅</span>
+                    </div>
+                    <p class="text-[11px] text-stone-300 bg-stone-950/90 p-2.5 rounded-xl border border-stone-800 leading-relaxed" id="simasambheda-desc">
+                        ဝိသုဒ္ဓိမဂ်ကျင့်စဉ်အရ (၁) မိမိကိုယ်တိုင်၊ (၂) ချစ်ခင်လေးစားသူ၊ (၃) သာမန်ပုဂ္ဂိုလ်၊ (၄) မနှစ်သက်သူ/ရန်သူ တို့အပေါ် စိတ်အပိုင်းအခြား မထားဘဲ တန်းတူညီမျှ ပွားများနိုင်မှသာ ဥပစာရသမာဓိနှင့် ဈာန်သမာဓိသို့ ရောက်ရှိနိုင်ပါသည်။
+                    </p>
+                </div>
+
+                <div class="pt-2 border-t border-stone-800/70 flex items-center justify-between gap-2">
+                    <span class="text-[11px] text-stone-300 flex items-center gap-1.5">
+                        <i class="ph-fill ph-compass text-amber-400 text-sm"></i>
+                        <span>အရပ် (၁၀) မျက်နှာ မေတ္တာစက်ဝိုင်းဖြင့် ပွားများလိုပါသလား?</span>
+                    </span>
+                    <button onclick="open10DirectionsSection()" class="px-2.5 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[11px] font-semibold shrink-0 active:scale-95">
+                        အရပ် ၁၀ မျက်နှာသို့ &rarr;
+                    </button>
+                </div>
+            </div>
+
+            <!-- Main Contemplation & Recitation Card (With Quick Tap Counter built-in for Mobile!) -->
+            <div class="rounded-3xl bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-950 border border-amber-500/30 p-4 sm:p-6 shadow-2xl relative overflow-hidden">
+                <div class="flex items-center justify-between mb-3">
+                    <span class="text-xs font-semibold text-amber-300 flex items-center gap-1.5">
+                        <i class="ph-fill ph-book-open-text"></i>
+                        နှလုံးသွင်း ပွားများရန် စာသား
+                    </span>
+                    <div class="flex items-center gap-1.5">
+                        <button onclick="toggleBreathGuide()" id="breath-guide-toggle" class="px-2 py-1 rounded-lg bg-stone-800 border border-stone-700 text-[10px] text-amber-300 flex items-center gap-1">
+                            <i class="ph-fill ph-wind"></i>
+                            <span id="breath-cue-badge">ဝင်လေ/ထွက်လေ</span>
+                        </button>
+                        <button onclick="prevPhrase()" class="w-8 h-8 rounded-xl bg-stone-800 active:scale-90 flex items-center justify-center text-stone-200">
+                            <i class="ph-bold ph-caret-left"></i>
+                        </button>
+                        <span id="phrase-counter" class="text-xs text-stone-300 font-mono px-1">1 / 5</span>
+                        <button onclick="nextPhrase()" class="w-8 h-8 rounded-xl bg-stone-800 active:scale-90 flex items-center justify-center text-stone-200">
+                            <i class="ph-bold ph-caret-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Synchronized Anapana + Brahmavihara Breath Banner (Hidden by default) -->
+                <div id="breath-guide-banner" class="hidden mb-3 p-2.5 rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-between text-xs">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+                        <span id="live-breath-instruction" class="font-semibold text-amber-200">ဝင်လေရှူစဉ် - "ကျွန်ုပ် ချမ်းသာပါစေ"</span>
+                    </div>
+                    <span class="text-[10px] text-stone-400">အာနာပါန + ဘာဝနာ</span>
+                </div>
+
+                <!-- Recitation Box -->
+                <div class="p-4 sm:p-5 rounded-2xl bg-stone-950 border border-stone-800 space-y-3 myanmar-text text-center">
+                    <div id="target-display-label" class="inline-block px-3 py-1 rounded-full bg-amber-500/15 text-amber-300 text-xs font-semibold">
+                        [၁] မိမိကိုယ်တိုင် (အတ္တာ)
+                    </div>
+                    <div id="recitation-pali" class="text-xs sm:text-sm text-amber-200/90 font-medium tracking-wide">
+                        "အဟံ အဝေရော ဟောမိ၊ အဗျာပဇ္ဇော ဟောမိ၊ အနီဃော ဟောမိ၊ သုခီ အတ္တာနံ ပရိဟရာမိ။"
+                    </div>
+                    <div id="recitation-burmese" class="text-sm sm:text-base text-amber-100 font-bold leading-relaxed">
+                        "ကျွန်ုပ်သည် ဘေးရန်ကင်းပါစေ၊ စိုးရိမ်ကြောင့်ကြ ကင်းပါစေ၊ ဆင်းရဲဒုက္ခ ကင်းပါစေ၊ ကိုယ်စိတ်နှစ်ဖြာ ချမ်းသာစွာဖြင့် မိမိခန္ဓာဝန်ကို ဆောင်ရွက်နိုင်ပါစေ။"
+                    </div>
+                </div>
+
+                <!-- Huge Tap Counter Button for Mobile Practice -->
+                <div class="mt-4 flex flex-col items-center justify-center">
+                    <button onclick="incrementBead()" class="w-28 h-28 sm:w-32 sm:h-32 rounded-full bg-gradient-to-br from-amber-500 via-amber-600 to-amber-700 p-1.5 shadow-2xl shadow-amber-500/30 active:scale-95 transition group relative">
+                        <div class="w-full h-full rounded-full bg-stone-950 flex flex-col items-center justify-center border-2 border-amber-400/60 group-hover:bg-stone-900 transition">
+                            <i class="ph-fill ph-lotus text-amber-400 text-2xl sm:text-3xl float-anim"></i>
+                            <span id="mala-count-big" class="text-xl sm:text-2xl font-bold font-mono text-amber-300 mt-0.5">0</span>
+                            <span class="text-[9px] text-stone-400 tracking-wider">ပုတီးချရန် နှိပ်ပါ</span>
+                        </div>
+                    </button>
+                    <p class="text-[11px] text-stone-400 mt-2 text-center">ဖုန်းမျက်နှာပြင် မည်သည့်နေရာကိုမဆို (သို့မဟုတ် ကြာပွင့်ကို) နှိပ်၍ ပုတီးစိပ်နိုင်ပါသည်</p>
+                </div>
+
+                <!-- Mala Stats & Auto-Bead Pacer -->
+                <div class="w-full grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-stone-800 text-xs">
+                    <div class="p-2.5 rounded-2xl bg-stone-950 border border-stone-800/80">
+                        <div class="text-[11px] text-stone-400">ပြီးစီးသည့်ပတ်</div>
+                        <div class="text-base font-bold text-amber-300 mt-0.5"><span id="completed-rounds">0</span> ပတ်</div>
+                    </div>
+                    <div class="p-2.5 rounded-2xl bg-stone-950 border border-stone-800/80">
+                        <div class="text-[11px] text-stone-400">ပန်းတိုင်</div>
+                        <div class="text-base font-bold text-stone-200 mt-0.5"><span id="target-display">108</span> လုံး</div>
+                    </div>
+                    <button onclick="resetCurrentBeads()" class="p-2.5 rounded-2xl bg-stone-950 active:bg-stone-800 border border-stone-800/80 flex flex-col items-center justify-center text-stone-400">
+                        <i class="ph ph-arrow-counter-clockwise text-base"></i>
+                        <span class="text-[11px] mt-0.5">အသစ်ပြန်စ</span>
+                    </button>
+                </div>
+
+                <div class="w-full mt-3 pt-3 border-t border-stone-800/80 flex items-center justify-between gap-2">
+                    <div class="text-left">
+                        <div class="text-xs font-semibold text-amber-300 flex items-center gap-1">
+                            <i class="ph-fill ph-music-notes"></i>
+                            <span>ပုတီးစိပ် အသံအမျိုးအစား</span>
+                        </div>
+                        <p class="text-[10px] text-stone-400">ပုတီးတစ်လုံးချတိုင်း မြည်မည့်အသံ</p>
+                    </div>
+                    <div class="flex items-center gap-1 bg-stone-950 p-1 rounded-xl border border-stone-800">
+                        <button onclick="setSoundProfile('kyeezee')" id="sound-prof-kyeezee" class="px-2.5 py-1 rounded-lg bg-amber-500 text-stone-950 font-bold text-[11px] transition">
+                            ကြေးစည်
+                        </button>
+                        <button onclick="setSoundProfile('wood')" id="sound-prof-wood" class="px-2.5 py-1 rounded-lg text-stone-400 font-medium text-[11px] transition">
+                            အုန်းမောင်း
+                        </button>
+                        <button onclick="setSoundProfile('bell')" id="sound-prof-bell" class="px-2.5 py-1 rounded-lg text-stone-400 font-medium text-[11px] transition">
+                            ခေါင်းလောင်း
+                        </button>
+                    </div>
+                </div>
+
+                <div class="w-full mt-3 pt-3 border-t border-stone-800/80 flex items-center justify-between gap-2">
+                    <div class="text-left">
+                        <div class="text-xs font-semibold text-amber-300 flex items-center gap-1">
+                            <i class="ph-fill ph-metronome"></i>
+                            <span>အလိုအလျောက် ပုတီးချစနစ် (Auto-Pacer)</span>
+                        </div>
+                        <p class="text-[10px] text-stone-400">လက်ဖြင့်နှိပ်ရန်မလိုဘဲ စက္ကန့်အလိုက် အချက်ပြပေးသည်</p>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <select id="auto-pace-seconds" onchange="changeAutoPaceInterval()" class="bg-stone-950 border border-stone-800 rounded-xl px-2 py-1.5 text-xs text-stone-200">
+                            <option value="4">၄ စက္ကန့်</option>
+                            <option value="6" selected>၆ စက္ကန့်</option>
+                            <option value="8">၈ စက္ကန့်</option>
+                            <option value="10">၁၀ စက္ကန့်</option>
+                        </select>
+                        <button id="auto-pace-btn" onclick="toggleAutoPacer()" class="px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold">
+                            ဖွင့်မည်
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 2: ပုတီးစိပ် (MALA COUNTER) -->
+        <!-- ========================================== -->
+        <div id="view-mala" class="hidden space-y-4 myanmar-text">
+            <div class="rounded-3xl bg-stone-900 border border-stone-800 p-5 text-center space-y-4 shadow-xl">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                        <i class="ph-fill ph-circle-dashed text-base"></i>
+                        ဒစ်ဂျစ်တယ် ပုတီး (Mala Beads)
+                    </span>
+                    <div class="flex gap-1.5 bg-stone-950 p-1 rounded-xl border border-stone-800 text-xs">
+                        <button onclick="setMalaTarget(27)" id="mala-target-27" class="px-3 py-1 rounded-lg text-stone-400 font-medium">၂၇</button>
+                        <button onclick="setMalaTarget(54)" id="mala-target-54" class="px-3 py-1 rounded-lg text-stone-400 font-medium">၅၄</button>
+                        <button onclick="setMalaTarget(108)" id="mala-target-108" class="px-3 py-1 rounded-lg bg-amber-500 text-stone-950 font-bold">၁၀၈</button>
+                    </div>
+                </div>
+
+                <div class="py-6 flex flex-col items-center justify-center relative">
+                    <div class="w-44 h-44 rounded-full border-4 border-dashed border-amber-500/40 flex flex-col items-center justify-center bg-stone-950 shadow-2xl relative">
+                        <span id="mala-visual-count" class="text-4xl font-bold font-mono text-amber-300">0</span>
+                        <span class="text-xs text-stone-400 mt-1">/ <span id="mala-target-label">108</span> လုံး</span>
+                        <div class="absolute -bottom-2 px-3 py-0.5 rounded-full bg-amber-500 text-stone-950 text-[10px] font-bold">
+                            ပတ်လည် <span id="mala-rounds-label">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button onclick="incrementBead()" class="py-3 rounded-2xl bg-amber-500 hover:bg-amber-400 text-stone-950 font-bold text-sm flex items-center justify-center gap-2 shadow-lg active:scale-95 transition">
+                        <i class="ph-fill ph-plus-circle text-lg"></i>
+                        <span>ပုတီးတစ်လုံးချမည်</span>
+                    </button>
+                    <button onclick="resetCurrentBeads()" class="py-3 rounded-2xl bg-stone-800 hover:bg-stone-700 text-stone-300 font-semibold text-xs flex items-center justify-center gap-1.5">
+                        <i class="ph ph-arrow-counter-clockwise text-base"></i>
+                        <span>အစမှပြန်စမည်</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Timer & Zen Sound Box -->
+            <div class="rounded-2xl bg-stone-900 border border-stone-800 p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                        <i class="ph-fill ph-timer text-base"></i>
+                        ဘာဝနာ အချိန်မှတ်စက် (Meditation Timer)
+                    </span>
+                    <span id="timer-display" class="font-mono text-sm font-bold text-amber-400">15:00</span>
+                </div>
+                <div class="flex gap-2">
+                    <button onclick="startTimer(5)" class="flex-1 py-1.5 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-300 font-medium">၅ မိနစ်</button>
+                    <button onclick="startTimer(15)" class="flex-1 py-1.5 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-300 font-medium">၁၅ မိနစ်</button>
+                    <button onclick="startTimer(30)" class="flex-1 py-1.5 rounded-xl bg-stone-950 border border-stone-800 text-xs text-stone-300 font-medium">၃၀ မိနစ်</button>
+                    <button onclick="stopTimer()" class="px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-xs text-rose-300 font-bold">ရပ်ရန်</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 3: ၅၂၈ မေတ္တာ နှင့် အရပ် (၁၀) မျက်နှာ (528 & 10-DIR) -->
+        <!-- ========================================== -->
+        <div id="view-528" class="hidden space-y-4">
+            <div class="rounded-2xl bg-gradient-to-r from-amber-950/40 via-stone-900 to-stone-900 border border-amber-500/30 p-4 space-y-3 myanmar-text">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-amber-200 flex items-center gap-1.5">
+                            <i class="ph-fill ph-globe-hemisphere-east text-base text-amber-400"></i>
+                            (၅၂၈) သွယ် မေတ္တာပွားများနည်း (Patisambhidamagga Flow)
+                        </h3>
+                        <p class="text-[11px] text-stone-400">အနောဓိသ (၅) ဦး + ဩဓိသ (၇) ဦး + အရပ် (၁၀) မျက်နှာ</p>
+                    </div>
+                    <span id="badge-528-step" class="px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-mono font-bold">
+                        ၁ / ၁၂
+                    </span>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-stone-950 border border-stone-800 space-y-2">
+                    <div class="flex items-center justify-between text-xs border-b border-stone-800 pb-2">
+                        <span id="active-528-category" class="text-amber-300 font-bold">၁။ အနောဓိသ မေတ္တာ (အပိုဒ် - ၁)</span>
+                        <span id="active-528-tag" class="text-stone-400 text-[10px]">သတ္တဝါအားလုံး</span>
+                    </div>
+                    <div id="active-528-pali" class="text-xs text-amber-100/90 font-medium">
+                        "သဗ္ဗေ သတ္တာ အဝေရာ ဟောန္တု..."
+                    </div>
+                    <p id="active-528-burmese" class="text-xs sm:text-sm text-amber-200 font-semibold leading-relaxed">
+                        "သတ္တဝါအားလုံးတို့သည် ဘေးရန်ကင်းကြပါစေ..."
+                    </p>
+                </div>
+
+                <div class="pt-2 flex gap-2">
+                    <button onclick="prev528Person()" class="px-3 py-2.5 rounded-xl bg-stone-800 text-stone-300 text-xs font-medium">
+                        <i class="ph-bold ph-caret-left"></i> ရှေ့ပုဂ္ဂိုလ်
+                    </button>
+                    <button onclick="chant528AndNext()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-rose-500 text-stone-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow">
+                        <i class="ph-fill ph-hands-praying"></i>
+                        <span>မေတ္တာပို့ပြီး နောက်တစ်ဦးသို့</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="ten-directions-card" class="rounded-3xl bg-gradient-to-b from-stone-900 via-stone-900/95 to-stone-950 border border-amber-500/35 p-4 space-y-4 myanmar-text shadow-xl">
+                <div class="flex items-center justify-between gap-2">
+                    <div>
+                        <h3 class="text-xs sm:text-sm font-bold text-amber-300 flex items-center gap-1.5">
+                            <i class="ph-fill ph-compass text-lg text-amber-400"></i>
+                            အရပ် (၁၀) မျက်နှာ မေတ္တာပွားများနည်း စက်ဝိုင်း
+                        </h3>
+                        <p class="text-[11px] text-stone-400">အရပ်မျက်နှာ တစ်ခုချင်းစီကို နှိပ်၍ဖြစ်စေ၊ အစဉ်လိုက်ဖြစ်စေ မေတ္တာပို့လွှတ်ပါ</p>
+                    </div>
+                    <div class="flex items-center gap-1.5">
+                        <span id="dir10-progress-badge" class="px-2.5 py-1 rounded-xl bg-amber-500/15 border border-amber-500/30 text-amber-300 text-[11px] font-bold">
+                            0 / 10 အရပ်
+                        </span>
+                        <button onclick="reset10DirProgress()" class="w-7 h-7 rounded-xl bg-stone-800 text-stone-400 hover:text-stone-200 flex items-center justify-center" title="အရပ် ၁၀ မျက်နှာ အသစ်ပြန်စရန်">
+                            <i class="ph ph-arrow-counter-clockwise text-xs"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-1.5 p-1 rounded-2xl bg-stone-950 border border-stone-800 text-[11px]">
+                    <button onclick="set10DirFormula('ananta')" id="formula-btn-ananta" class="py-1.5 px-2 rounded-xl bg-amber-500 text-stone-950 font-bold transition">
+                        ၁။ အနန္တစကြဝဠာမူ
+                    </button>
+                    <button onclick="set10DirFormula('pali')" id="formula-btn-pali" class="py-1.5 px-2 rounded-xl text-stone-300 font-medium transition">
+                        ၂။ ပါဠိတော်မူ
+                    </button>
+                    <button onclick="set10DirFormula('poem')" id="formula-btn-poem" class="py-1.5 px-2 rounded-xl text-stone-300 font-medium transition">
+                        ၃။ လင်္ကာတိုမူ
+                    </button>
+                    <button onclick="set10DirFormula('brahma4')" id="formula-btn-brahma4" class="py-1.5 px-2 rounded-xl text-stone-300 font-medium transition">
+                        ၄။ ဗြဟ္မစိုရ် (၄) ပါးတွဲ
+                    </button>
+                </div>
+
+                <div class="space-y-2">
+                    <!-- Zenith (Upward - Deva & Brahma realms) -->
+                    <button onclick="select10DirCompass(9)" id="compass-cell-9" class="w-full py-2 px-3 rounded-2xl bg-stone-950 border border-stone-800 flex items-center justify-between text-xs transition active:scale-98">
+                        <span class="flex items-center gap-1.5 font-semibold text-amber-200">
+                            <i class="ph-fill ph-arrow-circle-up text-amber-400 text-base"></i>
+                            <span>(၁၀) အထက်အရပ် (နတ်ပြည် ၆ ထပ်၊ ဗြဟ္မာ့ပြည် ၂၀)</span>
+                        </span>
+                        <span id="compass-check-9" class="text-[10px] text-stone-500 font-mono">ဥပရိမာယ ဒိသာယ</span>
+                    </button>
+
+                    <!-- 3x3 Planar Compass Grid -->
+                    <div class="grid grid-cols-3 gap-2">
+                        <!-- NW (Index 5) -->
+                        <button onclick="select10DirCompass(5)" id="compass-cell-5" class="p-2.5 rounded-2xl bg-stone-950 border border-stone-800 flex flex-col items-center justify-center text-center transition active:scale-95">
+                            <span class="text-[10px] text-stone-400">↖ အနောက်မြောက်</span>
+                            <span class="text-xs font-bold text-stone-200 mt-0.5">(၆) ထောင့်အရပ်</span>
+                        </button>
+                        <!-- North (Index 2) -->
+                        <button onclick="select10DirCompass(2)" id="compass-cell-2" class="p-2.5 rounded-2xl bg-stone-950 border border-stone-800 flex flex-col items-center justify-center text-center transition active:scale-95">
+                            <span class="text-[10px] text-amber-300">⬆️ မြောက်အရပ်</span>
+                            <span class="text-xs font-bold text-stone-100 mt-0.5">(၃) ဥတ္တရာယ</span>
+                        </button>
+                        <!-- NE (Index 6) -->
+                        <button onclick="select10DirCompass(6)" id="compass-cell-6" class="p-2.5 rounded-2xl bg-stone-950 border border-stone-800 flex flex-col items-center justify-center text-center transition active:scale-95">
+                            <span class="text-[10px] text-stone-400">↗ အရှေ့မြောက်</span>
+                            <span class="text-xs font-bold text-stone-200 mt-0.5">(၇) ထောင့်အရပ်</span>
+                        </button>
+
+                        <!-- West (Index 1) -->
+                        <button onclick="select10DirCompass(1)" id="compass-cell-1" class="p-2.5 rounded-2xl bg-stone-950 border border-stone-800 flex flex-col items-center justify-center text-center transition active:scale-95">
+                            <span class="text-[10px] text-amber-300">⬅️ အနောက်အရပ်</span>
+                            <span class="text-xs font-bold text-stone-100 mt-0.5">(၂) ပစ္ဆိမာယ</span>
+                        </button>
+                        <!-- Center (Self / Heart Anchor) -->
+                        <div class="p-2 rounded-2xl bg-gradient-to-br from-amber-500/20 to-rose-500/20 border border-amber-500/40 flex flex-col items-center justify-center text-center shadow-inner">
+                            <i class="ph-fill ph-lotus text-amber-300 text-lg animate-pulse"></i>
+                            <span class="text-[10px] font-bold text-amber-200 mt-0.5">ဗဟို (မိမိတည်ရာ)</span>
+                            <span id="compass-active-label" class="text-[9px] text-amber-300/90">၁။ အရှေ့အရပ်</span>
+                        </div>
+                        <!-- East (Index 0) -->
+                        <button onclick="select10DirCompass(0)" id="compass-cell-0" class="p-2.5 rounded-2xl bg-stone-950 border border-stone-800 flex flex-col items-center justify-center text-center transition active:scale-95">
+                            <span class="text-[10px] text-amber-300">➡️ အရှေ့အရပ်</span>
+                            <span class="text-xs font-bold text-stone-100 mt-0.5">(၁) ပုရတ္ထိမာယ</span>
+                        </button>
+
+                        <!-- SW (Index 7) -->
+                        <button onclick="select10DirCompass(7)" id="compass-cell-7" class="p-2.5 rounded-2xl bg-stone-950 border border-stone-800 flex flex-col items-center justify-center text-center transition active:scale-95">
+                            <span class="text-[10px] text-stone-400">↙ အနောက်တောင်</span>
+                            <span class="text-xs font-bold text-stone-200 mt-0.5">(၈) ထောင့်အရပ်</span>
+                        </button>
+                        <!-- South (Index 3) -->
+                        <button onclick="select10DirCompass(3)" id="compass-cell-3" class="p-2.5 rounded-2xl bg-stone-950 border border-stone-800 flex flex-col items-center justify-center text-center transition active:scale-95">
+                            <span class="text-[10px] text-amber-300">⬇️ တောင်အရပ်</span>
+                            <span class="text-xs font-bold text-stone-100 mt-0.5">(၄) ဒက္ခိဏာယ</span>
+                        </button>
+                        <!-- SE (Index 4) -->
+                        <button onclick="select10DirCompass(4)" id="compass-cell-4" class="p-2.5 rounded-2xl bg-stone-950 border border-stone-800 flex flex-col items-center justify-center text-center transition active:scale-95">
+                            <span class="text-[10px] text-stone-400">↘ အရှေ့တောင်</span>
+                            <span class="text-xs font-bold text-stone-200 mt-0.5">(၅) ထောင့်အရပ်</span>
+                        </button>
+                    </div>
+
+                    <!-- Nadir (Downward - Lower Realms up to Avici) -->
+                    <button onclick="select10DirCompass(8)" id="compass-cell-8" class="w-full py-2 px-3 rounded-2xl bg-stone-950 border border-stone-800 flex items-center justify-between text-xs transition active:scale-98">
+                        <span class="flex items-center gap-1.5 font-semibold text-amber-200">
+                            <i class="ph-fill ph-arrow-circle-down text-amber-400 text-base"></i>
+                            <span>(၉) အောက်အရပ် (အဝီစိငရဲအထိ အပါယ်လေးဘုံသားများ)</span>
+                        </span>
+                        <span id="compass-check-8" class="text-[10px] text-stone-500 font-mono">ဟေဋ္ဌိမာယ ဒိသာယ</span>
+                    </button>
+                </div>
+
+                <div class="p-3.5 rounded-2xl bg-stone-950 border border-amber-500/30 space-y-2 leading-relaxed">
+                    <div class="flex items-center justify-between text-[11px] border-b border-stone-800/80 pb-1.5">
+                        <span id="dir10-Selected-Title" class="text-amber-300 font-bold">၁။ အရှေ့အရပ် (ပုရတ္ထိမာယ ဒိသာယ)</span>
+                        <span id="dir10-Realm-Note" class="text-stone-400 text-[10px]">မိမိရှေ့တည့်တည့် အနန္တစကြဝဠာသို့ အာရုံပြုပါ</span>
+                    </div>
+                    <p id="dir10-pali-line" class="text-xs text-amber-100/90 font-medium hidden"></p>
+                    <p id="traditional-10dir-verse" class="text-xs sm:text-sm text-amber-200 font-semibold leading-relaxed">
+                        "အရှေ့အရပ်၌ ရှိကြကုန်သော အနန္တစကြဝဠာ အနန္တသတ္တဝါတို့ ဘေးရန်ခပ်သိမ်း ငြိမ်းကြပါစေ၊ ဒေါသခပ်သိမ်း ငြိမ်းကြပါစေ၊ ဆင်းရဲခပ်သိမ်း ငြိမ်းကြပါစေ၊ နှလုံးစိတ်ဝမ်း အေးချမ်းကြပါစေ။"
+                    </p>
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="radiateCurrent10DirAndNext()" class="flex-1 py-2.5 px-3 rounded-2xl bg-gradient-to-r from-amber-500 to-amber-400 text-stone-950 font-bold text-xs flex items-center justify-center gap-1.5 shadow-lg active:scale-95 transition">
+                        <i class="ph-fill ph-broadcast text-base"></i>
+                        <span>ဤအရပ်သို့ မေတ္တာပို့ပြီး နောက်တစ်ရပ်သို့ (+၁ ပုတီး)</span>
+                    </button>
+                    <button onclick="toggleAuto10DirTour()" id="auto-10dir-btn" class="px-3 py-2.5 rounded-2xl bg-stone-800 border border-stone-700 text-amber-300 text-xs font-semibold shrink-0 active:scale-95">
+                        အလိုအလျောက်လှည့်
+                    </button>
+                </div>
+
+                <div class="pt-2 border-t border-stone-800/80 space-y-2 text-xs">
+                    <button onclick="toggle10DirGuide()" class="w-full flex items-center justify-between text-left text-amber-300 font-semibold py-1">
+                        <span class="flex items-center gap-1.5">
+                            <i class="ph-fill ph-book-bookmark"></i>
+                            အရပ် (၁၀) မျက်နှာ မေတ္တာပွားများပုံ အဆင့်ဆင့် လမ်းညွှန် (ဖတ်ရှုရန်)
+                        </span>
+                        <i id="dir10-guide-caret" class="ph-bold ph-caret-down"></i>
+                    </button>
+                    <div id="dir10-guide-content" class="space-y-2 text-[11px] text-stone-300 bg-stone-950/90 p-3 rounded-2xl border border-stone-800 leading-relaxed">
+                        <p><strong class="text-amber-300">၁။ အရပ် (၁၀) မျက်နှာ အစဉ် (ပဋိသမ္ဘိဒါမဂ်ပါဠိတော်အရ) -</strong><br>
+                        (၁) အရှေ့အရပ်၊ (၂) အနောက်အရပ်၊ (၃) မြောက်အရပ်၊ (၄) တောင်အရပ် (အရပ်မကြီး ၄ မျက်နှာ)၊<br>
+                        (၅) အရှေ့တောင်ထောင့်၊ (၆) အနောက်မြောက်ထောင့်၊ (၇) အရှေ့မြောက်ထောင့်၊ (၈) အနောက်တောင်ထောင့် (ထောင့်အရပ် ၄ မျက်နှာ)၊<br>
+                        (၉) အောက်အရပ် (အဝီစိငရဲအထိ)၊ (၁၀) အထက်အရပ် (ဘဝဂ်ဗြဟ္မာ့ပြည်အထိ) တို့ ဖြစ်ပါသည်။</p>
+                        <p><strong class="text-amber-300">၂။ စိတ်အာရုံ ဖြန့်ကြက်ပုံ -</strong><br>
+                        မိမိထိုင်နေရာ နှလုံးသားကို ဗဟိုပြု၍ အေးမြကြည်လင်သော မေတ္တာဓာတ် အလင်းရောင်များသည် ရွေးချယ်ထားသော အရပ်မျက်နှာသို့ အပိုင်းအခြားမရှိ (အပ္ပမာဏာ) ပျံ့နှံ့သွားသည်ဟု စိတ်ဖြင့် ညွှတ်၍ ပို့လွှတ်ရပါမည်။</p>
+                        <p><strong class="text-amber-300">၃။ မေတ္တာဆုတောင်း (၄) ချက်၏ အနှစ်သာရ -</strong><br>
+                        • <strong>အဝေရာ ဟောန္တု (ဘေးရန်ခပ်သိမ်း ငြိမ်းကြပါစေ)</strong> - အပြင်ပန်း ရန်သူဘေးအန္တရာယ် ကင်းဝေးစေကြောင်း၊<br>
+                        • <strong>အဗျာပဇ္ဇာ ဟောန္တု (ဒေါသ/စိုးရိမ်ခပ်သိမ်း ငြိမ်းကြပါစေ)</strong> - အတွင်းစိတ် ပူပန်သောက ဒေါသကင်းစေကြောင်း၊<br>
+                        • <strong>အနီဃာ ဟောန္တု (ဆင်းရဲခပ်သိမ်း ငြိမ်းကြပါစေ)</strong> - ကိုယ်ဆင်းရဲခြင်း ဒုက္ခဝေဒနာ ကင်းစေကြောင်း၊<br>
+                        • <strong>သုခီ အတ္တာနံ ပရိဟရန္တု (နှလုံးစိတ်ဝမ်း အေးချမ်းကြပါစေ)</strong> - ကိုယ်စိတ်နှစ်ဖြာ ချမ်းသာစွာဖြင့် ဘဝခန္ဓာဝန်ကို ဆောင်ရွက်နိုင်စေကြောင်း ပို့သခြင်း ဖြစ်ပါသည်။</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="rounded-2xl bg-stone-900/80 border border-amber-500/25 p-4 space-y-3 myanmar-text">
+                <h3 class="text-xs sm:text-sm font-bold text-amber-300 flex items-center gap-1.5">
+                    <i class="ph-fill ph-sparkle text-base"></i>
+                    မေတ္တာမပို့မီ နတ်ပင့် (ဒေဝတာယာစနာ) နှင့် အပိတ်ဆုတောင်းဂါထာ
+                </h3>
+                <div class="p-3.5 rounded-2xl bg-stone-950 border border-stone-800 space-y-1.5 text-xs">
+                    <div class="text-amber-300 font-bold">၁။ နတ်ပင့်ဂါထာ (သမန္တာ စက္ကဝါဠေသု)</div>
+                    <p class="text-amber-100/90 font-medium">
+                        "သမန္တာ စက္ကဝါဠေသု၊ အတြာဂစ္ဆန္တု ဒေဝတာ။ သဒ္ဓမ္မံ မုနိရာဇဿ၊ သုဏန္တု သဂ္ဂမောက္ခဒံ။"
+                    </p>
+                    <p class="text-stone-400 text-[11px]">
+                        ပတ်ဝန်းကျင် စကြဝဠာတိုက်တစ်သောင်းမှ နတ်ဗြဟ္မာအပေါင်းတို့သည် ဘုရားရှင်၏ နိဗ္ဗာန်ရောက်ကြောင်း သူတော်ကောင်းတရားနှင့် မေတ္တာဓာတ်ကို နာယူရန် ကြွရောက်တော်မူကြပါကုန်လော့။
+                    </p>
+                </div>
+                <div class="p-3.5 rounded-2xl bg-stone-950 border border-stone-800 space-y-1.5 text-xs">
+                    <div class="text-amber-300 font-bold">၂။ ဒုက္ခပတ္တာ စ နိဒ္ဒုက္ခာ (ဗြဟ္မစိုရ် ဆုတောင်းဂါထာ)</div>
+                    <p class="text-amber-100/90 font-medium">
+                        "ဒုက္ခပတ္တာ စ နိဒ္ဒုက္ခာ၊ ဘယပတ္တာ စ နိဗ္ဘယာ။ သောကပတ္တာ စ နိဿောကာ၊ ဟောန္တု သဗ္ဗေပိ ပါဏိနော။"
+                    </p>
+                    <p class="text-stone-400 text-[11px]">
+                        ဆင်းရဲဒုက္ခရောက်နေသူတို့ ဆင်းရဲကင်းကြပါစေ၊ ဘေးရန်ကြုံနေသူတို့ ဘေးရန်ကင်းကြပါစေ၊ စိုးရိမ်ပူဆွေးနေသူတို့ သောကကင်းဝေးကြပါစေကုန်သတည်း။
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 4: မေတ္တာသုတ် နှင့် အကျိုး (၁၁) ပါး (SUTTA) -->
+        <!-- ========================================== -->
+        <div id="view-sutta" class="hidden space-y-4">
+            <div class="grid grid-cols-3 gap-1.5 p-1 rounded-2xl bg-stone-900 border border-stone-800">
+                <button id="subtab-sutta-btn" onclick="switchSuttaSubtab('sutta')" class="py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs transition">
+                    မေတ္တာသုတ်
+                </button>
+                <button id="subtab-benefits-btn" onclick="switchSuttaSubtab('benefits')" class="py-2 rounded-xl text-stone-300 font-medium text-xs transition">
+                    အကျိုး (၁၁) ပါး
+                </button>
+                <button id="subtab-chants-btn" onclick="switchSuttaSubtab('chants')" class="py-2 rounded-xl text-stone-300 font-medium text-xs transition">
+                    မေတ္တာပို့လင်္ကာများ
+                </button>
+            </div>
+
+            <div id="sutta-content-box" class="space-y-3 myanmar-text">
+                <div class="rounded-2xl bg-stone-900/80 border border-amber-500/25 p-4 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-sm font-bold text-amber-300">ကရဏီယမေတ္တာသုတ္တံ (ပါဠိ + မြန်မာပြန်)</h3>
+                        <button onclick="playSingingBowl(false)" class="px-2.5 py-1 rounded-lg bg-amber-500/20 text-amber-300 text-xs font-semibold">
+                            <i class="ph-fill ph-bell-ringing"></i> ကြေးစည်
+                        </button>
+                    </div>
+                    <div id="metta-sutta-full" class="space-y-3 text-xs sm:text-sm text-stone-300 leading-relaxed">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div id="benefits-content-box" class="hidden space-y-3 myanmar-text">
+                <div class="rounded-2xl bg-stone-900/80 border border-amber-500/25 p-4 space-y-3">
+                    <h3 class="text-sm font-bold text-amber-300 flex items-center gap-1.5">
+                        <i class="ph-fill ph-star text-base text-amber-400"></i>
+                        မေတ္တာပွားများခြင်း၏ အကျိုး (၁၁) ပါး (အင်္ဂုတ္တိုရ်ပါဠိတော်)
+                    </h3>
+                    <div class="space-y-2 text-xs text-stone-200">
+                        <div class="p-2.5 rounded-xl bg-stone-950/70 border border-stone-800/70">၁။ <strong>သုခံ သုပတိ</strong> - ချမ်းသာစွာ အိပ်စက်ရခြင်း။</div>
+                        <div class="p-2.5 rounded-xl bg-stone-950/70 border border-stone-800/70">၂။ <strong>သုခံ ပဋိဗုဇ္ဈတိ</strong> - ချမ်းသာစွာ နိုးထရခြင်း။</div>
+                        <div class="p-2.5 rounded-xl bg-stone-950/70 border border-stone-800/70">၃။ <strong>န ပါပကံ သုပိနံ ပဿတိ</strong> - မကောင်းသော အိပ်မက်ကို မမြင်မမက်ရခြင်း။</div>
+                        <div class="p-2.5 rounded-xl bg-stone-950/70 border border-stone-800/70">၄။ <strong>မနုဿာနံ ပိယော ဟောတိ</strong> - လူတို့ချစ်ခင်နှစ်လိုအပ်သော ပုဂ္ဂိုလ်ဖြစ်ခြင်း။</div>
+                        <div class="p-2.5 rounded-xl bg-stone-950/70 border border-stone-800/70">၅။ <strong>အမနုဿာနံ ပိယော ဟောတိ</strong> - နတ်ဗြဟ္မာ အမနုဿ လူမဟုတ်သည်တို့ ချစ်ခင်ခြင်း။</div>
+                        <div class="p-2.5 rounded-xl bg-stone-950/70 border border-stone-800/70">၆။ <strong>ဒေဝတာ ရက္ခန္တိ</strong> - နတ်တို့က အမြဲစောင့်ရှောက်ခြင်း။</div>
+                        <div class="p-2.5 rounded-xl bg-stone-950/70 border border-stone-800/70">၇။ <strong>နာဿ အဂ္ဂိ ဝါ ဝိသံ ဝါ သတ္တံ ဝါ ကမတိ</strong> - မီး၊ ဆိပ်၊ လက်နက်တို့ မကပ်ရောက်နိုင်ခြင်း။</div>
+                        <div class="p-2.5 rounded-xl bg-stone-950/70 border border-stone-800/70">၈။ <strong>ဥဋ္ဌဿ စိတ္တံ သမာဓိယတိ</strong> - စိတ်သည် လွယ်ကူစွာ တည်ကြည် (သမာဓိရ) ခြင်း။</div>
+                        <div class="p-2.5 rounded-xl bg-stone-950/70 border border-stone-800/70">၉။ <strong>မုခဝဏ္ဏော ဝိပ္ပသီဒတိ</strong> - မျက်နှာအဆင်း ကြည်လင်ဝင်းပခြင်း။</div>
+                        <div class="p-2.5 rounded-xl bg-stone-950/70 border border-stone-800/70">၁၀။ <strong>အသမ္မူဠှော ကာလံ ကရောတိ</strong> - မတွေမဝေ သတိကောင်းစွာဖြင့် စုတေရခြင်း။</div>
+                        <div class="p-2.5 rounded-xl bg-stone-950/70 border border-stone-800/70">၁၁။ <strong>ဗြဟ္မလောကူပဂေါ ဟောတိ</strong> - ဈာန်ရပါက ဗြဟ္မာ့ပြည်သို့ လားရောက်ရခြင်း။</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="chants-content-box" class="hidden space-y-3 myanmar-text">
+                <div class="rounded-2xl bg-stone-900/80 border border-amber-500/25 p-4 space-y-3">
+                    <h3 class="text-sm font-bold text-amber-300 flex items-center gap-1.5">
+                        <i class="ph-fill ph-sun-dim text-base"></i>
+                        နေ့စဉ် အိပ်ရာထ / အိပ်ရာဝင် မေတ္တာပို့လင်္ကာများ
+                    </h3>
+                    <div class="p-3.5 rounded-2xl bg-stone-950 border border-stone-800 space-y-2 text-xs text-stone-200">
+                        <div class="text-amber-300 font-bold">၁။ ကိုယ်စောင့်နတ် နှင့် အနီးကပ်ပုဂ္ဂိုလ်များ မေတ္တာပို့</div>
+                        <p>
+                            "ကျွန်ုပ်၏ ကိုယ်စောင့်နတ်၊ အိမ်စောင့်နတ်၊ ကျောင်းစောင့်နတ်၊ ရပ်ကွက်စောင့်နတ်၊ မြို့စောင့်နတ်၊ သာသနာစောင့်နတ်များနှင့်တကွ မိဘ၊ ဆရာသမား၊ ဆွေမျိုးသားချင်း အပေါင်းတို့သည် ဘေးရန်ကင်းကြပါစေ၊ ကိုယ်စိတ်နှစ်ဖြာ ချမ်းသာကြပါစေ။"
+                        </p>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-stone-950 border border-stone-800 space-y-2 text-xs text-stone-200">
+                        <div class="text-amber-300 font-bold">၂။ ရေချမ်းကပ်လှူ မေတ္တာပို့ လင်္ကာ</div>
+                        <p>
+                            "အေးမြကြည်လင် သောက်တော်ရေစင်ကဲ့သို့ ဘေးရန်ကင်းကွာ သတ္တဝါအပေါင်းတို့ ကိုယ်စိတ်နှစ်ဖြာ အေးချမ်းသာယာကြပါစေသတည်း။"
+                        </p>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-stone-950 border border-rose-500/25 space-y-2 text-xs text-stone-200">
+                        <div class="text-rose-300 font-bold">၃။ ဝိသုဒ္ဓိမဂ်လာ မေတ္တာစတင် မပို့အပ်သူများ (သတိပြုရန်)</div>
+                        <p>
+                            မေတ္တာဈာန် စတင်ပွားများစဉ် ဦးစွာ မပို့ရမည့် ပုဂ္ဂိုလ်များမှာ - (၁) မုန်းတီးသူ/ရန်သူ၊ (၂) အလွန်ချစ်ခင်လွန်းသူ (စိုးရိမ်သောကဝင်တတ်၍)၊ (၃) သာမန်ပုဂ္ဂိုလ်၊ (၄) လိင်မတူသူ (ရာဂဝင်တတ်၍) နှင့် (၅) ကွယ်လွန်ပြီးသူ (မေတ္တာဈာန် အာရုံမကျသဖြင့် အမျှသာဝေရန်) တို့ ဖြစ်ပါသည်။ မိမိကိုယ်ကို ဦးစွာပွားပြီး စိတ်တည်ကြည်မှသာ အဆင့်ဆင့် ဖြန့်ကြက်ရပါမည်။
+                        </p>
+                    </div>
+                    <div class="p-3.5 rounded-2xl bg-stone-950 border border-amber-500/25 space-y-2 text-xs text-stone-200">
+                        <div class="text-amber-300 font-bold">၄။ မိုးကုတ်ဆရာတော်ဘုရားကြီး၏ နေ့စဉ် ပွားများနည်း အဆုံးအမ</div>
+                        <p>
+                            မေတ္တာပွားရာ၌ အပေါ်ယံ နှုတ်ဖျားမျှသာ မဟုတ်ဘဲ ရင်ထဲနှလုံးသားထဲမှ အေးမြသော စေတနာဖြင့် အာရုံပြုပွားများပြီးနောက် မေတ္တာဈာန်ကို အခြေခံကာ ဖြစ်ပျက်ရှုသော ဝိပဿနာဉာဏ်သို့ ကူးပြောင်းပွားများရမည် ဖြစ်ပါသည်။
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- TAB 5: အမျှဝေ နှင့် ကုသိုလ်မှတ်တမ်း (MERIT & STATS) -->
+        <!-- ========================================== -->
+        <div id="view-merit" class="hidden space-y-4">
+            <div class="rounded-2xl bg-gradient-to-br from-amber-950/40 via-stone-900 to-stone-900 border border-amber-500/30 p-4 space-y-3">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-amber-300 flex items-center gap-1.5">
+                            <i class="ph-fill ph-flame text-base text-orange-400"></i>
+                            နေ့စဉ် အဓိဋ္ဌာန် မှတ်တမ်း
+                        </h3>
+                        <p class="text-[11px] text-stone-400">နေ့စဉ် ပုတီး (၁၀၈) လုံး အဓိဋ္ဌာန် ပြည့်မီမှု</p>
+                    </div>
+                    <div class="px-3 py-1 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold">
+                        🔥 <span id="streak-days-badge">1</span> ရက်ဆက်
+                    </div>
+                </div>
+
+                <div class="space-y-1.5">
+                    <div class="flex justify-between text-xs">
+                        <span class="text-stone-300">ယနေ့ ပွားများမှု အကြိမ်ရေ</span>
+                        <span id="today-progress-text" class="text-amber-300 font-mono font-bold">0 / 108</span>
+                    </div>
+                    <div class="w-full h-2.5 rounded-full bg-stone-950 overflow-hidden border border-stone-800">
+                        <div id="today-progress-bar" class="h-full bg-gradient-to-r from-amber-500 to-rose-500 transition-all duration-300" style="width: 0%"></div>
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-1">
+                    <span class="text-[11px] text-stone-400" id="adhitthana-status-msg">ယနေ့ အဓိဋ္ဌာန် ပြည့်မြောက်ရန် ဆက်လက်ပွားများပါ</span>
+                    <button onclick="shareMeritRecord()" class="px-3 py-1.5 rounded-xl bg-stone-800 hover:bg-stone-700 text-amber-300 text-xs font-medium flex items-center gap-1">
+                        <i class="ph ph-share-network"></i>
+                        <span>မှတ်တမ်းမျှဝေရန်</span>
+                    </button>
+                </div>
+
+                <div class="pt-3 border-t border-stone-800/80 space-y-2.5">
+                    <div class="flex items-center justify-between gap-2">
+                        <span class="text-xs font-bold text-amber-200 flex items-center gap-1">
+                            <i class="ph-fill ph-calendar-check text-amber-400"></i>
+                            အဓိဋ္ဌာန် ရက်ဇယား (နှိပ်၍ အမှန်ခြစ်မှတ်ရန်)
+                        </span>
+                        <div class="flex gap-1 bg-stone-950 p-1 rounded-xl border border-stone-800 text-[10px]">
+                            <button onclick="setVowDuration(9)" id="vow-btn-9" class="px-2 py-0.5 rounded-lg bg-amber-500 text-stone-950 font-bold">၉ ရက်</button>
+                            <button onclick="setVowDuration(27)" id="vow-btn-27" class="px-2 py-0.5 rounded-lg text-stone-400">၂၇ ရက်</button>
+                            <button onclick="setVowDuration(45)" id="vow-btn-45" class="px-2 py-0.5 rounded-lg text-stone-400">၄၅ ရက်</button>
+                        </div>
+                    </div>
+                    <div id="vow-days-grid" class="grid grid-cols-9 gap-1.5">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- Stats Cards -->
+            <div class="rounded-2xl bg-stone-900/80 border border-stone-800 p-4 space-y-3">
+                <h3 class="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                    <i class="ph-fill ph-chart-bar text-base"></i>
+                    ဗြဟ္မစိုရ်တရား (၄) ပါး အလိုက် စုစုပေါင်း ပွားများမှု
+                </h3>
+                <div class="grid grid-cols-2 gap-2 text-xs" id="stats-grid">
+                    <!-- Populated via JS -->
+                </div>
+            </div>
+
+            <!-- Sharing Merit Card -->
+            <div class="rounded-2xl bg-stone-900/80 border border-amber-500/25 p-4 space-y-3 myanmar-text text-center">
+                <h3 class="text-sm font-bold text-amber-300">အမြဲတမ်း အမျှဝေခြင်း (Sharing of Merit)</h3>
+                <p class="text-xs text-amber-100/90 italic leading-relaxed">
+                    "ဣဒံ နော ဉာတီနံ ဟောတု၊ သုခိတာ ဟောန္တု ဉာတယော။"<br>
+                    "ဤကုသိုလ်ကောင်းမှုသည် မိဘဆွေမျိုး ကျေးဇူးရှင်တို့အား နှစ်သက်ဝမ်းမြောက် အမျှရောက်ပါစေသတည်း။"
+                </p>
+                <div class="pt-2 flex justify-center">
+                    <button onclick="playSingingBowl(false)" class="px-4 py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs flex items-center gap-2 shadow hover:bg-amber-400 active:scale-95 transition">
+                        <i class="ph-fill ph-bell-ringing text-sm"></i>
+                        <span>သာဓု (၃) ကြိမ် ခေါ်ဆိုရန် ကြေးစည်တီးမည်</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FLOATING TOAST NOTIFICATION -->
+    <div id="toast-box" class="fixed bottom-20 left-1/2 -translate-x-1/2 bg-stone-900/95 border border-amber-500/50 text-amber-200 px-4 py-2 rounded-2xl text-xs font-medium shadow-2xl z-50 transition-all duration-300 opacity-0 pointer-events-none translate-y-3">
+        အကြောင်းကြားချက်
+    </div>
+
+    <!-- MOBILE BOTTOM NAVIGATION BAR -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-stone-950/95 backdrop-blur-md border-t border-stone-800/80 px-2 py-2 flex items-center justify-around">
+        <button onclick="switchBottomTab('practice')" id="tab-btn-practice" class="flex flex-col items-center gap-1 text-amber-400 transition">
+            <i class="ph-fill ph-heart text-lg"></i>
+            <span class="text-[10px] font-medium">ပွားများရန်</span>
+        </button>
+        <button onclick="switchBottomTab('mala')" id="tab-btn-mala" class="flex flex-col items-center gap-1 text-stone-400 hover:text-stone-200 transition">
+            <i class="ph ph-circle-dashed text-lg"></i>
+            <span class="text-[10px] font-medium">ပုတီးစိပ်</span>
+        </button>
+        <button onclick="switchBottomTab('528')" id="tab-btn-528" class="flex flex-col items-center gap-1 text-stone-400 hover:text-stone-200 transition">
+            <i class="ph ph-globe-hemisphere-east text-lg"></i>
+            <span class="text-[10px] font-medium">၅၂၈ မေတ္တာ</span>
+        </button>
+        <button onclick="switchBottomTab('sutta')" id="tab-btn-sutta" class="flex flex-col items-center gap-1 text-stone-400 hover:text-stone-200 transition">
+            <i class="ph ph-book-open text-lg"></i>
+            <span class="text-[10px] font-medium">မေတ္တာသုတ်</span>
+        </button>
+        <button onclick="switchBottomTab('merit')" id="tab-btn-merit" class="flex flex-col items-center gap-1 text-stone-400 hover:text-stone-200 transition">
+            <i class="ph ph-sparkle text-lg"></i>
+            <span class="text-[10px] font-medium">အမျှဝေ</span>
+        </button>
+    </nav>
+
+    <script>
+        // Data Structures & State
+        let currentMode = 'metta'; // 'metta' | 'karuna' | 'mudita' | 'upekkha'
+        let currentTargetIndex = 0;
+        let currentPhraseIndex = 0;
+        let customTargetName = '';
+        let currentBeads = 0;
+        let completedRounds = 0;
+        let malaTarget = 108;
+        let activeBottomTab = 'practice';
+
+        let stats = { metta: 0, karuna: 0, mudita: 0, upekkha: 0 };
+        let soundEnabled = true;
+        let vibrationEnabled = true;
+        let eyesClosedActive = false;
+
+        let fontScaleStep = 0; // 0 = normal, 1 = lg, 2 = xl
+        let savedTargets = ['မိဘနှစ်ပါး', 'ဆရာသမားများ', 'မိသားစုဝင်များ', 'ကိုယ်စောင့်နတ်'];
+        let autoPacerInterval = null;
+        let isAutoPacing = false;
+        let breathGuideActive = false;
+        let breathCycleTimer = null;
+        let breathInhalePhase = true;
+        let todayCount = 0;
+        let streakDays = 1;
+
+        const sevenDayGroups = [
+            'တနင်္ဂနွေ သားသမီးအပေါင်း',
+            'တနင်္လာ သားသမီးအပေါင်း',
+            'အင်္ဂါ သားသမီးအပေါင်း',
+            'ဗုဒ္ဓဟူး သားသမီးအပေါင်း',
+            'ကြာသပတေး သားသမီးအပေါင်း',
+            'သောကြာ သားသမီးအပေါင်း',
+            'စနေ သားသမီးအပေါင်း',
+            'ရာဟု သားသမီးအပေါင်း',
+            'ခုနစ်ရက် သားသမီးအပေါင်း'
+        ];
+        let current7DayIdx = -1;
+        let guidedFlowActive = false;
+        let soundProfile = 'kyeezee'; // 'kyeezee' | 'wood' | 'bell'
+        let wakeLockSentinel = null;
+        let wakeLockEnabled = false;
+        let vowDuration = 9;
+        let completedVowDays = [1];
+
+        // 10-Direction Metta Compass State
+        let current10DirFormula = 'ananta'; // 'ananta' | 'pali' | 'poem' | 'brahma4'
+        let completed10Dirs = [];
+        let auto10DirTimer = null;
+
+        // 528 State
+        let current528DirIndex = 0;
+
+        const targetLevels = [
+            { id: 'self', label: 'မိမိကိုယ်တိုင်', short: 'မိမိ' },
+            { id: 'loved', label: 'ချစ်ခင်လေးစားသူ', short: 'ချစ်ခင်' },
+            { id: 'neutral', label: 'သာမန်ပုဂ္ဂိုလ်', short: 'သာမန်' },
+            { id: 'enemy', label: 'မနှစ်သက်သူ/ရန်သူ', short: 'မနှစ်သက်' },
+            { id: 'all', label: 'သတ္တဝါအားလုံး', short: 'အားလုံး' }
+        ];
+
+        const brahmaviharaData = {
+            metta: {
+                title: 'မေတ္တာဘာဝနာ (ချမ်းသာလိုခြင်း)',
+                badge: 'အနီးရန်သူ: ရာဂ / အဝေးရန်သူ: ဒေါသ',
+                desc: 'သတ္တဝါအားလုံးတို့အား ချမ်းသာလိုသော စေတနာဖြင့် အပိုင်းအခြားမရှိ ဖြန့်ကြက်ပွားများခြင်း ဖြစ်ပါသည်။',
+                phrases: [
+                    { pali: 'အဟံ အဝေရော ဟောမိ၊ အဗျာပဇ္ဇော ဟောမိ၊ အနီဃော ဟောမိ၊ သုခီ အတ္တာနံ ပရိဟရာမိ။', mm: 'ကျွန်ုပ်သည် ဘေးရန်ကင်းပါစေ၊ စိုးရိမ်ကြောင့်ကြ ကင်းပါစေ၊ ဆင်းရဲဒုက္ခ ကင်းပါစေ၊ ကိုယ်စိတ်နှစ်ဖြာ ချမ်းသာစွာဖြင့် မိမိခန္ဓာဝန်ကို ဆောင်ရွက်နိုင်ပါစေ။' },
+                    { pali: 'သဗ္ဗေ သတ္တာ အဝေရာ ဟောန္တု၊ အဗျာပဇ္ဇာ ဟောန္တု၊ အနီဃာ ဟောန္တု၊ သုခီ အတ္တာနံ ပရိဟရန္တု။', mm: 'သတ္တဝါအားလုံးတို့သည် ဘေးရန်ကင်းကြပါစေ၊ စိုးရိမ်ကြောင့်ကြ ကင်းကြပါစေ၊ ဆင်းရဲဒုက္ခ ကင်းကြပါစေ၊ ကိုယ်စိတ်နှစ်ဖြာ ချမ်းသာစွာဖြင့် မိမိခန္ဓာဝန်ကို ဆောင်ရွက်နိုင်ကြပါစေ။' },
+                    { pali: 'ဒုက္ခာ မုစ္စန္တု၊ ယထာလဒ္ဓသမ္ပတ္တိတော မ ဝိဂစ္ဆန္တု။', mm: 'ဆင်းရဲဒုက္ခမှ လွတ်မြောက်ကြပါစေ၊ ရရှိပြီးသော စည်းစိမ်ချမ်းသာမှ မယုတ်လျော့ကြပါစေနှင့်။' }
+                ]
+            },
+            karuna: {
+                title: 'ကရုဏာဘာဝနာ (ဆင်းရဲမှ ကယ်လိုခြင်း)',
+                badge: 'အနီးရန်သူ: ငိုကြွေးခြင်း / အဝေးရန်သူ: ညှိုးငယ်ခြင်း',
+                desc: 'ဆင်းရဲဒုက္ခရောက်နေကြသော သတ္တဝါတို့ ဆင်းရဲမှ လွတ်မြောက်ကြပါစေဟု သနားကြင်နာစွာ နှလုံးသွင်းခြင်း ဖြစ်ပါသည်။',
+                phrases: [
+                    { pali: 'ဒုက္ခာ မုစ္စန္တု သဗ္ဗေ ပါဏိနော။', mm: 'သတ္တဝါအားလုံး ဆင်းရဲဒုက္ခအပေါင်းမှ လွတ်မြောက်ကြပါစေကုန်သတည်း။' },
+                    { pali: 'ဘယတ္တာ စ နိဗ္ဘယာ ဟောန္တု။', mm: 'ဘေးရန်ကျရောက်နေသူတို့ ဘေးရန်ကင်းကြပါစေကုန်သတည်း။' },
+                    { pali: 'သောကတ္တာ စ နိဿောကာ ဟောန္တု။', mm: 'စိုးရိမ်ပူဆွေးနေသူတို့ သောကကင်းဝေးကြပါစေကုန်သတည်း။' }
+                ]
+            },
+            mudita: {
+                title: 'မုဒိတာဘာဝနာ (ချမ်းသာမှုကို ဝမ်းမြောက်ခြင်း)',
+                badge: 'အနီးရန်သူ: ရယ်မောပျော်ပါးခြင်း / အဝေးရန်သူ: မနာလိုခြင်း',
+                desc: 'ချမ်းသာကြွယ်ဝနေကြသော သတ္တဝါတို့၏ စည်းစိမ်ချမ်းသာမှ မယုတ်လျော့ဘဲ ပိုမိုတိုးတက်ကြပါစေဟု ဝမ်းမြောက်ခြင်း ဖြစ်ပါသည်။',
+                phrases: [
+                    { pali: 'လဒ္ဓသမ္ပတ္တတော မ ဝိဂစ္ဆန္တု။', mm: 'ရရှိပြီးသော စည်းစိမ်ချမ်းသာမှ တစ်စုံတစ်ရာ မယုတ်လျော့ကြပါစေကုန်သတည်း။' },
+                    { pali: 'ယထာလဒ္ဓသမ္ပတ္တိတော အဘိဝဎ္ဓန္တု။', mm: 'ရရှိပြီးသော စည်းစိမ်ချမ်းသာထက် အထက်ထက် တိုးတက်ကြပါစေကုန်သတည်း။' },
+                    { pali: 'သာဓု သာဓု သာဓု။', mm: 'သူတစ်ပါးတို့၏ ချမ်းသာမှုကို ဝမ်းမြောက်သာဓုခေါ်ပါ၏။' }
+                ]
+            },
+            upekkha: {
+                title: 'ဥပေက္ခာဘာဝနာ (တရားသဖြင့် ရှုမြင်ခြင်း)',
+                badge: 'အနီးရန်သူ: တဏှာဥပေက္ခာ / အဝေးရန်သူ: အသိဉာဏ်မဲ့ လျစ်လျူရှုခြင်း',
+                desc: 'သတ္တဝါတို့သည် ကံသာလျှင် မိမိ၏ ဥစ္စာရှိသည် (ကမ္မဿကာ) ဟု သဘောပိုက်၍ တရားသဖြင့် လျစ်လျူရှု ငြိမ်သက်စွာ နေခြင်း ဖြစ်ပါသည်။',
+                phrases: [
+                    { pali: 'သဗ္ဗေ သတ္တာ ကမ္မဿကာ ကမ္မဒါယာဒါ...', mm: 'သတ္တဝါတို့သည် ကံသာလျှင် မိမိ၏ဥစ္စာရှိကြကုန်၏၊ ကံသာလျှင် အမွေခံရှိကြကုန်၏။' },
+                    { pali: 'ကမ္မယောနီ ကမ္မဗန္ဓူ ကမ္မပဋိသရဏာ။', mm: 'ကံသာလျှင် ဖြစ်ရာဇာတိရှိကြ၏၊ ကံသာလျှင် ဆွေမျိုးဉာတိရှိကြ၏၊ ကံသာလျှင် ကိုးကွယ်ရာရှိကြကုန်၏။' },
+                    { pali: 'ယံ ကမ္မံ ကရိဿန္တိ ကလျာဏံ ဝါ ပါပကံ ဝါ၊ တဿ ဒါယာဒါ ဘဝိဿန္တိ။', mm: 'ကောင်းသည်ဖြစ်စေ၊ မုဆိုးယုတ်မာသည်ဖြစ်စေ ပြုလုပ်သမျှ ကံ၏အမွေကိုသာ ခံစားကြရကုန်လတ္တံ့။' }
+                ]
+            }
+        };
+
+        const directions528 = [
+            { name: '၁။ အရှေ့အရပ်', paliPrefix: 'ပုရတ္ထိမာယ ဒိသာယ', mm: 'အရှေ့အရပ်၌ ရှိကြကုန်သော' },
+            { name: '၂။ အနောက်အရပ်', paliPrefix: 'ပစ္ဆိမာယ ဒိသာယ', mm: 'အနောက်အရပ်၌ ရှိကြကုန်သော' },
+            { name: '၃။ မြောက်အရပ်', paliPrefix: 'ဥတ္တရာယ ဒိသာယ', mm: 'မြောက်အရပ်၌ ရှိကြကုန်သော' },
+            { name: '၄။ တောင်အရပ်', paliPrefix: 'ဒက္ခိဏာယ ဒိသာယ', mm: 'တောင်အရပ်၌ ရှိကြကုန်သော' },
+            { name: '၅။ အရှေ့တောင်ထောင့်', paliPrefix: 'ပုရတ္ထိမာယ အနုဒိသာယ', mm: 'အရှေ့တောင်ထောင့်၌ ရှိကြကုန်သော' },
+            { name: '၆။ အနောက်မြောက်ထောင့်', paliPrefix: 'ပစ္ဆိမာယ အနုဒိသာယ', mm: 'အနောက်မြောက်ထောင့်၌ ရှိကြကုန်သော' },
+            { name: '၇။ အရှေ့မြောက်ထောင့်', paliPrefix: 'ဥတ္တရာယ အနုဒိသာယ', mm: 'အရှေ့မြောက်ထောင့်၌ ရှိကြကုန်သော' },
+            { name: '၈။ အနောက်တောင်ထောင့်', paliPrefix: 'ဒက္ခိဏာယ အနုဒိသာယ', mm: 'အနောက်တောင်ထောင့်၌ ရှိကြကုန်သော' },
+            { name: '၉။ အောက်အရပ်', paliPrefix: 'ဟေဋ္ဌိမာယ ဒိသာယ', mm: 'အောက်အရပ်၌ ရှိကြကုန်သော' },
+            { name: '၁၀။ အထက်အရပ်', paliPrefix: 'ဥပရိမာယ ဒိသာယ', mm: 'အထက်အရပ်၌ ရှိကြကုန်သော' }
+        ];
+
+        const directions10 = directions528;
+
+        const mettaSuttaPaliData = [
+            { pali: 'ကရဏီယမတ္ထကုသလေန၊ ယန္တံ သန္တံ ပဒံ အဘိသမစ္စေ။ သက္ကော ဥဇူ စ သုဟုဇူ စ၊ သုဝစော စဿ မုဒု အနတိမာနီ။', mm: 'အကျိုးစီးပွားကို ကျွမ်းကျင်လိမ္မာသော (နိဗ္ဗာန်သို့ ရောက်လိုသော) သူတော်ကောင်းသည် ဤသို့ ကျင့်ကြံရမည် - တရားကို လိုက်နာတတ်၏၊ ဖြောင့်မတ်၏၊ အလွန်ဖြောင့်မတ်၏၊ စကားနားထောင်လွယ်၏၊ နူးညံ့၏၊ မာန်မာန ကင်း၏။' },
+            { pali: 'သန္တုဿကော စ သုဘရော စ၊ အပ္ပကိစ္စော စ သုလဟုတ္တဝုတ္တိ။ သန္တိန္ဒြိယော စ နိပကော စ၊ အပ္ပဂဗ္ဘော ကုလေသု အနနုဂိဒ္ဓေါ။', mm: 'ရောင့်ရဲလွယ်၏၊ မွေးမြူရလွယ်၏၊ ကိစ္စနည်းပါး၏၊ ရိုးရှင်းပေါ့ပါးသော အသက်မွေးမှု ရှိ၏၊ ဣန္ဒြေ ငြိမ်သက်၏၊ ပညာရှိ၏၊ ရိုသေတတ်၏၊ လူ့အသိုင်းအဝိုင်းတွင် တွယ်တာမှု ကင်း၏။' },
+            { pali: 'န စ ကုဒ္ဒံ သမာစရေ ကိဉ္စိ၊ ယေန ဝိညူ ပရေ ဥပဝဒေယျုံ။ သုခိနော ဝါ ခေမိနော ဟောန္တု၊ သဗ္ဗေ သတ္တာ ဘဝန္တု သုခိတတ္တာ။', mm: 'ပညာရှိတို့ ကဲ့ရဲ့မည့် မကောင်းမှုကို အနည်းငယ်မျှ မပြုရာ။ "သတ္တဝါအားလုံး ချမ်းသာကြပါစေ၊ ဘေးရန်ကင်းကြပါစေ၊ ကိုယ်စိတ်နှစ်ဖြာ ချမ်းသာကြပါစေ" ဟု မေတ္တာပွားရမည်။' },
+            { pali: 'ယေ ကေစိ ပါဏဘူတတ္ထိ၊ တသာ ဝါ ထာဝရာ ဝါ အနဝသေသာ။ ဒီဃာ ဝါ ယေ ဝ မဟန္တာ, မဇ္ဈိမာ ရဿကာ အဏုကထူလာ။', mm: 'တုန်လှုပ်တတ်သော သတ္တဝါလည်းကောင်း၊ မတုန်လှုပ် တည်ကြည်သော သတ္တဝါလည်းကောင်း၊ ရှည်သော၊ တိုသော၊ အလတ်စား၊ ကြီးသော၊ ငယ်သော၊ ထင်ရှားသော၊ မထင်ရှားသော သတ္တဝါအားလုံး...' },
+            { pali: 'ဒိဋ္ဌာ ဝါ ယေ စ အဒိဋ္ဌာ၊ ယေ စ ဒူရေ ဝသန္တိ အဝိဒူရေ။ ဘူတာ ဝါ သမ္ဘဝေသီ ဝါ၊ သဗ္ဗေ သတ္တာ ဘဝန္တု သုခိတတ္တာ။', mm: 'မြင်အပ်သူ၊ မမြင်အပ်သူ၊ အဝေး၌နေသူ၊ အနီး၌နေသူ၊ ဖြစ်ပြီးသူ၊ ဖြစ်ဆဲ (ပဋိသန္ဓေနေဆဲ) သူ - သတ္တဝါအားလုံး ကိုယ်စိတ်ချမ်းသာကြပါစေ။' },
+            { pali: 'န ပရော ပရံ နိကုဗ္ဗေတ၊ နာတိမညေထ ကတ္ထစိ နံ ကဉ္စိ။ ဗျာရောသနာ ပဋိဃသညာ၊ နာညမညဿ ဒုက္ခမိစ္ဆေယျ။', mm: 'မည်သူမျှ အချင်းချင်း မလှည့်စားကြပါစေနှင့်၊ မည်သည့်နေရာ၌မျှ အချင်းချင်း မစက်ဆုပ် မထီမဲ့မြင် မပြုကြပါစေနှင့်။ အမျက်ထွက်ခြင်း၊ ဆန့်ကျင်ဘက် အညှိုးထားခြင်းဖြင့် တစ်ဦးကိုတစ်ဦး ဆင်းရဲကို မလိုလားကြပါစေနှင့်။' },
+            { pali: 'မာတာ ယထာ နိယံ ပုတ္တ-မာယုသာ ဧကပုတ္တမနုရက္ခေ။ ဧဝမ္ပိ သဗ္ဗဘူတေသု၊ မာနသမောဘာဝယေ အပ္ပမာဏံ။', mm: 'မိခင်သည် မိမိ၏ တစ်ဦးတည်းသော ရင်သွေးသားငယ်ကို အသက်ကို ပေး၍ စောင့်ရှောက်သကဲ့သို့၊ ဤအတူ သတ္တဝါအားလုံးအပေါ်၌ အပိုင်းအခြားမရှိသော မေတ္တာစိတ်ကို ပွားများရမည်။' },
+            { pali: 'မေတ္တဉ္စ သဗ္ဗလောကသ္မိံ၊ မာနသမောဘာဝယေ အပ္ပမာဏံ။ ဥဒ္ဓံ အဓော စ တိရိယဉ္စ၊ အသမ္ဗာဓံ အဝေရမသပတ္တံ။', mm: 'အထက်၊ အောက်၊ ဖက်စပ် (အရပ်မျက်နှာအားလုံး) တို့၌ အပိုင်းအခြားမရှိ၊ ကျဉ်းမြောင်းမှုကင်းစင်၊ ရန်ငြိုးမရှိ၊ ရန်သူကင်းစင်သော မေတ္တာစိတ်ကို ဖြန့်ကြက်ပွားများရမည်။' },
+            { pali: 'တိဋ္ဌံ စရံ နိသန္နော ဝါ၊ သယတော ဝါ ယာဝတဿ ဝိဂတမိဒ္ဓေါ။ ဧတံ သတိံ အဓိဋ္ဌေယျ၊ ဗြဟ္မမေတံ ဝိဟာရမိဓ မာဟု။', mm: 'ရပ်နေစဉ်၊ သွားနေစဉ်၊ ထိုင်နေစဉ်၊ လျောင်းစက်နေစဉ် (သတိမလွတ်ဘဲ) ဤမေတ္တာသတိကို ထူထောင်ရမည်။ ဤသို့နေထိုင်ခြင်းကို ဗြဟ္မစိုရ်တရားဖြင့် နေထိုင်ခြင်းဟု ပညာရှိတို့ ဆိုကြကုန်၏။' },
+            { pali: 'ဒိဋ္ဌိဉ္စ အနုပဂ္ဂမ္မ၊ သီလဝါ ဒဿနေန သမ္ပန္နော။ ကာမေသု ဝိနယ ဂေဓံ၊ န ဟိ ဇာတု ဂဗ္ဘသေယျံ ပုနရေတိ။', mm: 'မှားယွင်းသော အယူအဆကို မမှီဝဲဘဲ သီလနှင့်ပြည့်စုံခြင်း၊ ဉာဏ်အမြင်နှင့် ပြည့်စုံခြင်း၊ ကာမဂုဏ်၌ တွယ်တာမှုကို ပယ်ဖျောက်နိုင်ခြင်းကြောင့် ဤသူသည် နောက်တစ်ဖန် အမေဝမ်း (ပဋိသန္ဓေ) သို့ မလာရောက်ရတော့ပြီ။' }
+        ];
+
+        // Functions & Core Logic
+        function showToast(msg) {
+            const toast = document.getElementById('toast-box');
+            if (!toast) return;
+            toast.textContent = msg;
+            toast.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-3');
+            toast.classList.add('opacity-100', 'translate-y-0');
+            setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'pointer-events-none', 'translate-y-3');
+            }, 2500);
+        }
+
+        function triggerHaptic(duration = 25) {
+            if (!vibrationEnabled) return;
+            try {
+                if (navigator.vibrate) navigator.vibrate(duration);
+            } catch (e) {}
+        }
+
+        function toggleVibration() {
+            vibrationEnabled = !vibrationEnabled;
+            const btn = document.getElementById('vibrate-toggle-btn');
+            const icon = document.getElementById('vibrate-icon');
+            if (vibrationEnabled) {
+                btn.className = 'w-9 h-9 rounded-xl bg-stone-900/90 active:scale-90 border border-stone-800 text-amber-300 flex items-center justify-center transition';
+                icon.className = 'ph-fill ph-vibrate text-base';
+                showToast('တုန်ခါမှု (Vibration) ဖွင့်ထားပါသည်');
+            } else {
+                btn.className = 'w-9 h-9 rounded-xl bg-stone-900/90 active:scale-90 border border-stone-800 text-stone-500 flex items-center justify-center transition';
+                icon.className = 'ph ph-vibrate text-base';
+                showToast('တုန်ခါမှု (Vibration) ပိတ်ထားပါသည်');
+            }
+        }
+
+        function toggleSound() {
+            soundEnabled = !soundEnabled;
+            const btn = document.getElementById('sound-toggle-btn');
+            const icon = document.getElementById('sound-icon');
+            if (soundEnabled) {
+                btn.className = 'w-9 h-9 rounded-xl bg-stone-900/90 active:scale-90 border border-stone-800 text-amber-300 flex items-center justify-center transition';
+                icon.className = 'ph-fill ph-speaker-high text-base';
+                showToast('အသံ ဖွင့်ထားပါသည်');
+            } else {
+                btn.className = 'w-9 h-9 rounded-xl bg-stone-900/90 active:scale-90 border border-stone-800 text-stone-500 flex items-center justify-center transition';
+                icon.className = 'ph ph-speaker-high text-base';
+                showToast('အသံ ပိတ်ထားပါသည်');
+            }
+        }
+
+        let audioCtx = null;
+        function playSingingBowl(isShort = false) {
+            if (!soundEnabled) return;
+            try {
+                if (!audioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContext();
+                }
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(isShort ? 320 : 216, now);
+
+                gain.gain.setValueAtTime(0.01, now);
+                gain.gain.linearRampToValueAtTime(isShort ? 0.25 : 0.4, now + 0.08);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + (isShort ? 0.9 : 2.8));
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + (isShort ? 0.95 : 2.9));
+            } catch (e) {}
+        }
+
+        function switchBottomTab(tabId) {
+            activeBottomTab = tabId;
+            const tabs = ['practice', 'mala', '528', 'sutta', 'merit'];
+            tabs.forEach(t => {
+                const view = document.getElementById(`view-${t}`);
+                const btn = document.getElementById(`tab-btn-${t}`);
+                if (!view || !btn) return;
+                if (t === tabId) {
+                    view.classList.remove('hidden');
+                    btn.className = 'flex flex-col items-center gap-1 text-amber-400 transition';
+                } else {
+                    view.classList.add('hidden');
+                    btn.className = 'flex flex-col items-center gap-1 text-stone-400 hover:text-stone-200 transition';
+                }
+            });
+            if (tabId === 'merit') {
+                renderStatsGrid();
+                updateAdhitthanaUI();
+            }
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function cycleFontSize() {
+            fontScaleStep = (fontScaleStep + 1) % 3;
+            const body = document.getElementById('app-body');
+            const btn = document.getElementById('font-size-btn');
+            body.classList.remove('font-scale-lg', 'font-scale-xl');
+
+            if (fontScaleStep === 1) {
+                body.classList.add('font-scale-lg');
+                btn.textContent = 'A++';
+                showToast('စာလုံးအရွယ်အစား (အလတ်) ပြောင်းထားပါသည်');
+            } else if (fontScaleStep === 2) {
+                body.classList.add('font-scale-xl');
+                btn.textContent = 'A-';
+                showToast('စာလုံးအရွယ်အစား (အကြီးဆုံး) ပြောင်းထားပါသည်');
+            } else {
+                btn.textContent = 'A+';
+                showToast('မူလ စာလုံးအရွယ်အစားသို့ ပြန်ပြောင်းထားပါသည်');
+            }
+        }
+
+        function renderSavedTargets() {
+            const listEl = document.getElementById('saved-targets-list');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            savedTargets.forEach((name, idx) => {
+                const isSelected = customTargetName === name;
+                const chip = document.createElement('div');
+                chip.className = `inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl text-xs whitespace-nowrap border shrink-0 transition cursor-pointer ${
+                    isSelected
+                        ? 'bg-amber-500/25 border-amber-400 text-amber-200 font-bold'
+                        : 'bg-stone-950 border-stone-800 text-stone-300'
+                }`;
+                chip.onclick = () => {
+                    document.getElementById('custom-target-input').value = name;
+                    updateCustomTarget(name);
+                    renderSavedTargets();
+                };
+                chip.innerHTML = `
+                    <span>${name}</span>
+                    ${idx >= 4 ? `<button onclick="event.stopPropagation(); removeSavedTarget(${idx});" class="text-stone-500 hover:text-rose-400 ml-0.5">&times;</button>` : ''}
+                `;
+                listEl.appendChild(chip);
+            });
+        }
+
+        function saveCurrentTargetName() {
+            const val = document.getElementById('custom-target-input').value.trim();
+            if (!val) {
+                showToast('မှတ်သားလိုသော အမည်ကို ဦးစွာ ရိုက်ထည့်ပါ');
+                return;
+            }
+            if (!savedTargets.includes(val)) {
+                savedTargets.push(val);
+                try {
+                    localStorage.setItem('brahmavihara_saved_targets', JSON.stringify(savedTargets));
+                } catch (e) {}
+                renderSavedTargets();
+                showToast(`"${val}" ကို မေတ္တာပို့စာရင်း၌ မှတ်သားပြီးပါပြီ`);
+            } else {
+                showToast('ဤအမည်မှာ စာရင်းထဲတွင် ရှိပြီးသားဖြစ်ပါသည်');
+            }
+        }
+
+        function removeSavedTarget(idx) {
+            savedTargets.splice(idx, 1);
+            try {
+                localStorage.setItem('brahmavihara_saved_targets', JSON.stringify(savedTargets));
+            } catch (e) {}
+            renderSavedTargets();
+        }
+
+        function render7DayTargets() {
+            const listEl = document.getElementById('day-targets-list');
+            if (!listEl) return;
+            listEl.innerHTML = '';
+
+            sevenDayGroups.forEach((groupName, idx) => {
+                const isSelected = customTargetName === groupName;
+                const shortLabel = groupName.replace(' သားသမီးအပေါင်း', '');
+                const btn = document.createElement('button');
+                btn.className = `px-2.5 py-1 rounded-xl text-xs whitespace-nowrap border shrink-0 transition active:scale-95 ${
+                    isSelected
+                        ? 'bg-amber-500 text-stone-950 border-amber-400 font-bold'
+                        : 'bg-stone-950 border-stone-800 text-stone-300'
+                }`;
+                btn.textContent = shortLabel;
+                btn.onclick = () => {
+                    current7DayIdx = idx;
+                    document.getElementById('custom-target-input').value = groupName;
+                    updateCustomTarget(groupName);
+                    render7DayTargets();
+                    renderSavedTargets();
+                };
+                listEl.appendChild(btn);
+            });
+        }
+
+        function start7DayCycle() {
+            current7DayIdx = (current7DayIdx + 1) % sevenDayGroups.length;
+            const groupName = sevenDayGroups[current7DayIdx];
+            document.getElementById('custom-target-input').value = groupName;
+            updateCustomTarget(groupName);
+            render7DayTargets();
+            renderSavedTargets();
+            triggerHaptic(20);
+            showToast(`"${groupName}" သို့ မေတ္တာပို့ရန် ရွေးချယ်ထားပါသည်`);
+        }
+
+        function toggleGuidedFlow() {
+            guidedFlowActive = !guidedFlowActive;
+            const btn = document.getElementById('guided-flow-btn');
+            const box = document.getElementById('simasambheda-box');
+            const status = document.getElementById('guided-flow-status');
+
+            if (guidedFlowActive) {
+                btn.textContent = 'ရပ်နားမည်';
+                btn.className = 'px-3 py-1.5 rounded-xl bg-amber-500 text-stone-950 text-xs font-bold shrink-0 active:scale-95';
+                box.classList.remove('hidden');
+                status.textContent = 'ပုတီး (၅) ချက်ပြည့်တိုင်း ပုဂ္ဂိုလ်အဆင့် အလိုအလျောက် တိုးပေးနေပါသည်';
+                currentTargetIndex = 0;
+                currentPhraseIndex = 0;
+                renderTargetButtons();
+                renderCurrentChant();
+                updateGuidedStepBadge();
+                showToast('ထေရဝါဒ အစဉ်လိုက် ပွားများနည်း စတင်ပါပြီ');
+            } else {
+                btn.textContent = 'စတင်မည်';
+                btn.className = 'px-3 py-1.5 rounded-xl bg-stone-800 border border-stone-700 text-amber-300 text-xs font-bold shrink-0 active:scale-95';
+                box.classList.add('hidden');
+                status.textContent = 'ပုတီးချတိုင်း ပုဂ္ဂိုလ်အဆင့်နှင့် စာသား အလိုအလျောက် ပြောင်းပေးစနစ်';
+                showToast('အစဉ်လိုက် ပွားများနည်း ရပ်နားထားပါသည်');
+            }
+        }
+
+        function updateGuidedStepBadge() {
+            const badge = document.getElementById('guided-step-badge');
+            if (badge) {
+                badge.textContent = `အဆင့် ${currentTargetIndex + 1}/5 (${targetLevels[currentTargetIndex].label})`;
+            }
+        }
+
+        async function toggleWakeLock() {
+            const btn = document.getElementById('wakelock-btn');
+            if (!wakeLockEnabled) {
+                try {
+                    if ('wakeLock' in navigator) {
+                        wakeLockSentinel = await navigator.wakeLock.request('screen');
+                    }
+                    wakeLockEnabled = true;
+                    btn.className = 'w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 flex items-center justify-center transition';
+                    showToast('ဘာဝနာပွားစဉ် ဖုန်းမျက်နှာပြင် မပိတ်စေရန် ထိန်းသိမ်းထားပါသည်');
+                } catch (e) {
+                    wakeLockEnabled = true;
+                    btn.className = 'w-9 h-9 rounded-xl bg-amber-500/20 border border-amber-500/50 text-amber-300 flex items-center justify-center transition';
+                    showToast('မျက်နှာပြင် မပိတ်စနစ် ဖွင့်ထားပါသည်');
+                }
+            } else {
+                try {
+                    if (wakeLockSentinel) await wakeLockSentinel.release();
+                } catch (e) {}
+                wakeLockSentinel = null;
+                wakeLockEnabled = false;
+                btn.className = 'w-9 h-9 rounded-xl bg-stone-900/90 border border-stone-800 text-stone-400 flex items-center justify-center transition';
+                showToast('မျက်နှာပြင် မပိတ်စနစ် ပိတ်ထားပါသည်');
+            }
+        }
+
+        function setSoundProfile(profile) {
+            soundProfile = profile;
+            ['kyeezee', 'wood', 'bell'].forEach(p => {
+                const el = document.getElementById(`sound-prof-${p}`);
+                if (!el) return;
+                if (p === profile) {
+                    el.className = 'px-2.5 py-1 rounded-lg bg-amber-500 text-stone-950 font-bold text-[11px] transition';
+                } else {
+                    el.className = 'px-2.5 py-1 rounded-lg text-stone-400 font-medium text-[11px] transition';
+                }
+            });
+            playCustomBeadSound();
+        }
+
+        function playCustomBeadSound() {
+            if (!soundEnabled) return;
+            if (soundProfile === 'kyeezee') {
+                playSingingBowl(true);
+                return;
+            }
+            try {
+                if (!audioCtx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    audioCtx = new AudioContext();
+                }
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const now = audioCtx.currentTime;
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+
+                if (soundProfile === 'wood') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(310, now);
+                    osc.frequency.exponentialRampToValueAtTime(140, now + 0.08);
+                    gain.gain.setValueAtTime(0.28, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 0.1);
+                } else {
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(880, now);
+                    gain.gain.setValueAtTime(0.18, now);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.1);
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+                    osc.start(now);
+                    osc.stop(now + 1.15);
+                }
+            } catch (e) {}
+        }
+
+        function toggleBreathGuide() {
+            breathGuideActive = !breathGuideActive;
+            const banner = document.getElementById('breath-guide-banner');
+            const toggleBtn = document.getElementById('breath-guide-toggle');
+
+            if (breathGuideActive) {
+                banner.classList.remove('hidden');
+                toggleBtn.className = 'px-2 py-1 rounded-lg bg-amber-500 text-stone-950 font-bold text-[10px] flex items-center gap-1';
+                updateBreathBannerText();
+                breathCycleTimer = setInterval(() => {
+                    breathInhalePhase = !breathInhalePhase;
+                    updateBreathBannerText();
+                }, 4000);
+            } else {
+                banner.classList.add('hidden');
+                toggleBtn.className = 'px-2 py-1 rounded-lg bg-stone-800 border border-stone-700 text-[10px] text-amber-300 flex items-center gap-1';
+                clearInterval(breathCycleTimer);
+            }
+        }
+
+        function updateBreathBannerText() {
+            const el = document.getElementById('live-breath-instruction');
+            if (!el) return;
+            if (breathInhalePhase) {
+                el.textContent = 'ဝင်လေရှူစဉ် (၄ စက္ကန့်) - "ကျွန်ုပ် ဘေးရန်ကင်း၍ ချမ်းသာပါစေ"';
+            } else {
+                el.textContent = 'ထွက်လေထုတ်စဉ် (၄ စက္ကန့်) - "သတ္တဝါအားလုံး ချမ်းသာကြပါစေ"';
+            }
+        }
+
+        function togglePreliminaryModal() {
+            const content = document.getElementById('prelim-content');
+            const btn = document.getElementById('prelim-toggle-btn');
+            if (!content) return;
+            content.classList.toggle('hidden');
+            btn.textContent = content.classList.contains('hidden') ? 'ဖွင့်ဖတ်ရန် ▼' : 'ပိတ်မည် ▲';
+        }
+
+        function switchMode(mode) {
+            currentMode = mode;
+            currentTargetIndex = 0;
+            currentPhraseIndex = 0;
+            customTargetName = '';
+            document.getElementById('custom-target-input').value = '';
+            document.getElementById('clear-target-btn').classList.add('hidden');
+
+            ['metta', 'karuna', 'mudita', 'upekkha'].forEach(m => {
+                const btn = document.getElementById(`mode-btn-${m}`);
+                if (!btn) return;
+                if (m === mode) {
+                    btn.className = 'py-2 px-1 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs flex flex-col items-center justify-center transition shadow';
+                } else {
+                    btn.className = 'py-2 px-1 rounded-xl text-stone-300 font-medium text-xs flex flex-col items-center justify-center transition';
+                }
+            });
+
+            const data = brahmaviharaData[mode];
+            document.getElementById('mode-title').textContent = data.title;
+            document.getElementById('mode-badge').textContent = data.badge;
+            document.getElementById('mode-desc').textContent = data.desc;
+
+            renderTargetButtons();
+            renderCurrentChant();
+            triggerHaptic(15);
+        }
+
+        function renderTargetButtons() {
+            const grid = document.getElementById('target-buttons-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            targetLevels.forEach((lvl, idx) => {
+                const isSelected = !customTargetName && currentTargetIndex === idx;
+                const btn = document.createElement('button');
+                btn.className = `py-1.5 px-1 rounded-xl text-[10px] font-medium transition truncate border ${
+                    isSelected
+                        ? 'bg-amber-500 text-stone-950 border-amber-400 font-bold shadow'
+                        : 'bg-stone-950 border-stone-800 text-stone-300'
+                }`;
+                btn.textContent = lvl.short;
+                btn.onclick = () => selectTargetLevel(idx);
+                grid.appendChild(btn);
+            });
+        }
+
+        function selectTargetLevel(idx) {
+            currentTargetIndex = idx;
+            customTargetName = '';
+            document.getElementById('custom-target-input').value = '';
+            document.getElementById('clear-target-btn').classList.add('hidden');
+            currentPhraseIndex = 0;
+            renderTargetButtons();
+            renderCurrentChant();
+            triggerHaptic(15);
+        }
+
+        function cycleTargetNext() {
+            currentTargetIndex = (currentTargetIndex + 1) % targetLevels.length;
+            customTargetName = '';
+            document.getElementById('custom-target-input').value = '';
+            document.getElementById('clear-target-btn').classList.add('hidden');
+            renderTargetButtons();
+            renderCurrentChant();
+            triggerHaptic(15);
+        }
+
+        function updateCustomTarget(val) {
+            customTargetName = val.trim();
+            const clearBtn = document.getElementById('clear-target-btn');
+            if (customTargetName) {
+                clearBtn.classList.remove('hidden');
+            } else {
+                clearBtn.classList.add('hidden');
+            }
+            renderTargetButtons();
+            renderCurrentChant();
+            renderSavedTargets();
+        }
+
+        function clearCustomTarget() {
+            customTargetName = '';
+            current7DayIdx = -1;
+            document.getElementById('custom-target-input').value = '';
+            document.getElementById('clear-target-btn').classList.add('hidden');
+            renderSavedTargets();
+            render7DayTargets();
+            renderCurrentChant();
+        }
+
+        function incrementBead() {
+            currentBeads++;
+            todayCount++;
+            stats[currentMode] = (stats[currentMode] || 0) + 1;
+
+            if (todayCount >= 108 && !completedVowDays.includes(streakDays)) {
+                completedVowDays.push(streakDays);
+            }
+            saveStats();
+
+            if (guidedFlowActive) {
+                const phrases = brahmaviharaData[currentMode].phrases;
+                currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+                if (currentPhraseIndex === 0) {
+                    currentTargetIndex = (currentTargetIndex + 1) % targetLevels.length;
+                    renderTargetButtons();
+                    updateGuidedStepBadge();
+                }
+                renderCurrentChant();
+            }
+
+            if (currentBeads >= malaTarget) {
+                completedRounds++;
+                currentBeads = 0;
+                playSingingBowl(false);
+                triggerHaptic([80, 100, 80]);
+                showToast(`ပုတီး (${malaTarget}) လုံးပြည့်၍ (${completedRounds}) ပတ် ပြည့်မြောက်ပါပြီ။ သာဓု သာဓု သာဓု!`);
+            } else {
+                playCustomBeadSound();
+                triggerHaptic(22);
+            }
+
+            triggerRippleEffect();
+            updateMalaUI();
+            updateAdhitthanaUI();
+            renderVowGrid();
+        }
+
+        function toggleAutoPacer() {
+            if (isAutoPacing) {
+                clearInterval(autoPacerInterval);
+                isAutoPacing = false;
+                const btn = document.getElementById('auto-pace-btn');
+                btn.textContent = 'ဖွင့်မည်';
+                btn.className = 'px-3 py-1.5 rounded-xl bg-amber-500/20 border border-amber-500/40 text-amber-300 text-xs font-bold';
+                showToast('အလိုအလျောက် ပုတီးချစနစ် ရပ်နားထားပါသည်');
+            } else {
+                isAutoPacing = true;
+                const secs = parseInt(document.getElementById('auto-pace-seconds').value, 10) || 6;
+                const btn = document.getElementById('auto-pace-btn');
+                btn.textContent = 'ရပ်မည်';
+                btn.className = 'px-3 py-1.5 rounded-xl bg-rose-500 text-white text-xs font-bold animate-pulse';
+                showToast(`(${secs}) စက္ကန့်လျှင် တစ်ကြိမ် အလိုအလျောက် ပုတီးချပေးနေပါပြီ`);
+                autoPacerInterval = setInterval(() => {
+                    incrementBead();
+                }, secs * 1000);
+            }
+        }
+
+        function changeAutoPaceInterval() {
+            if (isAutoPacing) {
+                toggleAutoPacer();
+                toggleAutoPacer();
+            }
+        }
+
+        function triggerRippleEffect() {
+            const countBig = document.getElementById('mala-count-big');
+            if (!countBig) return;
+            countBig.classList.add('ripple-anim');
+            setTimeout(() => countBig.classList.remove('ripple-anim'), 250);
+        }
+
+        function resetCurrentBeads() {
+            currentBeads = 0;
+            completedRounds = 0;
+            updateMalaUI();
+            triggerHaptic(30);
+            showToast('ပုတီးရေတွက်မှု အစမှ ပြန်စလိုက်ပါပြီ');
+        }
+
+        function setMalaTarget(t) {
+            malaTarget = t;
+            [27, 54, 108].forEach(target => {
+                const btn = document.getElementById(`mala-target-${target}`);
+                if (!btn) return;
+                if (target === t) {
+                    btn.className = 'px-3 py-1 rounded-lg bg-amber-500 text-stone-950 font-bold';
+                } else {
+                    btn.className = 'px-3 py-1 rounded-lg text-stone-400 font-medium';
+                }
+            });
+            updateMalaUI();
+            showToast(`ပုတီးပန်းတိုင် (${t}) လုံးသို့ ပြောင်းလဲပြီးပါပြီ`);
+        }
+
+        function updateMalaUI() {
+            const bigCount = document.getElementById('mala-count-big');
+            if (bigCount) bigCount.textContent = currentBeads;
+
+            const visCount = document.getElementById('mala-visual-count');
+            if (visCount) visCount.textContent = currentBeads;
+
+            const targetLbl = document.getElementById('mala-target-label');
+            if (targetLbl) targetLbl.textContent = malaTarget;
+
+            const roundsLbl = document.getElementById('mala-rounds-label');
+            if (roundsLbl) roundsLbl.textContent = completedRounds;
+
+            const roundsCard = document.getElementById('completed-rounds');
+            if (roundsCard) roundsCard.textContent = completedRounds;
+
+            const targetDisplay = document.getElementById('target-display');
+            if (targetDisplay) targetDisplay.textContent = malaTarget;
+
+            const headerTotal = document.getElementById('header-total-count');
+            const totalAll = Object.values(stats).reduce((a, b) => a + b, 0);
+            if (headerTotal) headerTotal.textContent = totalAll;
+        }
+
+        function nextPhrase() {
+            const phrases = brahmaviharaData[currentMode].phrases;
+            currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+            renderCurrentChant();
+        }
+
+        function prevPhrase() {
+            const phrases = brahmaviharaData[currentMode].phrases;
+            currentPhraseIndex = (currentPhraseIndex - 1 + phrases.length) % phrases.length;
+            renderCurrentChant();
+        }
+
+        function renderCurrentChant() {
+            const phrases = brahmaviharaData[currentMode].phrases;
+            const phrase = phrases[currentPhraseIndex] || phrases[0];
+
+            document.getElementById('phrase-counter').textContent = `${currentPhraseIndex + 1} / ${phrases.length}`;
+
+            let labelText = '';
+            if (customTargetName) {
+                labelText = `[သီးသန့်] ${customTargetName}`;
+            } else {
+                labelText = `[${currentTargetIndex + 1}] ${targetLevels[currentTargetIndex].label}`;
+            }
+            document.getElementById('target-display-label').textContent = labelText;
+
+            let targetSubject = customTargetName || targetLevels[currentTargetIndex].label;
+            document.getElementById('recitation-pali').textContent = `"${phrase.pali}"`;
+            document.getElementById('recitation-burmese').textContent = `"${targetSubject} အပေါ် - ${phrase.mm}"`;
+        }
+
+        // Timer State
+        let timerInterval = null;
+        let timerSecondsRemaining = 900;
+        let timerTotalSeconds = 900;
+
+        function startTimer(minutes) {
+            stopTimer();
+            timerTotalSeconds = minutes * 60;
+            timerSecondsRemaining = timerTotalSeconds;
+            renderTimerDisplay();
+
+            timerInterval = setInterval(() => {
+                timerSecondsRemaining--;
+                renderTimerDisplay();
+                if (timerSecondsRemaining <= 0) {
+                    stopTimer();
+                    playSingingBowl(false);
+                    showToast('ဘာဝနာ အချိန်ပြည့်မြောက်ပါပြီ။ သာဓု သာဓု သာဓု!');
+                }
+            }, 1000);
+            showToast(`ဘာဝနာ အချိန် (${minutes}) မိနစ် စတင်ပါပြီ`);
+        }
+
+        function stopTimer() {
+            if (timerInterval) clearInterval(timerInterval);
+            timerInterval = null;
+        }
+
+        function renderTimerDisplay() {
+            const mins = Math.floor(timerSecondsRemaining / 60);
+            const secs = timerSecondsRemaining % 60;
+            const disp = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            const el = document.getElementById('timer-display');
+            if (el) el.textContent = disp;
+        }
+        setInterval(renderTimerDisplay, 500);
+
+        // 528 & 10-Direction Logic
+        function render528UI() {
+            const dir = directions528[current528DirIndex];
+            if (!dir) return;
+
+            document.getElementById('badge-528-step').textContent = `${current528DirIndex + 1} / 10`;
+            document.getElementById('active-528-category').textContent = `${current528DirIndex + 1}။ ${dir.name}`;
+            document.getElementById('active-528-tag').textContent = 'အရပ် (၁၀) မျက်နှာ မေတ္တာစက်ဝိုင်း';
+            document.getElementById('active-528-pali').textContent = `${dir.paliPrefix} သဗ္ဗေ သတ္တာ အဝေရာ ဟောန္တု...`;
+            document.getElementById('active-528-burmese').textContent =
+                `"${dir.mm} ရှိကြကုန်သော သတ္တဝါအပေါင်းတို့ ဘေးရန်ကင်းကြပါစေ၊ ဆင်းရဲကင်းကြပါစေ၊ ကိုယ်စိတ်နှစ်ဖြာ ချမ်းသာကြပါစေကုန်သတည်း။"`;
+        }
+
+        function next528Person() {
+            current528DirIndex = (current528DirIndex + 1) % directions528.length;
+            render528UI();
+            render10DirCompassUI();
+        }
+
+        function prev528Person() {
+            current528DirIndex = (current528DirIndex - 1 + directions528.length) % directions528.length;
+            render528UI();
+            render10DirCompassUI();
+        }
+
+        function chant528AndNext() {
+            incrementBead();
+            if (!completed10Dirs.includes(current528DirIndex)) {
+                completed10Dirs.push(current528DirIndex);
+            }
+            current528DirIndex = (current528DirIndex + 1) % directions528.length;
+            render528UI();
+            render10DirCompassUI();
+            showToast('ဤအရပ်သို့ မေတ္တာပို့ပြီးပါပြီ (+၁ ပုတီး)');
+        }
+
+        function open10DirectionsSection() {
+            switchBottomTab('528');
+            setTimeout(() => {
+                const card = document.getElementById('ten-directions-card');
+                if (card) card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 120);
+        }
+
+        function set10DirFormula(formula) {
+            current10DirFormula = formula;
+            ['ananta', 'pali', 'poem', 'brahma4'].forEach(f => {
+                const btn = document.getElementById(`formula-btn-${f}`);
+                if (!btn) return;
+                if (f === formula) {
+                    btn.className = 'py-1.5 px-2 rounded-xl bg-amber-500 text-stone-950 font-bold transition';
+                } else {
+                    btn.className = 'py-1.5 px-2 rounded-xl text-stone-300 font-medium transition';
+                }
+            });
+            render10DirCompassUI();
+        }
+
+        function select10DirCompass(dirIdx) {
+            current528DirIndex = dirIdx;
+            triggerHaptic(15);
+            render528UI();
+            render10DirCompassUI();
+        }
+
+        function render10DirCompassUI() {
+            const dir = directions10[current528DirIndex];
+            if (!dir) return;
+
+            const realmNotes = [
+                'မိမိ၏ အရှေ့တည့်တည့် အနန္တစကြဝဠာတိုက်သို့ အာရုံပြုပါ',
+                'မိမိ၏ အနောက်ဘက် အနန္တစကြဝဠာတိုက်သို့ အာရုံပြုပါ',
+                'မိမိ၏ မြောက်ဘက် အနန္တစကြဝဠာတိုက်သို့ အာရုံပြုပါ',
+                'မိမိ၏ တောင်ဘက် အနန္တစကြဝဠာတိုက်သို့ အာရုံပြုပါ',
+                'မိမိ၏ အရှေ့တောင်ထောင့် အနန္တစကြဝဠာသို့ အာရုံပြုပါ',
+                'မိမိ၏ အနောက်မြောက်ထောင့် အနန္တစကြဝဠာသို့ အာရုံပြုပါ',
+                'မိမိ၏ အရှေ့မြောက်ထောင့် အနန္တစကြဝဠာသို့ အာရုံပြုပါ',
+                'မိမိ၏ အနောက်တောင်ထောင့် အနန္တစကြဝဠာသို့ အာရုံပြုပါ',
+                'မိမိအောက်ဘက် မြေပြင်မှ အဝီစိငရဲတိုင်အောင် အာရုံပြုပါ',
+                'မိမိအထက်ဘက် နတ်ပြည် (၆) ထပ်မှ ဘဝဂ်ဗြဟ္မာ့ပြည်တိုင်အောင် အာရုံပြုပါ'
+            ];
+
+            for (let i = 0; i < 10; i++) {
+                const cell = document.getElementById(`compass-cell-${i}`);
+                if (!cell) continue;
+                const isSelected = i === current528DirIndex;
+                const isDone = completed10Dirs.includes(i);
+
+                if (i === 8 || i === 9) {
+                    cell.className = `w-full py-2 px-3 rounded-2xl flex items-center justify-between text-xs transition ${
+                        isSelected
+                            ? 'bg-amber-500/25 border-2 border-amber-400 shadow-lg'
+                            : isDone
+                            ? 'bg-emerald-950/40 border border-emerald-500/40'
+                            : 'bg-stone-950 border border-stone-800'
+                    }`;
+                } else {
+                    cell.className = `p-2.5 rounded-2xl flex flex-col items-center justify-center text-center transition ${
+                        isSelected
+                            ? 'bg-amber-500/25 border-2 border-amber-400 shadow-lg scale-[1.02]'
+                            : isDone
+                            ? 'bg-emerald-950/40 border border-emerald-500/40'
+                            : 'bg-stone-950 border border-stone-800'
+                    }`;
+                }
+            }
+
+            const centerLbl = document.getElementById('compass-active-label');
+            if (centerLbl) centerLbl.textContent = `${current528DirIndex + 1}။ ${dir.name}`;
+
+            const titleEl = document.getElementById('dir10-Selected-Title');
+            if (titleEl) titleEl.textContent = `${current528DirIndex + 1}။ ${dir.name} (${dir.paliPrefix.trim()})`;
+
+            const noteEl = document.getElementById('dir10-Realm-Note');
+            if (noteEl) noteEl.textContent = realmNotes[current528DirIndex] || '';
+
+            const progEl = document.getElementById('dir10-progress-badge');
+            if (progEl) progEl.textContent = `${completed10Dirs.length} / 10 အရပ်`;
+
+            const paliEl = document.getElementById('dir10-pali-line');
+            const verseEl = document.getElementById('traditional-10dir-verse');
+            if (!verseEl) return;
+
+            if (current10DirFormula === 'ananta') {
+                paliEl.classList.add('hidden');
+                verseEl.textContent = `"${dir.mm} အနန္တစကြဝဠာ အနန္တသတ္တဝါတို့ ဘေးရန်ခပ်သိမ်း ငြိမ်းကြပါစေ၊ ဒေါသခပ်သိမ်း ငြိမ်းကြပါစေ၊ ဆင်းရဲခပ်သိမ်း ငြိမ်းကြပါစေ၊ နှလုံးစိတ်ဝမ်း အေးချမ်းကြပါစေ။"`;
+            } else if (current10DirFormula === 'pali') {
+                paliEl.classList.remove('hidden');
+                paliEl.textContent = `${dir.paliPrefix}သဗ္ဗေ သတ္တာ အဝေရာ ဟောန္တု၊ အဗျာပဇ္ဇာ ဟောန္တု၊ အနီဃာ ဟောန္တု၊ သုခီ အတ္တာနံ ပရိဟရန္တု။`;
+                verseEl.textContent = `"${dir.mm} သတ္တဝါအားလုံးတို့သည် ဘေးရန်ကင်းကြပါစေ၊ စိုးရိမ်ကြောင့်ကြကင်းကြပါစေ၊ ဆင်းရဲဒုက္ခကင်းကြပါစေ၊ ကိုယ်စိတ်နှစ်ဖြာ ချမ်းသာစွာဖြင့် မိမိတို့ခန္ဓာဝန်ကို ရွက်ဆောင်နိုင်ကြပါစေကုန်သတည်း။"`;
+            } else if (current10DirFormula === 'poem') {
+                paliEl.classList.add('hidden');
+                verseEl.textContent = `"${dir.name}၌ ရှိကြကုန်သော သတ္တဝါအပေါင်း ချမ်းသာကိုယ်စိတ် မြဲပါစေ၊ ဥပဒ်ရန်ဘေး ကင်းစင်ဝေး ငြိမ်းအေးကြပါစေ။ ကြောင့်ကြပူပန် ကင်းစင်ပြန် ဘေးရန်ကင်းပါစေ။"`;
+            } else {
+                paliEl.classList.add('hidden');
+                verseEl.textContent = `"${dir.mm} သတ္တဝါအပေါင်းတို့ ဘေးရန်ကင်း၍ ချမ်းသာကြပါစေ (မေတ္တာ)၊ ဆင်းရဲဒုက္ခအပေါင်းမှ လွတ်မြောက်ကြပါစေ (ကရုဏာ)၊ ရရှိပြီးသော စည်းစိမ်ချမ်းသာမှ မယုတ်လျော့ကြပါစေနှင့် (မုဒိတာ)၊ ကံသာလျှင် ကိုယ်ပိုင်ဥစ္စာရှိသည်ဖြစ်၍ အကျိုးပေးသင့်သလို တည်ကြပါစေ (ဥပေက္ခာ)။"`;
+            }
+        }
+
+        function radiateCurrent10DirAndNext() {
+            if (!completed10Dirs.includes(current528DirIndex)) {
+                completed10Dirs.push(current528DirIndex);
+            }
+            incrementBead();
+
+            if (completed10Dirs.length === 10) {
+                playSingingBowl(false);
+                showToast('အရပ် (၁၀) မျက်နှာလုံးသို့ မေတ္တာပို့လွှတ်မှု ပြည့်စုံပါပြီ! သာဓု သာဓု သာဓု!');
+            }
+
+            current528DirIndex = (current528DirIndex + 1) % 10;
+            render528UI();
+            render10DirCompassUI();
+        }
+
+        function reset10DirProgress() {
+            completed10Dirs = [];
+            current528DirIndex = 0;
+            if (auto10DirTimer) {
+                clearInterval(auto10DirTimer);
+                auto10DirTimer = null;
+                const btn = document.getElementById('auto-10dir-btn');
+                if (btn) {
+                    btn.textContent = 'အလိုအလျောက်လှည့်';
+                    btn.className = 'px-3 py-2.5 rounded-2xl bg-stone-800 border border-stone-700 text-amber-300 text-xs font-semibold shrink-0 active:scale-95';
+                }
+            }
+            render528UI();
+            render10DirCompassUI();
+            showToast('အရပ် (၁၀) မျက်နှာ အသစ်ပြန်လည် စတင်ပါပြီ');
+        }
+
+        function toggleAuto10DirTour() {
+            const btn = document.getElementById('auto-10dir-btn');
+            if (auto10DirTimer) {
+                clearInterval(auto10DirTimer);
+                auto10DirTimer = null;
+                btn.textContent = 'အလိုအလျောက်လှည့်';
+                btn.className = 'px-3 py-2.5 rounded-2xl bg-stone-800 border border-stone-700 text-amber-300 text-xs font-semibold shrink-0 active:scale-95';
+                showToast('အရပ် (၁၀) မျက်နှာ အလိုအလျောက်လှည့်ပတ်မှု ရပ်နားထားပါသည်');
+            } else {
+                btn.textContent = 'ရပ်မည်';
+                btn.className = 'px-3 py-2.5 rounded-2xl bg-rose-500 text-white text-xs font-bold shrink-0 animate-pulse';
+                showToast('၆ စက္ကန့်လျှင် တစ်ရပ်နှုန်းဖြင့် အရပ် (၁၀) မျက်နှာ အလှည့်ကျ မေတ္တာပို့နေပါပြီ');
+                auto10DirTimer = setInterval(() => {
+                    radiateCurrent10DirAndNext();
+                }, 6000);
+            }
+        }
+
+        function toggle10DirGuide() {
+            const box = document.getElementById('dir10-guide-content');
+            const caret = document.getElementById('dir10-guide-caret');
+            if (!box) return;
+            box.classList.toggle('hidden');
+            if (caret) {
+                caret.className = box.classList.contains('hidden') ? 'ph-bold ph-caret-down' : 'ph-bold ph-caret-up';
+            }
+        }
+
+        function renderMettaSutta() {
+            const container = document.getElementById('metta-sutta-full');
+            if (!container) return;
+            container.innerHTML = '';
+
+            mettaSuttaPaliData.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'p-3 rounded-xl bg-stone-950 border border-stone-800 space-y-1';
+                card.innerHTML = `
+                    <div class="text-[10px] text-amber-400 font-bold">အပိုဒ် - (${index + 1})</div>
+                    <div class="text-amber-200/90 font-medium">${item.pali}</div>
+                    <div class="text-stone-300 text-[11px]">${item.mm}</div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function switchSuttaSubtab(sub) {
+            const suttaBox = document.getElementById('sutta-content-box');
+            const benBox = document.getElementById('benefits-content-box');
+            const chantsBox = document.getElementById('chants-content-box');
+
+            const suttaBtn = document.getElementById('subtab-sutta-btn');
+            const benBtn = document.getElementById('subtab-benefits-btn');
+            const chantsBtn = document.getElementById('subtab-chants-btn');
+
+            suttaBox.classList.add('hidden');
+            benBox.classList.add('hidden');
+            chantsBox.classList.add('hidden');
+
+            suttaBtn.className = 'py-2 rounded-xl text-stone-300 font-medium text-xs transition';
+            benBtn.className = 'py-2 rounded-xl text-stone-300 font-medium text-xs transition';
+            chantsBtn.className = 'py-2 rounded-xl text-stone-300 font-medium text-xs transition';
+
+            if (sub === 'sutta') {
+                suttaBox.classList.remove('hidden');
+                suttaBtn.className = 'py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs transition';
+            } else if (sub === 'benefits') {
+                benBox.classList.remove('hidden');
+                benBtn.className = 'py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs transition';
+            } else {
+                chantsBox.classList.remove('hidden');
+                chantsBtn.className = 'py-2 rounded-xl bg-amber-500 text-stone-950 font-bold text-xs transition';
+            }
+        }
+
+        function updateAdhitthanaUI() {
+            const textEl = document.getElementById('today-progress-text');
+            const barEl = document.getElementById('today-progress-bar');
+            const msgEl = document.getElementById('adhitthana-status-msg');
+            const streakEl = document.getElementById('streak-days-badge');
+            if (!textEl || !barEl) return;
+
+            const pct = Math.min(100, Math.round((todayCount / 108) * 100));
+            textEl.textContent = `${todayCount} / 108 (${pct}%)`;
+            barEl.style.width = `${pct}%`;
+            if (streakEl) streakEl.textContent = streakDays;
+
+            if (todayCount >= 108) {
+                msgEl.textContent = '✨ ယနေ့ အဓိဋ္ဌာန် (၁၀၈) ကြိမ် ပြည့်မြောက်ပါပြီ။ သာဓု သာဓု သာဓု!';
+                msgEl.className = 'text-[11px] text-emerald-400 font-semibold';
+            } else {
+                msgEl.textContent = `ယနေ့ အဓိဋ္ဌာန် ပြည့်ရန် (${108 - todayCount}) ကြိမ် ကျန်ရှိပါသည်`;
+                msgEl.className = 'text-[11px] text-stone-400';
+            }
+        }
+
+        function setVowDuration(days) {
+            vowDuration = days;
+            [9, 27, 45].forEach(d => {
+                const btn = document.getElementById(`vow-btn-${d}`);
+                if (!btn) return;
+                if (d === days) {
+                    btn.className = 'px-2 py-0.5 rounded-lg bg-amber-500 text-stone-950 font-bold';
+                } else {
+                    btn.className = 'px-2 py-0.5 rounded-lg text-stone-400';
+                }
+            });
+            try {
+                localStorage.setItem('brahmavihara_vow_duration', String(days));
+            } catch (e) {}
+            renderVowGrid();
+        }
+
+        function renderVowGrid() {
+            const grid = document.getElementById('vow-days-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            for (let day = 1; day <= vowDuration; day++) {
+                const isDone = completedVowDays.includes(day);
+                const cell = document.createElement('button');
+                cell.className = `h-8 rounded-lg text-[10px] font-bold flex flex-col items-center justify-center border transition active:scale-90 ${
+                    isDone
+                        ? 'bg-amber-500/25 border-amber-400 text-amber-300 shadow-sm'
+                        : 'bg-stone-950 border-stone-800 text-stone-500'
+                }`;
+                cell.innerHTML = isDone ? `<i class="ph-fill ph-lotus text-amber-400 text-xs"></i><span>${day}</span>` : `<span>${day}</span>`;
+                cell.onclick = () => toggleVowDay(day);
+                grid.appendChild(cell);
+            }
+        }
+
+        function toggleVowDay(day) {
+            const idx = completedVowDays.indexOf(day);
+            if (idx >= 0) {
+                completedVowDays.splice(idx, 1);
+            } else {
+                completedVowDays.push(day);
+                triggerHaptic(20);
+                showToast(`အဓိဋ္ဌာန် (${day}) ရက်မြောက်နေ့ အောင်မြင်စွာ မှတ်သားပြီးပါပြီ`);
+            }
+            saveStats();
+            renderVowGrid();
+        }
+
+        function shareMeritRecord() {
+            const totalAll = Object.values(stats).reduce((a, b) => a + b, 0);
+            const shareText = `🙏 ဗြဟ္မစိုရ်တရား (၄) ပါး ပွားများမှု ကုသိုလ်မှတ်တမ်း 🙏\n• မေတ္တာ: ${stats.metta || 0} ကြိမ်\n• ကရုဏာ: ${stats.karuna || 0} ကြိမ်\n• မုဒိတာ: ${stats.mudita || 0} ကြိမ်\n• ဥပေက္ခာ: ${stats.upekkha || 0} ကြိမ်\n• စုစုပေါင်း: ${totalAll} ကြိမ်\n\nဤကုသိုလ်ကောင်းမှု၏ အဖို့ဘာဂကို သတ္တဝါအားလုံးတို့အား အမျှပေးဝေပါကုန်၏။ အမျှ... အမျှ... အမျှ... ယူတော်မူကြပါကုန်သော်... သာဓု သာဓု သာဓု!`;
+
+            const tempArea = document.createElement('textarea');
+            tempArea.value = shareText;
+            document.body.appendChild(tempArea);
+            tempArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempArea);
+
+            triggerHaptic(30);
+            showToast('ကုသိုလ်မှတ်တမ်းနှင့် အမျှဝေစာသားကို ကူးယူပြီးပါပြီ');
+        }
+
+        function renderStatsGrid() {
+            const grid = document.getElementById('stats-grid');
+            if (!grid) return;
+            grid.innerHTML = '';
+
+            const labels = {
+                metta: '💛 မေတ္တာဘာဝနာ',
+                karuna: '💙 ကရုဏာဘာဝနာ',
+                mudita: '💚 မုဒိတာဘာဝနာ',
+                upekkha: '🤍 ဥပေက္ခာဘာဝနာ'
+            };
+
+            ['metta', 'karuna', 'mudita', 'upekkha'].forEach(m => {
+                const count = stats[m] || 0;
+                const card = document.createElement('div');
+                card.className = 'p-3 rounded-xl bg-stone-950 border border-stone-800 flex flex-col justify-between';
+                card.innerHTML = `
+                    <div class="text-[11px] text-stone-400 font-medium">${labels[m]}</div>
+                    <div class="text-base font-bold text-amber-300 mt-1">${count} <span class="text-xs text-stone-400 font-normal">ကြိမ်</span></div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function loadStats() {
+            try {
+                const saved = localStorage.getItem('brahmavihara_stats_v1');
+                if (saved) stats = JSON.parse(saved);
+
+                const savedNames = localStorage.getItem('brahmavihara_saved_targets');
+                if (savedNames) savedTargets = JSON.parse(savedNames);
+
+                const savedVowDur = parseInt(localStorage.getItem('brahmavihara_vow_duration') || '9', 10);
+                if ([9, 27, 45].includes(savedVowDur)) vowDuration = savedVowDur;
+
+                const savedVowList = localStorage.getItem('brahmavihara_vow_days');
+                if (savedVowList) completedVowDays = JSON.parse(savedVowList);
+
+                const todayKey = new Date().toISOString().slice(0, 10);
+                const savedDate = localStorage.getItem('brahmavihara_last_date');
+                const savedTodayCount = parseInt(localStorage.getItem('brahmavihara_today_count') || '0', 10);
+                const savedStreak = parseInt(localStorage.getItem('brahmavihara_streak') || '1', 10);
+
+                if (savedDate === todayKey) {
+                    todayCount = savedTodayCount;
+                    streakDays = savedStreak;
+                } else {
+                    todayCount = 0;
+                    streakDays = savedDate ? savedStreak + 1 : 1;
+                    localStorage.setItem('brahmavihara_last_date', todayKey);
+                }
+            } catch (e) {}
+        }
+
+        function saveStats() {
+            try {
+                localStorage.setItem('brahmavihara_stats_v1', JSON.stringify(stats));
+                localStorage.setItem('brahmavihara_today_count', String(todayCount));
+                localStorage.setItem('brahmavihara_streak', String(streakDays));
+                localStorage.setItem('brahmavihara_vow_days', JSON.stringify(completedVowDays));
+            } catch (e) {}
+        }
+
+        window.onload = function () {
+            loadStats();
+            switchMode('metta');
+            renderSavedTargets();
+            render7DayTargets();
+            updateMalaUI();
+            renderTimerDisplay();
+            render528UI();
+            render10DirCompassUI();
+            renderMettaSutta();
+            renderStatsGrid();
+            updateAdhitthanaUI();
+            setVowDuration(vowDuration);
+        };
+    </script>
+
+    <!-- Suite shared modules (command palette, nav rail, PWA, app lock, cloud sync) -->
+    <script defer src="_palette.js"></script>
+    <script defer src="_navrail.js"></script>
+    <script defer src="_ui.js"></script>
+    <script defer src="_pwa.js"></script>
+    <script defer src="_settings.js"></script>
+    <script defer src="_applock.js"></script>
+    <script defer src="_cloudsync.js"></script>
+</body>
+</html>
